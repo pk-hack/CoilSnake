@@ -9,6 +9,8 @@ class MapModule(EbModule):
 
     _tiles = []
 
+    def __init__(self):
+        self._tiles = []
     def readFromRom(self, rom):
         map_addrs = map(lambda x: rom.readMulti(self._MAP_PTRS_ADDR+x*4,4),
             range(8))

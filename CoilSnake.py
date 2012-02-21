@@ -18,7 +18,7 @@ def loadModules():
             mod = __import__("modules." + prefix, fromlist=[modname])
             _modules.append(mod)
 
-def main(*argv):
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--cleanrom', dest='cleanrom', required=False,
         type=argparse.FileType('rb'), help="a clean, unmodified ROM")
@@ -56,4 +56,4 @@ def main(*argv):
         output.save(args.output)
 
 if (__name__ == '__main__'):
-    sys.exit(main(*sys.argv))
+    sys.exit(main())
