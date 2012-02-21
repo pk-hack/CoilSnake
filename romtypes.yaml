@@ -1,0 +1,5 @@
+#Note: All offsets are for UNHEADERED roms
+
+Earthbound:
+    offset: 0x1ee05 # New game pointer, should prolly be something else
+    data: [0xa9, 0x5e, 0xc0, 0x85, 0x12, 0xa9, 0xc4, 0x00]
