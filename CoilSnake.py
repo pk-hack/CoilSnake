@@ -5,18 +5,18 @@ import sys
 import os
 
 import Rom
-from modules import *
-from modules.eb import *
-
-_modules = []
 
 def loadModules():
-    _modules = []
+    modules = []
     with open('modulelist.txt', 'r') as f:
         for line in f:
-            prefix, modname = line.split(".")
-            mod = __import__("modules." + prefix, fromlist=[modname])
-            _modules.append(mod)
+            line = "modules." + line.rstrip('\n')
+            mod = __import__(line)
+            components = line.split('.')
+            for comp in components[1:]:
+                mod = getattr(mod, comp)
+            modules.append(getattr(mod,components[-1])())
+    return modules
 
 def main():
     parser = argparse.ArgumentParser()
@@ -33,6 +33,8 @@ def main():
         print >> sys.stderr, "ERROR: Need a clean ROM to export to ROM"
         return
 
+    modules = loadModules()
+
     # Load data into modules
     if os.path.splitext(args.input.name)[1] == ".csp":
         # TODO load project file
@@ -40,7 +42,7 @@ def main():
     else:
         input = Rom.Rom("romtypes.yaml")
         input.load(args.input)
-        for m in filter(lambda x: x.compatibleWithRom(input), _modules):
+        for m in filter(lambda x: x.compatibleWithRom(input), modules):
             m.readFromRom(input)
 
     # Save data from modules
@@ -49,9 +51,8 @@ def main():
         pass
     else:
         output = Rom.Rom("romtypes.yaml")
-        print len(output)
         output.load(args.cleanrom)
-        for m in filter(lambda x: x.compatibleWithRom(output), _modules):
+        for m in filter(lambda x: x.compatibleWithRom(output), modules):
             m.writeToRom(output)
         output.save(args.output)
 
