@@ -7,6 +7,12 @@ How To Run
 ----------
 
 Examples:
-* ./CoilSnake.py EB.smc MyProject/MyProject.csp
-* ./CoilSnake.py --cleanrom EB-clean.smc MyProject/MyProject.csp EB-new.smc
+
+Importing from ROM to CoilSnake project:
+
+    ./CoilSnake.py EB.smc MyProject/MyProject.csp
+
+Compiling CoilSnake project into a ROM:
+
+    ./CoilSnake.py --cleanrom EB-clean.smc MyProject/MyProject.csp EB-new.smc
 
