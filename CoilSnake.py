@@ -42,8 +42,10 @@ def main():
     else:
         input = Rom.Rom("romtypes.yaml")
         input.load(args.input)
+        print "Importing from", args.input.name, "(", input.type(), ")"
         for m in filter(lambda x: x.compatibleWithRom(input), modules):
             m.readFromRom(input)
+            print "-", m.name(), "Module"
 
     # Save data from modules
     if output_is_proj:
@@ -52,8 +54,11 @@ def main():
     else:
         output = Rom.Rom("romtypes.yaml")
         output.load(args.cleanrom)
+        print "Loaded", args.cleanrom.name, "(", output.type(), ")"
+        print "Exporting to", args.output, "(", output.type(), ")"
         for m in filter(lambda x: x.compatibleWithRom(output), modules):
             m.writeToRom(output)
+            print "-", m.name(), "Module"
         output.save(args.output)
 
 if (__name__ == '__main__'):

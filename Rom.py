@@ -15,25 +15,48 @@ class Rom:
             self._type_map = yaml.load(f)
     def checkRomType(self):
         for t, d in self._type_map.iteritems():
-            offset, data = d['offset'], d['data']
-            if self[offset:offset+len(data)] == data:
-                return (t, False)
-            # Check for a headered ROM
-            elif self[offset+0x200:offset+0x200+len(data)] == data:
-                return (t, True)
+            offset, data, system = d['offset'], d['data'], d['system']
+
+            if (system == "SNES"):
+                # Validate the ROM and check if it's headered
+
+                # Check for unheadered HiROM
+                if (~self[0xffdc] & 0xff == self[0xffde]) \
+                        and (~self[0xffdd] & 0xff == self[0xffdf]) \
+                        and (self[offset:offset+len(data)] == data):
+                    return t
+                # Check for unheadered LoROM
+                elif (~self[0x7fdc] & 0xff == self[0x7fde]) \
+                        and (~self[0x7fdd] & 0xff == self[0x7fdf]) \
+                        and (self[offset:offset+len(data)] == data):
+                    return t
+                # Check for headered HiROM
+                elif (~self[0x101dc] & 0xff == self[0x101de]) \
+                        and (~self[0x101dd] & 0xff == self[0x101df]) \
+                        and (self[offset+0x200:offset+0x200+len(data)]==data):
+                    # Remove header
+                    self._data = self._data[0x200:]
+                    self._size -= 0x200
+                    return t                   
+                # Check for unheadered LoROM
+                elif (~self[0x81dc] & 0xff == self[0x81de]) \
+                        and (~self[0x81dd] & 0xff == self[0x81df]) \
+                        and (self[offset+0x200:offset+0x200+len(data)]==data):
+                    # Remove header
+                    self._data = self._data[0x200:]
+                    self._size -= 0x200
+                    return t
+            elif (self[offset:offset+len(data)] == data):
+                return t
         else:
-            return ("Unknown", False)
+            return "Unknown"
     def load(self, f):
         if type(f) == str:
             f = open(f,'rb')
         self._size = os.path.getsize(f.name)
         self._data.fromfile(f, self._size)
         f.close()
-        self._type, has_header = self.checkRomType()
-        # Trim headered ROM
-        if has_header:
-            self._data = self._data[0x200:]
-            self._size -= 0x200
+        self._type = self.checkRomType()
     def save(self, fname):
         with open(fname, 'wb') as f:
             self._data.tofile(f)
