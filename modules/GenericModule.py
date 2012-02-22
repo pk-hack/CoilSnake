@@ -1,13 +1,13 @@
 class GenericModule:
     def name(self):
         return self._name
-    def compatibleWithRom(self, rom):
+    def compatibleWithRomtype(self, romtype):
         return True
     def readFromRom(self, rom):
         pass
     def writeToRom(self, rom):
         pass
-    def readFromFile(self, file):
+    def readFromProject(self, resourceOpener):
         pass
-    def writeToFile(self, file):
+    def writeToProject(self, resourceOpener):
         pass

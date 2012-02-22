@@ -13,5 +13,5 @@ def toSnesAddr(addr):
         return addr + 0xc00000
 
 class EbModule(GenericModule):
-    def compatibleWithRom(self, rom):
-        return rom.type() == "Earthbound"
+    def compatibleWithRomtype(self, romtype):
+        return romtype == "Earthbound"

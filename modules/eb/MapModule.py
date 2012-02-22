@@ -1,5 +1,7 @@
 import EbModule
 
+import pickle
+
 class MapModule(EbModule.EbModule):
     _name = "Map"
     _MAP_PTRS_PTR_ADDR = 0xa1db
@@ -53,3 +55,13 @@ class MapModule(EbModule.EbModule):
                         | ((self._tiles[(i<<3)|7][j] >> 8) << 6))
                 rom.write(k+0x3000, c)
                 k += 1
+
+    def writeToProject(self, resourceOpener):
+        f = resourceOpener('map', 'dat')
+        pickle.dump(self._tiles, f)
+        f.close()
+
+    def readFromProject(self, resourceOpener):
+        f = resourceOpener('map', 'dat')
+        self._tiles = pickle.load(f)
+        f.close()

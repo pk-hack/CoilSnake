@@ -4,18 +4,19 @@ import argparse
 import sys
 import os
 
+import Project
 import Rom
 
 def loadModules():
     modules = []
     with open('modulelist.txt', 'r') as f:
         for line in f:
-            line = "modules." + line.rstrip('\n')
-            mod = __import__(line)
+            line = line.rstrip('\n')
+            mod = __import__("modules." + line)
             components = line.split('.')
-            for comp in components[1:]:
+            for comp in components:
                 mod = getattr(mod, comp)
-            modules.append(getattr(mod,components[-1])())
+            modules.append((line, getattr(mod,components[-1])()))
     return modules
 
 def main():
@@ -34,31 +35,48 @@ def main():
         return
 
     modules = loadModules()
-
+    romtype = ""
     # Load data into modules
     if os.path.splitext(args.input.name)[1] == ".csp":
-        # TODO load project file
-        pass
+        proj = Project.Project(args.input)
+        print "Importing from Project", args.input.name, "(", proj.type(), ")"
+        for (n,m) in filter(
+                lambda (x,y): y.compatibleWithRomtype(proj.type()), modules):
+            print "-", m.name(), "Module\t...",
+            m.readFromProject(lambda x,y: proj.getResource(n,x,y,'r'))
+            print "DONE"
+        romtype = proj.type()
     else:
         input = Rom.Rom("romtypes.yaml")
         input.load(args.input)
         print "Importing from", args.input.name, "(", input.type(), ")"
-        for m in filter(lambda x: x.compatibleWithRom(input), modules):
+        for (n,m) in filter(
+                lambda (x,y): y.compatibleWithRomtype(input.type()), modules):
+            print "-", m.name(), "Module\t...",
             m.readFromRom(input)
-            print "-", m.name(), "Module"
+            print "DONE"
+        romtype = input.type()
 
     # Save data from modules
     if output_is_proj:
-        # TODO save project file
-        pass
+        proj = Project.Project(args.output, romtype)
+        print "Exporting as Project to", args.output, "(", romtype, ")"
+        for (n,m) in filter(
+                lambda (x,y): y.compatibleWithRomtype(romtype), modules):
+            print "-", m.name(), "Module\t...",
+            m.writeToProject(lambda x,y: proj.getResource(n,x,y,'w'))
+            print "DONE"
+        proj.write(args.output)
     else:
         output = Rom.Rom("romtypes.yaml")
         output.load(args.cleanrom)
         print "Loaded", args.cleanrom.name, "(", output.type(), ")"
         print "Exporting to", args.output, "(", output.type(), ")"
-        for m in filter(lambda x: x.compatibleWithRom(output), modules):
+        for (n,m) in filter(
+                lambda (x,y): y.compatibleWithRomtype(output.type()), modules):
+            print "-", m.name(), "Module\t...",
             m.writeToRom(output)
-            print "-", m.name(), "Module"
+            print "DONE"
         output.save(args.output)
 
 if (__name__ == '__main__'):
