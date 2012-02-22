@@ -7,8 +7,6 @@ class MapModule(EbModule.EbModule):
     _MAP_HEIGHT = 256
     _MAP_WIDTH = 320
 
-    _tiles = []
-
     def __init__(self):
         self._tiles = []
     def readFromRom(self, rom):
@@ -55,4 +53,3 @@ class MapModule(EbModule.EbModule):
                         | ((self._tiles[(i<<3)|7][j] >> 8) << 6))
                 rom.write(k+0x3000, c)
                 k += 1
-        rom[0] = 0x69

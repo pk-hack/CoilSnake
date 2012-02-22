@@ -3,21 +3,13 @@ import os
 import yaml
 
 class Rom:
-    _data = array.array('B')
-    _size = 0
-    _type = "Unknown"
-    _type_map = { }
-    def __init__(self):
+    def __init__(self, romtypeFname=None):
         self._data = array.array('B')
         self._size = 0
         self._type = "Unknown"
         self._type_map = { }
-    def __init__(self,romtypeFname):
-        self._data = array.array('B')
-        self._size = 0
-        self._type = "Unknown"
-        self._type_map = { }
-        self.loadRomTypes(romtypeFname)
+        if (romtypeFname):
+            self.loadRomTypes(romtypeFname)
     def loadRomTypes(self, fname):
         with open(fname, 'r') as f:
             self._type_map = yaml.load(f)
