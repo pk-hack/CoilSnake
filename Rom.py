@@ -9,10 +9,8 @@ class Rom:
         self._type = "Unknown"
         self._type_map = { }
         if (romtypeFname):
-            self.loadRomTypes(romtypeFname)
-    def loadRomTypes(self, fname):
-        with open(fname, 'r') as f:
-            self._type_map = yaml.load(f)
+            with open(romtypeFname, 'r') as f:
+                self._type_map = yaml.load(f)
     def checkRomType(self):
         for t, d in self._type_map.iteritems():
             offset, data, system = d['offset'], d['data'], d['system']
@@ -53,7 +51,7 @@ class Rom:
     def load(self, f):
         if type(f) == str:
             f = open(f,'rb')
-        self._size = os.path.getsize(f.name)
+        self._size = int(os.path.getsize(f.name))
         self._data.fromfile(f, self._size)
         f.close()
         self._type = self.checkRomType()
@@ -64,34 +62,50 @@ class Rom:
         return self._type
     # Reading methods
     def read(self, i):
+        if (i < 0) or (i >= self._size):
+            raise ValueError("Reading outside of ROM range")
         return self._data[i]
     def readList(self, i, len):
+        if (len < 0):
+            raise ValueError("Can only read a list of non-negative length")
+        elif (i < 0) or (i >= self._size) or (i+len > self._size):
+            raise ValueError("Reading outside of ROM range")
         return self._data[i:i+len].tolist()
     def readMulti(self, i, len):
         # Note: reads in reverse endian
+        if (len < 0):
+            raise ValueError("Can only read an int of non-negative length")
+        elif (i < 0) or (i >= self._size) or (i+len > self._size):
+            raise ValueError("Reading outside of ROM range")
         d = self[i:i+len]
         d.reverse()
         return reduce(lambda x,y: (x<<8)|y, d)
+    # Writing methods
+    def write(self, i, data):
+        if (type(data) == list):
+            if (i < 0) or (i >= self._size) or (i+len(data) > self._size):
+                raise ValueError("Writing outside of ROM range")
+            self[i:i+len(data)] = data
+        elif (type(data) == int):
+            if (i < 0) or (i >= self._size):
+                raise ValueError("Writing outside of ROM range")
+            self[i] = data
+        else:
+            raise ValueError("write(): data must be either a list or int")
+    # Overloaded operators
     def __getitem__(self, key):
         if (type(key) == slice):
             return self._data[key].tolist()
         else:
-            if (key < 0) or (key >= self._size):
-                raise IndexError("rom.__getitem__")
-            else:
-                return self._data[key]
-    # Writing methods
-    def write(self, i, data):
-        if (type(data) == list):
-            self[i:i+len(data)] = data
-        elif (type(data) == int):
-            self[i] = data
-        else:
-            raise ValueError("write(): data must be either a list or int")
+            return self._data[key]
     def __setitem__(self, key, item):
         if (type(key) == slice):
             self._data[key] = array.array('B',item)
         else:
             self._data[key] = item
     def __len__(self):
-        return self._size 
+        return self._size
+    def __eq__(self, other):
+        return (type(other) == type(self)) and (self._data == other._data)
+    def __ne__(self, other):
+        return not (self == other)
