@@ -107,6 +107,18 @@ class testRom(unittest.TestCase):
 
         self.assertRaises(IOError, self.rom.save, "dne/a.bin")
 
+    def testRomtypes(self):
+        self.rom = Rom.Rom("../romtypes.yaml")
+        self.rom.load("roms/EB_fake_noheader.smc")
+        self.assertEqual(self.rom.type(), "Earthbound")
+        self.rom.load("roms/EB_fake_header.smc")
+        self.assertEqual(self.rom.type(), "Earthbound")
+        self.rom.load("roms/empty.smc")
+        self.assertEqual(self.rom.type(), "Unknown")
+        self.rom.load("roms/1kb_null.bin")
+        self.assertEqual(self.rom.type(), "Unknown")
+
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(testRom))

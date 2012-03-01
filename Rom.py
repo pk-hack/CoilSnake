@@ -19,31 +19,47 @@ class Rom:
                 # Validate the ROM and check if it's headered
 
                 # Check for unheadered HiROM
-                if (~self[0xffdc] & 0xff == self[0xffde]) \
-                        and (~self[0xffdd] & 0xff == self[0xffdf]) \
-                        and (self[offset:offset+len(data)] == data):
-                    return t
+                try:
+                    if (~self[0xffdc] & 0xff == self[0xffde]) \
+                            and (~self[0xffdd] & 0xff == self[0xffdf]) \
+                            and (self[offset:offset+len(data)] == data):
+                        return t
+                except IndexError:
+                    pass
+
                 # Check for unheadered LoROM
-                elif (~self[0x7fdc] & 0xff == self[0x7fde]) \
-                        and (~self[0x7fdd] & 0xff == self[0x7fdf]) \
-                        and (self[offset:offset+len(data)] == data):
-                    return t
+                try:
+                    if (~self[0x7fdc] & 0xff == self[0x7fde]) \
+                            and (~self[0x7fdd] & 0xff == self[0x7fdf]) \
+                            and (self[offset:offset+len(data)] == data):
+                        return t
+                except IndexError:
+                    pass
+
                 # Check for headered HiROM
-                elif (~self[0x101dc] & 0xff == self[0x101de]) \
-                        and (~self[0x101dd] & 0xff == self[0x101df]) \
-                        and (self[offset+0x200:offset+0x200+len(data)]==data):
-                    # Remove header
-                    self._data = self._data[0x200:]
-                    self._size -= 0x200
-                    return t                   
+                try:
+                    if (~self[0x101dc] & 0xff == self[0x101de]) \
+                            and (~self[0x101dd] & 0xff == self[0x101df]) \
+                            and (self[offset+0x200:offset+0x200+len(data)]==data):
+                        # Remove header
+                        self._data = self._data[0x200:]
+                        self._size -= 0x200
+                        return t
+                except IndexError:
+                    pass
+
                 # Check for unheadered LoROM
-                elif (~self[0x81dc] & 0xff == self[0x81de]) \
-                        and (~self[0x81dd] & 0xff == self[0x81df]) \
-                        and (self[offset+0x200:offset+0x200+len(data)]==data):
-                    # Remove header
-                    self._data = self._data[0x200:]
-                    self._size -= 0x200
-                    return t
+                try:
+                    if (~self[0x81dc] & 0xff == self[0x81de]) \
+                            and (~self[0x81dd] & 0xff == self[0x81df]) \
+                            and (self[offset+0x200:offset+0x200+len(data)]==data):
+                        # Remove header
+                        self._data = self._data[0x200:]
+                        self._size -= 0x200
+                        return t
+                except:
+                    pass
+
             elif (self[offset:offset+len(data)] == data):
                 return t
         else:
@@ -52,6 +68,7 @@ class Rom:
         if type(f) == str:
             f = open(f,'rb')
         self._size = int(os.path.getsize(f.name))
+        self._data = array.array('B')
         self._data.fromfile(f, self._size)
         f.close()
         self._type = self.checkRomType()
