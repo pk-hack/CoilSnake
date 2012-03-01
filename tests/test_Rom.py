@@ -117,6 +117,8 @@ class testRom(unittest.TestCase):
         self.assertEqual(self.rom.type(), "Unknown")
         self.rom.load("roms/1kb_null.bin")
         self.assertEqual(self.rom.type(), "Unknown")
+        self.rom.load("roms/EB_fake_header.smc")
+        self.assertEqual(self.rom.type(), "Earthbound")
 
 
 def suite():

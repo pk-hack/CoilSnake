@@ -13,9 +13,9 @@ class Rom:
                 self._type_map = yaml.load(f)
     def checkRomType(self):
         for t, d in self._type_map.iteritems():
-            offset, data, system = d['offset'], d['data'], d['system']
+            offset, data, platform = d['offset'], d['data'], d['platform']
 
-            if (system == "SNES"):
+            if (platform == "SNES"):
                 # Validate the ROM and check if it's headered
 
                 # Check for unheadered HiROM
