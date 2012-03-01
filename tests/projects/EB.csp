@@ -1,0 +1,3 @@
+resources:
+  eb.MapModule: {map: eb.MapModule_map.dat}
+romtype: Earthbound

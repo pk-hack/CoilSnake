@@ -38,7 +38,8 @@ def main():
     romtype = ""
     # Load data into modules
     if os.path.splitext(args.input.name)[1] == ".csp":
-        proj = Project.Project(args.input)
+        proj = Project.Project()
+        proj.load(args.input)
         print "Importing from Project", args.input.name, "(", proj.type(), ")"
         for (n,m) in filter(
                 lambda (x,y): y.compatibleWithRomtype(proj.type()), modules):
@@ -59,7 +60,8 @@ def main():
 
     # Save data from modules
     if output_is_proj:
-        proj = Project.Project(args.output, romtype)
+        proj = Project.Project()
+        proj.load(args.output, romtype)
         print "Exporting as Project to", args.output, "(", romtype, ")"
         for (n,m) in filter(
                 lambda (x,y): y.compatibleWithRomtype(romtype), modules):
