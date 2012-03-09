@@ -7,7 +7,7 @@ class TablesModule(EbModule.EbModule):
     _name = "Tables"
     def __init__(self):
         self._tables = []
-        with open('games/eb.yml') as f:
+        with open('games/eb2.yml') as f:
             data = yaml.load(f)
             for i in data:
                 if data[i]['type'] == 'data':

@@ -5,7 +5,7 @@ from modules.Table import Table, TableEntry, _return, genericEntryGenerator
 def ebEntryGenerator(spec):
     if not spec.has_key("type"):
         return genericEntryGenerator(spec)
-    elif spec["type"] == 'pointer':
+    elif spec['type'] == 'pointer':
         # TODO ccscript label integration
         readF = lambda r,a: r.readMulti(a,spec["size"])
         writeF = lambda r,a,d: r.writeMulti(a, d, spec["size"])
