@@ -1,1 +1,2 @@
 eb.MapModule
+eb.TablesModule

@@ -86,6 +86,21 @@ class testRom(unittest.TestCase):
         self.assertRaises(OverflowError, self.rom.write, 5, [0x1234, 0x4, 0x99])
         self.assertRaises(OverflowError, self.rom.__setitem__, 5, 0x100)
 
+        self.rom.writeMulti(0x50, 0xa01234, 3)
+        self.assertEqual(self.rom[0x50], 0x34)
+        self.assertEqual(self.rom[0x51], 0x12)
+        self.assertEqual(self.rom[0x52], 0xa0)
+
+        self.rom.writeMulti(0x50, 0xddbbcc, 2)
+        self.assertEqual(self.rom[0x50], 0xcc)
+        self.assertEqual(self.rom[0x51], 0xbb)
+        self.assertEqual(self.rom[0x52], 0xa0)
+
+        self.rom.writeMulti(0x50, 0x0b, 3)
+        self.assertEqual(self.rom[0x50], 0x0b)
+        self.assertEqual(self.rom[0x51], 0x00)
+        self.assertEqual(self.rom[0x52], 0x00) 
+
     def testRW(self):
         self.rom.load("roms/1kb_null.bin")
         self.rom2 = Rom.Rom()

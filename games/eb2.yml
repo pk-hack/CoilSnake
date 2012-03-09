@@ -1,0 +1,29 @@
+0xd5ebab:
+  name: Scripted Teleport Destination Table
+  type: data
+  size: 1864
+  entries:
+  - name: X
+    size: 2
+  - name: Y
+    size: 2
+  - name: Direction
+    size: 1
+  - name: WarpStyle
+    size: 1
+  - name: Unknown
+    size: 2
+
+0xd5f2fb:
+  name: Hotspots Table
+  type: data
+  size: 440
+  entries:
+  - name: X1
+    size: 2
+  - name: Y1
+    size: 2
+  - name: X2
+    size: 2
+  - name: Y2
+    size: 2

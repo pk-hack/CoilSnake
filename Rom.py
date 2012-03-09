@@ -109,6 +109,12 @@ class Rom:
             self[i] = data
         else:
             raise ValueError("write(): data must be either a list or int")
+    def writeMulti(self, i, data, size):
+        while size > 0:
+            self.write(i, data & 0xff)
+            data >>= 8
+            size -= 1
+            i += 1
     # Overloaded operators
     def __getitem__(self, key):
         if (type(key) == slice):
