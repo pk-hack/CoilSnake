@@ -1,1 +1,1 @@
-__all__ = ["EbModule", "MapModule"]
+__all__ = ["EbModule", "MapModule", "EbTablesModule"]

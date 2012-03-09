@@ -1,0 +1,257 @@
+---
+processor: 65816
+platform: snes
+title: Earthbound (USA)
+defaulttext: simpletext
+texttables:
+  stafftext:
+    lengths:
+      0x0003: 2
+    replacements:
+      0x0000: ""
+      0x0040: ' '
+      0x0042: a
+      0x0044: c
+      0x0045: e
+      0x0046: g
+      0x0047: ''''
+      0x0048: i
+      0x0049: k
+      0x004A: m
+      0x004B: o
+      0x004E: .
+      0x0052: b
+      0x0054: d
+      0x0055: f
+      0x0056: h
+      0x0059: l
+      0x005A: "n"
+      0x005B: p
+      0x006B: s
+      0x006C: u
+      0x006D: w
+      0x006E: "y"
+      0x006F: '?'
+      0x007A: r
+      0x007B: t
+      0x007C: v
+      0x007D: x
+      0x0080: '-'
+      0x0081: A
+      0x0082: B
+      0x0083: C
+      0x0084: D
+      0x0085: E
+      0x0086: F
+      0x0087: G
+      0x0088: H
+      0x0089: I
+      0x008A: J
+      0x008B: K
+      0x008C: L
+      0x008D: M
+      0x008E: "N"
+      0x008F: O
+      0x00A0: P
+      0x00A1: Q
+      0x00A2: R
+      0x00A3: S
+      0x00A4: T
+      0x00A5: U
+      0x00A6: V
+      0x00A7: W
+      0x00A8: X
+      0x00A9: "Y"
+      0x00AA: Z
+      0x00AD: .
+  simpletext:
+    lengths:
+    replacements:
+      0x0050: ' '
+      0x0051: '!'
+      0x0054: $
+      0x0057: ''''
+      0x0058: (
+      0x0059: )
+      0x005A: '*'
+      0x005C: ','
+      0x005D: '-'
+      0x005E: .
+      0x0060: 0
+      0x0061: 1
+      0x0062: 2
+      0x0063: 3
+      0x0064: 4
+      0x0065: 5
+      0x0066: 6
+      0x0067: 7
+      0x0068: 8
+      0x0069: 9
+      0x006C: '&lt;'
+      0x006E: '&gt;'
+      0x006F: '?'
+      0x0070: '@'
+      0x0071: A
+      0x0072: B
+      0x0073: C
+      0x0074: D
+      0x0075: E
+      0x0076: F
+      0x0077: G
+      0x0078: H
+      0x0079: I
+      0x007A: J
+      0x007B: K
+      0x007C: L
+      0x007D: M
+      0x007E: "N"
+      0x007F: O
+      0x0080: P
+      0x0081: Q
+      0x0082: R
+      0x0083: S
+      0x0084: T
+      0x0085: U
+      0x0086: V
+      0x0087: W
+      0x0088: X
+      0x0089: "Y"
+      0x008A: Z
+      0x0091: a
+      0x0092: b
+      0x0093: c
+      0x0094: d
+      0x0095: e
+      0x0096: f
+      0x0097: g
+      0x0098: h
+      0x0099: i
+      0x009A: j
+      0x009B: k
+      0x009C: l
+      0x009D: m
+      0x009E: "n"
+      0x009F: o
+      0x00A0: p
+      0x00A1: q
+      0x00A2: r
+      0x00A3: s
+      0x00A4: t
+      0x00A5: u
+      0x00A6: v
+      0x00A7: w
+      0x00A8: x
+      0x00A9: "y"
+      0x00AA: z
+      0x00AC: '[CHAR1]'
+  standardtext:
+    lengths:
+    replacements:
+      0x0050: ' '
+      0x0051: '!'
+      0x0054: $
+      0x0057: ''''
+      0x0058: (
+      0x0059: )
+      0x005A: '*'
+      0x005C: ','
+      0x005D: '-'
+      0x005E: .
+      0x0060: 0
+      0x0061: 1
+      0x0062: 2
+      0x0063: 3
+      0x0064: 4
+      0x0065: 5
+      0x0066: 6
+      0x0067: 7
+      0x0068: 8
+      0x0069: 9
+      0x006C: '&lt;'
+      0x006E: '&gt;'
+      0x006F: '?'
+      0x0070: '@'
+      0x0071: A
+      0x0072: B
+      0x0073: C
+      0x0074: D
+      0x0075: E
+      0x0076: F
+      0x0077: G
+      0x0078: H
+      0x0079: I
+      0x007A: J
+      0x007B: K
+      0x007C: L
+      0x007D: M
+      0x007E: "N"
+      0x007F: O
+      0x0080: P
+      0x0081: Q
+      0x0082: R
+      0x0083: S
+      0x0084: T
+      0x0085: U
+      0x0086: V
+      0x0087: W
+      0x0088: X
+      0x0089: "Y"
+      0x008A: Z
+      0x0091: a
+      0x0092: b
+      0x0093: c
+      0x0094: d
+      0x0095: e
+      0x0096: f
+      0x0097: g
+      0x0098: h
+      0x0099: i
+      0x009A: j
+      0x009B: k
+      0x009C: l
+      0x009D: m
+      0x009E: "n"
+      0x009F: o
+      0x00A0: p
+      0x00A1: q
+      0x00A2: r
+      0x00A3: s
+      0x00A4: t
+      0x00A5: u
+      0x00A6: v
+      0x00A7: w
+      0x00A8: x
+      0x00A9: "y"
+      0x00AA: z
+      0x00AC: '[CHAR1]'
+...
+---
+0xd5ebab:
+  name: Scripted Teleport Destination Table
+  type: data
+  size: 1864
+  entries:
+  - name: X
+    size: 2
+  - name: Y
+    size: 2
+  - name: Direction
+    size: 1
+  - name: WarpStyle
+    size: 1
+  - name: Unknown
+    size: 2
+
+0xd5f2fb:
+  name: Hotspots Table
+  type: data
+  size: 440
+  entries:
+  - name: X1
+    size: 2
+  - name: Y1
+    size: 2
+  - name: X2
+    size: 2
+  - name: Y2
+    size: 2

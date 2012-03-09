@@ -1,1 +1,1 @@
-__all__ = ["GenericModule"]
+__all__ = ["GenericModule", "TablesModule"]
