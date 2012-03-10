@@ -2,7 +2,6 @@
 processor: 65816
 platform: snes
 title: Earthbound (USA)
-defaulttext: simpletext
 texttables:
   stafftext:
     lengths:
@@ -144,90 +143,87 @@ texttables:
       0x00A9: "y"
       0x00AA: z
       0x00AC: '[CHAR1]'
-  standardtext:
-    lengths:
-    replacements:
-      0x0050: ' '
-      0x0051: '!'
-      0x0054: $
-      0x0057: ''''
-      0x0058: (
-      0x0059: )
-      0x005A: '*'
-      0x005C: ','
-      0x005D: '-'
-      0x005E: .
-      0x0060: 0
-      0x0061: 1
-      0x0062: 2
-      0x0063: 3
-      0x0064: 4
-      0x0065: 5
-      0x0066: 6
-      0x0067: 7
-      0x0068: 8
-      0x0069: 9
-      0x006C: '&lt;'
-      0x006E: '&gt;'
-      0x006F: '?'
-      0x0070: '@'
-      0x0071: A
-      0x0072: B
-      0x0073: C
-      0x0074: D
-      0x0075: E
-      0x0076: F
-      0x0077: G
-      0x0078: H
-      0x0079: I
-      0x007A: J
-      0x007B: K
-      0x007C: L
-      0x007D: M
-      0x007E: "N"
-      0x007F: O
-      0x0080: P
-      0x0081: Q
-      0x0082: R
-      0x0083: S
-      0x0084: T
-      0x0085: U
-      0x0086: V
-      0x0087: W
-      0x0088: X
-      0x0089: "Y"
-      0x008A: Z
-      0x0091: a
-      0x0092: b
-      0x0093: c
-      0x0094: d
-      0x0095: e
-      0x0096: f
-      0x0097: g
-      0x0098: h
-      0x0099: i
-      0x009A: j
-      0x009B: k
-      0x009C: l
-      0x009D: m
-      0x009E: "n"
-      0x009F: o
-      0x00A0: p
-      0x00A1: q
-      0x00A2: r
-      0x00A3: s
-      0x00A4: t
-      0x00A5: u
-      0x00A6: v
-      0x00A7: w
-      0x00A8: x
-      0x00A9: "y"
-      0x00AA: z
-      0x00AC: '[CHAR1]'
 ...
 ---
+0xCF8985:
+  type: data
+  name: npcs
+  description: NPC Configuration Table
+  size: 26928
+  entries:
+  - name: Type
+    size: 1
+    values:
+    - 0
+    - Person
+    - Item
+    - Object
+  - name: Sprite Group
+    size: 2
+  - name: Direction
+    size: 1
+    values:
+    - Up
+    - Up-Right
+    - Right
+    - Down-Right
+    - Down
+    - Down-Left
+    - Left
+    - Up-Left
+  - name: Movement
+    size: 2
+  - name: Event Flag
+    size: 2
+    type: hexint
+  - name: Show Sprite
+    size: 1
+    values:
+    - Always
+    - When event flag unset
+    - When event flag set
+  - name: Pointer 1
+    size: 4
+    type: pointer
+  - name: Pointer 2
+    size: 4
+    type: pointer
+
+0xD5EA77:
+  type: data
+  description: Condiment Data
+  name: condiment 
+  size: 308
+  entries:
+  - name: food
+    size: 1
+  - name: condiment 1
+    size: 1
+  - name: condiment 2
+    size: 1
+  - name: effect
+    size: 1
+    values:
+    - Restore HP
+    - Restore PP
+    - Restore HP/PP
+    - Increase Random Stat
+    - Increase IQ
+    - Increase Guts
+    - Increase Speed
+    - Increase Vitality
+    - Increase Luck
+    - No visible effect
+  - name: good recover
+    size: 1
+  - name: bad recover
+    size: 1
+  - name: run time
+    size: 1
+
 0xd5ebab:
-  name: Scripted Teleport Destination Table
+  name: teleport
+  description: Scripted Teleport Destination Table
   type: data
   size: 1864
   entries:
@@ -243,7 +239,8 @@ texttables:
     size: 2
 
 0xd5f2fb:
-  name: Hotspots Table
+  name: hotspots
+  description: Hotspots Table
   type: data
   size: 440
   entries:

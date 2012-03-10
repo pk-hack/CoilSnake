@@ -30,7 +30,14 @@ def genericEntryGenerator(spec):
         readF = lambda r,a: r.readMulti(a,spec["size"])
         writeF = lambda r,a,d: r.writeMulti(a, d, spec["size"])
         sizeF = lambda d: spec["size"]
-        return TableEntry(spec["name"], readF, writeF, sizeF, _return, _return)
+        if spec.has_key('values'):
+            valuesDict = dict((spec['values'][i],i) \
+                    for i in range(0,len(spec['values'])))
+            loadF = lambda x: valuesDict[x]
+            dumpF = lambda x: spec['values'][x]
+            return TableEntry(spec["name"], readF, writeF, sizeF, loadF, dumpF)
+        else:
+            return TableEntry(spec["name"], readF, writeF, sizeF, _return, _return)
     elif spec["type"] == 'hexint':
         readF = lambda r,a: r.readMulti(a,spec["size"])
         writeF = lambda r,a,d: r.writeMulti(a, d, spec["size"])
@@ -90,16 +97,15 @@ class Table:
             for entry in self._data[i]:
                 outRow[entry.name] = entry.dump()
             out[i] = outRow
-        s = yaml.dump(out)
+        s = yaml.dump(out, default_flow_style=False)
         # Make hexints output to hex
         # Have to do this regex hack since PyYAML doesn't let us
         for field in filter(
                 lambda x: x.has_key('type') and (x['type'] == 'hexint'),
                 self._format):
-            s = re.sub(field['name'] + ": (\d+)(,|})",
+            s = re.sub(field['name'] + ": (\d+)",
                     lambda i: field['name'] + ': ' +
-                    hex(int(i.group(0)[i.group(0).find(' ')+1:-1])) +
-                    i.group(0)[-1],s)
+                    hex(int(i.group(0)[i.group(0).find(': ')+2:])) ,s)
         return s
     def load(self, inputRaw):
         input = yaml.load(inputRaw)
