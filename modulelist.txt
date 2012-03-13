@@ -1,2 +1,3 @@
 eb.MapModule
 eb.EbTablesModule
+eb.EbBlocksModule

@@ -252,3 +252,9 @@ texttables:
     size: 2
   - name: Y2
     size: 2
+
+0xe021a8:
+  name: onett_map_gfx
+  description: Onett Town Map Graphics
+  type: data
+  size: 0x2777
