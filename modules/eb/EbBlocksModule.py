@@ -1,6 +1,8 @@
 import EbModule
 from modules.RawBlocksModule import DataBlock, RawBlocksModule
 
+import array
+
 class EbDataBlock(DataBlock):
     def __init__(self, addr, spec):
         DataBlock.__init__(self, addr, spec)
@@ -11,7 +13,13 @@ class EbDataBlock(DataBlock):
             self._comp = None
     def readFromRom(self, rom):
         if self._comp == 'comp':
-            self._data = EbModule.decomp(rom, self._addr)
+            self._data = array.array('B')
+            decomp = EbModule.decomp(rom, self._addr)
+            if decomp[0] < 0: # Error
+                print "Error decompressing block @", hex(self._addr)
+                self._data.fromlist([ 0 ])
+            else:
+                self._data.fromlist(decomp)
         else:
             DataBlock.readFromRom(self, rom)
 

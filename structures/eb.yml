@@ -257,4 +257,5 @@ texttables:
   name: onett_map_gfx
   description: Onett Town Map Graphics
   type: data
-  size: 0x2777
+  size: 0x2778
+  compression: comp

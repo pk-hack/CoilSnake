@@ -47,7 +47,7 @@ class Project:
             self._resources[modName] = { }
         if resourceName not in self._resources[modName]:
             self._resources[modName][resourceName] = \
-                modName+"_"+resourceName+"."+extension
+                resourceName+"."+extension
         fname = os.path.join(self._dirName,self._resources[modName][resourceName])
         f = open(fname, mode)
         return f
