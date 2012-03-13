@@ -4,17 +4,19 @@ from modules.RawBlocksModule import DataBlock, RawBlocksModule
 import array
 
 class EbDataBlock(DataBlock):
-    def __init__(self, addr, spec):
-        DataBlock.__init__(self, addr, spec)
+    def __init__(self, spec, addr=None):
+        DataBlock.__init__(self, spec, addr)
         self._addr = EbModule.toRegAddr(self._addr)
         if spec.has_key('compression'):
             self._comp = spec['compression']
         else:
             self._comp = None
-    def readFromRom(self, rom):
-        if self._comp == 'comp':
+    def readFromRom(self, rom, addr=None):
+        if addr == None:
+            addr = self._addr
+        if self._comp == 'LZ_EB':
             self._data = array.array('B')
-            decomp = EbModule.decomp(rom, self._addr)
+            decomp = EbModule.decomp(rom, addr)
             if decomp[0] < 0: # Error
                 print "Error decompressing block @", hex(self._addr)
                 self._data.fromlist([ 0 ])

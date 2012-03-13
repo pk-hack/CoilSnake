@@ -24,9 +24,10 @@ class TablesModule(GenericModule.GenericModule):
                 elif i == 2:
                     # Load the Tables
                     for addr in doc:
-                        if doc[addr]['type'] == 'data' and \
-                        doc[addr].has_key('entries'):
-                            self._tables.append(TableClass(addr, doc[addr]))
+                        if (doc[addr]['type'] == 'data' and
+                                doc[addr].has_key('entries') and
+                                doc[addr].has_key('name')):
+                            self._tables.append(TableClass(addr, doc))
                     break
     def readFromRom(self, rom):
         for t in self._tables:

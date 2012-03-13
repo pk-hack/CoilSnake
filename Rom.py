@@ -8,6 +8,7 @@ class Rom:
         self._size = 0
         self._type = "Unknown"
         self._type_map = { }
+        self._free_loc = -1
         if (romtypeFname):
             with open(romtypeFname, 'r') as f:
                 self._type_map = yaml.load(f)
@@ -72,6 +73,10 @@ class Rom:
         self._data.fromfile(f, self._size)
         f.close()
         self._type = self.checkRomType()
+        if self._type_map[self._type].has_key('free space'):
+            self._free_loc = self._type_map[self._type]['free space']
+        else:
+            self._free_loc = -1
     def save(self, fname):
         with open(fname, 'wb') as f:
             self._data.tofile(f)
@@ -115,6 +120,17 @@ class Rom:
             data >>= 8
             size -= 1
             i += 1
+    def writeToFree(self, data):
+        if self._free_loc < 0:
+            raise RuntimeError(
+                    "writeToFree: romtype '" + self._type + "' has no free area")
+        elif self._free_loc + len(data) >= self._size:
+            raise RuntimeError(
+                    "writeToFree: not enough free space left")
+        else:
+            self.write(self._free_loc, data)
+            self._free_loc += len(data)
+            return (self._free_loc - len(data))
     # Overloaded operators
     def __getitem__(self, key):
         if (type(key) == slice):

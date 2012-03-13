@@ -254,8 +254,18 @@ texttables:
     size: 2
 
 0xe021a8:
-  name: onett_map_gfx
-  description: Onett Town Map Graphics
+  description: Town Map Graphics
   type: data
-  size: 0x2778
-  compression: comp
+  size: 0xcb5b
+  compression: LZ_EB
+
+0xe02190:
+  name: town_map_gfx
+  description: Town Map Graphics Pointer Table
+  type: data
+  size: 0x18
+  entries:
+  - name: Graphics
+    type: pointer
+    size: 4
+    points to: 0xe021a8

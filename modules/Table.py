@@ -25,7 +25,7 @@ class TableEntry:
 def _return(x):
     return x
 
-def genericEntryGenerator(spec):
+def genericEntryGenerator(spec, table_map):
     if not spec.has_key("type") or spec["type"] == 'int':
         readF = lambda r,a: r.readMulti(a,spec["size"])
         writeF = lambda r,a,d: r.writeMulti(a, d, spec["size"])
@@ -60,12 +60,13 @@ def genericEntryGenerator(spec):
 
 class Table:
     tableEntryGenerator = staticmethod(genericEntryGenerator)
-    def __init__(self, addr, spec):
+    def __init__(self, addr, table_map):
         self._addr = addr
-        self._name = spec['name']
-        self._size = spec['size']
-        self._format = spec['entries']
+        self._name = table_map[addr]['name']
+        self._size = table_map[addr]['size']
+        self._format = table_map[addr]['entries']
         self._data = []
+        self._table_map = table_map
     def readFromRom(self, rom):
         self._data = []
         i = 0
@@ -74,7 +75,7 @@ class Table:
         while i < self._size:
             row = []
             for entrySpec in self._format:
-                entry = self.tableEntryGenerator(entrySpec)
+                entry = self.tableEntryGenerator(entrySpec, self._table_map)
                 entry.readFromRom(rom, self._addr + i)
                 i += entry.size()
                 row.append(entry)
@@ -113,7 +114,7 @@ class Table:
         for i in range(0,len(input)):
             row = []
             for entrySpec in self._format:
-                entry = self.tableEntryGenerator(entrySpec)
+                entry = self.tableEntryGenerator(entrySpec, self._table_map)
                 entry.set(input[i][entry.name])
                 row.append(entry)
             self._data.append(row)
