@@ -77,9 +77,10 @@ class Rom:
             self._free_loc = self._type_map[self._type]['free space']
         else:
             self._free_loc = -1
-    def save(self, fname):
-        with open(fname, 'wb') as f:
-            self._data.tofile(f)
+    def save(self, f):
+        if type(f) == str:
+            f = open(f, 'wb')
+        self._data.tofile(f)
     def type(self):
         return self._type
     # Reading methods
