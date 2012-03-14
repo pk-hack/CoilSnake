@@ -269,3 +269,24 @@ texttables:
     type: pointer
     size: 4
     points to: 0xe021a8
+
+0xcd0000:
+  description: In-Battle Sprite Graphics
+  type: data
+  size: 0x162ee
+  compression: LZ_EB
+
+0xce62ee:
+  name: battle_gfx
+  description: In-Battle Sprite Graphics Pointer Table
+  type: data
+  size: 0x226
+  entries:
+  - name: Sprite
+    type: pointer
+    size: 3 
+    points to: 0xcd0000
+  - name: Unknown 1
+    size: 1
+  - name: Unknown 2
+    size: 1

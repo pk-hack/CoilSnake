@@ -17,7 +17,7 @@ class EbTableEntryPointerToBlock(TableEntry):
         self._data.readFromRom(rom, block_addr)
     def writeToRom(self, rom, addr):
         new_block_addr = self._data.writeToFree(rom)
-        self._tep.set(new_block_addr)
+        self._tep.set('$' + hex(EbModule.toSnesAddr(new_block_addr))[2:])
         self._tep.writeToRom(rom, addr)
     def size(self):
         return self._tep.size()

@@ -44,6 +44,7 @@ def main():
         for (n,m) in filter(
                 lambda (x,y): y.compatibleWithRomtype(proj.type()), modules):
             print "-", m.name(), "Module\t...",
+            sys.stdout.flush()
             m.readFromProject(lambda x,y: proj.getResource(n,x,y,'r'))
             print "DONE"
         romtype = proj.type()
@@ -54,6 +55,7 @@ def main():
         for (n,m) in filter(
                 lambda (x,y): y.compatibleWithRomtype(input.type()), modules):
             print "-", m.name(), "Module\t...",
+            sys.stdout.flush()
             m.readFromRom(input)
             print "DONE"
         romtype = input.type()
@@ -66,6 +68,7 @@ def main():
         for (n,m) in filter(
                 lambda (x,y): y.compatibleWithRomtype(romtype), modules):
             print "-", m.name(), "Module\t...",
+            sys.stdout.flush()
             m.writeToProject(lambda x,y: proj.getResource(n,x,y,'w'))
             print "DONE"
         proj.write(args.output)
@@ -77,6 +80,7 @@ def main():
         for (n,m) in filter(
                 lambda (x,y): y.compatibleWithRomtype(output.type()), modules):
             print "-", m.name(), "Module\t...",
+            sys.stdout.flush()
             m.writeToRom(output)
             print "DONE"
         output.save(args.output)

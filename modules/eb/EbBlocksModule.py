@@ -24,6 +24,20 @@ class EbDataBlock(DataBlock):
                 self._data.fromlist(decomp)
         else:
             DataBlock.readFromRom(self, rom)
+    def writeToRom(self, rom, addr=None):
+        if addr == None:
+            addr = self._addr
+        if self._comp == 'LZ_EB':
+            comp = EbModule.comp(self._data.tolist())
+            rom.write(addr, comp)
+        else:
+            DataBlock.writeToRom(self, rom, addr)
+    def writeToFree(self, rom):
+        if self._comp == 'LZ_EB':
+            comp = EbModule.comp(self._data.tolist())
+            return rom.writeToFree(comp)
+        else:
+            return DataBlock.writeToFree(self,rom)
 
 class EbBlocksModule(EbModule.EbModule):
     _name = "EarthBound Binary Data"
