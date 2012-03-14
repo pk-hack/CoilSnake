@@ -102,3 +102,152 @@ def decomp(rom, cdata):
         elif cmdtype == 7:
             return [ -7, cdata - start + 1 ]
     return buffer
+
+# Appends values to the buffer
+def encode(buffer, length, type):
+    if length > 32:
+        buffer.append(0xe0 + 4 * type + ((length - 1) >> 8))
+        buffer.append((length - 1) & 0xff)
+    else:
+        buffer.append(0x20 * type + length - 1)
+
+def rencode(buffer, length, udata, pos):
+    if length <= 0:
+        return
+    encode(buffer, length, 0)
+    buffer += udata[pos:pos+length]
+
+def memchr(st, needle, len_, haystack):
+    len_ += st
+    for i in range(st, st+len_):
+        if haystack[i] == needle:
+            return i
+    return -1
+
+# Adapted from Cabbage's comp()
+def comp(udata):
+    pos2 = 0
+    pos3 = 0
+    pos4 = 0
+    tmp = 0
+    pos = 0
+    limit = len(udata)
+    buffer = []
+    mainloop_break = False
+    while pos < limit:
+        mainloop_break = False
+        pos2 = pos
+        while True:
+            if not ((pos2 < limit) and (pos2 < pos + 1024)):
+                break
+
+            pos3 = pos2
+            while ((pos3 < limit)
+                    and (pos3 < pos2 + 1024)
+                    and (udata[pos2] == udata[pos3])):
+                pos3 += 1
+
+            if (pos3 - pos2) >= 3:
+                rencode(buffer, pos2-pos, udata, pos)
+                encode(buffer, pos3-pos2, 1)
+                buffer.append(udata[pos2])
+                pos = pos3
+                break
+
+            pos3 = pos2
+            while ((pos3 < limit)
+                    and (pos3 < pos2 + 2048)
+                    and (udata[pos3] == udata[pos2])
+                    and (udata[pos3 + 1] == udata[pos2 + 1])):
+                pos3 += 2
+
+            if (pos3 - pos2) >= 6:
+                rencode(buffer, pos2-pos, udata, pos)
+                encode(buffer, (pos3-pos2) / 2, 2)
+                buffer.append(udata[pos2])
+                buffer.append(udata[pos2 + 1])
+                pos = pos3
+                break
+
+            tmp = 0
+            pos3 = pos2
+            while ((pos3 < limit)
+                    and (pos3 < pos2 + 1024)
+                    and (udata[pos3] == udata[pos2] + tmp)):
+                pos3 += 1
+                tmp += 1
+
+            if (pos3 - pos2) >= 4:
+                rencode(buffer, pos2-pos, udata, pos)
+                encode(buffer, pos3-pos2, 3)
+                buffer.append(udata[pos2])
+                pos = pos3
+                break
+
+            pos3 = 0
+            while True:
+                if not (pos3 < pos2):
+                    break
+
+                tmp = 0
+                pos4 = pos3
+                while ((pos4 < pos2)
+                        and (tmp < 1024)
+                        and (udata[pos4] == udata[pos2+tmp])):
+                    pos4 += 1
+                    tmp += 1
+                if tmp >= 5:
+                    rencode(buffer, pos2-pos, udata, pos)
+                    encode(buffer, tmp, 4)
+                    buffer.append(pos3 >> 8)
+                    buffer.append(pos3 & 0xff)
+                    pos = pos2 + tmp
+                    mainloop_break = True
+                    break
+
+                tmp = 0
+                pos4 = pos3
+                while ((pos4 < pos2)
+                    and (tmp < 1024)
+                    and (udata[pos4] == _bitrevs[udata[pos2 + tmp]])):
+                    pos4 += 1
+                    tmp += 1
+
+                if tmp >= 5:
+                    rencode(buffer, pos2-pos, udata, pos)
+                    encode(buffer, tmp, 5)
+                    buffer.append(pos3 >> 8)
+                    buffer.append(pos3 & 0xff)
+                    pos = pos2 + tmp
+                    mainloop_break = True
+                    break
+
+                tmp = 0
+                pos4 = pos3
+                while ((pos4 >= 0) and (tmp < 1024)
+                    and (udata[pos4] == udata[pos2 + tmp])):
+                    pos4 -= 1
+                    tmp += 1
+
+                if tmp >= 5:
+                    rencode(buffer, pos2-pos, udata, pos)
+                    encode(buffer, tmp, 6)
+                    buffer.append(pos3 >> 8)
+                    buffer.append(pos3 & 0xff)
+                    pos = pos2 + tmp
+                    mainloop_break = True
+                    break
+                pos3 += 1
+            if mainloop_break:
+                break
+
+            pos2 += 1
+
+        # Can't compress, so just use 0 (raw)
+        rencode(buffer, pos2-pos, udata, pos)
+        if pos < pos2:
+            pos = pos2
+
+
+    buffer.append(0xff)
+    return buffer
