@@ -53,8 +53,9 @@ class EbTable(Table):
 
 class EbTablesModule(EbModule.EbModule):
     _name = "EarthBound Tables"
+    _tableIDs = [ ]
     def __init__(self):
-        self._tm = TablesModule("structures/eb.yml", EbTable)
+        self._tm = TablesModule("structures/eb.yml", EbTable, self._tableIDs)
     def readFromRom(self, rom):
         self._tm.readFromRom(rom)
     def writeToRom(self, rom):
