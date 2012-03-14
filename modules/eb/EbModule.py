@@ -1,5 +1,11 @@
 from modules.GenericModule import GenericModule
 
+try:
+    from modules.eb import NativeComp
+    hasNativeComp = True
+except ImportError:
+    hasNativeComp = False
+
 import Rom
 
 class EbModule(GenericModule):
@@ -32,7 +38,7 @@ def initBitrevs():
 _bitrevs = initBitrevs()
 
 # Adapted from JHack
-def decomp(rom, cdata):
+def _decomp(rom, cdata):
     start = cdata
     bpos = 0
     bpos2 = 0
@@ -125,7 +131,7 @@ def memchr(st, needle, len_, haystack):
     return -1
 
 # Adapted from Cabbage's comp()
-def comp(udata):
+def _comp(udata):
     pos2 = 0
     pos3 = 0
     pos4 = 0
@@ -251,3 +257,16 @@ def comp(udata):
 
     buffer.append(0xff)
     return buffer
+
+# Frontends
+def decomp(rom, cdata):
+    if hasNativeComp:
+        return NativeComp.decomp(rom, cdata)
+    else:
+        return _decomp(rom, cdata)
+
+def comp(udata):
+    if hasNativeComp:
+        return NativeComp.comp(udata)
+    else:
+        return _comp(udata)

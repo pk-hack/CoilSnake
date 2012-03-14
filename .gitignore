@@ -1,3 +1,5 @@
 *.smc
 *.pyc
 *.swp
+roms/
+*/*/build
