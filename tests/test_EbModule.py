@@ -15,7 +15,7 @@ class testEbModule(unittest.TestCase):
 
     def setUp(self):
         self.rom = Rom.Rom("../romtypes.yaml")
-        self.rom.load("roms/EB_fake_noheader.smc")
+        self.rom.load("roms/EB_fake_24mbit.smc")
 
     def _testDecomp(self, decompFunc):
         r = Rom.Rom("../romtypes.yaml")
@@ -83,6 +83,17 @@ class testEbModule(unittest.TestCase):
         modules.eb.EbModule.writePalette(self.rom, 0, pal)
         pal2 = modules.eb.EbModule.readPalette(self.rom, 0, 16)
         self.assertEqual(pal, pal2)
+
+    def testAsmPointerIO(self):
+        ptr = modules.eb.EbModule.readAsmPointer(self.rom, 0xeefb)
+        self.assertEqual(ptr, 0xe14f2a)
+
+        modules.eb.EbModule.writeAsmPointer(self.rom, 0, 0xabcdef01)
+        self.assertEqual(self.rom.readList(0, 8),
+                [ 0xa9, 0x01, 0xef, 0x85, 0x0e, 0xa9, 0xcd, 0xab ])
+
+        ptr2 = modules.eb.EbModule.readAsmPointer(self.rom, 0)
+        self.assertEqual(0xabcdef01, ptr2)
 
 def suite():
     suite = unittest.TestSuite()

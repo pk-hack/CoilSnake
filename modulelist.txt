@@ -1,3 +1,4 @@
 eb.MapModule
 eb.EnemyModule
 eb.MiscTablesModule
+eb.LogoModule

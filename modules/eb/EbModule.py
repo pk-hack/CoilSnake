@@ -26,6 +26,22 @@ def toSnesAddr(addr):
     else:
         return addr + 0xc00000
 
+# [A9 ZZ YY 85 0E A9 XX WW] <-> $WWXXYYZZ
+def readAsmPointer(rom, addr):
+    part1 = rom[addr+1] | (rom[addr+2] << 8)
+    part2 = rom[addr+6] | (rom[addr+7] << 8)
+    return part1 | (part2 << 16)
+
+def writeAsmPointer(rom, addr, ptr):
+    rom[addr] = 0xa9
+    rom[addr+1] = ptr & 0xff
+    rom[addr+2] = (ptr >> 8) & 0xff
+    rom[addr+3] = 0x85
+    rom[addr+4] = 0x0e
+    rom[addr+5] = 0xa9
+    rom[addr+6] = (ptr >> 16) & 0xff
+    rom[addr+7] = (ptr >> 24) & 0xff
+
 # From JHack
 def read2BPPArea(target, source, off, x, y, bitOffset=-1):
     if bitOffset < 0:
@@ -47,6 +63,12 @@ def read4BPPArea(target, source, off, x, y, bitOffset=-1):
     read2BPPArea(target, source, off, x, y, bitOffset)
     read2BPPArea(target, source, off + 16, x, y, bitOffset + 2)
     return 32
+
+# From JHack
+def read8BPPArea(target, source, off, x, y):
+    for i in range(0,4):
+        read2BPPArea(target, source, off + 16 * i, x, y, 2 * i)
+    return 64
 
 # From JHack
 def write2BPPArea(source, target, off, x, y, bitOffset=0):

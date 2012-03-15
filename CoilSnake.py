@@ -12,6 +12,8 @@ def loadModules():
     with open('modulelist.txt', 'r') as f:
         for line in f:
             line = line.rstrip('\n')
+            if line[0] == '#':
+                continue
             mod = __import__("modules." + line)
             components = line.split('.')
             for comp in components:
@@ -85,5 +87,8 @@ def main():
             print "DONE"
         output.save(args.output)
 
+#import cProfile
 if (__name__ == '__main__'):
     sys.exit(main())
+#    cProfile.run('main()', 'mainprof')
+#    sys.exit(0)
