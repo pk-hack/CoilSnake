@@ -73,7 +73,8 @@ class Rom:
         self._data.fromfile(f, self._size)
         f.close()
         self._type = self.checkRomType()
-        if self._type_map[self._type].has_key('free space'):
+        if (self._type != "Unknown" and
+                self._type_map[self._type].has_key('free space')):
             self._free_loc = self._type_map[self._type]['free space']
         else:
             self._free_loc = -1

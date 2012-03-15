@@ -25,6 +25,8 @@ class EbTableEntryPointerToBlock(TableEntry):
         self._data.set(str)
     def dump(self):
         return self._data.dump()
+    def getBlock(self):
+        return self._data
 
 def ebEntryGenerator(spec, table_map):
     if not spec.has_key("type"):
@@ -47,8 +49,17 @@ def ebEntryGenerator(spec, table_map):
 
 class EbTable(Table):
     tableEntryGenerator = staticmethod(ebEntryGenerator)
-    def __init__(self, addr, spec):
-        Table.__init__(self,addr,spec)
+    def __init__(self, addr, table_map=None):
+        if table_map == None:
+            with open("structures/eb.yml") as f:
+                i=1
+                for doc in yaml.load_all(f):
+                    if i == 1:
+                        i += 1
+                    elif i == 2:
+                        table_map = doc
+                        break
+        Table.__init__(self,addr,table_map)
         self._addr = EbModule.toRegAddr(self._addr)
 
 class EbTablesModule(EbModule.EbModule):

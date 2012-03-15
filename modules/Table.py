@@ -20,6 +20,8 @@ class TableEntry:
         self._data = self.loadF(str)
     def dump(self):
         return self.dumpF(self._data)
+    def intval(self):
+        return self._data
 
 # For easiness of reading
 def _return(x):
@@ -118,3 +120,16 @@ class Table:
                 entry.set(input[i][entry.name])
                 row.append(entry)
             self._data.append(row)
+    # Accessing operators
+    def name(self):
+        return self._name
+    def height(self):
+        return len(self._data)
+    def width(self):
+        return len(self._data[0])
+    def __getitem__(self, index):
+        (row,col) = index
+        return self._data[row][col]
+    def __setitem__(self, index, entry):
+        (row,col) = index
+        self._data[row][col] = entry

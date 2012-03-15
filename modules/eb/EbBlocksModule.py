@@ -38,6 +38,8 @@ class EbDataBlock(DataBlock):
             return rom.writeToFree(comp)
         else:
             return DataBlock.writeToFree(self,rom)
+    def rawData(self):
+        return self._data
 
 class EbBlocksModule(EbModule.EbModule):
     _name = "EarthBound Binary Data"

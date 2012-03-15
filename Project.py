@@ -49,5 +49,7 @@ class Project:
             self._resources[modName][resourceName] = \
                 resourceName+"."+extension
         fname = os.path.join(self._dirName,self._resources[modName][resourceName])
+        if not os.path.exists(os.path.dirname(fname)):
+            os.makedirs(os.path.dirname(fname))
         f = open(fname, mode)
         return f

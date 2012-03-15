@@ -37,12 +37,12 @@ class TablesModule(GenericModule.GenericModule):
             t.writeToRom(rom)
     def writeToProject(self, resourceOpener):
         for t in self._tables:
-            f = resourceOpener(t._name, 'yml')
+            f = resourceOpener(t.name(), 'yml')
             f.write(t.dump())
             f.close()
     def readFromProject(self, resourceOpener):
         for t in self._tables:
-            f = resourceOpener(t._name, 'yml')
+            f = resourceOpener(t.name(), 'yml')
             contents = f.read()
             f.close()
             t.load(contents)

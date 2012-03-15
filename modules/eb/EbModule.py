@@ -26,6 +26,50 @@ def toSnesAddr(addr):
     else:
         return addr + 0xc00000
 
+# From JHack
+def read2BPPArea(target, source, off, x, y, bitOffset=-1):
+    if bitOffset < 0:
+        bitOffset = 0
+    offset = off
+    for i in range(0, 8):
+        for k in range(0, 2):
+            b = source[offset]
+            offset += 1
+            for j in range(0, 8):
+                target[7-j + x][i+y] |= (((b & (1 << j)) >> j) << (k +
+                    bitOffset))
+    return offset - off
+
+# From JHack
+def read4BPPArea(target, source, off, x, y, bitOffset=-1):
+    if bitOffset < 0:
+        bitOffset = 0
+    read2BPPArea(target, source, off, x, y, bitOffset)
+    read2BPPArea(target, source, off + 16, x, y, bitOffset + 2)
+    return 32
+
+# From JHack
+def write2BPPArea(source, target, off, x, y, bitOffset=0):
+    if bitOffset < 0:
+        bitOffset = 0
+    offset = off
+    for i in range(0, 8):
+        for k in range(0, 2):
+            target[offset] = 0
+            for j in range(0,8):
+                target[offset] |= ((source[7 - j + x][i + y]
+                    & (1 << (k + bitOffset))) >> (k + bitOffset)) << j
+            offset += 1
+    return offset - off
+
+# From JHack
+def write4BPPArea(source, target, off, x, y, bitOffset=0):
+    if bitOffset < 0:
+        bitOffset = 0
+    write2BPPArea(source, target, off, x, y, bitOffset)
+    write2BPPArea(source, target, off + 16, x, y, bitOffset + 2)
+    return 32
+
 # Comp/Decomp
 
 def initBitrevs():

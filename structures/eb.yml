@@ -277,16 +277,23 @@ texttables:
   compression: LZ_EB
 
 0xce62ee:
-  name: battle_gfx
+  name: battle_sprites
   description: In-Battle Sprite Graphics Pointer Table
   type: data
   size: 0x226
   entries:
   - name: Sprite
     type: pointer
-    size: 3 
+    size: 4 
     points to: 0xcd0000
-  - name: Unknown 1
+  - name: Sprite Size
     size: 1
-  - name: Unknown 2
-    size: 1
+    values:
+    - 0x0
+    - 32x32
+    - 64x32
+    - 32x64
+    - 64x64
+    - 128x64
+    - 128x128
+

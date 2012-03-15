@@ -26,6 +26,8 @@ class DataBlock:
         self._data.fromstring(inputRaw)
     def dump(self):
         return self._data.tostring()
+    def name(self):
+        return self._name
 
 class RawBlocksModule(GenericModule.GenericModule):
     _name = "Generic Raw Blocks"
@@ -52,12 +54,12 @@ class RawBlocksModule(GenericModule.GenericModule):
             b.writeToRom(rom)
     def writeToProject(self, resourceOpener):
         for b in self._blocks:
-            f = resourceOpener(b._name, 'bin')
+            f = resourceOpener(b.name(), 'bin')
             f.write(b.dump())
             f.close()
     def readFromProject(self, resourceOpener):
         for b in self._blocks:
-            f = resourceOpener(b._name, 'bin')
+            f = resourceOpener(b.name(), 'bin')
             contents = f.read()
             f.close()
             b.load(contents)
