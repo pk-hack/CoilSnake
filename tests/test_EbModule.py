@@ -76,6 +76,14 @@ class testEbModule(unittest.TestCase):
         c2 = modules.eb.EbModule.readPaletteColor(self.rom, 0)
         self.assertEqual(c, c2)
 
+        pal = [(176, 232, 24), (40, 152, 88), (216, 208, 136), (160, 0, 88),
+                (56, 40, 96), (112, 16, 240), (112, 64, 88), (48, 88, 0), (56,
+                    136, 64), (176, 104, 144), (0, 48, 224), (224, 224, 136),
+                (56, 248, 168), (56, 216, 80), (184, 48, 248), (200, 112, 32)]
+        modules.eb.EbModule.writePalette(self.rom, 0, pal)
+        pal2 = modules.eb.EbModule.readPalette(self.rom, 0, 16)
+        self.assertEqual(pal, pal2)
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(testEbModule))
