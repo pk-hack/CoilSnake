@@ -14,7 +14,8 @@ class testEbModule(unittest.TestCase):
     """
 
     def setUp(self):
-        pass
+        self.rom = Rom.Rom("../romtypes.yaml")
+        self.rom.load("roms/EB_fake_noheader.smc")
 
     def _testDecomp(self, decompFunc):
         r = Rom.Rom("../romtypes.yaml")
@@ -48,11 +49,11 @@ class testEbModule(unittest.TestCase):
         self.assertEqual(len(ucdata), len(udata))
         self.assertEqual(ucdata, udata)
 
-    def testPythonComp(self):
+    def _testPythonComp(self):
         self._testComp(modules.eb.EbModule._comp,
                 modules.eb.EbModule.decomp)
 
-    def testPythonDecomp(self):
+    def _testPythonDecomp(self):
         self._testDecomp(modules.eb.EbModule._decomp)
 
     def testNativeComp(self):
@@ -69,7 +70,11 @@ class testEbModule(unittest.TestCase):
     def testDefaultDecomp(self):
         self._testDecomp(modules.eb.EbModule.decomp)
 
-
+    def testPaletteIO(self):
+        c = (48, 32, 16)
+        modules.eb.EbModule.writePaletteColor(self.rom, 0, c)
+        c2 = modules.eb.EbModule.readPaletteColor(self.rom, 0)
+        self.assertEqual(c, c2)
 
 def suite():
     suite = unittest.TestSuite()

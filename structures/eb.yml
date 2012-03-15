@@ -369,7 +369,7 @@ texttables:
     size: 2
   - name: Argument
     size: 4
-    type: hexint
+    type: bytearray
   - name: Help Text Pointer
     size: 4
     type: pointer
@@ -679,7 +679,7 @@ texttables:
 
 0xD57880:
   type: data
-  size: 428
+  size: 496
   description: PSI Teleport Destination Table
   name: psi_teleport
   entries:

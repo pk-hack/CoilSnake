@@ -20,7 +20,7 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
             0xD576B2, # Store Inventory Table
             0xD5F4BB, # Timed Item Transformations
             0xD5F4CF, # Don't Care
-            0xD55000, # Item Data
+            0xD55000, # Item Data # TODO something wrong here
             0xC23109, # Consolation Item
             0xC3E250, # Windows
 #            0xC3F054, # Font Ptr Tbl

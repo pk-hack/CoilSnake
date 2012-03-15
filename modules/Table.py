@@ -92,7 +92,7 @@ class Table:
                     entry.writeToRom(rom, self._addr + i)
                     i += entry.size()
         else:
-            raise RuntimeError("Cannot write outside table range")
+            raise RuntimeError(self._name + ": Cannot write outside table range")
     def dump(self):
         out = { }
         for i in range(0,len(self._data)):
