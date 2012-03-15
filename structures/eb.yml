@@ -155,22 +155,22 @@ texttables:
     size: 1
     values:
     - 0
-    - Person
-    - Item
-    - Object
+    - person
+    - item
+    - object
   - name: Sprite Group
     size: 2
   - name: Direction
     size: 1
     values:
-    - Up
-    - Up-Right
-    - Right
-    - Down-Right
-    - Down
-    - Down-Left
-    - Left
-    - Up-Left
+    - up
+    - up-right
+    - right
+    - down-right
+    - down
+    - down-left
+    - left
+    - up-left
   - name: Movement
     size: 2
   - name: Event Flag
@@ -179,13 +179,13 @@ texttables:
   - name: Show Sprite
     size: 1
     values:
-    - Always
-    - When event flag unset
-    - When event flag set
-  - name: Pointer 1
+    - always
+    - when event flag unset
+    - when event flag set
+  - name: Text Address 1
     size: 4
     type: pointer
-  - name: Pointer 2
+  - name: Text Address 2
     size: 4
     type: pointer
 
@@ -203,16 +203,16 @@ texttables:
   - name: Gender
     size: 1
     values:
-    - Invalid
-    - Male
-    - Female
-    - Neutral
+    - invalid
+    - male
+    - female
+    - neutral
   - name: Type
     size: 1
     values:
-    - Normal
-    - Insect
-    - Metal
+    - normal
+    - insect
+    - metal
   - name: Battle Sprite
     size: 2
   - name: Overworld Sprite
@@ -229,10 +229,10 @@ texttables:
     size: 2
   - name: Movement pattern
     size: 2
-  - name: Encounter Text Pointer
+  - name: Encounter Text Address 
     size: 4
     type: pointer
-  - name: Death Text Pointer
+  - name: Death Text Address 
     size: 4
     type: pointer
   - name: Battle Sprite Palette
@@ -332,14 +332,47 @@ texttables:
   - name: Death Sound
     size: 1
     values:
-    - Normal
-    - Boss
+    - normal
+    - boss
   - name: Row
     size: 1
   - name: Max Call
     size: 1
   - name: Mirror Success Rate
     size: 1
+
+0xD55000:
+  type: data
+  description: Item Data
+  name: items
+  size: 9906
+  entries:
+  - name: Name
+    size: 25
+    type: standardtext
+  - name: Type
+    size: 1
+  - name: Cost
+    size: 2
+  - name: Misc Flags
+    size: 1
+    bitvalues:
+    - Ness can use
+    - Paula can use
+    - Jeff can use
+    - Poo can use
+    - Item can change
+    - Cannot be given away
+    - Unknown
+    - Item disappears when used
+  - name: Effect
+    size: 2
+  - name: Argument
+    size: 4
+    type: hexint
+  - name: Help Text Pointer
+    size: 4
+    type: pointer
 
 0xD5EA77:
   type: data
@@ -371,6 +404,20 @@ texttables:
   - name: bad recover
     size: 1
   - name: run time
+    size: 1
+
+0xC23109:
+  name: consolation_item
+  description: Table for enemies that offer consolation prizes
+  type: data
+  size: 18
+  entries:
+  - name: Enemy ID
+    size: 1
+  - name: Item IDs
+    type: bytearray
+    size: 7
+  - name: "Null"
     size: 1
 
 0xd5ebab:
@@ -458,3 +505,715 @@ texttables:
   - name: Palette
     size: 32
     type: palette
+
+0xDCD637:
+  name: map_music_overlay
+  description: Per-Sector Music Assignments
+  type: data
+  size: 2560
+  entries:
+  - name: Music
+    size: 1
+
+0xC3F2B5:
+  name: pc_gfx
+  description: Playable Character Graphics Control Table
+  type: data
+  size: 272
+  entries:
+  - name: Normal Spriteset
+    size: 2
+  - name: Dead Spriteset
+    size: 2
+  - name: Ladder Spriteset
+    size: 2
+  - name: Rope Spriteset
+    size: 2
+  - name: Tiny Spriteset
+    size: 2
+  - name: Tiny Dead Spriteset
+    size: 2
+  - name: Robot Spriteset
+    size: 2
+  - name: Unknown
+    size: 2
+
+0xD58D7A:
+  name: psi_names
+  description: PSI Names Table
+  type: data
+  size: 425
+  entries:
+  - name: PSI Name
+    type: standardtext
+    size: 25
+
+0xD58A50:
+  name: psi
+  description: PSI Abilities Table
+  type: data
+  size: 795
+  entries:
+  - name: Name
+    size: 1
+  - name: Greek Letter
+    size: 1
+    values:
+    - 0
+    - alpha
+    - beta
+    - gamma
+    - sigma
+    - omega
+  - name: Type
+    size: 1
+    values:
+    - 0
+    - offense
+    - recover
+    - 3
+    - assist
+    - 5
+    - 6
+    - 7
+    - other
+  - name: Target
+    size: 1
+    values:
+    - 0
+    - Nobody
+    - Enemies
+    - Allies
+  - name: Effect
+    size: 2
+  - name: Level Learned by Ness
+    size: 1
+  - name: Level Learned by Paula
+    size: 1
+  - name: Level Learned by Poo
+    size: 1
+  - name: PSI Menu Position (X)
+    size: 1
+  - name: PSI Menu Position (Y)
+    size: 1
+  - name: Description Text Pointer
+    type: pointer
+    size: 4
+
+0xD57B68:
+  type: data
+  description: Battle Actions Table
+  name: actions
+  size: 3816
+  entries:
+  - name: Direction
+    size: 1
+    values:
+    - party
+    - enemy
+  - name: Target
+    size: 1
+    values:
+    - none
+    - one
+    - random
+    - row
+    - all
+  - name: Action type
+    size: 1
+    values:
+    - nothing
+    - physical (affected by shields and defending)
+    - physical (unaffected by shields and defending)
+    - PSI
+    - item
+    - other
+  - name: PP Cost
+    size: 1
+  - name: Text Address
+    size: 4
+    type: pointer
+  - name: Code Address
+    size: 4
+    type: pointer
+
+0xD5EA5B:
+  type: data
+  size: 28
+  description: Statistic Growth Variables Table
+  name: stat_growth
+  entries:
+  - name: Offense
+    size: 1
+  - name: Defense
+    size: 1
+  - name: Speed
+    size: 1
+  - name: Guts
+    size: 1
+  - name: Vitality
+    size: 1
+  - name: IQ
+    size: 1
+  - name: Luck
+    size: 1
+
+0xD5F5F5:
+  type: data
+  size: 80
+  description: Initial Statistics Table
+  name: initial_stats
+  entries:
+  - name: Unknown
+    size: 4
+    type: bytearray
+  - name: Money
+    size: 2
+  - name: Level
+    size: 2
+  - name: Experience Points
+    size: 2
+  - name: Items Possessed
+    size: 10
+    type: bytearray
+
+0xD57880:
+  type: data
+  size: 428
+  description: PSI Teleport Destination Table
+  name: psi_teleport
+  entries:
+  - name: Name
+    type: standardtext
+    size: 25
+  - name: Event Flag
+    type: hexint
+    size: 2
+  - name: X
+    size: 2
+  - name: Y
+    size: 2
+
+0xD57AAE:
+  type: data
+  size: 186
+  description: Telephone Contacts Table
+  name: phone
+  entries:
+  - name: Name
+    size: 25
+    type: standardtext
+  - name: Event Flag
+    size: 2
+    type: hexint
+  - name: Text Pointer
+    size: 4
+    type: pointer
+
+0xD576B2:
+  type: data
+  description: Store Inventory Table
+  name: shops
+  size: 462
+  entries:
+  - name: Items
+    type: bytearray
+    size: 7
+
+0xD5F4BB:
+  type: data
+  size: 20
+  description: Timed Item Transformation Table
+  name: item_transform
+  entries:
+  - name: Item ID
+    size: 1
+  - name: Sound Effect
+    size: 1
+  - name: Sound Frequency
+    size: 1
+  - name: New Item
+    size: 1
+  - name: Delay
+    size: 1
+
+0xD5F4CF:
+  type: data
+  size: 294
+  description: Don't Care Preset Character Names
+  name: dont_care
+  entries:
+  - name: Name 1
+    type: standardtext
+    size: 6
+  - name: Name 2
+    type: standardtext
+    size: 6
+  - name: Name 3
+    type: standardtext
+    size: 6
+  - name: Name 4
+    type: standardtext
+    size: 6
+  - name: Name 5
+    type: standardtext
+    size: 6
+  - name: Name 6
+    type: standardtext
+    size: 6
+  - name: Name 7
+    type: standardtext
+    size: 6
+
+0xC3E250:
+  name: windows
+  description: Window sizes and positions
+  type: data
+  size: 424
+  entries:
+  - name: X Offset
+    size: 2
+  - name: Y Offset
+    size: 2
+  - name: Width
+    size: 2
+  - name: Height
+    size: 2
+
+0xC3F054:
+  type: data
+  size: 0x3C
+  description: Font Pointer Table
+  name: font_ptrs 
+  entries:
+  - name: VWF Pointer
+    type: pointer
+    size: 4
+  - name: GFX Pointer
+    type: pointer
+    size: 4
+  - name: Height?
+    type: int
+    size: 2
+  - name: Width?
+    type: int
+    size: 2
+
+0xC4C05E:
+  name: file_select_text
+  description: File select screen text data
+  size: 640
+  type: data
+  entries:
+  - name: Text
+    size: 67
+    type: standardtext
+
+0xC8CDED:
+  type: data
+  description: Compressed Text Pointer Table
+  name: compr_text_ptrs
+  size: 3072
+  entries:
+  - name: Pointer
+    size: 4
+    type: pointer
+
+0xCAD7A1:
+  type: data
+  description: 'Battle BGs: Graphics Pointer Table'
+  name: battlebg_gfx_ptrs
+  size: 412
+  entries:
+  - name: Pointer
+    size: 4
+    type: pointer
+
+0xCAD93D:
+  type: data
+  description: 'Battle BGs: Arrangement Pointer Table'
+  name: battlebg_arr_ptrs
+  size: 412
+  entries:
+  - name: Pointer
+    size: 4
+    type: pointer
+
+0xCADAD9:
+  type: data
+  size: 456
+  description: 'Battle BGs: Palette Pointer Table'
+  name: battlebg_pal_ptrs
+  entries:
+  - name: Pointer
+    size: 4
+    type: pointer
+
+0xCADCA1:
+  type: data
+  description: 'Battle BGs: Rendering Data'
+  name: battle_bg
+  size: 5559
+  entries:
+  - name: Graphics and Arrangement
+    size: 1
+  - name: Palette
+    size: 1
+  - name: Colour depth
+    size: 1
+  - name: unknown
+    size: 1
+  - name: Palette Cycle 1
+    size: 1
+  - name: Palette Cycle 2
+    size: 1
+  - name: Palette Cycle 3
+    size: 1
+  - name: Palette Cycle 4
+    size: 1
+  - name: Palette-changing speed
+    size: 1
+  - name: Scrolling Movement 1
+    size: 1
+  - name: Scrolling Movement 2
+    size: 1
+  - name: Scrolling Movement 3
+    size: 1
+  - name: Scrolling Movement 4
+    size: 1
+  - name: Distortion 1
+    size: 1
+  - name: Distortion 2
+    size: 1
+  - name: Distortion 3
+    size: 1
+  - name: Distortion 4
+    size: 1
+
+0xCBD89A:
+  type: data
+  description: Battle Group BG Association Table
+  name: battle_bg_groups
+  size: 1936
+  entries:
+  - name: Background 1
+    size: 2
+  - name: Background 2
+    size: 2
+
+0xCCF47F:
+  type: data
+  size: 272
+  description: PSI Animation Palettes
+  name: psi_anim_pals
+  entries:
+  - name: Palette
+    size: 16
+    type: palette
+
+0xCCF58F:
+  type: data
+  size: 136
+  description: PSI Animation Pointers
+  name: psi_anim_ptrs
+  entries:
+  - name: Pointer
+    type: pointer
+    size: 4
+
+0xCEDC45:
+  type: data
+  size: 252
+  description: Swirl Animation Pointer Table
+  name: swirl_ptrs
+  entries:
+  - name: Pointer
+    size: 2
+    type: pointer
+
+0xCEF806:
+  type: data
+  size: 192
+  description: Sound stone palette
+  name: sound_stone_pal
+  entries:
+  - name: Palette
+    size: 32
+    type: palette
+
+0xCF58EF:
+  type: data
+  description: Overworld Event Music Pointer Table
+  name: music_event_ptrs
+  size: 330
+  entries:
+  - name: Pointer
+    size: 2
+    type: pointer
+
+0xD00000:
+  type: data
+  description: Door Pointer Table
+  name: door_ptrs
+  size: 5120
+  entries:
+  - name: Door Pointer
+    size: 4
+    type: pointer
+
+0xD01598:
+  type: data
+  size: 40
+  description: 'Map Tiles: Event Control Pointer Table'
+  name: tile_event_ptrs
+  entries:
+  - name: Pointer
+    size: 2
+    type: pointer
+
+0xD01880:
+  type: data
+  description: Enemy Placement Data
+  name: enemy_placement
+  size: 40960
+  entries:
+  - name: Enemy Group
+    size: 2
+
+0xD0B880:
+  type: data
+  description: Enemy Placement groups pointer table
+  name: ENEMY_PLACEMENT_GROUPS_PTR_TABLE
+  size: 812
+  entries:
+  - name: Pointer
+    size: 4
+    type: pointer
+
+0xD0C60D:
+  type: data
+  description: Battle Entry Pointer Table
+  name: battle_entry_ptrs
+  size: 3872
+  entries:
+  - name: Pointer
+    size: 4
+    type: pointer
+  - name: Fear event flag
+    size: 2
+    type: hexint
+  - name: Fear mode
+    size: 1
+    values:
+    - Run away if flag is unset
+    - Run away if flag is set
+  - name: Battle Letterboxing?
+    size: 1
+
+0xD58F49:
+  type: data
+  description: Level-up EXP Table
+  name: levelup_exp
+  size: 1600
+  entries:
+  - name: Level 00 EXP
+    size: 4
+  - name: Level 01 EXP
+    size: 4
+  - name: Level 02 EXP
+    size: 4
+  - name: Level 03 EXP
+    size: 4
+  - name: Level 04 EXP
+    size: 4
+  - name: Level 05 EXP
+    size: 4
+  - name: Level 06 EXP
+    size: 4
+  - name: Level 07 EXP
+    size: 4
+  - name: Level 08 EXP
+    size: 4
+  - name: Level 09 EXP
+    size: 4
+  - name: Level 10 EXP
+    size: 4
+  - name: Level 11 EXP
+    size: 4
+  - name: Level 12 EXP
+    size: 4
+  - name: Level 13 EXP
+    size: 4
+  - name: Level 14 EXP
+    size: 4
+  - name: Level 15 EXP
+    size: 4
+  - name: Level 16 EXP
+    size: 4
+  - name: Level 17 EXP
+    size: 4
+  - name: Level 18 EXP
+    size: 4
+  - name: Level 19 EXP
+    size: 4
+  - name: Level 20 EXP
+    size: 4
+  - name: Level 21 EXP
+    size: 4
+  - name: Level 22 EXP
+    size: 4
+  - name: Level 23 EXP
+    size: 4
+  - name: Level 24 EXP
+    size: 4
+  - name: Level 25 EXP
+    size: 4
+  - name: Level 26 EXP
+    size: 4
+  - name: Level 27 EXP
+    size: 4
+  - name: Level 28 EXP
+    size: 4
+  - name: Level 29 EXP
+    size: 4
+  - name: Level 30 EXP
+    size: 4
+  - name: Level 31 EXP
+    size: 4
+  - name: Level 32 EXP
+    size: 4
+  - name: Level 33 EXP
+    size: 4
+  - name: Level 34 EXP
+    size: 4
+  - name: Level 35 EXP
+    size: 4
+  - name: Level 36 EXP
+    size: 4
+  - name: Level 37 EXP
+    size: 4
+  - name: Level 38 EXP
+    size: 4
+  - name: Level 39 EXP
+    size: 4
+  - name: Level 40 EXP
+    size: 4
+  - name: Level 41 EXP
+    size: 4
+  - name: Level 42 EXP
+    size: 4
+  - name: Level 43 EXP
+    size: 4
+  - name: Level 44 EXP
+    size: 4
+  - name: Level 45 EXP
+    size: 4
+  - name: Level 46 EXP
+    size: 4
+  - name: Level 47 EXP
+    size: 4
+  - name: Level 48 EXP
+    size: 4
+  - name: Level 49 EXP
+    size: 4
+  - name: Level 50 EXP
+    size: 4
+  - name: Level 51 EXP
+    size: 4
+  - name: Level 52 EXP
+    size: 4
+  - name: Level 53 EXP
+    size: 4
+  - name: Level 54 EXP
+    size: 4
+  - name: Level 55 EXP
+    size: 4
+  - name: Level 56 EXP
+    size: 4
+  - name: Level 57 EXP
+    size: 4
+  - name: Level 58 EXP
+    size: 4
+  - name: Level 59 EXP
+    size: 4
+  - name: Level 60 EXP
+    size: 4
+  - name: Level 61 EXP
+    size: 4
+  - name: Level 62 EXP
+    size: 4
+  - name: Level 63 EXP
+    size: 4
+  - name: Level 64 EXP
+    size: 4
+  - name: Level 65 EXP
+    size: 4
+  - name: Level 66 EXP
+    size: 4
+  - name: Level 67 EXP
+    size: 4
+  - name: Level 68 EXP
+    size: 4
+  - name: Level 69 EXP
+    size: 4
+  - name: Level 70 EXP
+    size: 4
+  - name: Level 71 EXP
+    size: 4
+  - name: Level 72 EXP
+    size: 4
+  - name: Level 73 EXP
+    size: 4
+  - name: Level 74 EXP
+    size: 4
+  - name: Level 75 EXP
+    size: 4
+  - name: Level 76 EXP
+    size: 4
+  - name: Level 77 EXP
+    size: 4
+  - name: Level 78 EXP
+    size: 4
+  - name: Level 79 EXP
+    size: 4
+  - name: Level 80 EXP
+    size: 4
+  - name: Level 81 EXP
+    size: 4
+  - name: Level 82 EXP
+    size: 4
+  - name: Level 83 EXP
+    size: 4
+  - name: Level 84 EXP
+    size: 4
+  - name: Level 85 EXP
+    size: 4
+  - name: Level 86 EXP
+    size: 4
+  - name: Level 87 EXP
+    size: 4
+  - name: Level 88 EXP
+    size: 4
+  - name: Level 89 EXP
+    size: 4
+  - name: Level 90 EXP
+    size: 4
+  - name: Level 91 EXP
+    size: 4
+  - name: Level 92 EXP
+    size: 4
+  - name: Level 93 EXP
+    size: 4
+  - name: Level 94 EXP
+    size: 4
+  - name: Level 95 EXP
+    size: 4
+  - name: Level 96 EXP
+    size: 4
+  - name: Level 97 EXP
+    size: 4
+  - name: Level 98 EXP
+    size: 4
+  - name: Level 99 EXP
+    size: 4
+

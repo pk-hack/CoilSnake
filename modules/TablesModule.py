@@ -31,7 +31,7 @@ class TablesModule(GenericModule.GenericModule):
                     break
     def readFromRom(self, rom):
         for t in self._tables:
-           t.readFromRom(rom)
+            t.readFromRom(rom)
     def writeToRom(self, rom):
         for t in self._tables:
             t.writeToRom(rom)

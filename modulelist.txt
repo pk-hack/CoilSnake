@@ -1,2 +1,3 @@
-eb.MapModule
-eb.EnemyModule
+#eb.MapModule
+#eb.EnemyModule
+eb.MiscTablesModule
