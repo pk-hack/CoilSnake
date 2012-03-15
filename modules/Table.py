@@ -20,7 +20,7 @@ class TableEntry:
         self._data = self.loadF(str)
     def dump(self):
         return self.dumpF(self._data)
-    def intval(self):
+    def val(self):
         return self._data
 
 # For easiness of reading

@@ -189,6 +189,158 @@ texttables:
     size: 4
     type: pointer
 
+0xD59589:
+  type: data
+  name: enemy_conf
+  description: Enemy Configuration Table
+  size: 21714
+  entries:
+  - name: '"The" Flag'
+    size: 1
+  - name: Name
+    size: 25
+    type: standardtext
+  - name: Gender
+    size: 1
+    values:
+    - Invalid
+    - Male
+    - Female
+    - Neutral
+  - name: Type
+    size: 1
+    values:
+    - Normal
+    - Insect
+    - Metal
+  - name: Battle Sprite
+    size: 2
+  - name: Overworld Sprite
+    size: 2
+  - name: Run Flag
+    size: 1
+  - name: HP
+    size: 2
+  - name: PP
+    size: 2
+  - name: Experience points
+    size: 4
+  - name: Money
+    size: 2
+  - name: Movement pattern
+    size: 2
+  - name: Encounter Text Pointer
+    size: 4
+    type: pointer
+  - name: Death Text Pointer
+    size: 4
+    type: pointer
+  - name: Battle Sprite Palette
+    size: 1
+  - name: Level
+    size: 1
+  - name: Music
+    size: 1
+  - name: Offense
+    size: 2
+  - name: Defense
+    size: 2
+  - name: Speed
+    size: 1
+  - name: Guts
+    size: 1
+  - name: Luck
+    size: 1
+  - name: Fire vulnerability
+    size: 1
+    values:
+    - 100%
+    - 70%
+    - 40%
+    - 5%
+  - name: Freeze vulnerability
+    size: 1
+    values:
+    - 100%
+    - 70%
+    - 40%
+    - 5%
+  - name: Flash vulnerability
+    size: 1
+    values:
+    - 100%
+    - 70%
+    - 40%
+    - 5%
+  - name: Paralysis vulnerability
+    size: 1
+    values:
+    - 100%
+    - 70%
+    - 40%
+    - 5%
+  - name: Hypnosis/Brainshock vulnerability
+    size: 1
+    values:
+    - 100%
+    - 70%
+    - 40%
+    - 5%
+  - name: Miss Rate
+    size: 1
+  - name: Action Order
+    size: 1
+  - name: Action 1
+    size: 2
+  - name: Action 2
+    size: 2
+  - name: Action 3
+    size: 2
+  - name: Action 4
+    size: 2
+  - name: Final Action
+    size: 2
+  - name: Action 1 Argument
+    size: 1
+  - name: Action 2 Argument
+    size: 1
+  - name: Action 3 Argument
+    size: 1
+  - name: Action 4 Argument
+    size: 1
+  - name: Final Action Argument
+    size: 1
+  - name: Unknown
+    size: 1
+  - name: Boss Flag
+    size: 1
+  - name: Item Rarity
+    size: 1
+  - name: Item Dropped
+    size: 1
+  - name: Initial Status
+    size: 1
+    values:
+    - Normal
+    - PSI Shield Alpha
+    - PSI Shield Beta
+    - Shield Alpha
+    - Shield Beta
+    - Asleep
+    - Cannot Concentrate
+    - Feeling Strange
+  - name: Death Sound
+    size: 1
+    values:
+    - Normal
+    - Boss
+  - name: Row
+    size: 1
+  - name: Max Call
+    size: 1
+  - name: Mirror Success Rate
+    size: 1
+
 0xD5EA77:
   type: data
   description: Condiment Data
@@ -297,3 +449,12 @@ texttables:
     - 128x64
     - 128x128
 
+0xCE6514:
+  type: data
+  description: Battle Sprites Palettes
+  name: battle_sprites_pals
+  size: 1024
+  entries:
+  - name: Palette
+    size: 32
+    type: palette

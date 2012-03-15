@@ -1,3 +1,2 @@
 eb.MapModule
-eb.ItemsModule
-eb.BattleSpriteModule
+eb.EnemyModule

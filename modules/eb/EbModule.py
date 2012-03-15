@@ -70,6 +70,45 @@ def write4BPPArea(source, target, off, x, y, bitOffset=0):
     write2BPPArea(source, target, off + 16, x, y, bitOffset + 2)
     return 32
 
+def readPaletteColor(rom, addr):
+    bgrBlock = ((rom[addr] & 0xff) | ((rom[addr+1] & 0xff) << 8)) & 0x7FFF
+    return ((bgrBlock & 0x001f) * 8,
+            ((bgrBlock & 0x03e0) >> 5) * 8,
+            (bgrBlock >> 10) * 8)
+
+def readPalette(rom, addr, ncolors):
+    return map(lambda x: readPaletteColor(rom, addr+2*x), range(0,ncolors))
+
+def writePaletteColor(rom, addr, color):
+    (r, g, b) = color
+    bgrBlock = (((r >> 3) & 0x1f)
+            | (((g >> 3) & 0x1f) << 5)
+            | ((b >> 3) & 0x1f << 10)) & 0x7fff
+    rom.write(addr, bgrBlock & 0xff)
+    rom.write(addr+1, bgrBlock >> 8)
+
+def writePalette(rom, addr, pals):
+    for i in range(0,len(pals)):
+        writePaletteColor(rom, addr + i*2, pals[i])
+
+def readStandardText(rom, addr, maxlen):
+    t = rom.readList(addr, maxlen)
+    str = ''
+    for c in t:
+        if c == 0:
+            return str
+        else:
+            str += chr(c - 0x30)
+    return str
+
+def writeStandardText(rom, addr, text, maxlen):
+    pos = 0
+    for i in text:
+        if pos >= maxlen:
+            break
+        rom.write(addr + pos, ord(i)+0x30)
+        pos += 1
+
 # Comp/Decomp
 
 def initBitrevs():

@@ -44,6 +44,18 @@ def ebEntryGenerator(spec, table_map):
                     table_map[spec['points to']])
         else:
             return te
+    elif spec['type'] == 'palette':
+        readF = lambda r,a: EbModule.readPalette(r, a, spec["size"]/2)
+        writeF = lambda r,a,d: EbModule.writePalette(r, a, d)
+        sizeF = lambda d: spec["size"]
+        loadF = lambda x: map(lambda y: tuple(map(int,y[1:-1].split(','))), x)
+        dumpF = lambda x: map(str,x)
+        return TableEntry(spec["name"], readF, writeF, sizeF, loadF, dumpF)
+    elif spec['type'] == 'standardtext':
+        readF = lambda r,a: EbModule.readStandardText(r, a, spec["size"])
+        writeF = lambda r,a,d: EbModule.writeStandardText(r, a, d, spec["size"])
+        sizeF = lambda d: spec["size"]
+        return TableEntry(spec["name"], readF, writeF, sizeF, _return, _return)
     else:
         return genericEntryGenerator(spec, table_map)
 
