@@ -1,37 +1,8 @@
 import EbModule
+from EbDataBlocks import EbCompressedData
 
 import array
 from PIL import Image
-
-class EbCompressedData:
-    def __init__(self):
-        self._data = None
-    def readFromRom(self, rom, addr):
-        ucdata = EbModule.decomp(rom, addr)
-        if ucdata[0] < 0:
-            print "Error decompressing data @", hex(addr)
-        else:
-            self._data = array.array('B', ucdata)
-    def writeToProject(self, resourceOpener):
-        f = resourceOpener("dump", "smc")
-        self._data.tofile(f)
-        f.close()
-    def writeToFree(self, rom):
-        cdata = EbModule.comp(self._data.tolist())
-        return rom.writeToFree(cdata)
-    def clear(self, len=0):
-        self._data = array.array('B', [0] * len)
-    def __getitem__(self, key):
-        if type(key) == slice:
-            return self._data[key].tolist()
-        else:
-            return self._data[key]
-    def __setitem__(self, key, val):
-        self._data[key] = val
-    def __len__(self):
-        return len(self._data)
-    def tolist(self):
-        return self._data.tolist()
 
 #<Penguin> found it. VHOPPPCC CCCCCCCC
 #<Penguin> v for vertical flip, h for horizontal flip, o for priority bit, p for
@@ -66,6 +37,35 @@ class EbArrangement:
                 | (pb << 13) # Priority Flag
                 | ((pal & 0x7) << 10) # Palette
                 | (tid & 0x3ff)) # Tile id
+    def toImage(self, gfx, pals):
+        img = Image.new("P",
+                (self.width() * gfx.tileSize(),
+                self.height() * gfx.tileSize()),
+                None)
+        # Have to convert the palette from [(r,g,b),(r,g,b)] to [r,g,b,r,g,b]
+        rawPal = reduce(lambda x,y: x.__add__(list(y)),
+            reduce(lambda x,y: x.__add__(y),
+                map(lambda x: pals[x],
+                    range(0, len(pals))),
+                []),
+            [])
+        img.putpalette(rawPal)
+        for y in range(0, self.height()):
+            for x in range(0, self.width()):
+                vf, hf, pb, pal, tid = self[x,y]
+                tile = gfx[tid]
+                for ty in range(0, gfx.tileSize()):
+                    for tx in range(0, gfx.tileSize()):
+                        px , py = tx, ty
+                        if vf:
+                            py = gfx.tileSize() - py - 1
+                        if hf:
+                            px = gfx.tileSize() - px - 1
+                        img.putpixel(
+                            (x*gfx.tileSize() +tx,
+                                y*gfx.tileSize()+ty),
+                            tile[px][py] + pal*pals.palSize())
+        return img
 
 class EbTileGraphics:
     def __init__(self, numTiles, tileSize, bpp=2):
@@ -111,36 +111,6 @@ class EbPalettes:
     def palSize(self):
         return self._numColors
 
-def drawImage(gfx, arr, pals):
-    img = Image.new("P",
-            (arr.width() * gfx.tileSize(),
-            arr.height() * gfx.tileSize()),
-            None)
-    # Have to convert the palette from [(r,g,b),(r,g,b)] to [r,g,b,r,g,b]
-    rawPal = reduce(lambda x,y: x.__add__(list(y)),
-            reduce(lambda x,y: x.__add__(y),
-                map(lambda x: pals[x],
-                    range(0, len(pals))),
-                []),
-            [])
-    img.putpalette(rawPal)
-    for y in range(0, arr.height()):
-        for x in range(0, arr.width()):
-            vf, hf, pb, pal, tid = arr[x,y]
-            tile = gfx[tid]
-            for ty in range(0, gfx.tileSize()):
-                for tx in range(0, gfx.tileSize()):
-                    px , py = tx, ty
-                    if vf:
-                        py = gfx.tileSize() - py - 1
-                    if hf:
-                        px = gfx.tileSize() - px - 1
-                    img.putpixel(
-                        (x*gfx.tileSize() +tx,
-                            y*gfx.tileSize()+ty),
-                        tile[px][py] + pal*pals.palSize())
-    return img
-
 class EbTownMap:
     def __init__(self, name, ptrLoc):
         self._name = name
@@ -158,15 +128,12 @@ class EbTownMap:
         self._pals.readFromBlock(self._block, 0)
         self._gfx.readFromBlock(self._block, 2048+64)
     def writeToProject(self, resourceOpener):
-        if self.name() == "TownMaps/Onett":
-            self._block.writeToProject(resourceOpener)
-        img = drawImage(self._gfx, self._arr, self._pals)
+        img = self._arr.toImage(self._gfx, self._pals)
         imgFile = resourceOpener(self.name(), 'png')
         img.save(imgFile, 'png')
         imgFile.close()
     def name(self):
         return self._name
-
 
 class EbLogo:
     def __init__(self, name, gfxPtrLoc, arrPtrLoc, palPtrLoc):
@@ -198,7 +165,7 @@ class EbLogo:
         self._pals.readFromBlock(self._palBlock)
 
     def writeToProject(self, resourceOpener):
-        img = drawImage(self._gfx, self._arr, self._pals)
+        img = self._arr.toImage(self._gfx, self._pals)
         imgFile = resourceOpener(self.name(), 'png')
         img.save(imgFile, 'png')
         imgFile.close()
@@ -206,8 +173,8 @@ class EbLogo:
         return self._name
 
 
-class LogoModule(EbModule.EbModule):
-    _name = "Logos"
+class CompressedGraphicsModule(EbModule.EbModule):
+    _name = "Compressed Graphics"
     TOWN_MAP_PTRS = zip(
             map(lambda x: "TownMaps/" + x,
                 ["Onett", "Twoson", "Threed", "Fourside", "Scaraba", "Summers"]),

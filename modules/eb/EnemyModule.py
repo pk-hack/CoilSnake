@@ -1,12 +1,10 @@
 import EbModule
-from modules.Table import TableEntry, _return
 from EbTablesModule import EbTable
+from EbDataBlocks import EbCompressedData
 
 import array
 import copy
 from PIL import Image
-
-from LogoModule import EbCompressedData
 
 class EbSprite:
     def __init__(self):

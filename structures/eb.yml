@@ -467,7 +467,6 @@ texttables:
   - name: Graphics
     type: pointer
     size: 4
-    points to: 0xe021a8
 
 0xcd0000:
   description: In-Battle Sprite Graphics
@@ -484,7 +483,6 @@ texttables:
   - name: Sprite
     type: pointer
     size: 4 
-    points to: 0xcd0000
   - name: Sprite Size
     size: 1
     values:
