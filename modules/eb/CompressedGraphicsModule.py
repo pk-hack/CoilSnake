@@ -12,11 +12,18 @@ class EbArrangement:
     def __init__(self, width, height):
         self._width = width
         self._height = height
-        self._arrBuf = None
+        self._arrBuf = [0] * width * height
     def readFromBlock(self, block, loc=0):
         self._arrBuf = map(
             lambda x: block[loc+x] | (block[loc+x+1] << 8),
             range(0, self._width*self._height*2, 2))
+    def writeToBlock(self, block, loc=0):
+        for a in self._arrBuf:
+            block[loc] = a & 0xff
+            block[loc+1] = (a >> 8) & 0xff
+            loc += 2
+    def sizeBlock(self):
+        return self._width * self._height * 2
     def width(self):
         return self._width
     def height(self):
@@ -32,7 +39,7 @@ class EbArrangement:
     def __setitem__(self, key, item):
         x, y = key
         vf, hf, pb, pal, tid = item
-        self._arrBuf[y*height + x] = ((vf << 15) # Vertical Flip Flag
+        self._arrBuf[y*self._width + x] = ((vf << 15) # Vertical Flip Flag
                 | (hf << 14) # Horizontal Flip Flag
                 | (pb << 13) # Priority Flag
                 | ((pal & 0x7) << 10) # Palette
@@ -42,12 +49,9 @@ class EbArrangement:
                 (self.width() * gfx.tileSize(),
                 self.height() * gfx.tileSize()),
                 None)
-        # Have to convert the palette from [(r,g,b),(r,g,b)] to [r,g,b,r,g,b]
+        # Have to convert the palette from [[(r,g,b),(r,g,b)]] to [r,g,b,r,g,b]
         rawPal = reduce(lambda x,y: x.__add__(list(y)),
-            reduce(lambda x,y: x.__add__(y),
-                map(lambda x: pals[x],
-                    range(0, len(pals))),
-                []),
+            reduce(lambda x,y: x.__add__(y), pals.getData(), []),
             [])
         img.putpalette(rawPal)
         for y in range(0, self.height()):
@@ -66,46 +70,175 @@ class EbArrangement:
                                 y*gfx.tileSize()+ty),
                             tile[px][py] + pal*pals.palSize())
         return img
+    def readFromImage(self, imgFname, pals, gfx):
+        img = Image.open(imgFname)
+        imgRGB = img.convert("RGB")
+        del(img)
+        imgRGB.load()
+        imgData = list(imgRGB.getdata())
+        imgW, imgH = imgRGB.size
+        del(imgRGB)
+
+        for ty in range(0, self.height()):
+            for tx in range(0, self.width()):
+                subPalNum = pals.addColorsFromTile(
+                        imgData, imgW,
+                        tx * gfx.tileSize(), ty * gfx.tileSize(),
+                        gfx.tileSize(), gfx.tileSize())
+                vf, hf, tid = gfx.setFromImage(
+                        imgData, imgW,
+                        tx * gfx.tileSize(), ty * gfx.tileSize(),
+                        pals, subPalNum)
+                self[tx,ty] = (vf, hf, False, subPalNum, tid)
+        pals.fill()
 
 class EbTileGraphics:
     def __init__(self, numTiles, tileSize, bpp=2):
         self._numTiles = numTiles
         self._tileSize = tileSize
-        self._tiles = None
+        self._tiles = [ ]
+        self._usedTiles = 0
         self._bpp = bpp
     def readFromBlock(self, block, loc=0):
-        self._tiles = []
         off = loc
+        self._tiles = []
         for i in range(0, self._numTiles):
-            tile = map(
-                    lambda x: array.array('B', [0]*self._tileSize),
-                    range(0, self._tileSize))
             try:
+                tile = [array.array('B', [0]*self._tileSize)
+                        for i in range(self._tileSize)]
                 if self._bpp == 2:
-                    off += EbModule.read2BPPArea(tile, block, off, 0, 0)
+                    off += EbModule.read2BPPArea(
+                        tile, block, off, 0, 0)
                 elif self._bpp == 4:
-                    off += EbModule.read4BPPArea(tile, block, off, 0, 0)
+                    off += EbModule.read4BPPArea(
+                        tile, block, off, 0, 0)
             except IndexError:
                 pass # Load an empty tile if it's out of range of the data
             self._tiles.append(tile)
+        self._usedTiles = self._numTiles
+    def writeToBlock(self, block, loc=0):
+        for t in self._tiles:
+            if self._bpp == 2:
+                loc += EbModule.write2BPPArea(
+                        t, block, loc, 0, 0)
+            elif self._bpp == 4:
+                loc += EbModule.write4BPPArea(
+                        t, block, loc, 0, 0)
+    def sizeBlock(self):
+        if self._bpp == 2:
+            return 16 * self._numTiles
+        elif self._bpp == 4:
+            return 32 * self._numTiles
+    # Returns the tile number
+    # TODO Check for vflipped/hflipped tiles
+    def setFromImage(self, imgData, imgWidth, x, y, pals, palNum):
+        newTile = [
+                array.array('B', map(
+                    lambda j: pals.getColorFromRGB(
+                        palNum,
+                        imgData[j*imgWidth + i]),
+                    range(y, self._tileSize + y)))
+                for i in range(x, self._tileSize + x) ]
+
+        try:
+            tIndex = self._tiles.index(newTile)
+            return (False, False, tIndex)
+        except ValueError:
+            pass
+
+        if self._usedTiles >= self._numTiles:
+            # TODO ERROR: Not enough room for a new tile
+            return (False, False, 0)
+        self._tiles.append(newTile)
+        self._usedTiles += 1
+        return (False, False, len(self._tiles)-1)
     def tileSize(self):
         return self._tileSize
     def __getitem__(self, key):
         return self._tiles[key]
 
+def _uniques(seq):
+    seen = set()
+    seen_add = seen.add
+    return [ x for x in seq if x not in seen and not seen_add(x)]
+
 class EbPalettes:
     def __init__(self, numPalettes, numColors):
         self._numPalettes = numPalettes
         self._numColors = numColors
-        self._pals = None
+        self._pals = [ [ (-1,-1,-1) for i in range(numColors) ]
+                for i in range(numPalettes) ]
     def readFromBlock(self, block, loc=0):
         self._pals = map(
                 lambda x: EbModule.readPalette(
                     block, loc+x, self._numColors),
                 range(0, self._numPalettes*self._numColors*2,
                     self._numColors*2))
+    def writeToBlock(self, block, loc=0):
+        for p in self._pals:
+            EbModule.writePalette(block, loc, p)
+            loc += self._numColors * 2
+    def sizeBlock(self):
+        return 2 * self._numColors * self._numPalettes
+    # Adjusts the palette so the the colors in a given portion of an image are
+    # added to this palette such that all the colors in the tile can be
+    # found in a single subpalette
+    # Returns the subpalette number to use for this tile
+    def addColorsFromTile(self, imgData, imgWidth, x, y, width, height):
+        # Set of unique colors in this tile
+        # List of colors in this tile
+        colors = [imgData[j*imgWidth + i]
+                            for i in range(x,x+width) for j in
+                            range(y,y+height)]
+        # Remove least sig 3 bits, since they aren't used in ROM
+        colors = map(lambda (r,g,b): (r&0xf8, g&0xf8, b&0xf8), colors)
+        # Set of unique colors from the list of colors
+        uniqueColors = set(_uniques(colors))
+        if len(uniqueColors) > self._numColors:
+            # TODO Handle this error better
+            #raise RuntimeError("ERROR: Too many colors in a single palette")
+            return 0
+        # sorted( [(# shared colors, # empty colors, new colors, pal)] )[0]
+        tmp = sorted(
+                filter(
+                    lambda (nsc, nec, newC, p): nec >= len(newC),
+                    map(
+                        lambda x: (
+                            len(uniqueColors.intersection(x)), # Num shared
+                            x.count((-1,-1,-1)), # Num free colors in palette
+                            uniqueColors - set(x), # Set of colors not in palette
+                            x), # Palette
+                        self._pals)),
+                    reverse=True)
+        if len(tmp) == 0:
+            # TODO ERROR: Not enough room to put these colors in a subpalette
+            return 0
+        numShared, numFree, newColors, pal = tmp[0]
+        # Insert new colors into palette
+        for newColor in newColors:
+            for i in range(0, self._numColors):
+                if pal[i] == (-1,-1,-1):
+                    pal[i] = newColor
+                    break
+        return self._pals.index(pal)
+    def getColorFromRGB(self, palNum, (r,g,b)):
+        # Remove least sig 3 bits, since they aren't used in ROM
+        rgb = (r&0xf8, g&0xf8, b&0xf8)
+        try:
+            return self._pals[palNum].index(rgb)
+        except ValueError:
+            # TODO ERROR: Color not in palette
+            return 0
+    def fill(self):
+        for pal in self._pals:
+            for i in range(self._numColors):
+                if pal[i] == (-1,-1,-1):
+                    pal[i] = (0,0,0)
     def __getitem__(self, key):
-        return self._pals[key]
+        palNum, colorNum = key
+        return self._pals[palNum][colorNum]
+    def getData(self):
+        return self._pals
     def __len__(self):
         return self._numPalettes
     def palSize(self):
@@ -116,7 +249,7 @@ class EbTownMap:
         self._name = name
         self._ptrLoc = ptrLoc
         self._block = EbCompressedData()
-        self._gfx = EbTileGraphics(1024, 8, 4)
+        self._gfx = EbTileGraphics(512, 8, 4)
         self._arr = EbArrangement(32, 28)
         self._pals = EbPalettes(2, 16)
     def readFromRom(self, rom):
@@ -127,11 +260,28 @@ class EbTownMap:
         self._arr.readFromBlock(self._block, 64)
         self._pals.readFromBlock(self._block, 0)
         self._gfx.readFromBlock(self._block, 2048+64)
+    def writeToRom(self, rom):
+#        self._block.clear(2048+64+32*512)
+        self._block.clear(
+                self._pals.sizeBlock()
+                + self._arr.sizeBlock()
+                + self._gfx.sizeBlock())
+        self._pals.writeToBlock(self._block, 0)
+        self._arr.writeToBlock(self._block, 64)
+        self._gfx.writeToBlock(self._block, 2048+64)
+
+        newAddr = self._block.writeToFree(rom)
+        rom.writeMulti(self._ptrLoc, EbModule.toSnesAddr(newAddr), 4)
     def writeToProject(self, resourceOpener):
         img = self._arr.toImage(self._gfx, self._pals)
         imgFile = resourceOpener(self.name(), 'png')
         img.save(imgFile, 'png')
         imgFile.close()
+    def readFromProject(self, resourceOpener):
+        imgFile = resourceOpener(self.name(), 'png')
+        imgFname = imgFile.name
+        imgFile.close()
+        self._arr.readFromImage(imgFname, self._pals, self._gfx)
     def name(self):
         return self._name
 
@@ -163,15 +313,36 @@ class EbLogo:
         self._gfx.readFromBlock(self._gfxBlock)
         self._arr.readFromBlock(self._arrBlock)
         self._pals.readFromBlock(self._palBlock)
-
     def writeToProject(self, resourceOpener):
         img = self._arr.toImage(self._gfx, self._pals)
         imgFile = resourceOpener(self.name(), 'png')
         img.save(imgFile, 'png')
         imgFile.close()
+    def writeToRom(self, rom):
+        self._gfxBlock.clear(self._gfx.sizeBlock())
+        self._arrBlock.clear(self._arr.sizeBlock())
+        self._palBlock.clear(self._pals.sizeBlock())
+
+        self._gfx.writeToBlock(self._gfxBlock)
+        self._arr.writeToBlock(self._arrBlock)
+        self._pals.writeToBlock(self._palBlock)
+
+        newAddr = self._gfxBlock.writeToFree(rom)
+        EbModule.writeAsmPointer(rom, self._gfxPtrLoc,
+                EbModule.toSnesAddr(newAddr))
+        newAddr = self._arrBlock.writeToFree(rom)
+        EbModule.writeAsmPointer(rom, self._arrPtrLoc,
+                EbModule.toSnesAddr(newAddr))
+        newAddr = self._palBlock.writeToFree(rom)
+        EbModule.writeAsmPointer(rom, self._palPtrLoc,
+                EbModule.toSnesAddr(newAddr))
+    def readFromProject(self, resourceOpener):
+        imgFile = resourceOpener(self.name(), 'png')
+        imgFname = imgFile.name
+        imgFile.close()
+        self._arr.readFromImage(imgFname, self._pals, self._gfx)
     def name(self):
         return self._name
-
 
 class CompressedGraphicsModule(EbModule.EbModule):
     _name = "Compressed Graphics"
@@ -191,8 +362,18 @@ class CompressedGraphicsModule(EbModule.EbModule):
             logo.readFromRom(rom)
         for map in self._townmaps:
             map.readFromRom(rom)
+    def writeToRom(self, rom):
+        for logo in self._logos:
+            logo.writeToRom(rom)
+        for map in self._townmaps:
+            map.writeToRom(rom)
     def writeToProject(self, resourceOpener):
         for logo in self._logos:
             logo.writeToProject(resourceOpener)
         for map in self._townmaps:
             map.writeToProject(resourceOpener)
+    def readFromProject(self, resourceOpener):
+        for logo in self._logos:
+            logo.readFromProject(resourceOpener)
+        for map in self._townmaps:
+            map.readFromProject(resourceOpener)

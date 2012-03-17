@@ -106,8 +106,8 @@ def writePaletteColor(rom, addr, color):
     bgrBlock = (((r >> 3) & 0x1f)
             | (((g >> 3) & 0x1f) << 5)
             | (((b >> 3) & 0x1f) << 10)) & 0x7fff
-    rom.write(addr, bgrBlock & 0xff)
-    rom.write(addr+1, bgrBlock >> 8)
+    rom[addr] = bgrBlock & 0xff
+    rom[addr+1] = (bgrBlock >> 8) & 0xff
 
 def writePalette(rom, addr, pals):
     for i in range(0,len(pals)):

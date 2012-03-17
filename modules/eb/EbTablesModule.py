@@ -1,7 +1,6 @@
 import EbModule
 from modules.Table import Table, TableEntry, _return, genericEntryGenerator
 from modules.TablesModule import TablesModule
-from modules.eb.EbBlocksModule import EbDataBlock
 
 import yaml
 
