@@ -1,5 +1,6 @@
 import EbModule
-from EbDataBlocks import EbCompressedData
+from EbTablesModule import EbTable
+from EbDataBlocks import EbCompressedData, DataBlock
 
 import array
 from PIL import Image
@@ -44,6 +45,9 @@ class EbArrangement:
                 | (pb << 13) # Priority Flag
                 | ((pal & 0x7) << 10) # Palette
                 | (tid & 0x3ff)) # Tile id
+    def __eq__(self, other):
+        return ((self_width == other._width) and (self._height == other.height)
+                and (self._arrBuf == other._arrBuf))
     def toImage(self, gfx, pals):
         img = Image.new("P",
                 (self.width() * gfx.tileSize(),
@@ -99,6 +103,10 @@ class EbTileGraphics:
         self._tiles = [ ]
         self._usedTiles = 0
         self._bpp = bpp
+    def __eq__(self, other):
+        return ((self._numTiles == other._numTiles)
+                and (self._tileSize == other._tileSize)
+                and (self._tiles == other._tiles))
     def readFromBlock(self, block, loc=0):
         off = loc
         self._tiles = []
@@ -132,6 +140,7 @@ class EbTileGraphics:
     # Returns the tile number
     # TODO Check for vflipped/hflipped tiles
     def setFromImage(self, imgData, imgWidth, x, y, pals, palNum):
+        # Check for normal tile
         newTile = [
                 array.array('B', map(
                     lambda j: pals.getColorFromRGB(
@@ -139,19 +148,48 @@ class EbTileGraphics:
                         imgData[j*imgWidth + i]),
                     range(y, self._tileSize + y)))
                 for i in range(x, self._tileSize + x) ]
+        # Note: newTile is an array of columns
 
+        # Check for non-flipped tile
         try:
             tIndex = self._tiles.index(newTile)
             return (False, False, tIndex)
         except ValueError:
             pass
 
+        # Check for only horizontally flipped tile
+        newTile.reverse()
+        try:
+            tIndex = self._tiles.index(newTile)
+            return (False, True, tIndex)
+        except ValueError:
+            pass
+
+        # Check for vertically and horizontally flipped tile
+        for col in newTile:
+            col.reverse()
+        try:
+            tIndex = self._tiles.index(newTile)
+            return (True, True, tIndex)
+        except ValueError:
+            pass
+
+        # Check for only vertically flipped tile
+        newTile.reverse()
+        try:
+            tIndex = self._tiles.index(newTile)
+            return (True, False, tIndex)
+        except ValueError:
+            pass
+
+        # We need to add a new tile
         if self._usedTiles >= self._numTiles:
             # TODO ERROR: Not enough room for a new tile
             return (False, False, 0)
+        # Remember, newTile is still vflipped
         self._tiles.append(newTile)
         self._usedTiles += 1
-        return (False, False, len(self._tiles)-1)
+        return (True, False, len(self._tiles)-1)
     def tileSize(self):
         return self._tileSize
     def __getitem__(self, key):
@@ -168,6 +206,10 @@ class EbPalettes:
         self._numColors = numColors
         self._pals = [ [ (-1,-1,-1) for i in range(numColors) ]
                 for i in range(numPalettes) ]
+    def __eq__(self, other):
+        return ((self._numPalettes == other._numPalettes)
+                and (self._numColors == other._numColors)
+                and (self._pals == other._pals))
     def readFromBlock(self, block, loc=0):
         self._pals = map(
                 lambda x: EbModule.readPalette(
@@ -261,10 +303,10 @@ class EbTownMap:
         self._pals.readFromBlock(self._block, 0)
         self._gfx.readFromBlock(self._block, 2048+64)
     def writeToRom(self, rom):
-#        self._block.clear(2048+64+32*512)
+        # Arrangement space is 2048 bytes long since it's 32x32x2 in VRAM
         self._block.clear(
-                self._pals.sizeBlock()
-                + self._arr.sizeBlock()
+                self._pals.sizeBlock() + 2048
+#                + self._arr.sizeBlock()
                 + self._gfx.sizeBlock())
         self._pals.writeToBlock(self._block, 0)
         self._arr.writeToBlock(self._block, 64)
@@ -350,6 +392,7 @@ class CompressedGraphicsModule(EbModule.EbModule):
             map(lambda x: "TownMaps/" + x,
                 ["Onett", "Twoson", "Threed", "Fourside", "Scaraba", "Summers"]),
             range(0x202190, 0x202190 + 0x18 * 4, 4))
+
     def __init__(self):
         self._logos = [
                 EbLogo("Logos/Nintendo", 0xeea3, 0xeebb, 0xeed3),
