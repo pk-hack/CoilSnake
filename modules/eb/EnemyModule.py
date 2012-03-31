@@ -180,11 +180,10 @@ class EnemyModule(EbModule.EbModule):
                         resourceOpener, i,
                         self._bsPals[self._enemyCfgTable[i,14].val()].getSubpal(0))
     def readFromProject(self, resourceOpener):
-        # TODO
         # First, read the Enemy Configuration Table
         self._enemyCfgTable.readFromProject(resourceOpener)
 
-        # Second, read the Battle Sprites TODO
+        # Second, read the Battle Sprites
         for i in range(self._enemyCfgTable.height()):
             bs = EbBattleSprite()
             pal = EbPalettes(1,16)

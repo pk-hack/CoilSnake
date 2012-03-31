@@ -11,7 +11,6 @@ Earthbound:
     - (0x03fdf4, 0x03ffff) # from eb.yml
     - (0x04fd4b, 0x04ffff) # from eb.yml
     - (0x09ff2f, 0x09ffff) # from eb.yml
-    - (0x1545c0, 0x154fff) # from eb.yml
     - (0x15f70d, 0x15ffff) # from eb.yml
     - (0x17fbe8, 0x17ffff) # from eb.yml
     - (0x2e9201, 0x2effff) # from eb.yml

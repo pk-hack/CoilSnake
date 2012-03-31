@@ -1276,3 +1276,23 @@ texttables:
   - name: Level 99 EXP
     size: 4
 
+0xEF133f:
+  type: data
+  description: Sprite Group Pointer Table
+  name: SPRITE_GROUPING_PTR_TABLE
+  size: 1856
+  entries:
+  - name: Pointer
+    size: 4
+    type: pointer
+
+0xC30000:
+  type: data
+  description: Sprite Group Palettes Table
+  name: sprite_pals
+  size: 256
+  entries:
+  entries:
+  - name: Palette
+    size: 32
+    type: palette
