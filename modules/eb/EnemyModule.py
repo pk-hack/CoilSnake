@@ -104,11 +104,17 @@ class EnemyModule(EbModule.EbModule):
 
         self._bsprites = map(lambda (x,y): EbBattleSprite(x,y),
                 self.BATTLE_SPRITE_PTRS)
+    def free(self):
+        del(self._enemyCfgTable)
+        del(self._bsPalsTable)
+        del(self._bsprites)
     def readFromRom(self, rom):
         self._enemyCfgTable.readFromRom(rom)
         self._bsPalsTable.readFromRom(rom)
         for bs in self._bsprites:
             bs.readFromRom(rom)
+    def freeRanges(self):
+        return [(0x0d0000, 0x0dffff), (0x0e0000, 0x0e62ed)]
     def writeToRom(self, rom):
         self._enemyCfgTable.writeToRom(rom)
         self._bsPalsTable.writeToRom(rom)

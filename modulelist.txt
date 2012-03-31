@@ -2,3 +2,4 @@ eb.MapModule
 eb.EnemyModule
 eb.MiscTablesModule
 eb.CompressedGraphicsModule
+eb.BattleBgModule

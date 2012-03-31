@@ -26,11 +26,6 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
 #            0xC3F054, # Font Ptr Tbl
 #            0xC4C05E, # File select text # TODO need to fix this
 #            0xC8CDED, # Compressed text ptr tbl
-#            0xCAD7A1, # Battle BG Gfx Ptr Tbl
-#            0xCAD93D, # Battle BG Arr Ptr Tbl
-#            0xCADAD9, # Battle BG Pal Ptr Tbl
-            0xCADCA1, # Battle BG data tbl
-            0xCBD89A, # Battle BG Groups
             0xCCF47F, # PSI Anim Pals
 #            0xCCF58F, # PSI Anim Ptrs
 #            0xCEDC45, # Swirl Ptr Tbl

@@ -127,11 +127,15 @@ class Rom:
             data >>= 8
             size -= 1
             i += 1
+    def addFreeRanges(self, ranges):
+        # TODO do some check so that free ranges don't overlap
+        self._freeRanges += ranges
+        self._freeRanges.sort()
     def getFreeLoc(self, size):
         for i in range(0, len(self._freeRanges)):
             begin, end = self._freeRanges[i]
             if size <= end-begin+1:
-                if begin+size == end + 1:
+                if begin+size == end:
                     # Used up the entire free range
                     del(self._freeRanges[i])
                 else:

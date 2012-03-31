@@ -33,14 +33,18 @@ def readAsmPointer(rom, addr):
     return part1 | (part2 << 16)
 
 def writeAsmPointer(rom, addr, ptr):
-    rom[addr] = 0xa9
+#    rom[addr] = 0xa9
     rom[addr+1] = ptr & 0xff
     rom[addr+2] = (ptr >> 8) & 0xff
-    rom[addr+3] = 0x85
-    rom[addr+4] = 0x0e
-    rom[addr+5] = 0xa9
+#    rom[addr+3] = 0x85
+#    rom[addr+4] = 0x0e
+#    rom[addr+5] = 0xa9
     rom[addr+6] = (ptr >> 16) & 0xff
     rom[addr+7] = (ptr >> 24) & 0xff
+
+def writeAsmPointers(rom, addrs, ptr):
+    for addr in addrs:
+        writeAsmPointer(rom, addr, ptr)
 
 # From JHack
 def read2BPPArea(target, source, off, x, y, bitOffset=-1):
@@ -130,6 +134,8 @@ def writeStandardText(rom, addr, text, maxlen):
             break
         rom.write(addr + pos, ord(i)+0x30)
         pos += 1
+    if pos < maxlen:
+        rom.write(addr + pos, 0)
 
 # Comp/Decomp
 

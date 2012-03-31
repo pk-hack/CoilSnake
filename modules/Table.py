@@ -20,6 +20,8 @@ class TableEntry:
         self._data = self.loadF(str)
     def dump(self):
         return self.dumpF(self._data)
+    def setVal(self, val):
+        self._data = val
     def val(self):
         return self._data
 
@@ -69,7 +71,9 @@ class Table:
         self._format = table_map[addr]['entries']
         self._data = []
         self._table_map = table_map
-    def readFromRom(self, rom):
+    def readFromRom(self, rom, addr=None):
+        if addr == None:
+            addr = self._addr
         self._data = []
         i = 0
         # TODO better OOB checking
@@ -78,27 +82,52 @@ class Table:
             row = []
             for entrySpec in self._format:
                 entry = self.tableEntryGenerator(entrySpec, self._table_map)
-                entry.readFromRom(rom, self._addr + i)
+                entry.readFromRom(rom, addr + i)
                 i += entry.size()
                 row.append(entry)
             self._data.append(row)
-    def writeToRom(self, rom):
+    def clear(self, height=0):
+        del(self._data)
+        self._data = map(lambda x:
+                map(lambda y: self.tableEntryGenerator(y, self._table_map),
+                    self._format),
+                range(height))
+    def writeToRom(self, rom, addr=None):
+        if addr == None:
+            addr = self._addr
         # First check to see if we're gonna go OOB
         dataSize = sum(map(lambda y: sum(map(lambda x: x.size(), y)), self._data))
-        if dataSize <= self._size:
+        if (dataSize <= self._size) or (addr != self._addr):
             i = 0
             for row in self._data:
                 for entry in row:
-                    entry.writeToRom(rom, self._addr + i)
+                    entry.writeToRom(rom, addr + i)
                     i += entry.size()
         else:
             raise RuntimeError(self._name + ": Cannot write outside table range")
-    def dump(self):
+    def writeToFree(self, rom):
+        dataSize = sum(map(lambda y: sum(map(lambda x: x.size(), y)),
+            self._data))
+        addr = rom.getFreeLoc(dataSize)
+        self.writeToRom(rom, addr=addr)
+        return addr
+    def readFromProject(self, resourceOpener):
+        f = resourceOpener(self.name(), 'yml')
+        contents = f.read()
+        f.close()
+        self.load(contents)
+    def writeToProject(self, resourceOpener, hiddenColumns=[]):
+        f = resourceOpener(self.name(), 'yml')
+        f.write(self.dump(hiddenColumns))
+        f.close()
+    def dump(self, hiddenColumns=[]):
         out = { }
         for i in range(0,len(self._data)):
             outRow = { }
-            for entry in self._data[i]:
-                outRow[entry.name] = entry.dump()
+            for j in range(len(self._data[i])):
+                entry = self._data[i][j]
+                if j not in hiddenColumns:
+                    outRow[entry.name] = entry.dump()
             out[i] = outRow
         s = yaml.dump(out, default_flow_style=False)
         # Make hexints output to hex
@@ -117,7 +146,11 @@ class Table:
             row = []
             for entrySpec in self._format:
                 entry = self.tableEntryGenerator(entrySpec, self._table_map)
-                entry.set(input[i][entry.name])
+                try:
+                    entry.set(input[i][entry.name])
+                except KeyError:
+                    # Don't set hidden columns
+                    pass
                 row.append(entry)
             self._data.append(row)
     # Accessing operators

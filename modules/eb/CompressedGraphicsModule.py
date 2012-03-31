@@ -46,7 +46,8 @@ class EbArrangement:
                 | ((pal & 0x7) << 10) # Palette
                 | (tid & 0x3ff)) # Tile id
     def __eq__(self, other):
-        return ((self_width == other._width) and (self._height == other.height)
+        return ((self._width == other._width)
+                and (self._height == other._height)
                 and (self._arrBuf == other._arrBuf))
     def toImage(self, gfx, pals):
         img = Image.new("P",
@@ -75,26 +76,44 @@ class EbArrangement:
                             tile[px][py] + pal*pals.palSize())
         return img
     def readFromImage(self, imgFname, pals, gfx):
-        img = Image.open(imgFname)
-        imgRGB = img.convert("RGB")
-        del(img)
-        imgRGB.load()
-        imgData = list(imgRGB.getdata())
-        imgW, imgH = imgRGB.size
-        del(imgRGB)
+        if len(pals) == 1:
+            # Only one subpalette, don't need to do pal fitting
+            img = Image.open(imgFname)
+            palData = img.getpalette()
+            imgData = img.getdata()
+            imgW, imgH = img.size
+            del(img)
+            for i in range(0, pals.palSize()):
+                pals[0,i] = (palData[i*3], palData[i*3+1], palData[i*3+2])
+            for ty in range(self.height()):
+                for tx in range(self.width()):
+                    vf, hf, tid = gfx.setFromImage(
+                            imgData, imgW,
+                            tx * gfx.tileSize(), ty * gfx.tileSize(),
+                            pals, 0, indexed=True)
+                    self[tx,ty] = (vf, hf, False, 0, tid)
+        else:
+            # Need to do subpalette filling
+            img = Image.open(imgFname)
+            imgRGB = img.convert("RGB")
+            del(img)
+            imgRGB.load()
+            imgData = list(imgRGB.getdata())
+            imgW, imgH = imgRGB.size
+            del(imgRGB)
 
-        for ty in range(0, self.height()):
-            for tx in range(0, self.width()):
-                subPalNum = pals.addColorsFromTile(
-                        imgData, imgW,
-                        tx * gfx.tileSize(), ty * gfx.tileSize(),
-                        gfx.tileSize(), gfx.tileSize())
-                vf, hf, tid = gfx.setFromImage(
-                        imgData, imgW,
-                        tx * gfx.tileSize(), ty * gfx.tileSize(),
-                        pals, subPalNum)
-                self[tx,ty] = (vf, hf, False, subPalNum, tid)
-        pals.fill()
+            for ty in range(0, self.height()):
+                for tx in range(0, self.width()):
+                    subPalNum = pals.addColorsFromTile(
+                            imgData, imgW,
+                            tx * gfx.tileSize(), ty * gfx.tileSize(),
+                            gfx.tileSize(), gfx.tileSize())
+                    vf, hf, tid = gfx.setFromImage(
+                            imgData, imgW,
+                                tx * gfx.tileSize(), ty * gfx.tileSize(),
+                            pals, subPalNum)
+                    self[tx,ty] = (vf, hf, False, subPalNum, tid)
+            pals.fill()
 
 class EbTileGraphics:
     def __init__(self, numTiles, tileSize, bpp=2):
@@ -138,16 +157,23 @@ class EbTileGraphics:
         elif self._bpp == 4:
             return 32 * self._numTiles
     # Returns the tile number
-    # TODO Check for vflipped/hflipped tiles
-    def setFromImage(self, imgData, imgWidth, x, y, pals, palNum):
+    def setFromImage(self, imgData, imgWidth, x, y, pals, palNum, indexed=False):
         # Check for normal tile
-        newTile = [
-                array.array('B', map(
-                    lambda j: pals.getColorFromRGB(
-                        palNum,
-                        imgData[j*imgWidth + i]),
-                    range(y, self._tileSize + y)))
-                for i in range(x, self._tileSize + x) ]
+        newTile = None
+        if indexed:
+            newTile = [
+                    array.array('B',
+                        map(lambda j: imgData[j*imgWidth + i],
+                            range(y, self._tileSize + y)))
+                    for i in range(x, self._tileSize + x) ]
+        else:
+            newTile = [
+                    array.array('B', map(
+                        lambda j: pals.getColorFromRGB(
+                            palNum,
+                            imgData[j*imgWidth + i]),
+                        range(y, self._tileSize + y)))
+                    for i in range(x, self._tileSize + x) ]
         # Note: newTile is an array of columns
 
         # Check for non-flipped tile
@@ -207,9 +233,12 @@ class EbPalettes:
         self._pals = [ [ (-1,-1,-1) for i in range(numColors) ]
                 for i in range(numPalettes) ]
     def __eq__(self, other):
-        return ((self._numPalettes == other._numPalettes)
-                and (self._numColors == other._numColors)
-                and (self._pals == other._pals))
+        if other == None:
+            return False
+        else:
+            return ((self._numPalettes == other._numPalettes)
+                    and (self._numColors == other._numColors)
+                    and (self._pals == other._pals))
     def readFromBlock(self, block, loc=0):
         self._pals = map(
                 lambda x: EbModule.readPalette(
@@ -279,6 +308,10 @@ class EbPalettes:
     def __getitem__(self, key):
         palNum, colorNum = key
         return self._pals[palNum][colorNum]
+    def __setitem__(self, key, val):
+        palNum, colorNum = key
+        (r,g,b) = val
+        self._pals[palNum][colorNum] = (r&0xf8, g&0xf8, b&0xf8)
     def getData(self):
         return self._pals
     def __len__(self):
@@ -400,11 +433,16 @@ class CompressedGraphicsModule(EbModule.EbModule):
                 EbLogo("Logos/HALKEN", 0xef52, 0xef6a, 0xef82)
                 ]
         self._townmaps = map(lambda (x,y): EbTownMap(x, y), self.TOWN_MAP_PTRS)
+    def free(self):
+        del(self._logos)
+        del(self._townmaps)
     def readFromRom(self, rom):
         for logo in self._logos:
             logo.readFromRom(rom)
         for map in self._townmaps:
             map.readFromRom(rom)
+    def freeRanges(self):
+        return [(0x2021a8, 0x20ed02)]
     def writeToRom(self, rom):
         for logo in self._logos:
             logo.writeToRom(rom)
