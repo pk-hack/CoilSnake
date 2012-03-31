@@ -239,6 +239,10 @@ class EbPalettes:
             return ((self._numPalettes == other._numPalettes)
                     and (self._numColors == other._numColors)
                     and (self._pals == other._pals))
+    def set(self, subpalNum, colors):
+        self._pals[subpalNum] = colors
+    def getSubpal(self, subpalNum):
+        return self._pals[subpalNum]
     def readFromBlock(self, block, loc=0):
         self._pals = map(
                 lambda x: EbModule.readPalette(
