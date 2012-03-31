@@ -859,15 +859,20 @@ texttables:
     size: 1
   - name: Colour depth
     size: 1
-  - name: unknown
+  - name: Palette Cycle Used
     size: 1
-  - name: Palette Cycle 1
+    values:
+    - None
+    - 1
+    - 1 and 2
+    - 1 (Reversed)
+  - name: Palette Cycle 1 Start
     size: 1
-  - name: Palette Cycle 2
+  - name: Palette Cycle 1 End
     size: 1
-  - name: Palette Cycle 3
+  - name: Palette Cycle 2 Start
     size: 1
-  - name: Palette Cycle 4
+  - name: Palette Cycle 2 End
     size: 1
   - name: Palette-changing speed
     size: 1
@@ -887,6 +892,62 @@ texttables:
     size: 1
   - name: Distortion 4
     size: 1
+
+0xCAF258:
+  type: data
+  description: Battle Background Scrolling Movement Table
+  name: battle_bg_scrolling
+  size: 1200
+  entries:
+  - name: Duration
+    size: 2
+  - name: Horizontal Movement
+    size: 2
+    signed: y
+  - name: Vertical Movement
+    size: 2
+    signed: y
+  - name: Horizontal Acceleration
+    size: 2
+    signed: y
+  - name: Vertical Acceleration
+    size: 2
+    signed: y
+
+0xCAF708:
+  type: data
+  description: Battle Background Distortion Table
+  name: battle_bg_distortion
+  size: 2295
+  entries:
+  - name: Unknown A
+    size: 2
+  - name: Type
+    size: 1
+    values:
+    - ~
+    - Horizontal, Smooth
+    - Horizontal, Interlaced
+    - Vertical, Smooth
+    - 4
+  - name: Ripple Frequency
+    size: 2
+  - name: Ripple Amplitude
+    size: 2
+  - name: Unknown B
+    size: 1
+  - name: Unknown C
+    size: 2
+  - name: Ripple Frequency Acceleration
+    size: 2
+    signed: y
+  - name: Ripple Amplitude Acceleration
+    size: 2
+    signed: y
+  - name: Speed
+    size: 1
+  - name: Unknown D
+    size: 2
 
 0xCBD89A:
   type: data

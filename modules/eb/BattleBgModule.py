@@ -13,6 +13,8 @@ class BattleBgModule(EbModule.EbModule):
         self._bbgArrPtrTbl = EbTable(0xcad93d)
         self._bbgPalPtrTbl = EbTable(0xcadad9)
         self._bbgGroupTbl = EbTable(0xCBD89A)
+        self._bbgScrollTbl = EbTable(0xCAF258)
+        self._bbgDistorTbl = EbTable(0xCAF708)
         self._bbgTbl = EbTable(0xcadca1)
     def free(self):
         del(self._bbgGfxPtrTbl)
@@ -38,6 +40,8 @@ class BattleBgModule(EbModule.EbModule):
         self._bbgPals = [ None for i in range(self._bbgPalPtrTbl.height()) ]
         self._bbgTbl.readFromRom(rom)
         self._bbgGroupTbl.readFromRom(rom)
+        self._bbgScrollTbl.readFromRom(rom)
+        self._bbgDistorTbl.readFromRom(rom)
         for i in range(self._bbgTbl.height()):
             gfxNum = self._bbgTbl[i,0].val()
             colorDepth = self._bbgTbl[i,2].val()
@@ -68,6 +72,8 @@ class BattleBgModule(EbModule.EbModule):
     def writeToProject(self, resourceOpener):
         self._bbgTbl.writeToProject(resourceOpener, hiddenColumns=[0,1])
         self._bbgGroupTbl.writeToProject(resourceOpener)
+        self._bbgScrollTbl.writeToProject(resourceOpener)
+        self._bbgDistorTbl.writeToProject(resourceOpener)
         # Export BGs by table entry
         for i in range(self._bbgTbl.height()):
             (tg, a) = self._bbgGfxArrs[self._bbgTbl[i,0].val()]
@@ -79,6 +85,8 @@ class BattleBgModule(EbModule.EbModule):
             del(img)
     def readFromProject(self, resourceOpener):
         self._bbgGroupTbl.readFromProject(resourceOpener)
+        self._bbgScrollTbl.readFromProject(resourceOpener)
+        self._bbgDistorTbl.readFromProject(resourceOpener)
         self._bbgTbl.readFromProject(resourceOpener)
         self._bbgGfxArrs = []
         self._bbgPals = []
@@ -155,3 +163,5 @@ class BattleBgModule(EbModule.EbModule):
         # Write the data table
         self._bbgTbl.writeToRom(rom)
         self._bbgGroupTbl.writeToRom(rom)
+        self._bbgScrollTbl.writeToRom(rom)
+        self._bbgDistorTbl.writeToRom(rom)

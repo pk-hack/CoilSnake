@@ -90,7 +90,7 @@ class testEbModule(unittest.TestCase):
 
         modules.eb.EbModule.writeAsmPointer(self.rom, 0, 0xabcdef01)
         self.assertEqual(self.rom.readList(0, 8),
-                [ 0xa9, 0x01, 0xef, 0x85, 0x0e, 0xa9, 0xcd, 0xab ])
+                [ 0x0, 0x01, 0xef, 0x0, 0x0, 0x0, 0xcd, 0xab ])
 
         ptr2 = modules.eb.EbModule.readAsmPointer(self.rom, 0)
         self.assertEqual(0xabcdef01, ptr2)
