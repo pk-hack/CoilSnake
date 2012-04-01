@@ -88,5 +88,5 @@ def main():
 #import cProfile
 if (__name__ == '__main__'):
     sys.exit(main())
-#    cProfile.run('main()', 'mainprof')
-#    sys.exit(0)
+    #cProfile.run('main()', 'mainprof')
+    sys.exit(0)

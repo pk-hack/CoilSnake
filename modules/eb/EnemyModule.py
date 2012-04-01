@@ -4,7 +4,6 @@ from EbDataBlocks import DataBlock, EbCompressedData
 from CompressedGraphicsModule import EbPalettes
 
 import array
-import copy
 from PIL import Image
 
 class EbSprite:
