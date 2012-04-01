@@ -45,17 +45,19 @@ class EbSprite:
         # Have to convert the palette from [(r,g,b),(r,g,b)] to [r,g,b,r,g,b]
         rawPal = reduce(lambda x,y: x.__add__(list(y)), pal, [])
         img.putpalette(rawPal)
+        imgData = img.load()
         for x in range(0, self._width):
             for y in range(0, self._height):
-                img.putpixel((x,y), self._sprite[x][y])
+                imgData[x,y] = self._sprite[x][y]
         return img
-    def fromImage(self, image):
-        self._width, self._height = image.size
+    def fromImage(self, img):
+        self._width, self._height = img.size
         self._sprite = []
+        imgData = img.load()
         for x in range(0, self._width):
             col = array.array('B', [0]*self._height)
             for y in range(0, self._height):
-                col[y] = image.getpixel((x,y))
+                col[y] = imgData[x,y]
             self._sprite.append(col)
     def width(self):
         return self._width

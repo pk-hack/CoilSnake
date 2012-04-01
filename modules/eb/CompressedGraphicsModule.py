@@ -51,68 +51,63 @@ class EbArrangement:
                 and (self._arrBuf == other._arrBuf))
     def toImage(self, gfx, pals):
         img = Image.new("P",
-                (self.width() * gfx.tileSize(),
-                self.height() * gfx.tileSize()),
+                (self.width() * gfx._tileSize,
+                self.height() * gfx._tileSize),
                 None)
         # Have to convert the palette from [[(r,g,b),(r,g,b)]] to [r,g,b,r,g,b]
         rawPal = reduce(lambda x,y: x.__add__(list(y)),
             reduce(lambda x,y: x.__add__(y), pals.getData(), []),
             [])
         img.putpalette(rawPal)
+        imgData = img.load()
         for y in range(0, self.height()):
             for x in range(0, self.width()):
                 vf, hf, pb, pal, tid = self[x,y]
                 tile = gfx[tid]
-                for ty in range(0, gfx.tileSize()):
-                    for tx in range(0, gfx.tileSize()):
+                for ty in range(0, gfx._tileSize):
+                    for tx in range(0, gfx._tileSize):
                         px , py = tx, ty
                         if vf:
-                            py = gfx.tileSize() - py - 1
+                            py = gfx._tileSize - py - 1
                         if hf:
-                            px = gfx.tileSize() - px - 1
-                        img.putpixel(
-                            (x*gfx.tileSize() +tx,
-                                y*gfx.tileSize()+ty),
-                            tile[px][py] + pal*pals.palSize())
+                            px = gfx._tileSize - px - 1
+                        imgData[x*gfx._tileSize+tx,
+                                y*gfx._tileSize+ty] = (
+                                        tile[px][py] + pal*pals._numColors)
         return img
     def readFromImage(self, imgFname, pals, gfx):
         if len(pals) == 1:
             # Only one subpalette, don't need to do pal fitting
             img = Image.open(imgFname)
             palData = img.getpalette()
-            imgData = img.getdata()
-            imgW, imgH = img.size
-            del(img)
             for i in range(0, pals.palSize()):
                 pals[0,i] = (palData[i*3], palData[i*3+1], palData[i*3+2])
             for ty in range(self.height()):
                 for tx in range(self.width()):
                     vf, hf, tid = gfx.setFromImage(
-                            imgData, imgW,
+                            img,
                             tx * gfx.tileSize(), ty * gfx.tileSize(),
                             pals, 0, indexed=True)
                     self[tx,ty] = (vf, hf, False, 0, tid)
+            del(img)
         else:
             # Need to do subpalette filling
             img = Image.open(imgFname)
             imgRGB = img.convert("RGB")
             del(img)
-            imgRGB.load()
-            imgData = list(imgRGB.getdata())
-            imgW, imgH = imgRGB.size
-            del(imgRGB)
 
             for ty in range(0, self.height()):
                 for tx in range(0, self.width()):
                     subPalNum = pals.addColorsFromTile(
-                            imgData, imgW,
-                            tx * gfx.tileSize(), ty * gfx.tileSize(),
-                            gfx.tileSize(), gfx.tileSize())
+                            imgRGB,
+                            tx * gfx._tileSize, ty * gfx._tileSize,
+                            gfx._tileSize, gfx._tileSize)
                     vf, hf, tid = gfx.setFromImage(
-                            imgData, imgW,
-                                tx * gfx.tileSize(), ty * gfx.tileSize(),
+                            imgRGB,
+                            tx * gfx._tileSize, ty * gfx._tileSize,
                             pals, subPalNum)
                     self[tx,ty] = (vf, hf, False, subPalNum, tid)
+            del(imgRGB)
             pals.fill()
 
 class EbTileGraphics:
@@ -157,13 +152,14 @@ class EbTileGraphics:
         elif self._bpp == 4:
             return 32 * self._numTiles
     # Returns the tile number
-    def setFromImage(self, imgData, imgWidth, x, y, pals, palNum, indexed=False):
+    def setFromImage(self, img, x, y, pals, palNum, indexed=False):
         # Check for normal tile
         newTile = None
+        imgData = img.load()
         if indexed:
             newTile = [
                     array.array('B',
-                        map(lambda j: imgData[j*imgWidth + i],
+                        map(lambda j: imgData[i,j],
                             range(y, self._tileSize + y)))
                     for i in range(x, self._tileSize + x) ]
         else:
@@ -171,7 +167,7 @@ class EbTileGraphics:
                     array.array('B', map(
                         lambda j: pals.getColorFromRGB(
                             palNum,
-                            imgData[j*imgWidth + i]),
+                            imgData[i,j]),
                         range(y, self._tileSize + y)))
                     for i in range(x, self._tileSize + x) ]
         # Note: newTile is an array of columns
@@ -259,12 +255,13 @@ class EbPalettes:
     # added to this palette such that all the colors in the tile can be
     # found in a single subpalette
     # Returns the subpalette number to use for this tile
-    def addColorsFromTile(self, imgData, imgWidth, x, y, width, height):
+    def addColorsFromTile(self, img, x, y, width, height):
         # Set of unique colors in this tile
         # List of colors in this tile
-        colors = [imgData[j*imgWidth + i]
-                            for i in range(x,x+width) for j in
-                            range(y,y+height)]
+        imgData = img.load()
+        colors = [imgData[i,j]
+                for i in range(x,x+width)
+                for j in range(y,y+height)]
         # Remove least sig 3 bits, since they aren't used in ROM
         colors = map(lambda (r,g,b): (r&0xf8, g&0xf8, b&0xf8), colors)
         # Set of unique colors from the list of colors

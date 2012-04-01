@@ -6,7 +6,7 @@ try:
 except ImportError:
     hasNativeComp = False
 
-import Rom
+from modules import Rom
 
 class EbModule(GenericModule):
     def compatibleWithRomtype(self, romtype):

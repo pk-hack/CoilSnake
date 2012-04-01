@@ -1,5 +1,6 @@
-eb.MapModule
+#eb.MapModule
+eb.BattleBgModule
 eb.EnemyModule
 eb.MiscTablesModule
 eb.CompressedGraphicsModule
-eb.BattleBgModule
+eb.SpriteGroupModule
