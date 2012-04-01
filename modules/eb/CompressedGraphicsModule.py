@@ -3,6 +3,7 @@ from EbTablesModule import EbTable
 from EbDataBlocks import EbCompressedData, DataBlock
 
 import array
+import zlib
 from PIL import Image
 
 #<Penguin> found it. VHOPPPCC CCCCCCCC
@@ -116,6 +117,7 @@ class EbTileGraphics:
         self._tileSize = tileSize
         self._tiles = [ ]
         self._usedTiles = 0
+        self._usedDict = dict()
         self._bpp = bpp
     def __eq__(self, other):
         return ((self._numTiles == other._numTiles)
@@ -124,16 +126,16 @@ class EbTileGraphics:
     def readFromBlock(self, block, loc=0):
         off = loc
         self._tiles = []
-        for i in range(0, self._numTiles):
+        for i in xrange(self._numTiles):
             try:
                 tile = [array.array('B', [0]*self._tileSize)
-                        for i in range(self._tileSize)]
+                        for i in xrange(self._tileSize)]
                 if self._bpp == 2:
                     off += EbModule.read2BPPArea(
-                        tile, block, off, 0, 0)
+                        tile, block._data, off, 0, 0)
                 elif self._bpp == 4:
                     off += EbModule.read4BPPArea(
-                        tile, block, off, 0, 0)
+                        tile, block._data, off, 0, 0)
             except IndexError:
                 pass # Load an empty tile if it's out of range of the data
             self._tiles.append(tile)
@@ -142,15 +144,21 @@ class EbTileGraphics:
         for t in self._tiles:
             if self._bpp == 2:
                 loc += EbModule.write2BPPArea(
-                        t, block, loc, 0, 0)
+                        t, block._data, loc, 0, 0)
             elif self._bpp == 4:
                 loc += EbModule.write4BPPArea(
-                        t, block, loc, 0, 0)
+                        t, block._data, loc, 0, 0)
     def sizeBlock(self):
         if self._bpp == 2:
             return 16 * self._numTiles
         elif self._bpp == 4:
             return 32 * self._numTiles
+    # Returns a hash of a tile
+    def _tileHash(self, tile):
+        csum = 0
+        for col in tile:
+            csum = zlib.adler32(col, csum)
+        return csum
     # Returns the tile number
     def setFromImage(self, img, x, y, pals, palNum, indexed=False):
         # Check for normal tile
@@ -159,49 +167,54 @@ class EbTileGraphics:
         if indexed:
             newTile = [
                     array.array('B',
-                        map(lambda j: imgData[i,j],
-                            xrange(y, self._tileSize + y)))
-                    for i in xrange(x, self._tileSize + x) ]
+                        #map(lambda j: imgData[i,j],
+                        #    xrange(y, self._tileSize + y)))
+                        [ imgData[i,j]
+                            for j in xrange(y, self._tileSize + y) ])
+                        for i in xrange(x, self._tileSize + x) ]
         else:
             newTile = [
-                    array.array('B', map(
-                        lambda j: pals.getColorFromRGB(
-                            palNum,
-                            imgData[i,j]),
-                        xrange(y, self._tileSize + y)))
-                    for i in xrange(x, self._tileSize + x) ]
+                    array.array('B',
+                        #map( lambda j: pals.getColorFromRGB(
+                        #    palNum,
+                        #    imgData[i,j]),
+                        #xrange(y, self._tileSize + y)))
+                        [ pals.getColorFromRGB(palNum,imgData[i,j])
+                            for j in xrange(y, self._tileSize + y) ])
+                        for i in xrange(x, self._tileSize + x) ]
         # Note: newTile is an array of columns
 
         # Check for non-flipped tile
         try:
-            tIndex = self._tiles.index(newTile)
+            tIndex = self._usedDict[self._tileHash(newTile)]
             return (False, False, tIndex)
-        except ValueError:
+        except KeyError:
             pass
 
         # Check for only horizontally flipped tile
         newTile.reverse()
         try:
-            tIndex = self._tiles.index(newTile)
+            tIndex = self._usedDict[self._tileHash(newTile)]
             return (False, True, tIndex)
-        except ValueError:
+        except KeyError:
             pass
 
         # Check for vertically and horizontally flipped tile
         for col in newTile:
             col.reverse()
         try:
-            tIndex = self._tiles.index(newTile)
+            tIndex = self._usedDict[self._tileHash(newTile)]
             return (True, True, tIndex)
-        except ValueError:
+        except KeyError:
             pass
 
         # Check for only vertically flipped tile
         newTile.reverse()
+        tH = self._tileHash(newTile)
         try:
-            tIndex = self._tiles.index(newTile)
+            tIndex = self._usedDict[tH]
             return (True, False, tIndex)
-        except ValueError:
+        except KeyError:
             pass
 
         # We need to add a new tile
@@ -210,8 +223,9 @@ class EbTileGraphics:
             return (False, False, 0)
         # Remember, newTile is still vflipped
         self._tiles.append(newTile)
+        self._usedDict[tH] = self._usedTiles
         self._usedTiles += 1
-        return (True, False, len(self._tiles)-1)
+        return (True, False, self._usedTiles-1)
     def tileSize(self):
         return self._tileSize
     def __getitem__(self, key):
