@@ -3,7 +3,6 @@ from EbTablesModule import EbTable
 from EbDataBlocks import EbCompressedData, DataBlock
 
 import array
-import zlib
 from PIL import Image
 
 #<Penguin> found it. VHOPPPCC CCCCCCCC
@@ -153,12 +152,6 @@ class EbTileGraphics:
             return 16 * self._numTiles
         elif self._bpp == 4:
             return 32 * self._numTiles
-    # Returns a hash of a tile
-    def _tileHash(self, tile):
-        csum = 0
-        for col in tile:
-            csum = zlib.adler32(col, csum)
-        return csum
     # Returns the tile number
     def setFromImage(self, img, x, y, pals, palNum, indexed=False):
         # Check for normal tile
@@ -167,18 +160,12 @@ class EbTileGraphics:
         if indexed:
             newTile = [
                     array.array('B',
-                        #map(lambda j: imgData[i,j],
-                        #    xrange(y, self._tileSize + y)))
                         [ imgData[i,j]
                             for j in xrange(y, self._tileSize + y) ])
                         for i in xrange(x, self._tileSize + x) ]
         else:
             newTile = [
                     array.array('B',
-                        #map( lambda j: pals.getColorFromRGB(
-                        #    palNum,
-                        #    imgData[i,j]),
-                        #xrange(y, self._tileSize + y)))
                         [ pals.getColorFromRGB(palNum,imgData[i,j])
                             for j in xrange(y, self._tileSize + y) ])
                         for i in xrange(x, self._tileSize + x) ]
@@ -186,7 +173,7 @@ class EbTileGraphics:
 
         # Check for non-flipped tile
         try:
-            tIndex = self._usedDict[self._tileHash(newTile)]
+            tIndex = self._usedDict[EbModule.hashArea(newTile)]
             return (False, False, tIndex)
         except KeyError:
             pass
@@ -194,7 +181,7 @@ class EbTileGraphics:
         # Check for only horizontally flipped tile
         newTile.reverse()
         try:
-            tIndex = self._usedDict[self._tileHash(newTile)]
+            tIndex = self._usedDict[EbModule.hashArea(newTile)]
             return (False, True, tIndex)
         except KeyError:
             pass
@@ -203,14 +190,14 @@ class EbTileGraphics:
         for col in newTile:
             col.reverse()
         try:
-            tIndex = self._usedDict[self._tileHash(newTile)]
+            tIndex = self._usedDict[EbModule.hashArea(newTile)]
             return (True, True, tIndex)
         except KeyError:
             pass
 
         # Check for only vertically flipped tile
         newTile.reverse()
-        tH = self._tileHash(newTile)
+        tH = EbModule.hashArea(newTile)
         try:
             tIndex = self._usedDict[tH]
             return (True, False, tIndex)

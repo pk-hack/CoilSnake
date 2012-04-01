@@ -1,5 +1,7 @@
 from modules.GenericModule import GenericModule
 
+import zlib
+
 try:
     from modules.eb import NativeComp
     hasNativeComp = True
@@ -45,6 +47,13 @@ def writeAsmPointer(rom, addr, ptr):
 def writeAsmPointers(rom, addrs, ptr):
     for addr in addrs:
         writeAsmPointer(rom, addr, ptr)
+
+# Used for hashing 2BPP/4BPP areas that have been read to a list of arrays
+def hashArea(source):
+    csum = 0
+    for col in source:
+        csum = zlib.adler32(col, csum)
+    return csum
 
 # From JHack
 def read2BPPArea(target, source, off, x, y, bitOffset=-1):

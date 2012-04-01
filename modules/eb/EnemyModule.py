@@ -9,12 +9,13 @@ from PIL import Image
 class EbSprite:
     def __init__(self):
         self._sprite = None
+        self._spriteHash = None
         self._width = None
         self._height = None
     def __eq__(self, other):
         return ((self._width == other._width)
                 and (self._height == other._height)
-                and (self._sprite == other._sprite))
+                and (self._spriteHash == other._spriteHash))
     def sizeBlock(self):
         return (self._width/32)*(self._height/32)*4*4*32
     def readFromBlock(self, block, width, height, loc=0):
@@ -30,6 +31,7 @@ class EbSprite:
                         EbModule.read4BPPArea(self._sprite, block, offset,
                                 (j + r * 4) * 8, (a + q * 4) * 8)
                         offset += 32
+        self._spriteHash = EbModule.hashArea(self._sprite)
     def writeToBlock(self, block, loc=0):
         offset = loc
         for q in range(0, self._height/32):
@@ -59,6 +61,7 @@ class EbSprite:
             for y in range(0, self._height):
                 col[y] = imgData[x,y]
             self._sprite.append(col)
+        self._spriteHash = EbModule.hashArea(self._sprite)
     def width(self):
         return self._width
     def height(self):
@@ -185,6 +188,9 @@ class EnemyModule(EbModule.EbModule):
         self._enemyCfgTable.readFromProject(resourceOpener)
 
         # Second, read the Battle Sprites
+        bsHashes = dict()
+        bsNextNum = 1
+        palNextNum = 0
         for i in range(self._enemyCfgTable.height()):
             bs = EbBattleSprite()
             pal = EbPalettes(1,16)
@@ -192,16 +198,23 @@ class EnemyModule(EbModule.EbModule):
                 bs.readFromProject(resourceOpener, i, pal)
                 # Add the battle sprite
                 try:
-                    self._enemyCfgTable[i,4].set(self._bsprites.index(bs))
-                except ValueError:
+                    #self._enemyCfgTable[i,4].set(self._bsprites.index(bs))
+                    bsNum = bsHashes[bs._sprite._spriteHash]
+                    self._enemyCfgTable[i,4].set(bsNum)
+                except KeyError:
                     self._bsprites.append(bs)
-                    self._enemyCfgTable[i,4].set(len(self._bsprites))
+                    self._enemyCfgTable[i,4].set(bsNextNum)
+                    bsHashes[bs._sprite._spriteHash] = bsNextNum
+                    bsNextNum += 1
                 # Add the palette
+                # TODO should probably use hash table here too?
+                #      then again, I don't think it's actually a bottleneck
                 try:
                     self._enemyCfgTable[i,14].set(self._bsPals.index(pal))
                 except ValueError:
                     self._bsPals.append(pal)
-                    self._enemyCfgTable[i,14].set(len(self._bsPals)-1)
+                    self._enemyCfgTable[i,14].set(palNextNum)
+                    palNextNum += 1
             except IOError:
                 # No battle sprite PNG
                 self._enemyCfgTable[i,4].set(0)
