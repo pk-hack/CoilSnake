@@ -60,44 +60,44 @@ class EbArrangement:
             [])
         img.putpalette(rawPal)
         imgData = img.load()
-        for y in range(0, self.height()):
-            for x in range(0, self.width()):
+        offx = offy = 0
+        for y in xrange(0, self._height):
+            offy = y * gfx._tileSize
+            for x in xrange(0, self._width):
+                offx = x * gfx._tileSize
                 vf, hf, pb, pal, tid = self[x,y]
+                pal *= pals._numColors
                 tile = gfx[tid]
-                for ty in range(0, gfx._tileSize):
-                    for tx in range(0, gfx._tileSize):
+                for ty in xrange(0, gfx._tileSize):
+                    for tx in xrange(0, gfx._tileSize):
                         px , py = tx, ty
                         if vf:
                             py = gfx._tileSize - py - 1
                         if hf:
                             px = gfx._tileSize - px - 1
-                        imgData[x*gfx._tileSize+tx,
-                                y*gfx._tileSize+ty] = (
-                                        tile[px][py] + pal*pals._numColors)
+                        imgData[offx+tx, offy+ty] = tile[px][py] + pal
         return img
-    def readFromImage(self, imgFname, pals, gfx):
+    def readFromImage(self, img, pals, gfx):
         if len(pals) == 1:
             # Only one subpalette, don't need to do pal fitting
-            img = Image.open(imgFname)
             palData = img.getpalette()
-            for i in range(0, pals.palSize()):
+            for i in xrange(0, pals.palSize()):
                 pals[0,i] = (palData[i*3], palData[i*3+1], palData[i*3+2])
-            for ty in range(self.height()):
+            for ty in xrange(self.height()):
                 for tx in range(self.width()):
                     vf, hf, tid = gfx.setFromImage(
                             img,
-                            tx * gfx.tileSize(), ty * gfx.tileSize(),
+                            tx * gfx._tileSize, ty * gfx._tileSize,
                             pals, 0, indexed=True)
                     self[tx,ty] = (vf, hf, False, 0, tid)
             del(img)
         else:
             # Need to do subpalette filling
-            img = Image.open(imgFname)
             imgRGB = img.convert("RGB")
             del(img)
 
-            for ty in range(0, self.height()):
-                for tx in range(0, self.width()):
+            for ty in xrange(self.height()):
+                for tx in xrange(self.width()):
                     subPalNum = pals.addColorsFromTile(
                             imgRGB,
                             tx * gfx._tileSize, ty * gfx._tileSize,
@@ -160,16 +160,16 @@ class EbTileGraphics:
             newTile = [
                     array.array('B',
                         map(lambda j: imgData[i,j],
-                            range(y, self._tileSize + y)))
-                    for i in range(x, self._tileSize + x) ]
+                            xrange(y, self._tileSize + y)))
+                    for i in xrange(x, self._tileSize + x) ]
         else:
             newTile = [
                     array.array('B', map(
                         lambda j: pals.getColorFromRGB(
                             palNum,
                             imgData[i,j]),
-                        range(y, self._tileSize + y)))
-                    for i in range(x, self._tileSize + x) ]
+                        xrange(y, self._tileSize + y)))
+                    for i in xrange(x, self._tileSize + x) ]
         # Note: newTile is an array of columns
 
         # Check for non-flipped tile
@@ -354,10 +354,8 @@ class EbTownMap:
         img.save(imgFile, 'png')
         imgFile.close()
     def readFromProject(self, resourceOpener):
-        imgFile = resourceOpener(self.name(), 'png')
-        imgFname = imgFile.name
-        imgFile.close()
-        self._arr.readFromImage(imgFname, self._pals, self._gfx)
+        img = Image.open(resourceOpener(self.name(), 'png'))
+        self._arr.readFromImage(img, self._pals, self._gfx)
     def name(self):
         return self._name
 
@@ -389,6 +387,11 @@ class EbLogo:
         self._gfx.readFromBlock(self._gfxBlock)
         self._arr.readFromBlock(self._arrBlock)
         self._pals.readFromBlock(self._palBlock)
+        # The first color of every subpalette after subpal0 is ignored and
+        # drawn as the first color of subpal0 instead
+        c = self._pals[0,0]
+        for i in range(1,len(self._pals)):
+            self._pals[i,0] = c
     def writeToProject(self, resourceOpener):
         img = self._arr.toImage(self._gfx, self._pals)
         imgFile = resourceOpener(self.name(), 'png')
@@ -413,10 +416,13 @@ class EbLogo:
         EbModule.writeAsmPointer(rom, self._palPtrLoc,
                 EbModule.toSnesAddr(newAddr))
     def readFromProject(self, resourceOpener):
-        imgFile = resourceOpener(self.name(), 'png')
-        imgFname = imgFile.name
-        imgFile.close()
-        self._arr.readFromImage(imgFname, self._pals, self._gfx)
+        img = Image.open(resourceOpener(self.name(), 'png'))
+        # Set all first colors of each subpalette to the image's first color
+        pal = img.getpalette()
+        firstColor = (pal[0], pal[1], pal[2])
+        for i in range(1,len(self._pals)):
+            self._pals[i,0] = firstColor
+        self._arr.readFromImage(img, self._pals, self._gfx)
     def name(self):
         return self._name
 
@@ -433,7 +439,8 @@ class CompressedGraphicsModule(EbModule.EbModule):
                 EbLogo("Logos/APE", 0xeefb, 0xef13, 0xef2b),
                 EbLogo("Logos/HALKEN", 0xef52, 0xef6a, 0xef82)
                 ]
-        self._townmaps = map(lambda (x,y): EbTownMap(x, y), self.TOWN_MAP_PTRS)
+        self._townmaps = map(lambda (x,y): EbTownMap(x, y),
+                self.TOWN_MAP_PTRS)
     def free(self):
         del(self._logos)
         del(self._townmaps)

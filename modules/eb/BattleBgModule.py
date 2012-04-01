@@ -3,6 +3,8 @@ from EbTablesModule import EbTable
 from EbDataBlocks import EbCompressedData, DataBlock
 from CompressedGraphicsModule import EbArrangement, EbTileGraphics, EbPalettes
 
+from PIL import Image
+
 class BattleBgModule(EbModule.EbModule):
     _name = "Battle Backgrounds"
     _ASMPTRS_GFX = [0x2d1ba, 0x2d4dc, 0x2d8c3]
@@ -91,16 +93,15 @@ class BattleBgModule(EbModule.EbModule):
         self._bbgGfxArrs = []
         self._bbgPals = []
         for i in range(self._bbgTbl.height()):
-            imgFile = resourceOpener('BattleBGs/' + str(i).zfill(3), 'png')
-            imgFname = imgFile.name
-            imgFile.close()
+            img = Image.open(
+                    resourceOpener('BattleBGs/' + str(i).zfill(3), 'png'))
 
             np = EbPalettes(1, 16)
             colorDepth = self._bbgTbl[i,2].val()
             # Max size used in rom: 421 (2bpp) 442 (4bpp)
             ntg = EbTileGraphics(512, 8, colorDepth)
             na = EbArrangement(32, 32)
-            na.readFromImage(imgFname, np, ntg)
+            na.readFromImage(img, np, ntg)
             j=0
             for (tg, a) in self._bbgGfxArrs:
                 if (tg == ntg) and (a == na):

@@ -115,7 +115,7 @@ class SpriteGroup:
                     uniqueSprites.append(sp)
                     spritePtrs.append((uniqueSprites.index(sp), True))
         # Find a free block
-        loc = rom.getFreeLoc(sum(map(lambda x: x.blockSize(), uniqueSprites)), 7)
+        loc = rom.getFreeLoc(sum(map(lambda x: x.blockSize(), uniqueSprites)),15)
         self._bank = EbModule.toSnesAddr(loc) >> 16
         locStart = loc & 0xffff
         # Write each sprite

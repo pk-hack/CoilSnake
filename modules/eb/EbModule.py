@@ -50,15 +50,15 @@ def writeAsmPointers(rom, addrs, ptr):
 def read2BPPArea(target, source, off, x, y, bitOffset=-1):
     if bitOffset < 0:
         bitOffset = 0
-    offset = off
-    for i in xrange(0, 8):
+    tmp1 = 0
+    for i in xrange(y, y+8):
         for k in xrange(0, 2):
-            b = source[offset]
-            offset += 1
+            b = source[off]
+            off += 1
+            tmp1 = k + bitOffset
             for j in xrange(0, 8):
-                target[7-j + x][i+y] |= (((b & (1 << j)) >> j) << (k +
-                    bitOffset))
-    return offset - off
+                target[7-j + x][i] |= ((b & (1 << j)) >> j) << tmp1
+    return 16
 
 # From JHack
 def read4BPPArea(target, source, off, x, y, bitOffset=-1):

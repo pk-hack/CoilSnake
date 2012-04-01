@@ -89,7 +89,7 @@ class EbBattleSprite:
         img = self._sprite.toImage(palette)
         imgFile = resourceOpener(
                 "BattleSprites/" + str(enemyNum).zfill(3), 'png')
-        img.save(imgFile, 'png')
+        img.save(imgFile, 'png', transparency=0)
         imgFile.close()
     def readFromProject(self, resourceOpener, enemyNum, pal):
         f = resourceOpener("BattleSprites/" + str(enemyNum).zfill(3), 'png')
