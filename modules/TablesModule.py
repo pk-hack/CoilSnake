@@ -13,22 +13,8 @@ import yaml
 
 class TablesModule(GenericModule.GenericModule):
     _name = "Generic Tables"
-    def __init__(self, structureFile, TableClass, tableIDs):
-        self._tables = []
-        with open(structureFile) as f:
-            i=1
-            for doc in yaml.load_all(f):
-                if i == 1:
-                    # TODO Do stuff with the text table data and whatnot
-                    i += 1
-                elif i == 2:
-                    # Load the Tables
-                    for addr in tableIDs:
-                        if (doc[addr]['type'] == 'data' and
-                                doc[addr].has_key('entries') and
-                                doc[addr].has_key('name')):
-                            self._tables.append(TableClass(addr, doc))
-                    break
+    def __init__(self, TableClass, tableIDs):
+        self._tables = map(lambda x: TableClass(x), tableIDs)
     def readFromRom(self, rom):
         for t in self._tables:
             t.readFromRom(rom)

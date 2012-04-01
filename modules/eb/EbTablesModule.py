@@ -32,24 +32,25 @@ def ebEntryGenerator(spec, table_map):
 
 class EbTable(Table):
     tableEntryGenerator = staticmethod(ebEntryGenerator)
-    def __init__(self, addr, table_map=None):
-        if table_map == None:
+    eb_table_map = None
+    def __init__(self, addr):
+        if EbTable.eb_table_map == None:
             with open("structures/eb.yml") as f:
                 i=1
                 for doc in yaml.load_all(f):
                     if i == 1:
                         i += 1
                     elif i == 2:
-                        table_map = doc
+                        EbTable.eb_table_map = doc
                         break
-        Table.__init__(self,addr,table_map)
+        Table.__init__(self,addr,EbTable.eb_table_map)
         self._addr = EbModule.toRegAddr(self._addr)
 
 class EbTablesModule(EbModule.EbModule):
     _name = "EarthBound Tables"
     _tableIDs = [ ]
     def __init__(self):
-        self._tm = TablesModule("structures/eb.yml", EbTable, self._tableIDs)
+        self._tm = TablesModule(EbTable, self._tableIDs)
     def readFromRom(self, rom):
         self._tm.readFromRom(rom)
     def writeToRom(self, rom):

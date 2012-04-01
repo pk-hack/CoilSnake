@@ -51,11 +51,11 @@ def read2BPPArea(target, source, off, x, y, bitOffset=-1):
     if bitOffset < 0:
         bitOffset = 0
     offset = off
-    for i in range(0, 8):
-        for k in range(0, 2):
+    for i in xrange(0, 8):
+        for k in xrange(0, 2):
             b = source[offset]
             offset += 1
-            for j in range(0, 8):
+            for j in xrange(0, 8):
                 target[7-j + x][i+y] |= (((b & (1 << j)) >> j) << (k +
                     bitOffset))
     return offset - off
@@ -78,15 +78,21 @@ def read8BPPArea(target, source, off, x, y):
 def write2BPPArea(source, target, off, x, y, bitOffset=0):
     if bitOffset < 0:
         bitOffset = 0
-    offset = off
-    for i in range(0, 8):
-        for k in range(0, 2):
-            target[offset] = 0
-            for j in range(0,8):
-                target[offset] |= ((source[7 - j + x][i + y]
-                    & (1 << (k + bitOffset))) >> (k + bitOffset)) << j
-            offset += 1
-    return offset - off
+    tmp1 = tmp2 = tmp3 = 0
+    for i in xrange(0, 8):
+        for k in xrange(0, 2):
+            tmp1 = k+bitOffset
+            tmp2 = 1 << tmp1
+            tmp3 = 0
+            for j in xrange(0,8):
+                #target[offset] |= ((source[7 - j + x][i + y]
+                #    & (1 << (k + bitOffset))) >> (k + bitOffset)) << j
+                #target[offset] |= not not (source[7 - j + x][i + y] & (1 << (k +
+                #    bitOffset))) << j
+                tmp3 |= ((source[7-j+x][i+y] & tmp2) >> tmp1)<<j
+            target[off] = tmp3
+            off += 1
+    return 16 
 
 # From JHack
 def write4BPPArea(source, target, off, x, y, bitOffset=0):

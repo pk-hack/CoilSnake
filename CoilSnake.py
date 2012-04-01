@@ -4,8 +4,8 @@ import argparse
 import sys
 import os
 
-import Project
-import Rom
+from modules import Project
+from modules import Rom
 
 def loadModules():
     modules = []
@@ -89,4 +89,4 @@ def main():
 if (__name__ == '__main__'):
     sys.exit(main())
     #cProfile.run('main()', 'mainprof')
-    sys.exit(0)
+    #sys.exit(0)
