@@ -57,9 +57,7 @@ class SpriteGroup:
         self._w = self._h = self._pal = 0
         self._unknownA = 0
         self._unknownB = [0,0,0,0]
-        self._numSprites = numSprites
-        # [Sprite,NoSink]
-        self._sprites = [[EbRegSprite(),False] for i in range(numSprites)]
+        self._numSprites = max(0,numSprites)
 
         # For writing to ROM
         self._bank = 0
@@ -71,6 +69,8 @@ class SpriteGroup:
     def setPalette(self, palNum):
         self._pal = palNum
     def readFromRom(self, rom, loc):
+        self._sprites = [
+                [EbRegSprite(),False] for i in range(self._numSprites)]
         self._h = rom[loc]
         self._w = rom[loc+1] >> 4
         self._unknownA = rom[loc+2]
@@ -98,6 +98,9 @@ class SpriteGroup:
             block[loc+9+2*i] = self._spritePtrs[i] & 0xff
             block[loc+9+2*i+1] = self._spritePtrs[i] >> 8
     def writeSpritesToFree(self, rom):
+        if self._numSprites == 0:
+            self._spritePtrs = []
+            return
         spritePtrs = [ ]
         # Make a set of unique sprites
         uniqueSprites = [ ]
@@ -159,9 +162,13 @@ class SpriteGroup:
     def dump(self):
         return { 'Unknown A': self._unknownA,
                 'Unknown B': self._unknownB,
-                'Swim Flags': map(lambda (a,x): x, self._sprites)
+                'Swim Flags': map(lambda (a,x): x, self._sprites),
+                'Length': self._numSprites
                 }
     def load(self, d):
+        self._numSprites = d['Length']
+        self._sprites = [
+                [EbRegSprite(),False] for i in range(self._numSprites)]
         self._unknownA = d['Unknown A']
         self._unknownB = d['Unknown B']
         sf = d['Swim Flags']
