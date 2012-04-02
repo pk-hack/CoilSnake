@@ -7,9 +7,9 @@ from PIL import Image
 
 class BattleBgModule(EbModule.EbModule):
     _name = "Battle Backgrounds"
-    _ASMPTRS_GFX = [0x2d1ba, 0x2d4dc, 0x2d8c3]
-    _ASMPTRS_ARR = [0x2d2c1, 0x2d537, 0x2d91f]
-    _ASMPTRS_PAL = [0x2d3bb, 0x2d61b, 0x2d7e8, 0x2d9e8]
+    _ASMPTRS_GFX = [0x2d1ba, 0x2d4dc, 0x2d8c3, 0x4a3ba]
+    _ASMPTRS_ARR = [0x2d2c1, 0x2d537, 0x2d91f, 0x4a416]
+    _ASMPTRS_PAL = [0x2d3bb, 0x2d61b, 0x2d7e8, 0x2d9e8, 0x4a4d0]
     def __init__(self):
         self._bbgGfxPtrTbl = EbTable(0xcad7a1)
         self._bbgArrPtrTbl = EbTable(0xcad93d)
@@ -121,7 +121,7 @@ class BattleBgModule(EbModule.EbModule):
                 self._bbgPals.append((np))
                 self._bbgTbl[i,1].set(j)
     def freeRanges(self):
-        return [(0xa0000,0xadca0)]
+        return [(0xa0000,0xadca0), (0xb0000, 0xbd899)]
     def writeToRom(self, rom):
         self._bbgGfxPtrTbl.clear(len(self._bbgGfxArrs))
         self._bbgArrPtrTbl.clear(len(self._bbgGfxArrs))
