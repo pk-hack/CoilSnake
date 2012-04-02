@@ -10,6 +10,8 @@ except ImportError:
 
 from modules import Rom
 
+labelsDict = dict()
+
 class EbModule(GenericModule):
     def compatibleWithRomtype(self, romtype):
         return romtype == "Earthbound"

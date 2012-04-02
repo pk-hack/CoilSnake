@@ -4,7 +4,7 @@ import unittest
 import sys
 sys.path.append('../')
 
-import Rom
+from modules import Rom
 
 class testRom(unittest.TestCase):
     """

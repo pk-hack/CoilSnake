@@ -6,7 +6,7 @@ sys.path.append('../')
 
 import modules.eb.EbModule
 import modules.eb.NativeComp
-import Rom
+from modules import Rom
 
 class testEbModule(unittest.TestCase):
     """

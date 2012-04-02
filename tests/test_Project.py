@@ -4,7 +4,7 @@ import unittest
 import sys
 sys.path.append('../')
 
-import Project
+from modules import Project
 
 class testProject(unittest.TestCase):
     """

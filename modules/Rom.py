@@ -131,6 +131,24 @@ class Rom:
         # TODO do some check so that free ranges don't overlap
         self._freeRanges += ranges
         self._freeRanges.sort()
+    def markRangeAsNotFree(self, usedRange):
+        usedBegin, usedEnd = usedRange
+        for i in range(len(self._freeRanges)):
+            begin, end = self._freeRanges[i]
+            if usedBegin == begin:
+                if usedEnd < end:
+                    self._freeRanges[i] = (usedEnd+1, end)
+                elif usedEnd == end:
+                    del(self._freeRanges[i])
+                else: # usedEnd > end
+                    del(self._freeRanges[i])
+                    self._markRangeAsNotFree(end+1, usedEnd)
+                break
+            elif (usedBegin > begin) and (usedEnd <= end):
+                self._freeRanges[i] = (begin, usedBegin-1)
+                if usedEnd != end:
+                    self._freeRanges.insert(i, (usedEnd+1, end))
+                break
     # Find a free range starting at addr such that add & mask == 0
     def getFreeLoc(self, size, mask=0):
         ranges = filter(lambda (x,y): x & mask == 0, self._freeRanges)

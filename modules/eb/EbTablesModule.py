@@ -13,6 +13,16 @@ def ebEntryGenerator(spec, table_map):
         writeF = lambda r,a,d: r.writeMulti(a, d, spec["size"])
         sizeF = lambda d: spec["size"]
         loadF = lambda x: int(x[1:], 16)
+        def loadF(x):
+            if x[0] == '$':
+                return int(x[1:], 16)
+            else:
+                try:
+                    y = EbModule.labelsDict[x]
+                    return y
+                except KeyError:
+                    # TODO Error, invalid label
+                    return 0
         dumpF = lambda x: '$' + hex(x)[2:]
         return TableEntry(spec["name"], readF, writeF, sizeF, loadF, dumpF)
     elif spec['type'] == 'palette':

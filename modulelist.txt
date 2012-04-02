@@ -1,3 +1,4 @@
+eb.CccInterfaceModule
 #eb.MapModule
 eb.BattleBgModule
 eb.EnemyModule

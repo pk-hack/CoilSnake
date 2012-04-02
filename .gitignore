@@ -4,3 +4,5 @@
 roms/
 */*/build
 *.so
+*.prof
+prefs.yml
