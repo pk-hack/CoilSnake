@@ -108,7 +108,7 @@ class EbBattleSprite:
             pal[0,i] = (palData[i*3], palData[i*3+1], palData[i*3+2])
 
 class EnemyModule(EbModule.EbModule):
-    _name = "Enemy"
+    _name = "Enemies"
     _ASMPTR_GFX = 0x2ee0b
     _REGPTR_GFX = [ 0x2ebe0, 0x2f014, 0x2f065 ]
     _ASMPTR_PAL = 0x2ef74

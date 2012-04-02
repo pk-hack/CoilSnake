@@ -23,7 +23,8 @@ class CoilSnake:
                 for comp in components:
                     mod = getattr(mod, comp)
                 self._modules.append((line, getattr(mod,components[-1])()))
-    def projToRom(self, inputFname, cleanRomFname, outRomFname):
+    def projToRom(self, inputFname, cleanRomFname, outRomFname, progBar=None,
+            progMax=None):
         # Open project
         proj = Project.Project()
         proj.load(inputFname)
@@ -33,23 +34,31 @@ class CoilSnake:
         # Make sure project type matches romtype
         assert(rom.type() == proj.type())
         # Make list of compatible modules
-        curMods = filter(lambda (x,y): y.compatibleWithRomtype(rom.type()), self._modules)
+        curMods = filter(lambda (x,y): y.compatibleWithRomtype(rom.type()),
+                self._modules)
         # Add the ranges from the compatible modules to the free range list
         newRanges = []
         for (n,m) in curMods:
             newRanges += m.freeRanges()
         rom.addFreeRanges(newRanges)
 
-        print "Project:", inputFname, " -> ROM:", outRomFname, "(", proj.type(), ")"
+        print "From Project : ", inputFname, "(", proj.type(), ")"
+        print "To       ROM : ", outRomFname, "(", rom.type(), ")"
+        if progBar is not None:
+            progStepSize = (progMax/len(curMods))/2
         for (n,m) in curMods:
-            print "-", m.name(), "Module\t...",
+            print "-", m.name(), "...",
             sys.stdout.flush()
             m.readFromProject(lambda x,y: proj.getResource(n,x,y,'r'))
+            if progBar is not None:
+                progBar.step(progStepSize)
             m.writeToRom(rom)
+            if progBar is not None:
+                progBar.step(progStepSize)
             m.free()
             print "DONE"
         rom.save(outRomFname)
-    def romToProj(self, inputRomFname, outputFname):
+    def romToProj(self, inputRomFname, outputFname, progBar=None, progMax=None):
         # Load the ROM
         rom = Rom.Rom("romtypes.yaml")
         rom.load(inputRomFname)
@@ -57,13 +66,21 @@ class CoilSnake:
         proj = Project.Project()
         proj.load(outputFname, rom.type())
 
-        print "ROM:", inputRomFname, "-> Project:", outputFname, "(", rom.type(), ")"
-        for (n,m) in filter(
-                lambda (x,y): y.compatibleWithRomtype(rom.type()), self._modules):
-            print "-", m.name(), "Module\t...",
+        print "From   ROM :", inputRomFname, "(", rom.type(), ")"
+        print "To Project :", outputFname, "(", proj.type(), ")"
+        curMods = filter(lambda (x,y): y.compatibleWithRomtype(rom.type()),
+                self._modules)
+        if progBar is not None:
+            progStepSize = (progMax/len(curMods))/2
+        for (n,m) in curMods:
+            print "-", m.name(), "...",
             sys.stdout.flush()
             m.readFromRom(rom)
+            if progBar is not None:
+                progBar.step(progStepSize)
             m.writeToProject(lambda x,y: proj.getResource(n,x,y,'w'))
+            if progBar is not None:
+                progBar.step(progStepSize)
             m.free()
             print "DONE"
         proj.write(outputFname)
