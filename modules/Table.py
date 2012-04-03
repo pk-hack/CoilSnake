@@ -35,9 +35,16 @@ def genericEntryGenerator(spec, table_map):
         writeF = lambda r,a,d: r.writeMulti(a, d, spec["size"])
         sizeF = lambda d: spec["size"]
         if spec.has_key('values'):
-            valuesDict = dict((spec['values'][i],i) \
-                    for i in range(0,len(spec['values'])))
-            loadF = lambda x: valuesDict[x]
+            valuesLower = map(lambda x: str(x).lower(), spec['values'])
+            def loadF(x):
+                try:
+                    return valuesLower.index(str(x).lower())
+                except ValueError:
+                    if type(x) == int:
+                        return x
+                    else:
+                        # TODO Error, could not parse input
+                        return 0
             dumpF = lambda x: spec['values'][x]
             return TableEntry(spec["name"], readF, writeF, sizeF, loadF, dumpF)
         else:
