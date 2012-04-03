@@ -1,3 +1,5 @@
+from CoilSnake import updateProgress
+
 class GenericModule:
     def name(self):
         return self._name
@@ -8,10 +10,10 @@ class GenericModule:
     def freeRanges(self):
         return []
     def readFromRom(self, rom):
-        pass
+        updateProgress(50)
     def writeToRom(self, rom):
-        pass
+        updateProgress(50)
     def readFromProject(self, resourceOpener):
-        pass
+        updateProgress(50)
     def writeToProject(self, resourceOpener):
-        pass
+        updateProgress(50)

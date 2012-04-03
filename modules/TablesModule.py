@@ -1,5 +1,6 @@
 import GenericModule
 from modules.Table import Table
+from CoilSnake import updateProgress
 
 import yaml
 
@@ -15,20 +16,20 @@ class TablesModule(GenericModule.GenericModule):
     _name = "Generic Tables"
     def __init__(self, TableClass, tableIDs):
         self._tables = map(lambda x: TableClass(x), tableIDs)
+        self._pct = 50.0/len(self._tables)
     def readFromRom(self, rom):
         for t in self._tables:
             t.readFromRom(rom)
+            updateProgress(self._pct)
     def writeToRom(self, rom):
         for t in self._tables:
             t.writeToRom(rom)
+            updateProgress(self._pct)
     def writeToProject(self, resourceOpener):
         for t in self._tables:
-            f = resourceOpener(t.name(), 'yml')
-            f.write(t.dump())
-            f.close()
+            t.writeToProject(resourceOpener)
+            updateProgress(self._pct)
     def readFromProject(self, resourceOpener):
         for t in self._tables:
-            f = resourceOpener(t.name(), 'yml')
-            contents = f.read()
-            f.close()
-            t.load(contents)
+            t.readFromProject(resourceOpener)
+            updateProgress(self._pct)

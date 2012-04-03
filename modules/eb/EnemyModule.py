@@ -2,6 +2,7 @@ import EbModule
 from EbTablesModule import EbTable
 from EbDataBlocks import DataBlock, EbCompressedData
 from CompressedGraphicsModule import EbPalettes
+from CoilSnake import updateProgress
 
 import array
 from PIL import Image
@@ -124,18 +125,22 @@ class EnemyModule(EbModule.EbModule):
         del(self._bsPalsTable)
         del(self._bsprites)
     def readFromRom(self, rom):
-        self._enemyCfgTable.readFromRom(rom)
-        self._bsPalsTable.readFromRom(rom,
-                EbModule.toRegAddr(EbModule.readAsmPointer(rom,
-                    self._ASMPTR_PAL)))
         self._bsPtrTbl.readFromRom(rom,
                 EbModule.toRegAddr(EbModule.readAsmPointer(rom,
                     self._ASMPTR_GFX)))
+        self._bsPalsTable.readFromRom(rom,
+                EbModule.toRegAddr(EbModule.readAsmPointer(rom,
+                    self._ASMPTR_PAL)))
+        pct = 50.0/(self._bsPtrTbl.height()
+                + self._bsPalsTable.height() + 1)
+        self._enemyCfgTable.readFromRom(rom)
+        updateProgress(pct)
         # Read the palettes
         for i in range(self._bsPalsTable.height()):
             pal = EbPalettes(1,16)
             pal.set(0, self._bsPalsTable[i,0].val())
             self._bsPals.append(pal)
+            updateProgress(pct)
         # Read the sprites
         for i in range(self._bsPtrTbl.height()):
             bsb = EbCompressedData()
@@ -145,11 +150,14 @@ class EnemyModule(EbModule.EbModule):
             bs.readFromBlock(bsb, self._bsPtrTbl[i,1].val())
             self._bsprites.append(bs)
             del(bsb)
+            updateProgress(pct)
     def freeRanges(self):
         return [(0x0d0000, 0x0dffff), (0x0e0000, 0x0e6913)]
     def writeToRom(self, rom):
+        pct = 50.0/(len(self._bsprites) + len(self._bsPals) + 3)
         # Write the main table
         self._enemyCfgTable.writeToRom(rom)
+        updateProgress(pct)
         # Write the gfx ptr table
         self._bsPtrTbl.clear(len(self._bsprites))
         i = 0
@@ -161,8 +169,10 @@ class EnemyModule(EbModule.EbModule):
                 bsb.writeToFree(rom)))
             self._bsPtrTbl[i,1].setVal(bs.size())
             i += 1
+            updateProgress(pct)
         gfxAddr = EbModule.toSnesAddr(self._bsPtrTbl.writeToFree(rom))
         EbModule.writeAsmPointer(rom, self._ASMPTR_GFX, gfxAddr)
+        updateProgress(pct)
         for p in self._REGPTR_GFX:
             rom.writeMulti(p, gfxAddr, 3)
         # Write the pal table
@@ -171,11 +181,15 @@ class EnemyModule(EbModule.EbModule):
         for p in self._bsPals:
             self._bsPalsTable[i,0].setVal(p.getSubpal(0))
             i += 1
+            updateProgress(pct)
         EbModule.writeAsmPointer(rom, self._ASMPTR_PAL,
                 EbModule.toSnesAddr(self._bsPalsTable.writeToFree(rom)))
+        updateProgress(pct)
     def writeToProject(self, resourceOpener):
+        pct = 50.0/(self._enemyCfgTable.height() + 1)
         # First, write the Enemy Configuration Table
         self._enemyCfgTable.writeToProject(resourceOpener, [4,14])
+        updateProgress(pct)
 
         # Next, write the battle sprite images
         for i in range(self._enemyCfgTable.height()):
@@ -183,9 +197,11 @@ class EnemyModule(EbModule.EbModule):
                 self._bsprites[self._enemyCfgTable[i,4].val()-1].writeToProject(
                         resourceOpener, i,
                         self._bsPals[self._enemyCfgTable[i,14].val()].getSubpal(0))
+            updateProgress(pct)
     def readFromProject(self, resourceOpener):
         # First, read the Enemy Configuration Table
         self._enemyCfgTable.readFromProject(resourceOpener)
+        pct = 50.0/(self._enemyCfgTable.height())
 
         # Second, read the Battle Sprites
         bsHashes = dict()
@@ -219,3 +235,4 @@ class EnemyModule(EbModule.EbModule):
                 # No battle sprite PNG
                 self._enemyCfgTable[i,4].set(0)
                 self._enemyCfgTable[i,14].set(0)
+            updateProgress(pct)

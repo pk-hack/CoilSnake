@@ -1,12 +1,26 @@
 #! /usr/bin/env python
 
 import argparse
-import sys
 import os
+import sys
+import time
 
 from modules import Project
 from modules import Rom
 
+
+__progress = 0.0
+def setProgress(p):
+    global __progress
+    __progress = p
+
+def __updateProgress__(dp):
+    global __progress
+    __progress += dp
+    print "\b\b\b\b\b\b\b\b%6.2f%%" % __progress,
+    return __progress
+
+updateProgress = __updateProgress__
 
 class CoilSnake:
     def __init__(self):
@@ -23,8 +37,7 @@ class CoilSnake:
                 for comp in components:
                     mod = getattr(mod, comp)
                 self._modules.append((line, getattr(mod,components[-1])()))
-    def projToRom(self, inputFname, cleanRomFname, outRomFname, progBar=None,
-            progMax=None):
+    def projToRom(self, inputFname, cleanRomFname, outRomFname):
         # Open project
         proj = Project.Project()
         proj.load(inputFname)
@@ -44,21 +57,17 @@ class CoilSnake:
 
         print "From Project : ", inputFname, "(", proj.type(), ")"
         print "To       ROM : ", outRomFname, "(", rom.type(), ")"
-        if progBar is not None:
-            progStepSize = (progMax/len(curMods))/2
         for (n,m) in curMods:
-            print "-", m.name(), "...",
+            startTime = time.time()
+            setProgress(0)
+            print "-", m.name(), "...   0.00%",
             sys.stdout.flush()
             m.readFromProject(lambda x,y: proj.getResource(n,x,y,'rb'))
-            if progBar is not None:
-                progBar.step(progStepSize)
             m.writeToRom(rom)
-            if progBar is not None:
-                progBar.step(progStepSize)
             m.free()
-            print "DONE"
+            print "(%0.2fs)" % (time.time() - startTime)
         rom.save(outRomFname)
-    def romToProj(self, inputRomFname, outputFname, progBar=None, progMax=None):
+    def romToProj(self, inputRomFname, outputFname):
         # Load the ROM
         rom = Rom.Rom("romtypes.yaml")
         rom.load(inputRomFname)
@@ -70,19 +79,15 @@ class CoilSnake:
         print "To Project :", outputFname, "(", proj.type(), ")"
         curMods = filter(lambda (x,y): y.compatibleWithRomtype(rom.type()),
                 self._modules)
-        if progBar is not None:
-            progStepSize = (progMax/len(curMods))/2
         for (n,m) in curMods:
-            print "-", m.name(), "...",
+            startTime = time.time()
+            setProgress(0)
+            print "-", m.name(), "...   0.00%",
             sys.stdout.flush()
             m.readFromRom(rom)
-            if progBar is not None:
-                progBar.step(progStepSize)
             m.writeToProject(lambda x,y: proj.getResource(n,x,y,'wb'))
-            if progBar is not None:
-                progBar.step(progStepSize)
             m.free()
-            print "DONE"
+            print "(%0.2fs)" % (time.time() - startTime)
         proj.write(outputFname)
 
 

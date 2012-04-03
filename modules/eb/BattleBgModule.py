@@ -2,6 +2,7 @@ import EbModule
 from EbTablesModule import EbTable
 from EbDataBlocks import EbCompressedData, DataBlock
 from CompressedGraphicsModule import EbArrangement, EbTileGraphics, EbPalettes
+from CoilSnake import updateProgress
 
 from PIL import Image
 
@@ -28,22 +29,29 @@ class BattleBgModule(EbModule.EbModule):
         del(self._bbgGfxArrs)
         del(self._bbgPals)
     def readFromRom(self, rom):
+        self._bbgTbl.readFromRom(rom)
+        pct = 50.0/(6+self._bbgTbl.height())
         self._bbgGfxPtrTbl.readFromRom(rom,
                 EbModule.toRegAddr(EbModule.readAsmPointer(rom,
                     self._ASMPTRS_GFX[0])))
+        updateProgress(pct)
         self._bbgArrPtrTbl.readFromRom(rom,
                 EbModule.toRegAddr(EbModule.readAsmPointer(rom, 
                     self._ASMPTRS_ARR[0])))
+        updateProgress(pct)
         self._bbgPalPtrTbl.readFromRom(rom,
                 EbModule.toRegAddr(EbModule.readAsmPointer(rom, 
                     self._ASMPTRS_PAL[0])))
+        updateProgress(pct)
 
         self._bbgGfxArrs = [ None for i in range(self._bbgGfxPtrTbl.height()) ]
         self._bbgPals = [ None for i in range(self._bbgPalPtrTbl.height()) ]
-        self._bbgTbl.readFromRom(rom)
         self._bbgGroupTbl.readFromRom(rom)
+        updateProgress(pct)
         self._bbgScrollTbl.readFromRom(rom)
+        updateProgress(pct)
         self._bbgDistorTbl.readFromRom(rom)
+        updateProgress(pct)
         for i in range(self._bbgTbl.height()):
             gfxNum = self._bbgTbl[i,0].val()
             colorDepth = self._bbgTbl[i,2].val()
@@ -71,11 +79,17 @@ class BattleBgModule(EbModule.EbModule):
                 p.readFromBlock(pb)
                 del(pb)
                 self._bbgPals[palNum] = p
+            updateProgress(pct)
     def writeToProject(self, resourceOpener):
+        pct = 50.0/(4+self._bbgTbl.height())
         self._bbgTbl.writeToProject(resourceOpener, hiddenColumns=[0,1])
+        updateProgress(pct)
         self._bbgGroupTbl.writeToProject(resourceOpener)
+        updateProgress(pct)
         self._bbgScrollTbl.writeToProject(resourceOpener)
+        updateProgress(pct)
         self._bbgDistorTbl.writeToProject(resourceOpener)
+        updateProgress(pct)
         # Export BGs by table entry
         for i in range(self._bbgTbl.height()):
             (tg, a) = self._bbgGfxArrs[self._bbgTbl[i,0].val()]
@@ -85,11 +99,16 @@ class BattleBgModule(EbModule.EbModule):
             img.save(imgFile, 'png')
             imgFile.close()
             del(img)
+            updateProgress(pct)
     def readFromProject(self, resourceOpener):
-        self._bbgGroupTbl.readFromProject(resourceOpener)
-        self._bbgScrollTbl.readFromProject(resourceOpener)
-        self._bbgDistorTbl.readFromProject(resourceOpener)
         self._bbgTbl.readFromProject(resourceOpener)
+        pct = 50.0/(3+self._bbgTbl.height())
+        self._bbgGroupTbl.readFromProject(resourceOpener)
+        updateProgress(pct)
+        self._bbgScrollTbl.readFromProject(resourceOpener)
+        updateProgress(pct)
+        self._bbgDistorTbl.readFromProject(resourceOpener)
+        updateProgress(pct)
         self._bbgGfxArrs = []
         self._bbgPals = []
         for i in range(self._bbgTbl.height()):
@@ -120,6 +139,7 @@ class BattleBgModule(EbModule.EbModule):
             else:
                 self._bbgPals.append((np))
                 self._bbgTbl[i,1].set(j)
+            updateProgress(pct)
     def freeRanges(self):
         return [(0xa0000,0xadca0), (0xb0000, 0xbd899)]
     def writeToRom(self, rom):
@@ -129,6 +149,7 @@ class BattleBgModule(EbModule.EbModule):
 
         # Write gfx+arrs
         i = 0
+        pct = (50.0/3)/len(self._bbgGfxArrs)
         for (tg, a) in self._bbgGfxArrs:
             tgb = EbCompressedData()
             tgb.clear(tg.sizeBlock())
@@ -143,6 +164,7 @@ class BattleBgModule(EbModule.EbModule):
             del(tgb)
             del(ab)
             i += 1
+            updateProgress(pct)
         EbModule.writeAsmPointers(rom, self._ASMPTRS_GFX,
                 EbModule.toSnesAddr(self._bbgGfxPtrTbl.writeToFree(rom)))
         EbModule.writeAsmPointers(rom, self._ASMPTRS_ARR,
@@ -150,6 +172,7 @@ class BattleBgModule(EbModule.EbModule):
 
         # Write pals
         i = 0
+        pct = (50.0/3)/len(self._bbgPals)
         for p in self._bbgPals:
             pb = DataBlock(32)
             pb.clear(p.sizeBlock())
@@ -158,11 +181,17 @@ class BattleBgModule(EbModule.EbModule):
                     pb.writeToFree(rom)))
             del(pb)
             i += 1
+            updateProgress(pct)
         EbModule.writeAsmPointers(rom, self._ASMPTRS_PAL,
                 EbModule.toSnesAddr(self._bbgPalPtrTbl.writeToFree(rom)))
 
         # Write the data table
+        pct = (50.0/3)/4
         self._bbgTbl.writeToRom(rom)
+        updateProgress(pct)
         self._bbgGroupTbl.writeToRom(rom)
+        updateProgress(pct)
         self._bbgScrollTbl.writeToRom(rom)
+        updateProgress(pct)
         self._bbgDistorTbl.writeToRom(rom)
+        updateProgress(pct)

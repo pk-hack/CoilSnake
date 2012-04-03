@@ -1,6 +1,7 @@
 import EbModule
 from EbTablesModule import EbTable
 from EbDataBlocks import EbCompressedData, DataBlock
+from CoilSnake import updateProgress
 
 import array
 from PIL import Image
@@ -442,28 +443,38 @@ class CompressedGraphicsModule(EbModule.EbModule):
                 ]
         self._townmaps = map(lambda (x,y): EbTownMap(x, y),
                 self.TOWN_MAP_PTRS)
+        self._pct = 50.0/(len(self._logos) + len(self._townmaps))
     def free(self):
         del(self._logos)
         del(self._townmaps)
     def readFromRom(self, rom):
         for logo in self._logos:
             logo.readFromRom(rom)
+            updateProgress(self._pct)
         for map in self._townmaps:
             map.readFromRom(rom)
+            updateProgress(self._pct)
     def freeRanges(self):
-        return [(0x2021a8, 0x20ed02)]
+        return [(0x2021a8, 0x20ed02),
+                (0x214ec1, 0x2155d2)]
     def writeToRom(self, rom):
         for logo in self._logos:
             logo.writeToRom(rom)
+            updateProgress(self._pct)
         for map in self._townmaps:
             map.writeToRom(rom)
+            updateProgress(self._pct)
     def writeToProject(self, resourceOpener):
         for logo in self._logos:
             logo.writeToProject(resourceOpener)
+            updateProgress(self._pct)
         for map in self._townmaps:
             map.writeToProject(resourceOpener)
+            updateProgress(self._pct)
     def readFromProject(self, resourceOpener):
         for logo in self._logos:
             logo.readFromProject(resourceOpener)
+            updateProgress(self._pct)
         for map in self._townmaps:
             map.readFromProject(resourceOpener)
+            updateProgress(self._pct)

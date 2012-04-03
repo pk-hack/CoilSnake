@@ -1,6 +1,7 @@
 import EbModule
 from EbTablesModule import EbTable
 from EbDataBlocks import DataBlock
+from CoilSnake import updateProgress
 
 import array
 import copy
@@ -198,10 +199,13 @@ class SpriteGroupModule(EbModule.EbModule):
         del(self._grPalTbl)
     def readFromRom(self, rom):
         self._grPtrTbl.readFromRom(rom)
+        updateProgress(5)
         self._grPalTbl.readFromRom(rom)
+        updateProgress(5)
 
         # Load the sprite groups
         self._groups = []
+        pct = 40.0/self._grPtrTbl.height()
         for i in range(self._grPtrTbl.height()):
             # Note: this assumes that the SPT is written contiguously
             numSprites = 8
@@ -213,9 +217,11 @@ class SpriteGroupModule(EbModule.EbModule):
             g = SpriteGroup(numSprites)
             g.readFromRom(rom, EbModule.toRegAddr(self._grPtrTbl[i,0].val()))
             self._groups.append(g)
+            updateProgress(pct)
     def writeToProject(self, resourceOpener):
         out = { }
         i = 0
+        pct = 45.0/len(self._groups)
         for g in self._groups:
             out[i] = g.dump()
             img = g.toImage(self._grPalTbl[g.palette(),0].val())
@@ -224,12 +230,15 @@ class SpriteGroupModule(EbModule.EbModule):
             imgFile.close()
             del(img)
             i += 1
+            updateProgress(pct)
         yaml.dump(out, resourceOpener("sprite_groups", "yml"))
+        updateProgress(5)
     def readFromProject(self, resourceOpener):
         input = yaml.load(resourceOpener("sprite_groups", "yml"))
         numGroups = len(input)
         self._groups = []
         pals = []
+        pct = 42.0/numGroups
         for i in range(numGroups):
             g = SpriteGroup(16)
             g.load(input[i])
@@ -256,14 +265,17 @@ class SpriteGroupModule(EbModule.EbModule):
                 else:
                     pals.append(pal)
                     g.setPalette(len(pals)-1)
+            updateProgress(pct)
 
         self._grPalTbl.clear(8)
         # Save the palettes to the table
         for i in range(len(pals)):
             self._grPalTbl[i,0].setVal(pals[i])
+            updateProgress(1)
         # Fill the rest of the table in case we didn't use all the palettes
         for i in range(len(pals),self._grPalTbl.height()):
             self._grPalTbl[i,0].setVal([(0,0,0)] * 16)
+            updateProgress(1)
             
     def writeToRom(self, rom):
         numGroups = len(self._groups)
@@ -273,12 +285,14 @@ class SpriteGroupModule(EbModule.EbModule):
         loc = 0
         i = 0
         # Write all the groups to the block, and sprites to rom
+        pct = 40.0 / numGroups
         for g in self._groups:
             g.writeSpritesToFree(rom)
             g.writeToBlock(block, loc)
             self._grPtrTbl[i,0].setVal(loc)
             loc += g.blockSize()
             i += 1
+            updateProgress(pct)
         # Write the block to rom and correct the group pointers
         addr = EbModule.toSnesAddr(block.writeToFree(rom))
         for i in range(self._grPtrTbl.height()):
@@ -286,5 +300,7 @@ class SpriteGroupModule(EbModule.EbModule):
                     self._grPtrTbl[i,0].val() + addr)
         # Write the pointer table
         self._grPtrTbl.writeToRom(rom)
+        updateProgress(5)
         # Write the palettes
         self._grPalTbl.writeToRom(rom)
+        updateProgress(5)

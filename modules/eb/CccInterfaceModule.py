@@ -1,6 +1,6 @@
 import EbModule
 
-
+from CoilSnake import updateProgress
 
 class CccInterfaceModule(EbModule.EbModule):
     _name = "CCScript"
@@ -11,6 +11,7 @@ class CccInterfaceModule(EbModule.EbModule):
         # Just create an empty compilation summary file
         f = resourceOpener('ccscript/summary', 'txt')
         f.close()
+        updateProgress(50)
     def readFromProject(self, resourceOpener):
         # Read the summary file
         sumFile = resourceOpener('ccscript/summary', 'txt')
@@ -35,7 +36,9 @@ class CccInterfaceModule(EbModule.EbModule):
                     inModuleSection = True
                 elif line.startswith("Labels in module "):
                     modName = line[17:-1]
+        updateProgress(50)
     def writeToRom(self, rom):
         if self._usedRange != None:
             # Mark the range as used in the Rom object
             rom.markRangeAsNotFree(self._usedRange)
+        updateProgress(50)

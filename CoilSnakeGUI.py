@@ -12,7 +12,8 @@ from Tkinter import *
 import tkFileDialog, tkMessageBox
 from ttk import Progressbar
 
-from CoilSnake import CoilSnake
+#from CoilSnake import CoilSnake
+import CoilSnake
 from modules import Rom
 from tools import EbRomExpander
 
@@ -93,7 +94,7 @@ Please specify it in the Preferences menu.""")
 
             self._progBar["value"] = 0
             print "Initializing CoilSnake\n"
-            self._cs = CoilSnake()
+            self._cs = CoilSnake.CoilSnake()
             self._progBar.step(10)
             thread = threading.Thread(target=self._doExportHelp,
                     args=(romEntry.get(), projEntry.get()+"/Project.csproj",
@@ -101,7 +102,7 @@ Please specify it in the Preferences menu.""")
             thread.start()
     def _doExportHelp(self, rom, proj, startTime):
         try:
-            self._cs.romToProj(rom, proj, self._progBar, 90.0)
+            self._cs.romToProj(rom, proj)
             print "Done! (Took %0.2fs)" % (time.time()-startTime)
         except Exception as inst:
             print "\nError! Something went wrong:"
@@ -138,7 +139,7 @@ Please specify it in the Preferences menu.""")
             self._console.delete(1.0, END)
             print "Copying ROM"
             shutil.copyfile(oldRom, newRom)
-            self._progBar.step(10)
+            self._progBar.step(2)
             # Get a list of the script filenames in projDir/ccscript
             scriptFnames = [ projDir + "/ccscript/" + x 
                     for x in os.listdir(projDir + "/ccscript")
@@ -150,19 +151,17 @@ Please specify it in the Preferences menu.""")
                         "--summary", projDir + "/ccscript/summary.txt"] +
                     scriptFnames)
             process.wait()
-            self._progBar.step(10)
+            self._progBar.step(4)
             # Run CoilSnake as usual
-            #self._cs.projToRom(projDir + "/Project.csproj",
-            #        newRom, newRom)
             print "Initializing CoilSnake\n"
-            self._cs = CoilSnake()
-            self._progBar.step(10)
+            self._cs = CoilSnake.CoilSnake()
+            self._progBar.step(4)
             thread = threading.Thread(target=self._doImportHelp,
                     args=(projDir+"/Project.csproj", newRom, time.time()))
             thread.start()
     def _doImportHelp(self, proj, rom, startTime):
         try:
-            self._cs.projToRom(proj, rom, rom, self._progBar, 70.0)
+            self._cs.projToRom(proj, rom, rom)
             print "Done! (Took %0.2fs)" % (time.time()-startTime)
         except Exception as inst:
             print "\nError! Something went wrong:"
@@ -293,6 +292,12 @@ Please specify it in the Preferences menu.""")
         self._progBar = Progressbar(self._root,
                 orient=HORIZONTAL, mode='determinate')
         self._progBar.grid(row=5, column=0, columnspan=8, sticky=W+E)
+        def updProg(dp):
+            CoilSnake.__updateProgress__(dp)
+            # Note: The number of modules is hardcoded here as "6"
+            self._progBar.step((90.0/6) * (dp/100.0))
+        CoilSnake.updateProgress = updProg
+    
 
         # Console
         consoleFrame = Frame(self._root)
@@ -309,7 +314,11 @@ Please specify it in the Preferences menu.""")
             def __init__(self, textArea):
                 self._tA = textArea
             def write(self,str):
-                self._tA.insert(END, str)
+                if str.startswith("\b\b\b\b\b\b\b\b"):
+                    self._tA.delete("end-9c", "end")
+                    self._tA.insert(END, str[8:])
+                else:
+                    self._tA.insert(END, str)
                 self._tA.see(END)
             def flush(self):
                 pass
