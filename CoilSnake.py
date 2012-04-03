@@ -90,7 +90,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--cleanrom', dest='cleanrom', required=False,
         type=argparse.FileType('rb'), help="a clean, unmodified ROM")
-    parser.add_argument('input', metavar='INPUT', type=argparse.FileType('r'),
+    parser.add_argument('input', metavar='INPUT', type=argparse.FileType('rb'),
         help="either a ROM or a CoilSnake project file")
     parser.add_argument('output', metavar='OUTPUT',
         help="either a ROM or a CoilSnake project file")

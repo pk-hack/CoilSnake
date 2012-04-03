@@ -5,13 +5,13 @@ import argparse
 import sys
 sys.path.append('./')
 
-import Rom
+from modules import Rom
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('input', metavar='INPUT', type=argparse.FileType('r'),
+    parser.add_argument('input', metavar='INPUT', type=argparse.FileType('rb'),
             help="an unexpanded EarthBound ROM")
-    parser.add_argument('output', metavar='OUTPUT', type=argparse.FileType('w'),
+    parser.add_argument('output', metavar='OUTPUT', type=argparse.FileType('wb'),
             help="the expanded EarthBound ROM")
     parser.add_argument('-ex', action="store_true", default=False,
             help="expand again to 48 megabits") 
