@@ -49,7 +49,7 @@ class CoilSnake:
         for (n,m) in curMods:
             print "-", m.name(), "...",
             sys.stdout.flush()
-            m.readFromProject(lambda x,y: proj.getResource(n,x,y,'r'))
+            m.readFromProject(lambda x,y: proj.getResource(n,x,y,'rb'))
             if progBar is not None:
                 progBar.step(progStepSize)
             m.writeToRom(rom)
@@ -78,7 +78,7 @@ class CoilSnake:
             m.readFromRom(rom)
             if progBar is not None:
                 progBar.step(progStepSize)
-            m.writeToProject(lambda x,y: proj.getResource(n,x,y,'w'))
+            m.writeToProject(lambda x,y: proj.getResource(n,x,y,'wb'))
             if progBar is not None:
                 progBar.step(progStepSize)
             m.free()

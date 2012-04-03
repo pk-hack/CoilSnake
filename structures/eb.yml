@@ -863,14 +863,14 @@ texttables:
     size: 1
     values:
     - None
-    - 1
+    - Only 1
     - 1 and 2
-    - 1 (Reversed)
-  - name: Palette Cycle 1 Start
+    - Only 1 Reversed
+  - name: Palette Cycle 1 Begin 
     size: 1
   - name: Palette Cycle 1 End
     size: 1
-  - name: Palette Cycle 2 Start
+  - name: Palette Cycle 2 Begin
     size: 1
   - name: Palette Cycle 2 End
     size: 1
@@ -1296,3 +1296,23 @@ texttables:
   - name: Palette
     size: 32
     type: palette
+
+0xD0C60D:
+  type: data
+  description: Battle Entry Pointer Table
+  name: BTL_ENTRY_PTR_TABLE
+  size: 3872
+  entries:
+  - name: Pointer
+    size: 4
+    type: pointer
+  - name: Fear event flag
+    size: 2
+    type: hexint
+  - name: Fear mode
+    size: 1
+    values:
+    - Run away if flag is unset
+    - Run away if flag is set
+  - name: Letterbox Size
+    size: 1

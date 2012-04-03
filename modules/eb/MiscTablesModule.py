@@ -3,6 +3,7 @@ import EbTablesModule
 class MiscTablesModule(EbTablesModule.EbTablesModule):
     _name = "Misc Tables"
     _tableIDs = [
+            0xD0C60D, # Battle Groups Ptr Tbl
             0xCF8985, # NPC Configuration Table
             0xD5EA77, # Condiment Table
             0xD5EBAB, # Scripted Teleport Destination Table

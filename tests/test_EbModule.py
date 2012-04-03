@@ -25,7 +25,7 @@ class testEbModule(unittest.TestCase):
         onett_map.fromlist(tmp)
 
         onett_map_jhack = array.array('B')
-        f = open("roms/onett_map_jhack.smc", 'r')
+        f = open("roms/onett_map_jhack.smc", 'rb')
         onett_map_jhack.fromstring(f.read())
         f.close()
 
