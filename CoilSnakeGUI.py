@@ -13,6 +13,8 @@ import tkFileDialog, tkMessageBox
 from ttk import Progressbar
 
 from CoilSnake import CoilSnake
+from modules import Rom
+from tools import EbRomExpander
 
 _version = "0.1"
 
@@ -170,6 +172,19 @@ Please specify it in the Preferences menu.""")
         self._importB["state"] = NORMAL
         self._importRunB["state"] = NORMAL
         del(self._cs)
+    def expandRom(self, ex=False):
+        r = Rom.Rom('romtypes.yaml')
+        fname = tkFileDialog.askopenfilename(
+                    parent=self._root, title="Select a ROM to expand",
+                    filetypes=[('SNES ROMs','*.smc'), ('All files','*.*')])
+        r.load(fname)
+        EbRomExpander.expandRom(r, ex)
+        r.save(fname)
+        del(r)
+        tkMessageBox.showinfo("Expansion Successful",
+                "Your ROM was expanded.")
+    def expandRomEx(self):
+        self.expandRom(ex=True)
     def main(self):
         self._root = Tk()
         self._root.wm_title("CoilSnake")
@@ -182,6 +197,13 @@ Please specify it in the Preferences menu.""")
         prefMenu.add_command(label="Emulator Executable",
                 command=self.setEmulatorExe)
         menuBar.add_cascade(label="Preferences", menu=prefMenu)
+        # Tools pulldown menu
+        toolsMenu = Menu(menuBar, tearoff=0)
+        toolsMenu.add_command(label="Expand ROM to 32 MBit",
+                command=self.expandRom)
+        toolsMenu.add_command(label="Expand ROM to 48 MBit",
+                command=self.expandRomEx)
+        menuBar.add_cascade(label="Tools", menu=toolsMenu)
 
         self._root.config(menu=menuBar)
 
