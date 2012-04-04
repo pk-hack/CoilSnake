@@ -34,10 +34,10 @@ class ValuedIntTableEntry(IntTableEntry):
     def __init__(self, name, size, values):
         self.name = name
         self._size = size
-        self._values = values
+        self._values = map(lambda x: str(x).lower(), values)
     def load(self, data):
         try:
-            self._data = self._values.index(str(data))
+            self._data = self._values.index(str(data).lower())
         except ValueError:
             if type(data) == int:
                 self._data = data
