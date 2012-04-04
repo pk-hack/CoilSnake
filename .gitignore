@@ -2,7 +2,7 @@
 *.pyc
 *.swp
 roms/
+profiling/
 */*/build
 *.so
-*.prof
 prefs.yml

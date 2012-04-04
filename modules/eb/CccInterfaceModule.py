@@ -1,6 +1,6 @@
 import EbModule
 
-from CoilSnake import updateProgress
+from modules.Progress import updateProgress
 
 class CccInterfaceModule(EbModule.EbModule):
     _name = "CCScript"

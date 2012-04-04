@@ -12,9 +12,8 @@ from Tkinter import *
 import tkFileDialog, tkMessageBox
 from ttk import Progressbar
 
-#from CoilSnake import CoilSnake
 import CoilSnake
-from modules import Rom
+from modules import Rom, Progress
 from tools import EbRomExpander
 
 _version = "0.1"
@@ -97,7 +96,7 @@ Please specify it in the Preferences menu.""")
             self._cs = CoilSnake.CoilSnake()
             self._progBar.step(10)
             thread = threading.Thread(target=self._doExportHelp,
-                    args=(romEntry.get(), projEntry.get()+"/Project.csproj",
+                    args=(romEntry.get(), projEntry.get()+"/Project.snake",
                         time.time(), ))
             thread.start()
     def _doExportHelp(self, rom, proj, startTime):
@@ -157,7 +156,7 @@ Please specify it in the Preferences menu.""")
             self._cs = CoilSnake.CoilSnake()
             self._progBar.step(4)
             thread = threading.Thread(target=self._doImportHelp,
-                    args=(projDir+"/Project.csproj", newRom, time.time()))
+                    args=(projDir+"/Project.snake", newRom, time.time()))
             thread.start()
     def _doImportHelp(self, proj, rom, startTime):
         try:
@@ -293,10 +292,10 @@ Please specify it in the Preferences menu.""")
                 orient=HORIZONTAL, mode='determinate')
         self._progBar.grid(row=5, column=0, columnspan=8, sticky=W+E)
         def updProg(dp):
-            CoilSnake.__updateProgress__(dp)
+            Progress.__updateProgress__(dp)
             # Note: The number of modules is hardcoded here as "6"
             self._progBar.step((90.0/6) * (dp/100.0))
-        CoilSnake.updateProgress = updProg
+        Progress.updateProgress = updProg
     
 
         # Console

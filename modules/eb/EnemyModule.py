@@ -2,7 +2,7 @@ import EbModule
 from EbTablesModule import EbTable
 from EbDataBlocks import DataBlock, EbCompressedData
 from CompressedGraphicsModule import EbPalettes
-from CoilSnake import updateProgress
+from modules.Progress import updateProgress
 
 import array
 from PIL import Image
@@ -216,23 +216,23 @@ class EnemyModule(EbModule.EbModule):
                 try:
                     #self._enemyCfgTable[i,4].set(self._bsprites.index(bs))
                     bsNum = bsHashes[bs._sprite._spriteHash]
-                    self._enemyCfgTable[i,4].set(bsNum)
+                    self._enemyCfgTable[i,4].setVal(bsNum)
                 except KeyError:
                     self._bsprites.append(bs)
-                    self._enemyCfgTable[i,4].set(bsNextNum)
+                    self._enemyCfgTable[i,4].setVal(bsNextNum)
                     bsHashes[bs._sprite._spriteHash] = bsNextNum
                     bsNextNum += 1
                 # Add the palette
                 # TODO should probably use hash table here too?
                 #      then again, I don't think it's actually a bottleneck
                 try:
-                    self._enemyCfgTable[i,14].set(self._bsPals.index(pal))
+                    self._enemyCfgTable[i,14].setVal(self._bsPals.index(pal))
                 except ValueError:
                     self._bsPals.append(pal)
-                    self._enemyCfgTable[i,14].set(palNextNum)
+                    self._enemyCfgTable[i,14].setVal(palNextNum)
                     palNextNum += 1
             except IOError:
                 # No battle sprite PNG
-                self._enemyCfgTable[i,4].set(0)
-                self._enemyCfgTable[i,14].set(0)
+                self._enemyCfgTable[i,4].setVal(0)
+                self._enemyCfgTable[i,14].setVal(0)
             updateProgress(pct)

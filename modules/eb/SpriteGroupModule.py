@@ -1,7 +1,7 @@
 import EbModule
 from EbTablesModule import EbTable
 from EbDataBlocks import DataBlock
-from CoilSnake import updateProgress
+from modules.Progress import updateProgress
 
 import array
 import copy

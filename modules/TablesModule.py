@@ -1,6 +1,6 @@
 import GenericModule
 from modules.Table import Table
-from CoilSnake import updateProgress
+from modules.Progress import updateProgress
 
 import yaml
 
@@ -17,6 +17,9 @@ class TablesModule(GenericModule.GenericModule):
     def __init__(self, TableClass, tableIDs):
         self._tables = map(lambda x: TableClass(x), tableIDs)
         self._pct = 50.0/len(self._tables)
+    def free(self):
+        for t in self._tables:
+            del(t)
     def readFromRom(self, rom):
         for t in self._tables:
             t.readFromRom(rom)

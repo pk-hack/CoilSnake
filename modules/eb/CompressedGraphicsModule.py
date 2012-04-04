@@ -1,7 +1,7 @@
 import EbModule
 from EbTablesModule import EbTable
 from EbDataBlocks import EbCompressedData, DataBlock
-from CoilSnake import updateProgress
+from modules.Progress import updateProgress
 
 import array
 from PIL import Image

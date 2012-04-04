@@ -1,4 +1,4 @@
-from CoilSnake import updateProgress
+from modules.Progress import updateProgress
 
 class GenericModule:
     def name(self):

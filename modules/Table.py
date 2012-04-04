@@ -1,25 +1,85 @@
 import re
 import yaml
 
-class TableEntry:
-    def __init__(self, name, readF, writeF, sizeF, loadF, dumpF):
-        self._data = None
+class IntTableEntry:
+    def __init__(self, name, size):
         self.name = name
-        self.readF = readF
-        self.writeF = writeF
-        self.sizeF = sizeF
-        self.loadF = loadF
-        self.dumpF = dumpF
-    def readFromRom(self, rom, addr):
-        self._data = self.readF(rom, addr)
-    def writeToRom(self, rom, addr):
-        self.writeF(rom, addr, self._data)
+        self._size = size
     def size(self):
-        return self.sizeF(self._data)
-    def set(self, str):
-        self._data = self.loadF(str)
+        return self._size
+    def readFromRom(self, rom, addr):
+        self._data = rom.readMulti(addr, self._size)
+    def writeToRom(self, rom, addr):
+        rom.writeMulti(addr, self._data, self._size)
+    def load(self, data):
+        if type(data) == str:
+            self._data = int(data)
+        else:
+            self._data = data
     def dump(self):
-        return self.dumpF(self._data)
+        return self._data
+    def setVal(self, val):
+        self._data = val
+    def val(self):
+        return self._data
+
+class HexIntTableEntry(IntTableEntry):
+    def load(self, data):
+        if type(data) == str:
+            self._data = int(data, 16)
+        else:
+            self._data = data
+
+class ValuedIntTableEntry(IntTableEntry):
+    def __init__(self, name, size, values):
+        self.name = name
+        self._size = size
+        self._values = values
+    def load(self, data):
+        try:
+            self._data = self._values.index(str(data))
+        except ValueError:
+            if type(data) == int:
+                self._data = data
+            else:
+                # TODO Error, no match and not int
+                self._data = 0
+    def dump(self):
+        return self._values[self._data]
+
+
+class ByteArrayTableEntry:
+    def __init__(self, name, size):
+        self.name = name
+        self._size = size
+    def size(self):
+        return self._size
+    def readFromRom(self, rom, addr):
+        self._data = rom.readList(addr, self._size)
+    def writeToRom(self, rom, addr):
+        rom.write(addr, self._data)
+    def load(self, data):
+        self._data = data
+    def dump(self):
+        return self._data
+    def setVal(self, val):
+        self._data = val
+    def val(self):
+        return self._data
+
+class BooleanTableEntry:
+    def __init__(self, name):
+        self.name = name
+    def size(self):
+        return 1
+    def readFromRom(self, rom, addr):
+        self._data = rom.read[addr]
+    def writeToRom(self, rom, addr):
+        rom[addr] = self._data
+    def load(self, data):
+        self._data = 1 if data else 0
+    def dump(self):
+        return self._data != 0
     def setVal(self, val):
         self._data = val
     def val(self):
@@ -31,41 +91,20 @@ def _return(x):
 
 def genericEntryGenerator(spec, table_map):
     if not spec.has_key("type") or spec["type"] == 'int':
-        readF = lambda r,a: r.readMulti(a,spec["size"])
-        writeF = lambda r,a,d: r.writeMulti(a, d, spec["size"])
-        sizeF = lambda d: spec["size"]
         if spec.has_key('values'):
-            valuesLower = map(lambda x: str(x).lower(), spec['values'])
-            def loadF(x):
-                try:
-                    return valuesLower.index(str(x).lower())
-                except ValueError:
-                    if type(x) == int:
-                        return x
-                    else:
-                        # TODO Error, could not parse input
-                        return 0
-            dumpF = lambda x: spec['values'][x]
-            return TableEntry(spec["name"], readF, writeF, sizeF, loadF, dumpF)
+            return ValuedIntTableEntry(spec["name"], spec["size"],
+                    spec["values"])
         else:
-            return TableEntry(spec["name"], readF, writeF, sizeF, _return, _return)
+            return IntTableEntry(spec["name"], spec["size"])
     elif spec["type"] == 'hexint':
-        readF = lambda r,a: r.readMulti(a,spec["size"])
-        writeF = lambda r,a,d: r.writeMulti(a, d, spec["size"])
-        sizeF = lambda d: spec["size"]
-        return TableEntry(spec["name"], readF, writeF, sizeF, _return, _return)
+        return HexIntTableEntry(spec["name"], spec["size"])
     elif spec["type"] == 'bytearray':
-        readF = lambda r,a: r.readList(a,spec['size'])
-        writeF = lambda r,a,d: r.write(a,d)
-        sizeF = lambda d: spec['size']
-        return TableEntry(spec["name"], readF, writeF, sizeF, _return, _return)
+        return ByteArrayTableEntry(spec["name"], spec["size"])
     elif spec["type"] == 'boolean':
-        readF = lambda r,a: r.read(a)
-        writeF = lambda r,a,d: r.write(a,d)
-        sizeF = lambda d: 1
-        loadF = lambda x: (1 if x else 0)
-        dumpF = lambda x: (x != 0)
-        return TableEntry(spec["name"], readF, writeF, sizeF, loadF, dumpF)
+        return BooleanTableEntry(spec["name"])
+    elif spec["type"] == "bitfield":
+        # TODO: Do something fancy here
+        return IntTableEntry(spec["name"], spec["size"])
     else:
         raise RuntimeError("Unknown data entry type " + spec["type"])
 
@@ -154,7 +193,7 @@ class Table:
             for entrySpec in self._format:
                 entry = self.tableEntryGenerator(entrySpec, self._table_map)
                 try:
-                    entry.set(input[i][entry.name])
+                    entry.load(input[i][entry.name])
                 except KeyError:
                     # Don't set hidden columns
                     pass

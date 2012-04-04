@@ -5,22 +5,10 @@ import os
 import sys
 import time
 
-from modules import Project
-from modules import Rom
+from modules import Project, Rom
+from modules.Progress import setProgress
 
-
-__progress = 0.0
-def setProgress(p):
-    global __progress
-    __progress = p
-
-def __updateProgress__(dp):
-    global __progress
-    __progress += dp
-    print "\b\b\b\b\b\b\b\b%6.2f%%" % __progress,
-    return __progress
-
-updateProgress = __updateProgress__
+#from meliae import scanner
 
 class CoilSnake:
     def __init__(self):
@@ -37,6 +25,7 @@ class CoilSnake:
                 for comp in components:
                     mod = getattr(mod, comp)
                 self._modules.append((line, getattr(mod,components[-1])()))
+        #scanner.dump_all_objects('loadmod.json')
     def projToRom(self, inputFname, cleanRomFname, outRomFname):
         # Open project
         proj = Project.Project()
@@ -58,8 +47,8 @@ class CoilSnake:
         print "From Project : ", inputFname, "(", proj.type(), ")"
         print "To       ROM : ", outRomFname, "(", rom.type(), ")"
         for (n,m) in curMods:
-            startTime = time.time()
             setProgress(0)
+            startTime = time.time()
             print "-", m.name(), "...   0.00%",
             sys.stdout.flush()
             m.readFromProject(lambda x,y: proj.getResource(n,x,y,'rb'))
@@ -80,14 +69,16 @@ class CoilSnake:
         curMods = filter(lambda (x,y): y.compatibleWithRomtype(rom.type()),
                 self._modules)
         for (n,m) in curMods:
-            startTime = time.time()
             setProgress(0)
+            startTime = time.time()
             print "-", m.name(), "...   0.00%",
             sys.stdout.flush()
             m.readFromRom(rom)
             m.writeToProject(lambda x,y: proj.getResource(n,x,y,'wb'))
             m.free()
+            #scanner.dump_all_objects( m.name() + '.json' )
             print "(%0.2fs)" % (time.time() - startTime)
+        #scanner.dump_all_objects( 'complete.json' )
         proj.write(outputFname)
 
 
@@ -101,11 +92,11 @@ def main():
         help="either a ROM or a CoilSnake project file")
     args = parser.parse_args()
 
-    output_is_proj = os.path.splitext(args.output)[1] == ".csproj"
+    output_is_proj = os.path.splitext(args.output)[1] == ".snake"
     if (not output_is_proj) and (args.cleanrom == None):
         print >> sys.stderr, "ERROR: Need a clean ROM to export to ROM"
         return
-    input_is_proj = os.path.splitext(args.input.name)[1] == ".csproj"
+    input_is_proj = os.path.splitext(args.input.name)[1] == ".snake"
 
     cs = CoilSnake()
     # Load data into modules

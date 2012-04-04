@@ -2,7 +2,7 @@ import EbModule
 from EbTablesModule import EbTable
 from EbDataBlocks import EbCompressedData, DataBlock
 from CompressedGraphicsModule import EbArrangement, EbTileGraphics, EbPalettes
-from CoilSnake import updateProgress
+from modules.Progress import updateProgress
 
 from PIL import Image
 
@@ -124,21 +124,21 @@ class BattleBgModule(EbModule.EbModule):
             j=0
             for (tg, a) in self._bbgGfxArrs:
                 if (tg == ntg) and (a == na):
-                    self._bbgTbl[i,0].set(j)
+                    self._bbgTbl[i,0].setVal(j)
                     break
                 j += 1
             else:
                 self._bbgGfxArrs.append((ntg, na))
-                self._bbgTbl[i,0].set(j)
+                self._bbgTbl[i,0].setVal(j)
             j=0
             for p in self._bbgPals:
                 if (p == np):
-                    self._bbgTbl[i,1].set(j)
+                    self._bbgTbl[i,1].setVal(j)
                     break
                 j += 1
             else:
                 self._bbgPals.append((np))
-                self._bbgTbl[i,1].set(j)
+                self._bbgTbl[i,1].setVal(j)
             updateProgress(pct)
     def freeRanges(self):
         return [(0xa0000,0xadca0), (0xb0000, 0xbd899)]

@@ -32,6 +32,7 @@ class DataBlock:
 class RawBlocksModule(GenericModule.GenericModule):
     _name = "Generic Raw Blocks"
     def __init__(self, structureFile, BlockClass):
+        raise RuntimeError("Do not use RawBlocksModule")
         self._blocks = []
         with open(structureFile) as f:
             i=1
