@@ -26,6 +26,11 @@ class DataBlock:
 class EbCompressedData:
     def __init__(self):
         self._data = None
+    def __enter__(self):
+        return self
+    def __exit__(self, type, value, traceback):
+        # TODO ?
+        pass
     def readFromRom(self, rom, addr):
         ucdata = EbModule.decomp(rom, addr)
         if ucdata[0] < 0:
@@ -43,7 +48,7 @@ class EbCompressedData:
         self._data = array.array('B', [0] * len)
     def __getitem__(self, key):
         if type(key) == slice:
-            return self._data[key].tolist()
+            return self._data[key]
         else:
             return self._data[key]
     def __setitem__(self, key, val):
