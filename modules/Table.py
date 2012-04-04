@@ -112,7 +112,7 @@ class Table:
     tableEntryGenerator = staticmethod(genericEntryGenerator)
     def __init__(self, addr, table_map):
         self._addr = addr
-        self._name = table_map[addr]['name']
+        self._name = table_map[addr]['name'].lower()
         self._size = table_map[addr]['size']
         self._format = table_map[addr]['entries']
         self._data = []

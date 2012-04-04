@@ -2,6 +2,7 @@
 *.pyc
 *.swp
 roms/
+projects/
 profiling/
 */*/build
 *.so
