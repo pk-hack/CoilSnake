@@ -21,15 +21,6 @@ class MapPalette:
         self.flashEffect = 0
         self.subpals = None
         self.flagPal = None
-    def hash(self):
-        csum = 0
-        for subpal in self.subpals:
-            a = array('B',
-                    [r for (r,g,b) in subpal])
-            a.fromlist([g for (r,g,b) in subpal])
-            a.fromlist([b for (r,g,b) in subpal])
-            csum = adler32(a, csum)
-        return csum
     def readFromRom(self, rom, addr, getFlagPal=True):
         self.flag = rom.readMulti(addr, 2)
         if (self.flag != 0) and getFlagPal:
@@ -223,14 +214,28 @@ class TilesetModule(EbModule.EbModule):
         self._mapTsetTbl = EbTable(0xEF101B)
         self._palPtrTbl = EbTable(0xEF10FB)
         self._tsets = [ Tileset() for i in range(20) ]
+    def freeRanges(self):
+        return [(0x17c600, 0x17fbe7),
+                (0x190000, 0x19fc17),
+                (0x1b0000, 0x1bf2ea),
+                (0x1c0000, 0x1cd636),
+                (0x1d0000, 0x1dfecd),
+                (0x1e0000, 0x1ef0e6),
+                (0x1f0000, 0x1fc242)]
     def readFromRom(self, rom):
         self._gfxPtrTbl.readFromRom(rom)
+        updateProgress(2)
         self._arrPtrTbl.readFromRom(rom)
+        updateProgress(2)
         self._colPtrTbl.readFromRom(rom)
+        updateProgress(2)
         self._mapTsetTbl.readFromRom(rom)
+        updateProgress(2)
         self._palPtrTbl.readFromRom(rom)
+        updateProgress(2)
 
         # Read tilesets
+        pct = 30.0/len(self._tsets)
         i=0
         for tset in self._tsets:
             # Read data
@@ -241,18 +246,37 @@ class TilesetModule(EbModule.EbModule):
             tset.readCollisionsFromRom(rom,
                     EbModule.toRegAddr(self._colPtrTbl[i,0].val()))
             i += 1
+            updateProgress(pct)
 
         # Read palettes
+        pct = 10.0/self._mapTsetTbl.height()
         for i in range(self._mapTsetTbl.height()):
             drawTset = self._mapTsetTbl[i,0].val()
             # Each map tset has 8 maximum palettes
             # We'll just assume they all use 8 and read the garbage
-            romLoc = self._palPtrTbl[i,0].val()
-            for j in xrange(8):
+            #romLoc = self._palPtrTbl[i,0].val()
+            #for j in xrange(8):
+            #    # Read the palette
+            #    self._tsets[drawTset].readPaletteFromRom(rom, i, j,
+            #            EbModule.toRegAddr(romLoc))
+            #    romLoc += 0xc0
+
+            # OK, as it turns out, all palettes need to be in the 1A bank
+            # So we actually need to conserve space and not read garbage
+            # Estimate the number of palettes for this map tileset
+            if i == 31:
+                k = 0xDAFAA7 - self._palPtrTbl[i,0].val()
+            else:
+                k = self._palPtrTbl[i+1,0].val() - self._palPtrTbl[i,0].val()
+            k /= 0xc0
+            # Add the palettes
+            romLoc = EbModule.toRegAddr(self._palPtrTbl[i,0].val())
+            for j in range(k):
                 # Read the palette
-                self._tsets[drawTset].readPaletteFromRom(rom, i, j,
-                        EbModule.toRegAddr(romLoc))
+                self._tsets[drawTset].readPaletteFromRom(rom, i, j, romLoc)
                 romLoc += 0xc0
+            updateProgress(pct)
+
     def writeToRom(self, rom):
         numTsets = len(self._tsets)
         self._gfxPtrTbl.clear(numTsets)
@@ -262,24 +286,27 @@ class TilesetModule(EbModule.EbModule):
         self._palPtrTbl.clear(32)
 
         # Write gfx & arrs
+        pct = 30.0/numTsets
         i=0
         for tset in self._tsets:
-            print "wtr", i
             self._gfxPtrTbl[i,0].setVal(EbModule.toSnesAddr(
                 tset.writeMinitilesToFree(rom)))
             self._arrPtrTbl[i,0].setVal(EbModule.toSnesAddr(
                tset.writeArrangementsToFree(rom)))
             i += 1
+            updateProgress(pct)
         self._gfxPtrTbl.writeToRom(rom)
+        updateProgress(2)
         self._arrPtrTbl.writeToRom(rom)
+        updateProgress(2)
 
         # Write collissions
+        pct = 6.0/numTsets
         colLocs = dict()
         colWriteLoc = 0x180000
         colRangeEnd = 0x18f05d
         i=0
         for tset in self._tsets:
-            print "wtrc", i
             with DataBlock(len(tset.col)*2) as colTable:
                 colTable.clear()
                 j=0
@@ -304,33 +331,14 @@ class TilesetModule(EbModule.EbModule):
                 self._colPtrTbl[i,0].setVal(EbModule.toSnesAddr(
                     colTable.writeToFree(rom)))
                 i += 1
+            updateProgress(pct)
         self._colPtrTbl.writeToRom(rom)
+        updateProgress(1)
 
-        # Write the flag subpalettes, they need to be in the DA bank
-        flagPalLocs = dict()
-        flagPalWriteLoc = 0x1a0000
-        flagPalRangeEnd = 0x1acfff # This is the maximum we will ever need
-        for tset in self._tsets:
-            for (mt,mp,pal) in tset.pals:
-                if (pal.flag != 0):
-                    pHash = pal.flagPal.hash()
-                    print "eventhash", mt, "/", mp, pHash
-                    try:
-                        loc = flagPalLocs[pHash]
-                        pal.flagPalPtr = loc
-                        print "fPP", hex(pal.flagPalPtr)
-                    except KeyError:
-                        if (flagPalWriteLoc + 0xc0 > flagPalRangeEnd):
-                            # TODO ERROR: Not enough space for all flag pals
-                            #             This should never happen?
-                            raise RuntimeException("not enough space for all flag pals")
-                        print "writing flag pal for", mt, "/", mp, "@", hex(flagPalWriteLoc)
-                        pal.flagPal.writeToBlock(rom, flagPalWriteLoc)
-                        pal.flagPalPtr = flagPalWriteLoc & 0xffff
-                        print "fPP", hex(pal.flagPalPtr)
-                        flagPalLocs[pHash] = flagPalWriteLoc & 0xffff
-                        flagPalWriteLoc += 0xc0
-
+        # Write the palettes, they need to be in the DA bank
+        pct = 7.0/32
+        palWriteLoc = 0x1a0000
+        palRangeEnd = 0x1afaa6 # can we go more?
         # Write maps/drawing tilesets associations and map tset pals
         for i in range(32): # For each map tileset
             # Find the drawing tileset number for this map tileset
@@ -352,14 +360,35 @@ class TilesetModule(EbModule.EbModule):
             mtset_pals = [(mp,pal) for (mt,mp,pal)
                     in self._tsets[drawTset].pals if mt == i]
             mtset_pals.sort()
-            numPals = len(mtset_pals)
-            palLoc = rom.getFreeLoc(numPals*0xc0)
-            self._palPtrTbl[i,0].setVal(EbModule.toSnesAddr(palLoc))
+            # Let's take the easy way out and just write redundant flag pals
+            # This will waste space but oh well
+            # First, write the flag pals
             for (mp,pal) in mtset_pals:
-                pal.writeToBlock(rom, palLoc)
-                palLoc += 0xc0
+                if pal.flag != 0:
+                    if palWriteLoc + 0xc0 > palRangeEnd:
+                        # TODO Error, not enough space for all these palettes
+                        raise RuntimeException("Too many palettes")
+                    pal.flagPal.writeToBlock(rom, palWriteLoc)
+                    pal.flagPalPtr = palWriteLoc & 0xffff
+                    palWriteLoc += 0xc0
+            self._palPtrTbl[i,0].setVal(EbModule.toSnesAddr(palWriteLoc))
+            # Now write the regular pals
+            for (mp,pal) in mtset_pals:
+                if palWriteLoc + 0xc0 > palRangeEnd:
+                    # TODO Error, not enough space for all these palettes
+                    raise RuntimeException("Too many palettes")
+                pal.writeToBlock(rom, palWriteLoc)
+                palWriteLoc += 0xc0
+            updateProgress(pct)
         self._mapTsetTbl.writeToRom(rom)
+        updateProgress(1)
         self._palPtrTbl.writeToRom(rom)
+        updateProgress(1)
+
+        # Might as well use any extra leftover space
+        ranges = [(colWriteLoc, colRangeEnd), (palWriteLoc, palRangeEnd)]
+        ranges = [(a,b) for (a,b) in ranges if a < b]
+        rom.addFreeRanges(ranges)
 
     def writeToProject(self, resourceOpener):
         # Dump an additional YML with color0 data
@@ -379,20 +408,24 @@ class TilesetModule(EbModule.EbModule):
             s = sub("Event Flag: (\d+)",
                     lambda i: "Event Flag: " + hex(int(i.group(0)[12:])), s)
             f.write(s)
+        updateProgress(5)
 
-        i=0
         # Dump the FTS files
+        pct=45.0/len(self._tsets)
+        i=0
         for tset in self._tsets:
             with resourceOpener('Tilesets/' + str(i).zfill(2), 'fts') as f:
                 tset.writeToFTS(f)
             i += 1
+            updateProgress(pct)
     def readFromProject(self, resourceOpener):
         i=0
+        pct = 45.0/len(self._tsets)
         for tset in self._tsets:
-            print "rfp", i
             with resourceOpener('Tilesets/' + str(i).zfill(2), 'fts') as f:
                 tset.readFromFTS(f)
             i += 1
+            updateProgress(pct)
         with resourceOpener('map_palette_settings', 'yml') as f:
             input = yaml.load(f)
             for mtset in input: # For each map tileset
@@ -412,3 +445,4 @@ class TilesetModule(EbModule.EbModule):
                     if mtset_pal.flag != 0:
                         mtset_pal.flagPal = MapPalette()
                         mtset_pal.flagPal.setFromString(entry["Event Palette"])
+                updateProgress(5.0/32)
