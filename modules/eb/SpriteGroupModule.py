@@ -3,8 +3,7 @@ from EbTablesModule import EbTable
 from EbDataBlocks import DataBlock
 from modules.Progress import updateProgress
 
-import array
-import copy
+from array import array
 import yaml
 from PIL import Image
 
@@ -19,7 +18,7 @@ class EbRegSprite:
     def readFromBlock(self, block, width, height, loc=0):
         self._w = width
         self._h = height
-        self._data = map(lambda x: array.array('B', [0] * self._h),
+        self._data = map(lambda x: array('B', [0] * self._h),
                 range(self._w))
         for i in range(self._h / 8):
             for j in range(self._w / 8):
@@ -38,7 +37,7 @@ class EbRegSprite:
     def readFromImage(self, img, x, y, w, h):
         self._w = w
         self._h = h
-        self._data = map(lambda x: array.array('B', [0] * self._h),
+        self._data = map(lambda x: array('B', [0] * self._h),
                 range(self._w))
         imgData = img.load()
         for dx in range(self._w):

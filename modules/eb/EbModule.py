@@ -58,6 +58,16 @@ def hashArea(source):
     return csum
 
 # From JHack
+# h = height of the image
+def read1BPPArea(target, source, off, h, x, y):
+    for i in xrange(h):
+        b = source[off]
+        off += 1
+        for j in xrange(8):
+            target[7-j+x][i+y] = (b&(1<<j))>>j
+    return h
+
+# From JHack
 def read2BPPArea(target, source, off, x, y, bitOffset=-1):
     if bitOffset < 0:
         bitOffset = 0
