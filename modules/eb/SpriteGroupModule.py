@@ -219,9 +219,12 @@ class SpriteGroupModule(EbModule.EbModule):
             self._groups.append(g)
             updateProgress(pct)
     def writeToProject(self, resourceOpener):
+        # Write the palettes
+        self._grPalTbl.writeToProject(resourceOpener)
+        updateProgress(5)
         out = { }
         i = 0
-        pct = 45.0/len(self._groups)
+        pct = 40.0/len(self._groups)
         for g in self._groups:
             out[i] = g.dump()
             img = g.toImage(self._grPalTbl[g.palette(),0].val())
@@ -234,11 +237,12 @@ class SpriteGroupModule(EbModule.EbModule):
         yaml.dump(out, resourceOpener("sprite_groups", "yml"))
         updateProgress(5)
     def readFromProject(self, resourceOpener):
+        self._grPalTbl.readFromProject(resourceOpener)
+        updateProgress(5)
         input = yaml.load(resourceOpener("sprite_groups", "yml"))
         numGroups = len(input)
         self._groups = []
-        pals = []
-        pct = 42.0/numGroups
+        pct = 45.0/numGroups
         for i in range(numGroups):
             g = SpriteGroup(16)
             g.load(input[i])
@@ -248,34 +252,21 @@ class SpriteGroupModule(EbModule.EbModule):
             palData = img.getpalette()
             del(img)
             self._groups.append(g)
+            pal = [ ]
 
             # Read the palette from the image
-            pal = [(0,0,0)]
             for i in range(1, 16):
                 pal.append((palData[i*3], palData[i*3+1], palData[i*3+2]))
             # Assign the palette number to the sprite
-            try:
-                # Use a pre-existing palette number
-                g.setPalette(pals.index(pal))
-            except ValueError:
-                # Uses a unique palette
-                if len(pals) >= 8:
-                    # Too many palettes! Just fall back to palette 0
-                    g.setPalette(0)
-                else:
-                    pals.append(pal)
-                    g.setPalette(len(pals)-1)
+            for i in range(8):
+                if pal == self._grPalTbl[i,0].val()[1:]:
+                    g.setPalette(i)
+                    break
+            else:
+                # Error, this image uses an invalid palette
+                raise RuntimeException("Sprite Group #" + i
+                        + "uses an invalid palette.")
             updateProgress(pct)
-
-        self._grPalTbl.clear(8)
-        # Save the palettes to the table
-        for i in range(len(pals)):
-            self._grPalTbl[i,0].setVal(pals[i])
-            updateProgress(1)
-        # Fill the rest of the table in case we didn't use all the palettes
-        for i in range(len(pals),self._grPalTbl.height()):
-            self._grPalTbl[i,0].setVal([(0,0,0)] * 16)
-            updateProgress(1)
             
     def writeToRom(self, rom):
         numGroups = len(self._groups)
