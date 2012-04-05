@@ -1,6 +1,6 @@
 from modules.GenericModule import GenericModule
 
-import zlib
+from zlib import adler32
 
 try:
     from modules.eb import NativeComp
@@ -54,7 +54,7 @@ def writeAsmPointers(rom, addrs, ptr):
 def hashArea(source):
     csum = 0
     for col in source:
-        csum = zlib.adler32(col, csum)
+        csum = adler32(col, csum)
     return csum
 
 # From JHack

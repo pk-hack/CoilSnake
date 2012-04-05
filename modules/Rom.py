@@ -111,16 +111,20 @@ class Rom:
         return reduce(lambda x,y: (x<<8)|y, d)
     # Writing methods
     def write(self, i, data):
-        if (type(data) == list):
-            if (i < 0) or (i >= self._size) or (i+len(data) > self._size):
-                raise ValueError("Writing outside of ROM range")
-            self[i:i+len(data)] = data
-        elif (type(data) == int):
+        if type(data) == int:
             if (i < 0) or (i >= self._size):
                 raise ValueError("Writing outside of ROM range")
             self[i] = data
+        elif type(data) == list:
+            if (i < 0) or (i >= self._size) or (i+len(data) > self._size):
+                raise ValueError("Writing outside of ROM range")
+            self[i:i+len(data)] = data
+        elif type(data) == array.array:
+            if (i < 0) or (i >= self._size) or (i+len(data) > self._size):
+                raise ValueError("Writing outside of ROM range")
+            self[i:i+len(data)] = data
         else:
-            raise ValueError("write(): data must be either a list or int")
+            raise ValueError("write(): data must be either a list, array, or int")
     def writeMulti(self, i, data, size):
         while size > 0:
             self.write(i, data & 0xff)

@@ -1,6 +1,6 @@
 import EbModule
 from EbTablesModule import EbTable
-from EbDataBlocks import EbCompressedData, DataBlock
+from EbDataBlocks import EbCompressedData
 from modules.Progress import updateProgress
 
 import array
@@ -115,7 +115,7 @@ class EbTileGraphics:
     def __init__(self, numTiles, tileSize, bpp=2):
         self._numTiles = numTiles
         self._tileSize = tileSize
-        self._tiles = [ ]
+        self._tiles = [ None ] * numTiles
         self._usedTiles = 0
         self._usedDict = dict()
         self._bpp = bpp

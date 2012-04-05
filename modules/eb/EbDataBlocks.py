@@ -5,6 +5,11 @@ class DataBlock:
     def __init__(self, size):
         self._size = size
         self._data = None
+    def __enter__(self):
+        return self
+    def __exit__(self, type, value, traceback):
+        # TODO ?
+        pass
     def readFromRom(self, rom, addr):
         self._data = rom.readList(addr, self._size)
     def writeToFree(self, rom):
