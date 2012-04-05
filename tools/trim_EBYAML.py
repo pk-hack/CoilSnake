@@ -5,6 +5,7 @@
 
 import sys
 import yaml
+from re import sub
 
 if len(sys.argv) != 3:
     sys.exit("Must supply input & output EBYAML file")
@@ -26,7 +27,12 @@ with open(sys.argv[1], "r") as f:
                         newDoc[block] = doc[block]
                         if newDoc[block].has_key("description"):
                             del(newDoc[block]["description"])
-                s = yaml.dump(newDoc, f2, default_flow_style=False)
+                s = yaml.dump(newDoc, default_flow_style=False)
+                # Convert labels to hex
+                s = sub("(\d+):\n",
+                        lambda i: "0x" + hex(
+                            int(i.group(0)[:-2]))[2:].upper() + ":\n", s)
+                f2.write(s)
                 f2.write('\n...')
                 break
 

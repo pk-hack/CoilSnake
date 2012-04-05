@@ -3,6 +3,11 @@ import EbTablesModule
 class MiscTablesModule(EbTablesModule.EbTablesModule):
     _name = "Misc Tables"
     _tableIDs = [
+            0xC3FD8D, # Attract mode text
+            0xD5F645, # Timed Item Delivery
+            0xE01FC8, # Text Window Flavor palettes
+            0xE12F8A, # Photographer
+            0xEFA37A, # Command Window text?
             0xD0C60D, # Battle Groups Ptr Tbl
             0xCF8985, # NPC Configuration Table
             0xD5EA77, # Condiment Table
