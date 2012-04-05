@@ -25,6 +25,13 @@ class Font:
                         self._charH, j, 0)
             self._chars.append(charGfx)
         self._charWidths = rom[self._widthsAddr:self._widthsAddr+96]
+    def writeToRom(self, rom):
+        addr = self._gfxAddr
+        for char in self._chars:
+            for j in range(0, self._charW, 8):
+                addr += EbModule.write1BPPArea(char, rom, addr,
+                        self._charH, j, 0)
+        rom.write(self._widthsAddr, self._charWidths)
     def toImage(self):
         img = Image.new("P", (self._charW * 16, self._charH * 6), 1)
         # We only need two colors: white and black
@@ -38,11 +45,26 @@ class Font:
                         imgData[i*self._charW+x, j*self._charH+y] = \
                             self._chars[i+j*16][x][y]
         return img
+    def fromImage(self, img):
+        self._chars = [ [ array('B', [0] * self._charH) for k in
+            range(self._charW) ] for j in range(0,96) ]
+        imgData = img.load()
+        for i in range(16):
+            for j in range(6):
+                for y in range(self._charH):
+                    for x in range(self._charW):
+                        self._chars[i+j*16][x][y] = imgData[
+                                i*self._charW+x,
+                                j*self._charH+y] & 1
     def dumpWidths(self):
         out = dict()
         for i in range(96):
             out[i] = self._charWidths[i]
         return out
+    def loadWidths(self, input):
+        self._charWidths = [0]*96
+        for i in range(96):
+            self._charWidths[i] = input[i]
 
 class FontModule(EbModule.EbModule):
     _name = "Fonts"
@@ -54,9 +76,15 @@ class FontModule(EbModule.EbModule):
                 Font(0x21193a, 0x2118da, 8, 16),
                 Font(0x211f9a, 0x211f3a, 8, 8)
                 ]
+        self._pct = 50.0/len(self._fonts)
     def readFromRom(self, rom):
         for f in self._fonts:
             f.readFromRom(rom)
+            updateProgress(self._pct)
+    def writeToRom(self, rom):
+        for f in self._fonts:
+            f.writeToRom(rom)
+            updateProgress(self._pct)
     def writeToProject(self, resourceOpener):
         out = dict()
         i=0
@@ -71,3 +99,15 @@ class FontModule(EbModule.EbModule):
             with resourceOpener("Fonts/" + str(i) + "_widths", "yml") as f:
                 yaml.dump(out, f, default_flow_style=False)
             i += 1
+            updateProgress(self._pct)
+    def readFromProject(self, resourceOpener):
+        i = 0
+        for font in self._fonts:
+            with resourceOpener("Fonts/" + str(i), "png") as imgFile:
+                img = Image.open(imgFile)
+                font.fromImage(img)
+            with resourceOpener("Fonts/" + str(i) + "_widths", "yml") as f:
+                input = yaml.load(f)
+                font.loadWidths(input)
+            i += 1
+            updateProgress(self._pct)

@@ -68,6 +68,16 @@ def read1BPPArea(target, source, off, h, x, y):
     return h
 
 # From JHack
+def write1BPPArea(source, target, off, h, x ,y):
+    for i in xrange(h):
+        b=0
+        for j in xrange(8):
+            b |= (source[7-j+x][i+y] & 1) << j
+        target[off] = b
+        off += 1
+    return h
+
+# From JHack
 def read2BPPArea(target, source, off, x, y, bitOffset=-1):
     if bitOffset < 0:
         bitOffset = 0
