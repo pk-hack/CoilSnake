@@ -302,6 +302,31 @@
   name: BTL_ENTRY_BG_TABLE
   size: 1936
   type: data
+0xCCF04D:
+  entries:
+  - name: Short pointer to tileset
+    size: 2
+    type: hexint
+  - name: Frame duration (1/60th seconds)
+    size: 1
+  - name: Palette duration (1/60th seconds)
+    size: 1
+  - name: unknown
+    size: 2
+    type: bytearray
+  - name: Frame count
+    size: 1
+  - name: unknown 2
+    size: 2
+    type: bytearray
+  - name: Duration of enemy colour change
+    size: 1
+  - name: Enemy colour
+    size: 2
+    type: palette
+  name: PSI_ANIM_CFG
+  size: 408
+  type: data
 0xCCF47F:
   entries:
   - name: Palette
@@ -866,6 +891,14 @@
     type: pointer
   name: OVERWORLD_EVENT_MUSIC_PTR_TABLE
   size: 330
+  type: data
+0xCF61E7:
+  entries:
+  - name: Pointer
+    size: 2
+    type: pointer
+  name: SPRITE_PLACEMENT_PTR_TABLE
+  size: 2560
   type: data
 0xCF8985:
   entries:

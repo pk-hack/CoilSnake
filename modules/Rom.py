@@ -23,7 +23,7 @@ class Rom:
                 try:
                     if (~self[0xffdc] & 0xff == self[0xffde]) \
                             and (~self[0xffdd] & 0xff == self[0xffdf]) \
-                            and (self[offset:offset+len(data)] == data):
+                            and (self[offset:offset+len(data)].tolist()==data):
                         return t
                 except IndexError:
                     pass
@@ -32,7 +32,7 @@ class Rom:
                 try:
                     if (~self[0x7fdc] & 0xff == self[0x7fde]) \
                             and (~self[0x7fdd] & 0xff == self[0x7fdf]) \
-                            and (self[offset:offset+len(data)] == data):
+                            and (self[offset:offset+len(data)].tolist()==data):
                         return t
                 except IndexError:
                     pass
@@ -41,7 +41,9 @@ class Rom:
                 try:
                     if (~self[0x101dc] & 0xff == self[0x101de]) \
                             and (~self[0x101dd] & 0xff == self[0x101df]) \
-                            and (self[offset+0x200:offset+0x200+len(data)]==data):
+                            and (self[
+                                offset+0x200:offset+0x200+len(data)].tolist()
+                                ==data):
                         # Remove header
                         self._data = self._data[0x200:]
                         self._size -= 0x200
@@ -53,7 +55,9 @@ class Rom:
                 try:
                     if (~self[0x81dc] & 0xff == self[0x81de]) \
                             and (~self[0x81dd] & 0xff == self[0x81df]) \
-                            and (self[offset+0x200:offset+0x200+len(data)]==data):
+                            and (self[
+                                offset+0x200:offset+0x200+len(data)].tolist()
+                                ==data):
                         # Remove header
                         self._data = self._data[0x200:]
                         self._size -= 0x200
@@ -61,7 +65,7 @@ class Rom:
                 except:
                     pass
 
-            elif (self[offset:offset+len(data)] == data):
+            elif (self[offset:offset+len(data)].tolist() == data):
                 return t
         else:
             return "Unknown"
@@ -99,7 +103,7 @@ class Rom:
             raise ValueError("Can only read a list of non-negative length")
         elif (i < 0) or (i >= self._size) or (i+len > self._size):
             raise ValueError("Reading outside of ROM range")
-        return self._data[i:i+len].tolist()
+        return self._data[i:i+len]
     def readMulti(self, i, len):
         # Note: reads in reverse endian
         if (len < 0):
@@ -181,7 +185,7 @@ class Rom:
     # Overloaded operators
     def __getitem__(self, key):
         if (type(key) == slice):
-            return self._data[key].tolist()
+            return self._data[key]
         else:
             return self._data[key]
     def __setitem__(self, key, item):

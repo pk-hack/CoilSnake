@@ -61,7 +61,7 @@ class ByteArrayTableEntry:
     def load(self, data):
         self._data = data
     def dump(self):
-        return self._data
+        return self._data.tolist()
     def setVal(self, val):
         self._data = val
     def val(self):

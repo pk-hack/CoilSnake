@@ -1,10 +1,11 @@
 import EbModule
 from array import array
+from zlib import adler32
 
 class DataBlock:
     def __init__(self, size):
         self._size = size
-        self._data = [0] * self._size
+        self._data = array('B', [0] * self._size)
     def __enter__(self):
         return self
     def __exit__(self, type, value, traceback):
@@ -12,15 +13,22 @@ class DataBlock:
         pass
     def readFromRom(self, rom, addr):
         self._data = rom.readList(addr, self._size)
+    def writeToRom(self, rom, addr):
+        rom.write(addr, self._data)
     def writeToFree(self, rom):
         return rom.writeToFree(self._data)
+    def hash(self):
+        return adler32(self._data)
     def __getitem__(self, key):
         if type(key) == slice:
-            return self._data[key].tolist()
+            return self._data[key]
         else:
             return self._data[key]
     def __setitem__(self, key, val):
-        self._data[key] = val
+        if type(val) == list:
+            self._data[key] = array('B', val)
+        else:
+           self._data[key] = val
     def __len__(self):
         return len(self._data)
 

@@ -161,7 +161,7 @@ class SpriteGroup:
                 x = 0
     def dump(self):
         return { 'Unknown A': self._unknownA,
-                'Unknown B': self._unknownB,
+                'Unknown B': self._unknownB.tolist(),
                 'Swim Flags': map(lambda (a,x): x, self._sprites),
                 'Length': self._numSprites
                 }
