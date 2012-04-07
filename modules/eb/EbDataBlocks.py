@@ -1,10 +1,10 @@
 import EbModule
-import array
+from array import array
 
 class DataBlock:
     def __init__(self, size):
         self._size = size
-        self._data = None
+        self._data = [0] * self._size
     def __enter__(self):
         return self
     def __exit__(self, type, value, traceback):
@@ -14,10 +14,6 @@ class DataBlock:
         self._data = rom.readList(addr, self._size)
     def writeToFree(self, rom):
         return rom.writeToFree(self._data)
-    def clear(self, len=0):
-        if len != 0:
-            self._size = len
-        self._data = [0] * self._size
     def __getitem__(self, key):
         if type(key) == slice:
             return self._data[key].tolist()
@@ -29,8 +25,9 @@ class DataBlock:
         return len(self._data)
 
 class EbCompressedData:
-    def __init__(self):
-        self._data = None
+    def __init__(self, size=None):
+        if size != None:
+            self._data = array('B', [0]*size)
     def __enter__(self):
         return self
     def __exit__(self, type, value, traceback):
@@ -41,7 +38,7 @@ class EbCompressedData:
         if ucdata[0] < 0:
             print "Error decompressing data @", hex(addr)
         else:
-            self._data = array.array('B', ucdata)
+            self._data = array('B', ucdata)
 #    def writeToProject(self, resourceOpener):
 #        f = resourceOpener("dump", "smc")
 #        self._data.tofile(f)
@@ -49,8 +46,6 @@ class EbCompressedData:
     def writeToFree(self, rom):
         cdata = EbModule.comp(self._data.tolist())
         return rom.writeToFree(cdata)
-    def clear(self, len=0):
-        self._data = array.array('B', [0] * len)
     def __getitem__(self, key):
         if type(key) == slice:
             return self._data[key]

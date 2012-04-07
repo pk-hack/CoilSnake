@@ -80,6 +80,7 @@ class MapPalette:
 class Tileset:
     def __init__(self):
         self.tg = EbTileGraphics(896, 8, 4)
+        self.tg._tiles = [ None ] * 896
         self.arr = [None for i in range(0,1024)]
         self.col = [None for i in range(0,1024)]
         self.pals = [ ]
@@ -88,8 +89,7 @@ class Tileset:
             tgb.readFromRom(rom, addr)
             self.tg.readFromBlock(tgb)
     def writeMinitilesToFree(self, rom):
-        with EbCompressedData() as tgb:
-            tgb.clear(self.tg.sizeBlock())
+        with EbCompressedData(self.tg.sizeBlock()) as tgb:
             self.tg.writeToBlock(tgb)
             return tgb.writeToFree(rom)
     def readArrangementsFromRom(self, rom, addr):
@@ -104,8 +104,7 @@ class Tileset:
                         self.arr[i][k][j] = ab[a] + (ab[a+1]<<8)
                         a += 2
     def writeArrangementsToFree(self, rom):
-        with EbCompressedData() as ab:
-            ab.clear(1024*16*2)
+        with EbCompressedData(1024*16*2) as ab:
             i=0
             for a in self.arr:
                 for j in range(4):
@@ -308,7 +307,6 @@ class TilesetModule(EbModule.EbModule):
         i=0
         for tset in self._tsets:
             with DataBlock(len(tset.col)*2) as colTable:
-                colTable.clear()
                 j=0
                 for c in tset.col:
                     hash = adler32(c)

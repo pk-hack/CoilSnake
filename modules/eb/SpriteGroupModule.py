@@ -270,24 +270,24 @@ class SpriteGroupModule(EbModule.EbModule):
     def writeToRom(self, rom):
         numGroups = len(self._groups)
         self._grPtrTbl.clear(numGroups)
-        block = DataBlock(sum(map(lambda x: x.blockSize(), self._groups)))
-        block.clear()
-        loc = 0
-        i = 0
-        # Write all the groups to the block, and sprites to rom
-        pct = 40.0 / numGroups
-        for g in self._groups:
-            g.writeSpritesToFree(rom)
-            g.writeToBlock(block, loc)
-            self._grPtrTbl[i,0].setVal(loc)
-            loc += g.blockSize()
-            i += 1
-            updateProgress(pct)
-        # Write the block to rom and correct the group pointers
-        addr = EbModule.toSnesAddr(block.writeToFree(rom))
-        for i in range(self._grPtrTbl.height()):
-            self._grPtrTbl[i,0].setVal(
-                    self._grPtrTbl[i,0].val() + addr)
+        with DataBlock(sum(map(
+            lambda x: x.blockSize(), self._groups))) as block:
+            loc = 0
+            i = 0
+            # Write all the groups to the block, and sprites to rom
+            pct = 40.0 / numGroups
+            for g in self._groups:
+                g.writeSpritesToFree(rom)
+                g.writeToBlock(block, loc)
+                self._grPtrTbl[i,0].setVal(loc)
+                loc += g.blockSize()
+                i += 1
+                updateProgress(pct)
+            # Write the block to rom and correct the group pointers
+            addr = EbModule.toSnesAddr(block.writeToFree(rom))
+            for i in range(self._grPtrTbl.height()):
+                self._grPtrTbl[i,0].setVal(
+                        self._grPtrTbl[i,0].val() + addr)
         # Write the pointer table
         self._grPtrTbl.writeToRom(rom)
         updateProgress(5)

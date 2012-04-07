@@ -1,10 +1,10 @@
 import EbModule
 from EbTablesModule import EbTable
-from EbDataBlocks import DataBlock, EbCompressedData
+from EbDataBlocks import EbCompressedData
 from CompressedGraphicsModule import EbPalettes
 from modules.Progress import updateProgress
 
-import array
+from array import array
 from PIL import Image
 
 class EbSprite:
@@ -22,7 +22,7 @@ class EbSprite:
     def readFromBlock(self, block, width, height, loc=0):
         self._width = width
         self._height = height
-        self._sprite = map(lambda x: array.array('B', [0] * height),
+        self._sprite = map(lambda x: array('B', [0] * height),
                 range(0, width))
         offset = loc
         for q in range(0, height/32):
@@ -58,7 +58,7 @@ class EbSprite:
         self._sprite = []
         imgData = img.load()
         for x in range(0, self._width):
-            col = array.array('B', [0]*self._height)
+            col = array('B', [0]*self._height)
             for y in range(0, self._height):
                 col[y] = imgData[x,y]
             self._sprite.append(col)
@@ -87,7 +87,6 @@ class EbBattleSprite:
         w, h = self.SIZES[size]
         self._sprite.readFromBlock(block, w, h)
     def writeToBlock(self, block):
-        block.clear(self._sprite.width() * self._sprite.height() / 2)
         self._sprite.writeToBlock(block)
     def writeToProject(self, resourceOpener, enemyNum, palette):
         img = self._sprite.toImage(palette)
@@ -143,13 +142,12 @@ class EnemyModule(EbModule.EbModule):
             updateProgress(pct)
         # Read the sprites
         for i in range(self._bsPtrTbl.height()):
-            bsb = EbCompressedData()
-            bsb.readFromRom(rom,
-                    EbModule.toRegAddr(self._bsPtrTbl[i,0].val()))
-            bs = EbBattleSprite()
-            bs.readFromBlock(bsb, self._bsPtrTbl[i,1].val())
-            self._bsprites.append(bs)
-            del(bsb)
+            with EbCompressedData() as bsb:
+                bsb.readFromRom(rom,
+                        EbModule.toRegAddr(self._bsPtrTbl[i,0].val()))
+                bs = EbBattleSprite()
+                bs.readFromBlock(bsb, self._bsPtrTbl[i,1].val())
+                self._bsprites.append(bs)
             updateProgress(pct)
     def freeRanges(self):
         return [(0x0d0000, 0x0dffff), (0x0e0000, 0x0e6913)]
@@ -162,11 +160,10 @@ class EnemyModule(EbModule.EbModule):
         self._bsPtrTbl.clear(len(self._bsprites))
         i = 0
         for bs in self._bsprites:
-            bsb = EbCompressedData()
-            bsb.clear(bs.sizeBlock())
-            bs.writeToBlock(bsb)
-            self._bsPtrTbl[i,0].setVal(EbModule.toSnesAddr(
-                bsb.writeToFree(rom)))
+            with EbCompressedData(bs.sizeBlock()) as bsb:
+                bs.writeToBlock(bsb)
+                self._bsPtrTbl[i,0].setVal(EbModule.toSnesAddr(
+                    bsb.writeToFree(rom)))
             self._bsPtrTbl[i,1].setVal(bs.size())
             i += 1
             updateProgress(pct)

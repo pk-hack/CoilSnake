@@ -3,7 +3,7 @@ from EbTablesModule import EbTable
 from EbDataBlocks import EbCompressedData
 from modules.Progress import updateProgress
 
-import array
+from array import array
 from PIL import Image
 
 #<Penguin> found it. VHOPPPCC CCCCCCCC
@@ -115,7 +115,7 @@ class EbTileGraphics:
     def __init__(self, numTiles, tileSize, bpp=2):
         self._numTiles = numTiles
         self._tileSize = tileSize
-        self._tiles = [ None ] * numTiles
+        self._tiles = [ ] 
         self._usedTiles = 0
         self._usedDict = dict()
         self._bpp = bpp
@@ -128,7 +128,7 @@ class EbTileGraphics:
         self._tiles = []
         for i in xrange(self._numTiles):
             try:
-                tile = [array.array('B', [0]*self._tileSize)
+                tile = [array('B', [0]*self._tileSize)
                         for i in xrange(self._tileSize)]
                 if self._bpp == 2:
                     off += EbModule.read2BPPArea(
@@ -160,13 +160,13 @@ class EbTileGraphics:
         imgData = img.load()
         if indexed:
             newTile = [
-                    array.array('B',
+                    array('B',
                         [ imgData[i,j]
                             for j in xrange(y, self._tileSize + y) ])
                         for i in xrange(x, self._tileSize + x) ]
         else:
             newTile = [
-                    array.array('B',
+                    array('B',
                         [ pals.getColorFromRGB(palNum,imgData[i,j])
                             for j in xrange(y, self._tileSize + y) ])
                         for i in xrange(x, self._tileSize + x) ]
@@ -180,9 +180,8 @@ class EbTileGraphics:
             pass
 
         # Check for only horizontally flipped tile
-        newTile.reverse()
         try:
-            tIndex = self._usedDict[EbModule.hashArea(newTile)]
+            tIndex = self._usedDict[EbModule.hashArea(reversed(newTile))]
             return (False, True, tIndex)
         except KeyError:
             pass
@@ -191,13 +190,12 @@ class EbTileGraphics:
         for col in newTile:
             col.reverse()
         try:
-            tIndex = self._usedDict[EbModule.hashArea(newTile)]
+            tIndex = self._usedDict[EbModule.hashArea(reversed(newTile))]
             return (True, True, tIndex)
         except KeyError:
             pass
 
         # Check for only vertically flipped tile
-        newTile.reverse()
         tH = EbModule.hashArea(newTile)
         try:
             tIndex = self._usedDict[tH]
@@ -326,30 +324,25 @@ class EbTownMap:
     def __init__(self, name, ptrLoc):
         self._name = name
         self._ptrLoc = ptrLoc
-        self._block = EbCompressedData()
         self._gfx = EbTileGraphics(512, 8, 4)
         self._arr = EbArrangement(32, 28)
         self._pals = EbPalettes(2, 16)
     def readFromRom(self, rom):
-        self._block.readFromRom(rom,
-                EbModule.toRegAddr(
+        with EbCompressedData() as block:
+            block.readFromRom(rom, EbModule.toRegAddr(
                     rom.readMulti(self._ptrLoc, 4)))
-
-        self._arr.readFromBlock(self._block, 64)
-        self._pals.readFromBlock(self._block, 0)
-        self._gfx.readFromBlock(self._block, 2048+64)
+            self._arr.readFromBlock(block, 64)
+            self._pals.readFromBlock(block, 0)
+            self._gfx.readFromBlock(block, 2048+64)
     def writeToRom(self, rom):
         # Arrangement space is 2048 bytes long since it's 32x32x2 in VRAM
-        self._block.clear(
-                self._pals.sizeBlock() + 2048
-#                + self._arr.sizeBlock()
-                + self._gfx.sizeBlock())
-        self._pals.writeToBlock(self._block, 0)
-        self._arr.writeToBlock(self._block, 64)
-        self._gfx.writeToBlock(self._block, 2048+64)
-
-        newAddr = self._block.writeToFree(rom)
-        rom.writeMulti(self._ptrLoc, EbModule.toSnesAddr(newAddr), 4)
+        with EbCompressedData(self._pals.sizeBlock() + 2048 +
+                self._gfx.sizeBlock()) as block:
+            self._pals.writeToBlock(block, 0)
+            self._arr.writeToBlock(block, 64)
+            self._gfx.writeToBlock(block, 2048+64)
+            newAddr = block.writeToFree(rom)
+            rom.writeMulti(self._ptrLoc, EbModule.toSnesAddr(newAddr), 4)
     def writeToProject(self, resourceOpener):
         img = self._arr.toImage(self._gfx, self._pals)
         imgFile = resourceOpener(self.name(), 'png')
@@ -365,9 +358,6 @@ class EbLogo:
     def __init__(self, name, gfxPtrLoc, arrPtrLoc, palPtrLoc):
         self._name = name
 
-        self._gfxBlock = EbCompressedData()
-        self._arrBlock = EbCompressedData()
-        self._palBlock = EbCompressedData()
         self._gfx = EbTileGraphics(256, 8)
         self._arr = EbArrangement(32, 28)
         self._pals = EbPalettes(5, 4)
@@ -376,19 +366,19 @@ class EbLogo:
         self._arrPtrLoc = arrPtrLoc
         self._palPtrLoc = palPtrLoc
     def readFromRom(self, rom):
-        self._gfxBlock.readFromRom(rom,
-                EbModule.toRegAddr(
-                    EbModule.readAsmPointer(rom, self._gfxPtrLoc)))
-        self._arrBlock.readFromRom(rom,
-                EbModule.toRegAddr(
-                    EbModule.readAsmPointer(rom, self._arrPtrLoc)))
-        self._palBlock.readFromRom(rom,
-                EbModule.toRegAddr(
-                    EbModule.readAsmPointer(rom, self._palPtrLoc)))
-
-        self._gfx.readFromBlock(self._gfxBlock)
-        self._arr.readFromBlock(self._arrBlock)
-        self._pals.readFromBlock(self._palBlock)
+        with EbCompressedData() as gb:
+            gb.readFromRom(rom, EbModule.toRegAddr(
+                EbModule.readAsmPointer(rom, self._gfxPtrLoc)))
+            self._gfx.readFromBlock(gb)
+        with EbCompressedData() as ab:
+            ab.readFromRom(rom, EbModule.toRegAddr(
+                EbModule.readAsmPointer(rom, self._arrPtrLoc)))
+            self._arr.readFromBlock(ab)
+        with EbCompressedData() as pb:
+            pb.readFromRom(rom, EbModule.toRegAddr(
+                EbModule.readAsmPointer(rom, self._palPtrLoc)))
+            self._pals.readFromBlock(pb)
+        
         # The first color of every subpalette after subpal0 is ignored and
         # drawn as the first color of subpal0 instead
         c = self._pals[0,0]
@@ -400,23 +390,18 @@ class EbLogo:
         img.save(imgFile, 'png')
         imgFile.close()
     def writeToRom(self, rom):
-        self._gfxBlock.clear(self._gfx.sizeBlock())
-        self._arrBlock.clear(self._arr.sizeBlock())
-        self._palBlock.clear(self._pals.sizeBlock())
-
-        self._gfx.writeToBlock(self._gfxBlock)
-        self._arr.writeToBlock(self._arrBlock)
-        self._pals.writeToBlock(self._palBlock)
-
-        newAddr = self._gfxBlock.writeToFree(rom)
-        EbModule.writeAsmPointer(rom, self._gfxPtrLoc,
-                EbModule.toSnesAddr(newAddr))
-        newAddr = self._arrBlock.writeToFree(rom)
-        EbModule.writeAsmPointer(rom, self._arrPtrLoc,
-                EbModule.toSnesAddr(newAddr))
-        newAddr = self._palBlock.writeToFree(rom)
-        EbModule.writeAsmPointer(rom, self._palPtrLoc,
-                EbModule.toSnesAddr(newAddr))
+        with EbCompressedData(self._gfx.sizeBlock()) as gb:
+            self._gfx.writeToBlock(gb)
+            EbModule.writeAsmPointer(rom, self._gfxPtrLoc,
+                    EbModule.toSnesAddr(gb.writeToFree(rom)))
+        with EbCompressedData(self._arr.sizeBlock()) as ab:
+            self._arr.writeToBlock(ab)
+            EbModule.writeAsmPointer(rom, self._arrPtrLoc,
+                    EbModule.toSnesAddr(ab.writeToFree(rom)))
+        with EbCompressedData(self._pals.sizeBlock()) as pb:
+            self._pals.writeToBlock(pb)
+            EbModule.writeAsmPointer(rom, self._palPtrLoc,
+                    EbModule.toSnesAddr(pb.writeToFree(rom)))
     def readFromProject(self, resourceOpener):
         img = Image.open(resourceOpener(self.name(), 'png'))
         # Set all first colors of each subpalette to the image's first color

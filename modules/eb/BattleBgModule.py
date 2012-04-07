@@ -56,29 +56,27 @@ class BattleBgModule(EbModule.EbModule):
             gfxNum = self._bbgTbl[i,0].val()
             colorDepth = self._bbgTbl[i,2].val()
             if (self._bbgGfxArrs[gfxNum] == None):
-                tgb = EbCompressedData()
-                tgb.readFromRom(rom,
-                        EbModule.toRegAddr(self._bbgGfxPtrTbl[gfxNum,0].val()))
-                ab = EbCompressedData()
-                ab.readFromRom(rom,
-                        EbModule.toRegAddr(self._bbgArrPtrTbl[gfxNum,0].val()))
                 # Max size used in rom: 421 (2bpp) 442 (4bpp)
                 tg = EbTileGraphics(512, 8, colorDepth)
-                tg.readFromBlock(tgb)
+                with EbCompressedData() as tgb:
+                    tgb.readFromRom(rom, EbModule.toRegAddr(
+                        self._bbgGfxPtrTbl[gfxNum,0].val()))
+                    tg.readFromBlock(tgb)
                 a = EbArrangement(32, 32)
-                a.readFromBlock(ab)
-                del(tgb)
-                del(ab)
+                with EbCompressedData() as ab:
+                    ab.readFromRom(rom, EbModule.toRegAddr(
+                        self._bbgArrPtrTbl[gfxNum,0].val()))
+                    a.readFromBlock(ab)
+                
                 self._bbgGfxArrs[gfxNum] = (tg, a)
             palNum = self._bbgTbl[i,1].val()
             if (self._bbgPals[palNum] == None):
-                pb = DataBlock(32)
-                pb.readFromRom(rom,
-                        EbModule.toRegAddr(self._bbgPalPtrTbl[palNum,0].val()))
-                p = EbPalettes(1, 16)
-                p.readFromBlock(pb)
-                del(pb)
-                self._bbgPals[palNum] = p
+                with DataBlock(32) as pb:
+                    pb.readFromRom(rom,
+                            EbModule.toRegAddr(self._bbgPalPtrTbl[palNum,0].val()))
+                    p = EbPalettes(1, 16)
+                    p.readFromBlock(pb)
+                    self._bbgPals[palNum] = p
             updateProgress(pct)
     def writeToProject(self, resourceOpener):
         pct = 50.0/(4+self._bbgTbl.height())
@@ -151,18 +149,14 @@ class BattleBgModule(EbModule.EbModule):
         i = 0
         pct = (50.0/3)/len(self._bbgGfxArrs)
         for (tg, a) in self._bbgGfxArrs:
-            tgb = EbCompressedData()
-            tgb.clear(tg.sizeBlock())
-            tg.writeToBlock(tgb)
-            ab = EbCompressedData()
-            ab.clear(a.sizeBlock())
-            a.writeToBlock(ab)
-            self._bbgGfxPtrTbl[i,0].setVal(EbModule.toSnesAddr(
+            with EbCompressedData(tg.sizeBlock()) as tgb:
+                tg.writeToBlock(tgb)
+                self._bbgGfxPtrTbl[i,0].setVal(EbModule.toSnesAddr(
                     tgb.writeToFree(rom)))
-            self._bbgArrPtrTbl[i,0].setVal(EbModule.toSnesAddr(
+            with EbCompressedData(a.sizeBlock()) as ab:
+                a.writeToBlock(ab)
+                self._bbgArrPtrTbl[i,0].setVal(EbModule.toSnesAddr(
                     ab.writeToFree(rom)))
-            del(tgb)
-            del(ab)
             i += 1
             updateProgress(pct)
         EbModule.writeAsmPointers(rom, self._ASMPTRS_GFX,
@@ -174,12 +168,10 @@ class BattleBgModule(EbModule.EbModule):
         i = 0
         pct = (50.0/3)/len(self._bbgPals)
         for p in self._bbgPals:
-            pb = DataBlock(32)
-            pb.clear(p.sizeBlock())
-            p.writeToBlock(pb)
-            self._bbgPalPtrTbl[i,0].setVal(EbModule.toSnesAddr(
+            with DataBlock(32) as pb:
+                p.writeToBlock(pb)
+                self._bbgPalPtrTbl[i,0].setVal(EbModule.toSnesAddr(
                     pb.writeToFree(rom)))
-            del(pb)
             i += 1
             updateProgress(pct)
         EbModule.writeAsmPointers(rom, self._ASMPTRS_PAL,
