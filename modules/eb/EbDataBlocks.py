@@ -1,6 +1,6 @@
 import EbModule
 from array import array
-from zlib import adler32
+from zlib import crc32
 
 class DataBlock:
     def __init__(self, size):
@@ -18,12 +18,9 @@ class DataBlock:
     def writeToFree(self, rom):
         return rom.writeToFree(self._data)
     def hash(self):
-        return adler32(self._data)
+        return crc32(self._data)
     def __getitem__(self, key):
-        if type(key) == slice:
-            return self._data[key]
-        else:
-            return self._data[key]
+        return self._data[key]
     def __setitem__(self, key, val):
         if type(val) == list:
             self._data[key] = array('B', val)

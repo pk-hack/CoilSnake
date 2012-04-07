@@ -5,7 +5,7 @@ from CompressedGraphicsModule import EbTileGraphics
 from modules.Progress import updateProgress
 
 from array import array
-from zlib import adler32
+from zlib import crc32
 from re import sub
 import yaml
 
@@ -309,7 +309,7 @@ class TilesetModule(EbModule.EbModule):
             with DataBlock(len(tset.col)*2) as colTable:
                 j=0
                 for c in tset.col:
-                    hash = adler32(c)
+                    hash = crc32(c)
                     try:
                         addr = colLocs[hash]
                     except KeyError:
