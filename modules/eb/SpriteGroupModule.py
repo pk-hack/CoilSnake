@@ -233,12 +233,14 @@ class SpriteGroupModule(EbModule.EbModule):
             del(img)
             i += 1
             updateProgress(pct)
-        yaml.dump(out, resourceOpener("sprite_groups", "yml"))
+        yaml.dump(out, resourceOpener("sprite_groups", "yml"),
+                Dumper=yaml.CSafeDumper)
         updateProgress(5)
     def readFromProject(self, resourceOpener):
         self._grPalTbl.readFromProject(resourceOpener)
         updateProgress(5)
-        input = yaml.load(resourceOpener("sprite_groups", "yml"))
+        input = yaml.load(resourceOpener("sprite_groups", "yml"),
+                Loader=yaml.CSafeLoader)
         numGroups = len(input)
         self._groups = []
         pct = 45.0/numGroups

@@ -75,7 +75,7 @@ class EbTable(Table):
             #print "Loading eb.yml"
             with open("structures/eb.yml") as f:
                 i=1
-                for doc in yaml.load_all(f):
+                for doc in yaml.load_all(f, Loader=yaml.CSafeLoader):
                     if i == 1:
                         i += 1
                     elif i == 2:

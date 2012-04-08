@@ -97,7 +97,8 @@ class FontModule(EbModule.EbModule):
             # Write the widths
             out = font.dumpWidths()
             with resourceOpener("Fonts/" + str(i) + "_widths", "yml") as f:
-                yaml.dump(out, f, default_flow_style=False)
+                yaml.dump(out, f, default_flow_style=False,
+                        Dumper=yaml.CSafeDumper)
             i += 1
             updateProgress(self._pct)
     def readFromProject(self, resourceOpener):
@@ -107,7 +108,7 @@ class FontModule(EbModule.EbModule):
                 img = Image.open(imgFile)
                 font.fromImage(img)
             with resourceOpener("Fonts/" + str(i) + "_widths", "yml") as f:
-                input = yaml.load(f)
+                input = yaml.load(f, Loader=yaml.CSafeLoader)
                 font.loadWidths(input)
             i += 1
             updateProgress(self._pct)

@@ -175,7 +175,7 @@ class Table:
                 if j not in hiddenColumns:
                     outRow[entry.name] = entry.dump()
             out[i] = outRow
-        s = yaml.dump(out, default_flow_style=False)
+        s = yaml.dump(out, default_flow_style=False, Dumper=yaml.CSafeDumper)
         # Make hexints output to hex
         # Have to do this regex hack since PyYAML doesn't let us
         for field in filter(
@@ -186,7 +186,7 @@ class Table:
                     hex(int(i.group(0)[i.group(0).find(': ')+2:])) ,s)
         return s
     def load(self, inputRaw):
-        input = yaml.load(inputRaw)
+        input = yaml.load(inputRaw, Loader=yaml.CSafeLoader)
         self._data = []
         for i in range(0,len(input)):
             row = []

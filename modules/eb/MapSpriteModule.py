@@ -65,13 +65,13 @@ class MapSpriteModule(EbModule.EbModule):
                 x += 1
             updateProgress(pct)
         with resourceOpener("map_sprites", "yml") as f:
-            yaml.dump(out, f)
+            yaml.dump(out, f, Dumper=yaml.CSafeDumper)
         updateProgress(5)
     def readFromProject(self, resourceOpener):
         self._entries = []
         pct = 45.0/(40*32)
         with resourceOpener("map_sprites", "yml") as f:
-            input = yaml.load(f)
+            input = yaml.load(f, Loader=yaml.CSafeLoader)
             updateProgress(5)
             for y in input:
                 row = input[y]

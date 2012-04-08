@@ -15,7 +15,7 @@ class Project:
         try:
             if (type(f) == str):
                 f = open(f, 'r') 
-            data = yaml.load(f)
+            data = yaml.load(f, Loader=yaml.CSafeLoader)
             if (romtype == None) or (romtype == data["romtype"]):
                 self._romtype = data["romtype"]
                 self._resources = data["resources"]
@@ -38,7 +38,7 @@ class Project:
         tmp['romtype'] = self._romtype
         tmp['resources'] = self._resources
         f = open(filename, 'w')
-        yaml.dump(tmp, f)
+        yaml.dump(tmp, f, Dumper=yaml.CSafeDumper)
         f.close()
     def type(self):
         return self._romtype

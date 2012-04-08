@@ -11,7 +11,7 @@ class Rom:
         self._freeRanges = [ ]
         if (romtypeFname):
             with open(romtypeFname, 'r') as f:
-                self._type_map = yaml.load(f)
+                self._type_map = yaml.load(f, Loader=yaml.CSafeLoader)
     def checkRomType(self):
         for t, d in self._type_map.iteritems():
             offset, data, platform = d['offset'], d['data'], d['platform']

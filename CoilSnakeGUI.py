@@ -23,7 +23,7 @@ class CoilSnakeFrontend:
     def __init__(self):
         try:
             with open(self.PREFS_FNAME, 'r') as f:
-                self._prefs = yaml.load(f)
+                self._prefs = yaml.load(f, Loader=yaml.CSafeLoader)
         except IOError:
             self._prefs = {
                     'Emulator': "",
@@ -36,7 +36,7 @@ class CoilSnakeFrontend:
                     }
     def savePrefs(self):
         with open(self.PREFS_FNAME, "w") as f:
-            yaml.dump(self._prefs, f)
+            yaml.dump(self._prefs, f, Dumper=yaml.CSafeDumper)
     def setText(self, entry, str):
         entry.delete(0, END)
         entry.insert(0, str)

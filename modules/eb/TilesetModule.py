@@ -402,7 +402,8 @@ class TilesetModule(EbModule.EbModule):
                 entry[pN] = p.dump()
             out[i] = entry
         with resourceOpener('map_palette_settings', 'yml') as f:
-            s = yaml.dump(out, default_flow_style=False)
+            s = yaml.dump(out, default_flow_style=False,
+                    Dumper=yaml.CSafeDumper)
             s = sub("Event Flag: (\d+)",
                     lambda i: "Event Flag: " + hex(int(i.group(0)[12:])), s)
             f.write(s)
@@ -425,7 +426,7 @@ class TilesetModule(EbModule.EbModule):
             i += 1
             updateProgress(pct)
         with resourceOpener('map_palette_settings', 'yml') as f:
-            input = yaml.load(f)
+            input = yaml.load(f, Loader=yaml.CSafeLoader)
             for mtset in input: # For each map tileset
                 # Get the draw (normal) tileset
                 tset = None
