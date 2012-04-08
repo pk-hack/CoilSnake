@@ -15,7 +15,6 @@ class BattleBgModule(EbModule.EbModule):
         self._bbgGfxPtrTbl = EbTable(0xcad7a1)
         self._bbgArrPtrTbl = EbTable(0xcad93d)
         self._bbgPalPtrTbl = EbTable(0xcadad9)
-        self._bbgGroupTbl = EbTable(0xCBD89A)
         self._bbgScrollTbl = EbTable(0xCAF258)
         self._bbgDistorTbl = EbTable(0xCAF708)
         self._bbgTbl = EbTable(0xcadca1)
@@ -23,7 +22,6 @@ class BattleBgModule(EbModule.EbModule):
         del(self._bbgGfxPtrTbl)
         del(self._bbgArrPtrTbl)
         del(self._bbgPalPtrTbl)
-        del(self._bbgGroupTbl)
         del(self._bbgTbl)
 
         del(self._bbgGfxArrs)
@@ -46,7 +44,6 @@ class BattleBgModule(EbModule.EbModule):
 
         self._bbgGfxArrs = [ None for i in range(self._bbgGfxPtrTbl.height()) ]
         self._bbgPals = [ None for i in range(self._bbgPalPtrTbl.height()) ]
-        self._bbgGroupTbl.readFromRom(rom)
         updateProgress(pct)
         self._bbgScrollTbl.readFromRom(rom)
         updateProgress(pct)
@@ -79,10 +76,8 @@ class BattleBgModule(EbModule.EbModule):
                     self._bbgPals[palNum] = p
             updateProgress(pct)
     def writeToProject(self, resourceOpener):
-        pct = 50.0/(4+self._bbgTbl.height())
+        pct = 50.0/(3+self._bbgTbl.height())
         self._bbgTbl.writeToProject(resourceOpener, hiddenColumns=[0,1])
-        updateProgress(pct)
-        self._bbgGroupTbl.writeToProject(resourceOpener)
         updateProgress(pct)
         self._bbgScrollTbl.writeToProject(resourceOpener)
         updateProgress(pct)
@@ -100,9 +95,7 @@ class BattleBgModule(EbModule.EbModule):
             updateProgress(pct)
     def readFromProject(self, resourceOpener):
         self._bbgTbl.readFromProject(resourceOpener)
-        pct = 50.0/(3+self._bbgTbl.height())
-        self._bbgGroupTbl.readFromProject(resourceOpener)
-        updateProgress(pct)
+        pct = 50.0/(2+self._bbgTbl.height())
         self._bbgScrollTbl.readFromProject(resourceOpener)
         updateProgress(pct)
         self._bbgDistorTbl.readFromProject(resourceOpener)
@@ -178,10 +171,8 @@ class BattleBgModule(EbModule.EbModule):
                 EbModule.toSnesAddr(self._bbgPalPtrTbl.writeToFree(rom)))
 
         # Write the data table
-        pct = (50.0/3)/4
+        pct = (50.0/3)/3
         self._bbgTbl.writeToRom(rom)
-        updateProgress(pct)
-        self._bbgGroupTbl.writeToRom(rom)
         updateProgress(pct)
         self._bbgScrollTbl.writeToRom(rom)
         updateProgress(pct)

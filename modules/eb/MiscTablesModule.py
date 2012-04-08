@@ -8,7 +8,7 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
             0xE01FC8, # Text Window Flavor palettes
             0xE12F8A, # Photographer
             0xEFA37A, # Command Window text?
-            0xD0C60D, # Battle Groups Ptr Tbl
+#            0xD0C60D, # Battle Groups Ptr Tbl
             0xCF8985, # NPC Configuration Table
             0xD5EA77, # Condiment Table
             0xD5EBAB, # Scripted Teleport Destination Table
@@ -26,7 +26,7 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
             0xD576B2, # Store Inventory Table
             0xD5F4BB, # Timed Item Transformations
             0xD5F4CF, # Don't Care
-            0xD55000, # Item Data # TODO something wrong here
+            0xD55000, # Item Data
             0xC23109, # Consolation Item
             0xC3E250, # Windows
 #            0xC3F054, # Font Ptr Tbl
@@ -41,6 +41,5 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
 #            0xD01598, # Map Event Tile Ptr Tbl
 #            0xD01880, # Enemy placement
 #            0xD0B880, # Enemy placement groups ptr tbl
-#            0xD0C60D, # Battle Entry Ptr Tbl
 
             ]

@@ -157,8 +157,10 @@ class Table:
         addr = rom.getFreeLoc(dataSize)
         self.writeToRom(rom, addr=addr)
         return addr
-    def readFromProject(self, resourceOpener):
-        f = resourceOpener(self.name(), 'yml')
+    def readFromProject(self, resourceOpener, name=None):
+        if name == None:
+            name = self.name()
+        f = resourceOpener(name, 'yml')
         contents = f.read()
         f.close()
         self.load(contents)

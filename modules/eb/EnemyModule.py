@@ -6,6 +6,7 @@ from modules.Progress import updateProgress
 
 from array import array
 from PIL import Image
+import yaml
 
 class EbSprite:
     def __init__(self):
@@ -116,13 +117,12 @@ class EnemyModule(EbModule.EbModule):
         self._enemyCfgTable = EbTable(0xd59589)
         self._bsPtrTbl = EbTable(0xce62ee)
         self._bsPalsTable = EbTable(0xce6514)
+        self._enemyGroupTbl = EbTable(0xD0C60D)
+        self._enemyGroupBgTbl = EbTable(0xCBD89A)
 
         self._bsprites = [ ]
         self._bsPals = [ ]
-    def free(self):
-        del(self._enemyCfgTable)
-        del(self._bsPalsTable)
-        del(self._bsprites)
+        self._enemyGroups = [ ]
     def readFromRom(self, rom):
         self._bsPtrTbl.readFromRom(rom,
                 EbModule.toRegAddr(EbModule.readAsmPointer(rom,
@@ -130,7 +130,7 @@ class EnemyModule(EbModule.EbModule):
         self._bsPalsTable.readFromRom(rom,
                 EbModule.toRegAddr(EbModule.readAsmPointer(rom,
                     self._ASMPTR_PAL)))
-        pct = 50.0/(self._bsPtrTbl.height()
+        pct = 45.0/(self._bsPtrTbl.height()
                 + self._bsPalsTable.height() + 1)
         self._enemyCfgTable.readFromRom(rom)
         updateProgress(pct)
@@ -149,10 +149,26 @@ class EnemyModule(EbModule.EbModule):
                 bs.readFromBlock(bsb, self._bsPtrTbl[i,1].val())
                 self._bsprites.append(bs)
             updateProgress(pct)
+
+        # Read the group data
+        self._enemyGroupTbl.readFromRom(rom)
+        self._enemyGroupBgTbl.readFromRom(rom)
+        self._enemyGroups = [ ]
+        pct = 5.0/self._enemyGroupTbl.height()
+        for i in range(self._enemyGroupTbl.height()):
+            group = [ ]
+            ptr = EbModule.toRegAddr(self._enemyGroupTbl[i,0].val())
+            while(rom[ptr] != 0xff):
+                group.append((rom.readMulti(ptr+1,2), rom[ptr]))
+                ptr += 3
+            self._enemyGroups.append(group)
+            updateProgress(pct)
     def freeRanges(self):
-        return [(0x0d0000, 0x0dffff), (0x0e0000, 0x0e6913)]
+        return [(0x0d0000, 0x0dffff), # Battle Sprites
+                (0x0e0000, 0x0e6913), # Battle Sprites Cont'd & Btl Spr. Pals
+                (0x10d52d, 0x10dfb3)] # Enemy Group Data
     def writeToRom(self, rom):
-        pct = 50.0/(len(self._bsprites) + len(self._bsPals) + 3)
+        pct = 40.0/(len(self._bsprites) + len(self._bsPals) + 3)
         # Write the main table
         self._enemyCfgTable.writeToRom(rom)
         updateProgress(pct)
@@ -182,8 +198,24 @@ class EnemyModule(EbModule.EbModule):
         EbModule.writeAsmPointer(rom, self._ASMPTR_PAL,
                 EbModule.toSnesAddr(self._bsPalsTable.writeToFree(rom)))
         updateProgress(pct)
+        # Write the groups
+        self._enemyGroupBgTbl.writeToRom(rom)
+        updateProgress(5)
+        i=0
+        for group in self._enemyGroups:
+            loc = rom.getFreeLoc(len(group)*3 + 1)
+            self._enemyGroupTbl[i,0].setVal(EbModule.toSnesAddr(loc))
+            i += 1
+            for enemyID, amount in group:
+                rom[loc] = amount
+                rom[loc+1] = enemyID & 0xff
+                rom[loc+2] = enemyID >> 8
+                loc += 3
+            rom[loc] = 0xff
+        self._enemyGroupTbl.writeToRom(rom)
+        updateProgress(5)
     def writeToProject(self, resourceOpener):
-        pct = 50.0/(self._enemyCfgTable.height() + 1)
+        pct = 40.0/(self._enemyCfgTable.height() + 1)
         # First, write the Enemy Configuration Table
         self._enemyCfgTable.writeToProject(resourceOpener, [4,14])
         updateProgress(pct)
@@ -195,10 +227,38 @@ class EnemyModule(EbModule.EbModule):
                         resourceOpener, i,
                         self._bsPals[self._enemyCfgTable[i,14].val()].getSubpal(0))
             updateProgress(pct)
+
+        # Now write the groups
+        out = dict()
+        i = 0
+        pct = 5.0/len(self._enemyGroups)
+        for group in self._enemyGroups:
+            entry = dict()
+            for j in range(1,4):
+                field = self._enemyGroupTbl[i,j]
+                entry[field.name] = field.dump()
+            for j in range(2):
+                field = self._enemyGroupBgTbl[i,j]
+                entry[field.name] = field.dump()
+            enemyList = dict()
+            j = 0
+            for enemyID, amount in group:
+                enemyEntry = dict()
+                enemyEntry["Enemy"] = enemyID
+                enemyEntry["Amount"] = amount
+                enemyList[j] = enemyEntry
+                j += 1
+            entry["Enemies"] = enemyList
+            out[i] = entry
+            i += 1
+            updateProgress(pct)
+        with resourceOpener("enemy_groups", "yml") as f:
+            yaml.dump(out, f, Dumper=yaml.CSafeDumper)
+        updateProgress(5)
     def readFromProject(self, resourceOpener):
         # First, read the Enemy Configuration Table
         self._enemyCfgTable.readFromProject(resourceOpener)
-        pct = 50.0/(self._enemyCfgTable.height())
+        pct = 40.0/(self._enemyCfgTable.height())
 
         # Second, read the Battle Sprites
         bsHashes = dict()
@@ -233,3 +293,24 @@ class EnemyModule(EbModule.EbModule):
                 self._enemyCfgTable[i,4].setVal(0)
                 self._enemyCfgTable[i,14].setVal(0)
             updateProgress(pct)
+
+        # Third, read the groups
+        self._enemyGroupTbl.readFromProject(resourceOpener, "enemy_groups")
+        updateProgress(2)
+        self._enemyGroupBgTbl.readFromProject(resourceOpener, "enemy_groups")
+        updateProgress(2)
+        self._enemyGroups = [ ]
+        pct = 4.0/484
+        with resourceOpener("enemy_groups", "yml") as f:
+            input = yaml.load(f, Loader=yaml.CSafeLoader)
+            updateProgress(2)
+            for group in input:
+                tmp1 = input[group]["Enemies"]
+                enemyList = [ ]
+                i = 0
+                for enemy in tmp1:
+                    tmp2 = tmp1[i]
+                    enemyList.append((tmp2["Enemy"], tmp2["Amount"]))
+                    i += 1
+                self._enemyGroups.append(enemyList)
+                updateProgress(pct)
