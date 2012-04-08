@@ -960,9 +960,9 @@
   type: data
 0xD01880:
   entries:
-  - name: Enemy Group
+  - name: Enemy Map Group
     size: 2
-  name: ENEMY_PLACEMENT_DATA
+  name: MAP_ENEMY_PLACEMENT
   size: 40960
   type: data
 0xD0B880:
@@ -1123,12 +1123,12 @@
   - name: Strength
     size: 1
     values:
-    - none
-    - alpha
-    - beta
-    - gamma
-    - sigma
-    - omega
+    - '': null
+    - "\u03B1"
+    - "\u03B2"
+    - "\u03B3"
+    - "\u03A3"
+    - "\u03A9"
   - bitvalues:
     - Offense
     - Recovery

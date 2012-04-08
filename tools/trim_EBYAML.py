@@ -13,7 +13,7 @@ if len(sys.argv) != 3:
 with open(sys.argv[1], "r") as f:
     with open(sys.argv[2], "w") as f2:
         i=1
-        for doc in yaml.load_all(f):
+        for doc in yaml.load_all(f, Loader=yaml.CSafeLoader):
             if i == 1:
                 f2.write("# This is a automatically generated trimmed version of the full EBYAML file.\n# This file only contains data block descriptions which have an \"entries\" entry.\n---\n...\n---\n")
                 i += 1
@@ -27,7 +27,8 @@ with open(sys.argv[1], "r") as f:
                         newDoc[block] = doc[block]
                         if newDoc[block].has_key("description"):
                             del(newDoc[block]["description"])
-                s = yaml.dump(newDoc, default_flow_style=False)
+                s = yaml.dump(newDoc, default_flow_style=False,
+                        Dumper=yaml.CSafeDumper)
                 # Convert labels to hex
                 s = sub("(\d+):\n",
                         lambda i: "0x" + hex(

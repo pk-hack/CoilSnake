@@ -15,16 +15,19 @@ Battle Backgrounds:
 - "Colour depth" in battle_bg.yml specifies the BPP to be used
 - 4BPP bgs can have 16 unique colors including transparency. 2BPP bgs can have 4 unique colors including transparency.
 - 2BPP bgs seem to be able to have more unique tiles than 4BPP bgs.
-- 2BPP bgs must be layered with another 2BPP bg when displayed, otherwise glitchiness might happen. Use the battle_bg_groups table to set up layering.
+- 2BPP bgs must be layered with another 2BPP bg when displayed, otherwise glitchiness might happen. Use the enemy_groups.yml file to set up layering.
 
 Enemies:
 - Even though you can have 255 unique palettes for battle sprites, you can only have a certain number of unique palettes onscreen at once while playing the game due to hardware limitations.
 - If you do not need an enemy to have a battle sprite, simply delete the corresponding image. You can also create new images for enemies that do not already have a battle sprite image.
 - Valid battle sprite dimensions are 0x0, 32x32, 64x32, 32x64, 64x64, 128x64, and 128x128.
 
+Map Enemy Groups:
+- Probabilities for each subgroup must add up to "8". Undefined results if they don't.
+
 Sprite Groups:
-- Do not have more than 8 unique palettes in your images. There is a hard limit of 8 out-of-battle sprite palettes. If you try to use more than 8, CoilSnake will just ignore the extra ones.
-- Use the "show grid" function on your favorite image editing software to make editing the PNGs easier.
+- The sprite palettes are specified in a separate file. Edit them there if you want to.
+- Use the "show grid" function on your favorite image editing software to make editing the PNGs easier. Use a grid-size of 8x8.
 - "Swam Flags" determine whether a sprite will sink or not when in Deep Darkness water. True = don't sink at all. This is used for present boxes, Krakens, etc.
 - Remember to change the "Length" attribute appropriately for the Sprite Group you're editing in sprite_groups.yml
 - Unknown A explanation?: http://local-static1.forum-files.fobby.net/forum_attachments/0023/2521/spt.txt
