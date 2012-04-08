@@ -1,9 +1,9 @@
 eb.CccInterfaceModule
-#eb.MapModule
 eb.TilesetModule
 eb.MapSpriteModule
 eb.DoorModule
 eb.BattleBgModule
+eb.MapModule
 eb.MiscTablesModule
 eb.FontModule
 eb.CompressedGraphicsModule

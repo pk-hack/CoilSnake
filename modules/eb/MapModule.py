@@ -1,7 +1,5 @@
 import EbModule
 
-import pickle
-
 class MapModule(EbModule.EbModule):
     _name = "Map"
     _MAP_PTRS_PTR_ADDR = 0xa1db
@@ -17,8 +15,10 @@ class MapModule(EbModule.EbModule):
         map_addrs = map(lambda x: \
             EbModule.toRegAddr(rom.readMulti(map_ptrs_addr+x*4,4)), \
             range(8))
-        self._tiles = map(lambda y: rom.readList(map_addrs[y%8] + ((y>>3)<<8),
-            self._MAP_WIDTH), range(self._MAP_HEIGHT))
+        self._tiles = map(
+                lambda y: rom.readList(map_addrs[y%8] + ((y>>3)<<8),
+                    self._MAP_WIDTH).tolist(),
+                range(self._MAP_HEIGHT))
         k = self._LOCAL_TSET_ADDR
         for i in range(self._MAP_HEIGHT>>3):
             for j in range(self._MAP_WIDTH):
@@ -57,11 +57,18 @@ class MapModule(EbModule.EbModule):
                 k += 1
 
     def writeToProject(self, resourceOpener):
-        f = resourceOpener('map', 'dat')
-        pickle.dump(self._tiles, f)
-        f.close()
+        with resourceOpener("map_tiles", "map") as f:
+            for row in self._tiles:
+                f.write(hex(row[0])[2:].zfill(3))
+                for tile in row[1:]:
+                    f.write(" ")
+                    f.write(hex(tile)[2:].zfill(3))
+                f.write("\n")
+            f.close()
 
     def readFromProject(self, resourceOpener):
-        f = resourceOpener('map', 'dat')
-        self._tiles = pickle.load(f)
-        f.close()
+        with resourceOpener("map_tiles", "map") as f:
+            self._tiles = map(lambda y:
+                    map(lambda x: int(x, 16), y.split(" ")),
+                    f.readlines())
+            f.close()
