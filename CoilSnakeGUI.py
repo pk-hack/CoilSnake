@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 
 from subprocess import Popen
-import os
+from os import listdir
 import yaml
-import shutil
-import threading
-import time
-import traceback
+from shutil import copyfile
+from threading import Thread
+from time import time
+from traceback import print_exc
 
 from Tkinter import *
 import tkFileDialog, tkMessageBox
@@ -14,9 +14,11 @@ from ttk import Progressbar
 
 import CoilSnake
 from modules import Rom, Progress
+from modules.Fun import getTitle
 from tools import EbRomExpander
 
 _version = "0.1"
+_releaseDate = "?/?/??"
 
 class CoilSnakeFrontend:
     PREFS_FNAME = "prefs.yml"
@@ -32,11 +34,35 @@ class CoilSnakeFrontend:
                     'import_baserom': "",
                     'import_rom': "",
                     'export_proj': "",
-                    'export_rom': ""
+                    'export_rom': "",
+                    'title': 0,
                     }
     def savePrefs(self):
         with open(self.PREFS_FNAME, "w") as f:
             yaml.dump(self._prefs, f, Dumper=yaml.CSafeDumper)
+    def toggleTitles(self):
+        self._prefs["title"] = (~(self._prefs["title"]))|1
+        self.savePrefs()
+    def aboutMenu(self):
+        am = Toplevel(self._root)
+        Label(am, text="CoilSnake " + _version,
+                font=("Helvetica", 16)).pack(fill=X)
+        Label(am,
+                text=
+                "Released on " + _releaseDate + ".\n\n"
+                + "Created by MrTenda.\n\n"
+                + "With help from\n"
+                + "  Penguin, Mr. Accident, Goplat,\n"
+                + "  AnyoneEB, Captain Bozo,\n"
+                + "  and the rest of the PK Hack community.",
+                anchor="w",justify="left",bg="white",borderwidth=5,
+                relief=GROOVE).pack(
+                        fill='both', expand=1)
+        Button(am, text="Toggle Alternate Titles",
+                command=self.toggleTitles).pack(fill=X)
+        Button(am, text="Close", command=am.destroy).pack(fill=X)
+        am.resizable(False, False)
+        am.title("About")
     def setText(self, entry, str):
         entry.delete(0, END)
         entry.insert(0, str)
@@ -95,17 +121,17 @@ Please specify it in the Preferences menu.""")
             print "Initializing CoilSnake\n"
             self._cs = CoilSnake.CoilSnake()
             self._progBar.step(10)
-            thread = threading.Thread(target=self._doExportHelp,
+            thread = Thread(target=self._doExportHelp,
                     args=(romEntry.get(), projEntry.get()+"/Project.snake",
-                        time.time(), ))
+                        time(), ))
             thread.start()
     def _doExportHelp(self, rom, proj, startTime):
         try:
             self._cs.romToProj(rom, proj)
-            print "Done! (Took %0.2fs)" % (time.time()-startTime)
+            print "Done! (Took %0.2fs)" % (time()-startTime)
         except Exception as inst:
             print "\nError! Something went wrong:"
-            traceback.print_exc()
+            print_exc()
         self._progBar["value"] = 0
         self._exportB["state"] = NORMAL
         self._importB["state"] = NORMAL
@@ -137,11 +163,11 @@ Please specify it in the Preferences menu.""")
             # Copy the clean rom to the output rom
             self._console.delete(1.0, END)
             print "Copying ROM"
-            shutil.copyfile(oldRom, newRom)
+            copyfile(oldRom, newRom)
             self._progBar.step(2)
             # Get a list of the script filenames in projDir/ccscript
             scriptFnames = [ projDir + "/ccscript/" + x 
-                    for x in os.listdir(projDir + "/ccscript")
+                    for x in listdir(projDir + "/ccscript")
                     if x.endswith('.ccs') ]
             # Compile scripts using the CCC, and put the data at $F00000
             print "Calling external CCScript Compiler"
@@ -155,16 +181,16 @@ Please specify it in the Preferences menu.""")
             print "Initializing CoilSnake\n"
             self._cs = CoilSnake.CoilSnake()
             self._progBar.step(4)
-            thread = threading.Thread(target=self._doImportHelp,
-                    args=(projDir+"/Project.snake", newRom, time.time()))
+            thread = Thread(target=self._doImportHelp,
+                    args=(projDir+"/Project.snake", newRom, time()))
             thread.start()
     def _doImportHelp(self, proj, rom, startTime):
         try:
             self._cs.projToRom(proj, rom, rom)
-            print "Done! (Took %0.2fs)" % (time.time()-startTime)
+            print "Done! (Took %0.2fs)" % (time()-startTime)
         except Exception as inst:
             print "\nError! Something went wrong:"
-            traceback.print_exc()
+            print_exc()
         self._progBar["value"] = 0
         self._exportB["state"] = NORMAL
         self._importB["state"] = NORMAL
@@ -185,7 +211,13 @@ Please specify it in the Preferences menu.""")
         self.expandRom(ex=True)
     def main(self):
         self._root = Tk()
-        self._root.wm_title("CoilSnake")
+        if self._prefs["title"] == 1:
+            self._root.wm_title(getTitle() + " " + _version)
+        else:
+            self._root.wm_title("CoilSnake" + " " + _version)
+            if self._prefs["title"] == 0:
+                self._prefs["title"] = 1
+                self.savePrefs()
 
         menuBar = Menu(self._root)
         # Preferences pulldown menu
@@ -202,6 +234,10 @@ Please specify it in the Preferences menu.""")
         toolsMenu.add_command(label="Expand ROM to 48 MBit",
                 command=self.expandRomEx)
         menuBar.add_cascade(label="Tools", menu=toolsMenu)
+        # Help menu
+        helpMenu = Menu(menuBar, tearoff=0)
+        helpMenu.add_command(label="About", command=self.aboutMenu)
+        menuBar.add_cascade(label="Help", menu=helpMenu)
 
         self._root.config(menu=menuBar)
 
@@ -296,7 +332,6 @@ Please specify it in the Preferences menu.""")
             # Note: The number of modules is hardcoded here as "11"
             self._progBar.step((90.0/11) * (dp/100.0))
         Progress.updateProgress = updProg
-    
 
         # Console
         consoleFrame = Frame(self._root)
