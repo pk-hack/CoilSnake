@@ -2,6 +2,7 @@ eb.CccInterfaceModule
 #eb.MapModule
 eb.TilesetModule
 eb.MapSpriteModule
+eb.DoorModule
 eb.BattleBgModule
 eb.MiscTablesModule
 eb.FontModule
