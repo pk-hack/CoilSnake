@@ -1123,12 +1123,12 @@
   - name: Strength
     size: 1
     values:
-    - '': null
-    - "\u03B1"
-    - "\u03B2"
-    - "\u03B3"
-    - "\u03A3"
-    - "\u03A9"
+    - none
+    - alpha
+    - beta
+    - gamma
+    - sigma
+    - omega
   - bitvalues:
     - Offense
     - Recovery
@@ -1697,6 +1697,15 @@
     size: 1
   name: GLOBAL_MAP_ETPALETTE_DATA
   size: 2560
+  type: data
+0xD7B200:
+  entries:
+  - name: Bitfield
+    size: 1
+  - name: Item
+    size: 1
+  name: MAP_DATA_PER-SECTOR_ATTRIBUTES_TABLE
+  size: 5120
   type: data
 0xD88F50:
   entries:

@@ -8,12 +8,10 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
             0xE01FC8, # Text Window Flavor palettes
             0xE12F8A, # Photographer
             0xEFA37A, # Command Window text?
-#            0xD0C60D, # Battle Groups Ptr Tbl
             0xCF8985, # NPC Configuration Table
             0xD5EA77, # Condiment Table
             0xD5EBAB, # Scripted Teleport Destination Table
             0xD5F2FB, # Hotspots Table
-            0xDCD637, # Per-Sector Music Assignments
             0xC3F2B5, # Playable Character Graphics Control Table
             0xD58D7A, # PSI Names
             0xD58A50, # PSI Abilities
@@ -37,9 +35,6 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
 #            0xCEDC45, # Swirl Ptr Tbl
             0xCEF806 # Sound stone pal
 #            0xCF58EF, # Music Event Ptr Tbl
-#           0xD00000, # Door Ptr Tbl
 #            0xD01598, # Map Event Tile Ptr Tbl
-#            0xD01880, # Enemy placement
-#            0xD0B880, # Enemy placement groups ptr tbl
 
             ]
