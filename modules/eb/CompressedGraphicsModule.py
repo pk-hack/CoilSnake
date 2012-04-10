@@ -57,8 +57,7 @@ class EbArrangement:
                 None)
         # Have to convert the palette from [[(r,g,b),(r,g,b)]] to [r,g,b,r,g,b]
         rawPal = reduce(lambda x,y: x.__add__(list(y)),
-            reduce(lambda x,y: x.__add__(y), pals.getData(), []),
-            [])
+                reduce(lambda x,y: x.__add__(y), pals.getData(), []), [])
         img.putpalette(rawPal)
         imgData = img.load()
         offx = offy = 0
@@ -212,6 +211,40 @@ class EbTileGraphics:
         self._usedDict[tH] = self._usedTiles
         self._usedTiles += 1
         return (True, False, self._usedTiles-1)
+    # For dumping a simple raw compressed graphic
+    def dumpToImage(self, pal, width=16):
+        height = self._numTiles / width
+        img = Image.new("P",
+                (width * self._tileSize,
+                height * self._tileSize),
+                None)
+        # Have to convert the palette from [[(r,g,b),(r,g,b)]] to [r,g,b,r,g,b]
+        rawPal = reduce(lambda x,y: x.__add__(list(y)), pal, [])
+        img.putpalette(rawPal)
+        imgData = img.load()
+        offx = offy = 0
+        for y in xrange(0, height):
+            offy = y * self._tileSize
+            for x in xrange(0, width):
+                offx = x * self._tileSize
+                tile = self._tiles[x + y * width]
+                for ty in xrange(0, self._tileSize):
+                    for tx in xrange(0, self._tileSize):
+                        imgData[offx+tx, offy+ty] = tile[tx][ty]
+        return img
+    # For loading a simple raw compressed graphic
+    def loadFromImage(self, img):
+        imgData = img.load()
+        width, height = img.size
+        # For removing subpalette info
+        mask = pow(2, self._bpp) - 1
+        # Load the tiles
+        for y in xrange(0, height, self._tileSize):
+            for x in xrange(0, width, self._tileSize):
+                newTile = [ array('B', [ (imgData[i,j] & mask)
+                    for j in xrange(y, self._tileSize + y) ])
+                    for i in xrange(x, self._tileSize + x) ]
+                self._tiles.append(newTile)
     def tileSize(self):
         return self._tileSize
     def __getitem__(self, key):

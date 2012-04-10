@@ -9,4 +9,5 @@ eb.MiscTablesModule
 eb.FontModule
 eb.CompressedGraphicsModule
 eb.EnemyModule
+eb.WindowGraphicsModule
 eb.SpriteGroupModule

@@ -34,3 +34,10 @@ Sprite Groups:
 
 Logos:
 - The first color of the image's palette will be used as the background
+
+Window Graphics:
+- The Windows2 pngs are the window borders used for flavored palettes. Windows1 contains the borders used for "Plain" flavor.
+- Only graphical changes from Windows1_0.png and Windows2_0.png are saved to the rom.
+  - The other PNGs are only to be used for editing palette colors.
+- Each flavor has 8 palettes of 4 colors. Total 32 colors. These colors are all in the palette of the Windows1 pngs.
+  - The palette of Windows2 is the same as the last palette of Windows1. The Windows2 palette will override Windows1's last palette when written the rom.

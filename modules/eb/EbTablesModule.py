@@ -46,6 +46,10 @@ class TextTableEntry:
         self._data = EbModule.readStandardText(rom, addr, self._size)
     def writeToRom(self, rom, addr):
         EbModule.writeStandardText(rom, addr, self._data, self._size)
+    def writeToFree(self, rom):
+        loc = rom.getFreeLoc(self._size)
+        self.writeToRom(rom, loc)
+        return loc
     def load(self, data):
         self._data = data
     def dump(self):
