@@ -83,7 +83,7 @@ class Door:
         out = { "X": self._x,
                 "Y": self._y,
                 "Type": self.getTypeAsString() }
-        if (self._type == 3) or (self._type == 4): # Rope/Ladder
+        if (self._type == 3) or (self._type == 4): # Stairs/Escalator
             out["Direction"] = self._stairDir.dump()
         elif self._type == 2: # Door
             out["Text Pointer"] = self._destTextPtr.dump()
@@ -102,7 +102,7 @@ class Door:
         self._x = input["X"]
         self._y = input["Y"]
         self.setTypeFromString(input["Type"])
-        if (self._type == 3) or (self._type == 4): # Rope/Ladder
+        if (self._type == 3) or (self._type == 4): # Stairs/Escalator
             self._stairDir = ValuedIntTableEntry(None, None,
                     ["NW", "NE", "SW", "SE", "Nowhere"])
             self._stairDir.load(input["Direction"])

@@ -1598,7 +1598,7 @@
     size: 2
   - name: Y2
     size: 2
-  name: MAP_DATA_HOTSPOTS_TABLE
+  name: MAP_HOTSPOTS
   size: 448
   type: data
 0xD5F4BB:
