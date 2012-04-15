@@ -3,6 +3,7 @@ eb.TilesetModule
 eb.MapSpriteModule
 eb.DoorModule
 eb.MapEnemyModule
+eb.MapMusicModule
 eb.BattleBgModule
 eb.MapModule
 eb.MiscTablesModule
