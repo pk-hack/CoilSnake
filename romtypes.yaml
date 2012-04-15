@@ -14,7 +14,8 @@ Earthbound:
     - (0x15f70d, 0x15ffff) # from eb.yml
     - (0x17fbe8, 0x17ffff) # from eb.yml
     - (0x2009b4, 0x201358) # Unused compressed SRAM
-    - (0x2e9201, 0x2effff) # from eb.yml
+#    - (0x2e9201, 0x2effff) # from eb.yml
+# ^ Commented out so that we don't overwrite Bozo's General Movement Hack
     - (0x300000, 0x30ffff)
     - (0x310000, 0x31ffff)
     - (0x320000, 0x32ffff)

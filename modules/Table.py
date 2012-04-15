@@ -45,8 +45,10 @@ class ValuedIntTableEntry(IntTableEntry):
                 # TODO Error, no match and not int
                 self._data = 0
     def dump(self):
-        return self._values[self._data]
-
+        try:
+            return self._values[self._data]
+        except IndexError:
+            return self._data
 
 class ByteArrayTableEntry:
     def __init__(self, name, size):

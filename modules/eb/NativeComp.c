@@ -255,6 +255,9 @@ static PyObject* decomp(PyObject* self, PyObject* args) {
                 PyList_SetItem(ulist, i, o);
         }
         free(buffer);
+	//free(romBuffer);
+	Py_DECREF(romBuffer);
+	Py_DECREF(romByteArr);
         return ulist;
 }
 

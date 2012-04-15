@@ -1457,16 +1457,16 @@
     size: 1
     values:
     - 100%
-    - 70%
-    - 40%
-    - 5%
+    - 50%
+    - 10%
+    - 0%
   - name: Hypnosis/Brainshock vulnerability
     size: 1
     values:
     - 100%
-    - 70%
-    - 40%
-    - 5%
+    - 50%
+    - 10%
+    - 0%
   - name: Miss Rate
     size: 1
   - name: Action Order
