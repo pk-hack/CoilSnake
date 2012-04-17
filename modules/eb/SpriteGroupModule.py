@@ -265,7 +265,7 @@ class SpriteGroupModule(EbModule.EbModule):
                     break
             else:
                 # Error, this image uses an invalid palette
-                raise RuntimeException("Sprite Group #" + i
+                raise RuntimeError("Sprite Group #" + i
                         + "uses an invalid palette.")
             updateProgress(pct)
             
