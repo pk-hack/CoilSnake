@@ -70,7 +70,7 @@ class Rom:
         else:
             return "Unknown"
     def load(self, f):
-        if instance(f, basestring):
+        if isinstance(f, basestring):
             f = open(f,'rb')
         self._size = int(os.path.getsize(f.name))
         self._data = array.array('B')
