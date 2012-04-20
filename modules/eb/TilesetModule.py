@@ -264,10 +264,11 @@ class TilesetModule(EbModule.EbModule):
             # So we actually need to conserve space and not read garbage
             # Estimate the number of palettes for this map tileset
             if i == 31:
-                k = 0xDAFAA7 - self._palPtrTbl[i,0].val()
+                #k = 0xDAFAA7 - self._palPtrTbl[i,0].val()
+                k = 7
             else:
                 k = self._palPtrTbl[i+1,0].val() - self._palPtrTbl[i,0].val()
-            k /= 0xc0
+                k /= 0xc0
             # Add the palettes
             romLoc = EbModule.toRegAddr(self._palPtrTbl[i,0].val())
             for j in range(k):
@@ -365,7 +366,7 @@ class TilesetModule(EbModule.EbModule):
                 if pal.flag != 0:
                     if palWriteLoc + 0xc0 > palRangeEnd:
                         # TODO Error, not enough space for all these palettes
-                        raise RuntimeException("Too many palettes")
+                        raise RuntimeError("Too many palettes")
                     pal.flagPal.writeToBlock(rom, palWriteLoc)
                     pal.flagPalPtr = palWriteLoc & 0xffff
                     palWriteLoc += 0xc0
@@ -444,4 +445,5 @@ class TilesetModule(EbModule.EbModule):
                     if mtset_pal.flag != 0:
                         mtset_pal.flagPal = MapPalette()
                         mtset_pal.flagPal.setFromString(entry["Event Palette"])
+                        mtset_pal.flagPal.spritePalNum = entry["Sprite Palette"]
                 updateProgress(5.0/32)

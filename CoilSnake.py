@@ -34,7 +34,9 @@ class CoilSnake:
         rom = Rom.Rom("romtypes.yaml")
         rom.load(cleanRomFname)
         # Make sure project type matches romtype
-        assert(rom.type() == proj.type())
+        if rom.type() != proj.type():
+            raise RuntimeError("Rom type '" + rom.type() + "' does not match"
+                    + " Project type '" + proj.type() + "'")
         # Make list of compatible modules
         curMods = filter(lambda (x,y): y.compatibleWithRomtype(rom.type()),
                 self._modules)

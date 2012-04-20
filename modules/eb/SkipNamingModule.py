@@ -7,7 +7,7 @@ class SkipNamingModule(EbModule.EbModule):
     _name = "Skip Names"
 
     def writeToProject(self, resourceOpener):
-        out = { "Enable Skip": True,
+        out = { "Enable Skip": False,
                 "Enable Summary": False,
                 "Name1": "Ness",
                 "Name2": "Paula",
