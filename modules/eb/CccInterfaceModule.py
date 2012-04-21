@@ -25,17 +25,18 @@ class CccInterfaceModule(EbModule.EbModule):
             modName = None
             inModuleSection = False # False = before section, True = in section
             for line in summary:
+                line = line.rstrip()
                 if inModuleSection:
                     if line.startswith('-'):
                         inModuleSection = False
                     else:
                         labelKey = modName + "." + line.split(' ',1)[0]
-                        labelVal = int(line[-7:-1],16)
+                        labelVal = int(line[-6:],16)
                         EbModule.labelsDict[labelKey] = labelVal
                 elif line.startswith("-") and modName != None:
                     inModuleSection = True
                 elif line.startswith("Labels in module "):
-                    modName = line[17:-1]
+                    modName = line[17:]
         updateProgress(50)
     def writeToRom(self, rom):
         if self._usedRange != None:
