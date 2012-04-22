@@ -3,6 +3,8 @@ eb.SkipNamingModule
 eb.TilesetModule
 eb.MapSpriteModule
 eb.DoorModule
+eb.MiscTablesModule
+eb.ExpTablesModule
 eb.MapModule
 eb.SpriteGroupModule
 eb.MapEnemyModule
@@ -10,6 +12,5 @@ eb.MapMusicModule
 eb.FontModule
 eb.WindowGraphicsModule
 eb.BattleBgModule
-eb.MiscTablesModule
 eb.CompressedGraphicsModule
 eb.EnemyModule

@@ -140,12 +140,13 @@ class Table:
                 map(lambda y: self.tableEntryGenerator(y, self._table_map),
                     self._format),
                 range(height))
-    def writeToRom(self, rom, addr=None):
+    def writeToRom(self, rom, addr=None, limitSize=True):
         if addr == None:
             addr = self._addr
         # First check to see if we're gonna go OOB
         dataSize = sum(map(lambda y: sum(map(lambda x: x.size(), y)), self._data))
-        if (dataSize <= self._size) or (addr != self._addr):
+        if (not limitSize) or ((dataSize <= self._size)
+                or (addr != self._addr)):
             i = 0
             for row in self._data:
                 for entry in row:
@@ -157,7 +158,7 @@ class Table:
         dataSize = sum(map(lambda y: sum(map(lambda x: x.size(), y)),
             self._data))
         addr = rom.getFreeLoc(dataSize)
-        self.writeToRom(rom, addr=addr)
+        self.writeToRom(rom, addr=addr, limitSize=False)
         return addr
     def readFromProject(self, resourceOpener, name=None):
         if name == None:
