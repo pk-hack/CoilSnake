@@ -56,7 +56,11 @@ class ExpTablesModule(EbModule.EbModule):
             EbModule.toSnesAddr(x._addr)+x._size), self._tables)
     def writeToRom(self, rom):
         for (t, a, asmPtrs, regPtrs, regPtrsOff) in self._tables:
-            addr = EbModule.toSnesAddr(t.writeToFree(rom))
+            try:
+                addr = EbModule.toSnesAddr(t.writeToFree(rom))
+            except Exception as inst:
+                print t._name
+                raise inst
             for asmPtr in asmPtrs:
                 EbModule.writeAsmPointer(rom, asmPtr, addr)
             for regPtr in regPtrs:

@@ -9,6 +9,7 @@ eb.MapModule
 eb.SpriteGroupModule
 eb.MapEnemyModule
 eb.MapMusicModule
+eb.MapEventModule
 eb.FontModule
 eb.WindowGraphicsModule
 eb.BattleBgModule
