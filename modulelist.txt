@@ -4,7 +4,7 @@ eb.TilesetModule
 eb.MapSpriteModule
 eb.DoorModule
 eb.MiscTablesModule
-eb.ExpTablesModule
+#eb.ExpTablesModule
 eb.MapModule
 eb.SpriteGroupModule
 eb.MapEnemyModule
