@@ -53,7 +53,7 @@ class CoilSnakeFrontend:
                 + "Created by MrTenda.\n\n"
                 + "With help from\n"
                 + "  Penguin, Mr. Accident, Goplat,\n"
-                + "  AnyoneEB, Captain Bozo,\n"
+                + "  AnyoneEB, Captain Bozo, JeffMan,\n"
                 + "  and the rest of the PK Hack community.",
                 anchor="w",justify="left",bg="white",borderwidth=5,
                 relief=GROOVE).pack(
