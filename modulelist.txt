@@ -1,12 +1,11 @@
 eb.CccInterfaceModule
 eb.SkipNamingModule
-eb.TilesetModule
 eb.MapSpriteModule
 eb.DoorModule
+eb.SpriteGroupModule
 eb.MiscTablesModule
 #eb.ExpTablesModule
 eb.MapModule
-eb.SpriteGroupModule
 eb.MapEnemyModule
 eb.MapMusicModule
 eb.MapEventModule
@@ -15,3 +14,4 @@ eb.WindowGraphicsModule
 eb.BattleBgModule
 eb.CompressedGraphicsModule
 eb.EnemyModule
+eb.TilesetModule

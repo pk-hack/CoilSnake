@@ -17,8 +17,8 @@ from modules import Rom, Progress
 from modules.Fun import getTitle
 from tools import EbRomExpander
 
-_version = "0.1"
-_releaseDate = "?/?/??"
+_version = "1.0"
+_releaseDate = "5/28/12"
 
 class CoilSnakeFrontend:
     PREFS_FNAME = "prefs.yml"
@@ -53,7 +53,7 @@ class CoilSnakeFrontend:
                 + "Created by MrTenda.\n\n"
                 + "With help from\n"
                 + "  Penguin, Mr. Accident, Goplat,\n"
-                + "  AnyoneEB, Captain Bozo,\n"
+                + "  AnyoneEB, Reg, Captain Bozo,\n"
                 + "  and the rest of the PK Hack community.",
                 anchor="w",justify="left",bg="white",borderwidth=5,
                 relief=GROOVE).pack(

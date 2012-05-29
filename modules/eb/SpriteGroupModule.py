@@ -256,17 +256,19 @@ class SpriteGroupModule(EbModule.EbModule):
             pal = [ ]
 
             # Read the palette from the image
-            for i in range(1, 16):
-                pal.append((palData[i*3], palData[i*3+1], palData[i*3+2]))
+            for j in range(1, 16):
+                pal.append((palData[j*3], palData[j*3+1], palData[j*3+2]))
             # Assign the palette number to the sprite
-            for i in range(8):
-                if pal == self._grPalTbl[i,0].val()[1:]:
-                    g.setPalette(i)
+            for j in range(8):
+                if pal == self._grPalTbl[j,0].val()[1:]:
+                    g.setPalette(j)
                     break
             else:
                 # Error, this image uses an invalid palette
-                raise RuntimeError("Sprite Group #" + i
-                        + "uses an invalid palette.")
+                for j in range(8):
+                    print j, ":", self._grPalTbl[j,0].val()[1:]
+                raise RuntimeError("Sprite Group #" + str(i)
+                        + " uses an invalid palette: " + str(pal))
             updateProgress(pct)
             
     def writeToRom(self, rom):
