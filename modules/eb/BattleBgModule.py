@@ -12,12 +12,12 @@ class BattleBgModule(EbModule.EbModule):
     _ASMPTRS_ARR = [0x2d2c1, 0x2d537, 0x2d91f, 0x4a416]
     _ASMPTRS_PAL = [0x2d3bb, 0x2d61b, 0x2d7e8, 0x2d9e8, 0x4a4d0]
     def __init__(self):
-        self._bbgGfxPtrTbl = EbTable(0xcad7a1)
-        self._bbgArrPtrTbl = EbTable(0xcad93d)
-        self._bbgPalPtrTbl = EbTable(0xcadad9)
-        self._bbgScrollTbl = EbTable(0xCAF258)
-        self._bbgDistorTbl = EbTable(0xCAF708)
-        self._bbgTbl = EbTable(0xcadca1)
+        self._bbgGfxPtrTbl = EbTable("BATTLEBG_GFX_POINTERS")
+        self._bbgArrPtrTbl = EbTable("BATTLEBG_ARR_POINTERS")
+        self._bbgPalPtrTbl = EbTable("BATTLEBG_PALETTE_POINTERS")
+        self._bbgScrollTbl = EbTable("BG_SCROLLING_TABLE")
+        self._bbgDistorTbl = EbTable("BG_DISTORTION_TABLE")
+        self._bbgTbl = EbTable("BG_DATA_TABLE")
     def free(self):
         del(self._bbgGfxPtrTbl)
         del(self._bbgArrPtrTbl)

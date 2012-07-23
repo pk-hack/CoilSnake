@@ -5,19 +5,19 @@ from modules.Progress import updateProgress
 
 #Table Addr, Max Entries, ASM Ptr Locs, Reg Ptr Locs, Reg pointer locs with offset
 _tableIDs = [
-        (0xCF8985, 4096,
+        ("NPC_CONFIG_TABLE", 4096,
             [0x23e5, 0x131ca, 0x1327f, 0x1332f, 0x1b20b, 0x464c1, 0x46831,
                 0x46930],
             [0xc32f, 0x1ad78], []), # NPC Config Table
-        (0xD5EBAB, 256, [0x1bcc2, 0x46df5], [], []), # Teleport
-        (0xD5F2FB, 256, [0x724b, 0x72e5], [], []), # Hotspot
-        (0xd58d7a, 256, [0x1c423], [], []), #PSI Names
-        (0xd58a50, 256, # PSI Ability Table
+        ("TELEPORT_DESTINATION_TABLE", 256, [0x1bcc2, 0x46df5], [], []), # Teleport
+        ("MAP_DATA_HOTSPOTS_TABLE", 256, [0x724b, 0x72e5], [], []), # Hotspot
+        ("PSI_NAME_TABLE", 256, [0x1c423], [], []), #PSI Names
+        ("PSI_ABILITY_TABLE", 256, # PSI Ability Table
             [0x1b694, 0x1b7cf, 0x1b8f9, 0x1bb34, 0x1c243, 0x1c2ad, 0x1c6e4,
                 0x1c8d6, 0x1ca12, 0x1cd8f, 0x1d7d6, 0x1d839, 0x1d89b],
             [0x1b8bc, 0x1b9cd, 0x1c9d7, 0x1cae0, 0x1ccb7, 0x1cd4a, 0x1ce3c,
                 0x45eff, 0x45f1c, 0x45f39], []),
-        (0xd57b68, 4096, # Battle actions
+        ("BATTLE_ACTION_TABLE", 4096, # Battle actions
             [0x1adc8, 0x1affd, 0x1b04f, 0x1b0cb, 0x1b138, 0x1b1a7, 0x1b259,
                 0x1b371, 0x1b466, 0x1b89c, 0x1b8e7, 0x1b9ad, 0x1c913, 0x1cc9b,
                 0x1df64, 0x1dfb8, 0x2451f, 0x2582e, 0x25c32, 0x25ceb, 0x2794d],
@@ -27,7 +27,7 @@ _tableIDs = [
             [(0x23210, 432), (0x2328d, 411), (0x232cd, 655), (0x2330a, 387),
                 (0x23358, 471), (0x2339b, 459), (0x2341f, 447), (0x234b9, 435),
                 (0x2939c, 364), (0x293a2, 366)]),
-        (0xd55000, 256, # Items
+        ("ITEM_CONFIGURATION_TABLE", 256, # Items
             [0x137ac, 0x18ddb, 0x19222, 0x19968, 0x19993, 0x19ac2, 0x19e06,
                 0x1a108, 0x1a133, 0x1a872, 0x1a8a1, 0x1afb2, 0x1ceaa, 0x1d044,
                 0x21712, 0x217eb, 0x2427a, 0x2b257, 0x3f212],
@@ -40,7 +40,7 @@ _tableIDs = [
                 0x224f0, 0x22533, 0x2318a, 0x24400, 0x2834b, 0x2abb0, 0x3ee32],
             []),
         # Windows
-        (0xc3e250, 256, [0x105c9], [], []) ]
+        ("WINDOW_CONFIGURATION_TABLE", 256, [0x105c9], [], []) ]
 
 class ExpTablesModule(EbModule.EbModule):
     _name = "Expanded Tables"

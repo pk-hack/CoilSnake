@@ -34,10 +34,10 @@ class ValuedIntTableEntry(IntTableEntry):
     def __init__(self, name, size, values):
         self.name = name
         self._size = size
-        self._values = map(lambda x: str(x).lower(), values)
+        self._values = map(lambda x: unicode(x).lower(), values)
     def load(self, data):
         try:
-            self._data = self._values.index(str(data).lower())
+            self._data = self._values.index(unicode(data).lower())
         except ValueError:
             if type(data) == int:
                 self._data = data
@@ -113,7 +113,7 @@ def genericEntryGenerator(spec, table_map):
 class Table:
     tableEntryGenerator = staticmethod(genericEntryGenerator)
     def __init__(self, addr, table_map):
-        self._addr = addr
+        self._addr = table_map[addr]['offset']
         self._name = table_map[addr]['name'].lower()
         self._size = table_map[addr]['size']
         self._format = table_map[addr]['entries']
@@ -180,15 +180,15 @@ class Table:
                 if j not in hiddenColumns:
                     outRow[entry.name] = entry.dump()
             out[i] = outRow
-        s = yaml.dump(out, default_flow_style=False, Dumper=yaml.CSafeDumper)
+        s = yaml.dump(out, default_flow_style=False, Dumper=yaml.CSafeDumper, allow_unicode=True)
         # Make hexints output to hex
         # Have to do this regex hack since PyYAML doesn't let us
-        for field in filter(
-                lambda x: x.has_key('type') and (x['type'] == 'hexint'),
-                self._format):
-            s = re.sub(field['name'] + ": (\d+)",
-                    lambda i: field['name'] + ': ' +
-                    hex(int(i.group(0)[i.group(0).find(': ')+2:])) ,s)
+        #for field in filter(
+        #        lambda x: x.has_key('type') and (x['type'] == 'hexint'),
+        #        self._format):
+        #    s = re.sub(field['name'] + ": (\d+)",
+        #            lambda i: field['name'] + ': ' +
+        #            hex(int(i.group(0)[i.group(0).find(': ')+2:])) ,s)
         return s
     def load(self, inputRaw):
         input = yaml.load(inputRaw, Loader=yaml.CSafeLoader)

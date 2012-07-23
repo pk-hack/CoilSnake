@@ -114,11 +114,11 @@ class EnemyModule(EbModule.EbModule):
     _REGPTR_GFX = [ 0x2ebe0, 0x2f014, 0x2f065 ]
     _ASMPTR_PAL = 0x2ef74
     def __init__(self):
-        self._enemyCfgTable = EbTable(0xd59589)
-        self._bsPtrTbl = EbTable(0xce62ee)
-        self._bsPalsTable = EbTable(0xce6514)
-        self._enemyGroupTbl = EbTable(0xD0C60D)
-        self._enemyGroupBgTbl = EbTable(0xCBD89A)
+        self._enemyCfgTable = EbTable("ENEMY_CONFIGURATION_TABLE")
+        self._bsPtrTbl = EbTable("BATTLE_SPRITES_POINTERS")
+        self._bsPalsTable = EbTable("BATTLE_SPRITE_PALETTES")
+        self._enemyGroupTbl = EbTable("BTL_ENTRY_PTR_TABLE")
+        self._enemyGroupBgTbl = EbTable("BTL_ENTRY_BG_TABLE")
 
         self._bsprites = [ ]
         self._bsPals = [ ]

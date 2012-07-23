@@ -14,9 +14,9 @@ class MapModule(EbModule.EbModule):
 
     def __init__(self):
         self._tiles = []
-        self._mapSecTsetPalsTbl = EbTable(0xD7A800)
-        self._mapSecMusicTbl = EbTable(0xDCD637)
-        self._mapSecMiscTbl = EbTable(0xD7B200)
+        self._mapSecTsetPalsTbl = EbTable("GLOBAL_MAP_TILESETPALETTE_DATA")
+        self._mapSecMusicTbl = EbTable("MAP_DATA_PER-SECTOR_MUSIC")
+        self._mapSecMiscTbl = EbTable("MAP_DATA_PER-SECTOR_ATTRIBUTES_TABLE")
         self.teleport = ValuedIntTableEntry(None, None,
                 ["Enabled", "Disabled"])
         self.townmap = ValuedIntTableEntry(None, None,

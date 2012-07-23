@@ -183,8 +183,8 @@ class SpriteGroup:
 class SpriteGroupModule(EbModule.EbModule):
     _name = "Sprite Groups"
     def __init__(self):
-        self._grPtrTbl = EbTable(0xef133f)
-        self._grPalTbl = EbTable(0xc30000)
+        self._grPtrTbl = EbTable("SPRITE_GROUPING_PTR_TABLE")
+        self._grPalTbl = EbTable("SPRITE_GROUP_PALETTES")
         self._groups = None
     def freeRanges(self):
         return [(0x2f1a7f, 0x2f4a3f),

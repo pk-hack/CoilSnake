@@ -15,7 +15,7 @@ class MapSpriteModule(EbModule.EbModule):
     _name = "Map Sprites"
     _PTR_LOC = 0x2261
     def __init__(self):
-        self._ptrTbl = EbTable(0xCF61E7)
+        self._ptrTbl = EbTable("SPRITE_PLACEMENT_PTR_TABLE")
         self._entries = [ ]
     def readFromRom(self, rom):
         ptr = EbModule.toRegAddr(rom.readMulti(self._PTR_LOC, 3))

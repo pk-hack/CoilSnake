@@ -207,11 +207,11 @@ class Tileset:
 class TilesetModule(EbModule.EbModule):
     _name = "Tilesets"
     def __init__(self):
-        self._gfxPtrTbl = EbTable(0xEF105B)
-        self._arrPtrTbl = EbTable(0xEF10AB)
-        self._colPtrTbl = EbTable(0xEF117B)
-        self._mapTsetTbl = EbTable(0xEF101B)
-        self._palPtrTbl = EbTable(0xEF10FB)
+        self._gfxPtrTbl = EbTable("MAP_DATA_TILESET_PTR_TABLE")
+        self._arrPtrTbl = EbTable("MAP_DATA_TILE_ARRANGEMENT_PTR_TABLE")
+        self._colPtrTbl = EbTable("MAP_DATA_TILE_COLLISION_PTR_TABLE")
+        self._mapTsetTbl = EbTable("TILESET_TABLE")
+        self._palPtrTbl = EbTable("MAP_PALETTE_PTR_TABLE")
         self._tsets = [ Tileset() for i in range(20) ]
     def freeRanges(self):
         return [(0x17c600, 0x17fbe7),
