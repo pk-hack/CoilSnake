@@ -83,11 +83,11 @@ class CoilSnakeFrontend:
         if save:
             fname = tkFileDialog.asksaveasfilename(
                     parent=self._root, title="Select an output ROM",
-                    filetypes=[('SNES ROMs','*.smc'), ('All files','*.*')])
+                    filetypes=[('SNES ROMs','*.smc;*.sfc'), ('All files','*.*')])
         else:
             fname = tkFileDialog.askopenfilename(
                     parent=self._root, title="Select a ROM",
-                    filetypes=[('SNES ROMs','*.smc'), ('All files','*.*')])
+                    filetypes=[('SNES ROMs','*.smc;*.sfc'), ('All files','*.*')])
         self.setText(entry, fname)
     def browseForProject(self, entry, save=False):
         fname = tkFileDialog.askdirectory(
@@ -200,7 +200,7 @@ Please specify it in the Preferences menu.""")
         r = Rom.Rom('romtypes.yaml')
         fname = tkFileDialog.askopenfilename(
                     parent=self._root, title="Select a ROM to expand",
-                    filetypes=[('SNES ROMs','*.smc'), ('All files','*.*')])
+                    filetypes=[('SNES ROMs','*.smc;*.sfc'), ('All files','*.*')])
         r.load(fname)
         EbRomExpander.expandRom(r, ex)
         r.save(fname)
