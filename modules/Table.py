@@ -183,12 +183,12 @@ class Table:
         s = yaml.dump(out, default_flow_style=False, Dumper=yaml.CSafeDumper, allow_unicode=True)
         # Make hexints output to hex
         # Have to do this regex hack since PyYAML doesn't let us
-        #for field in filter(
-        #        lambda x: x.has_key('type') and (x['type'] == 'hexint'),
-        #        self._format):
-        #    s = re.sub(field['name'] + ": (\d+)",
-        #            lambda i: field['name'] + ': ' +
-        #            hex(int(i.group(0)[i.group(0).find(': ')+2:])) ,s)
+        for field in filter(
+                lambda x: x.has_key('type') and (x['type'] == 'hexint'),
+                self._format):
+            s = re.sub(re.escape(field['name']) + ": (\d+)",
+                    lambda i: field['name'] + ': ' +
+                    hex(int(i.group(0)[i.group(0).find(': ')+2:])) ,s)
         return s
     def load(self, inputRaw):
         input = yaml.load(inputRaw, Loader=yaml.CSafeLoader)

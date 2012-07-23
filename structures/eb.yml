@@ -439,22 +439,6 @@
   offset: 13432207
   size: 136
   type: data
-13432343: &id007
-  entries:
-  - name: Size
-    size: 2
-    type: int
-  - name: Base Address
-    size: 2
-    type: hexint
-  - name: Data
-    size: Size-4
-    type: bytearray
-  name: AUDIO_PACK_71
-  offset: 13432343
-  size: 2494
-  terminator: 0
-  type: data
 13434837: &id130
   entries:
   - name: Pointer
@@ -1973,22 +1957,6 @@
   offset: 14673121
   size: 124
   type: data
-14675014: &id006
-  entries:
-  - name: Size
-    size: 2
-    type: int
-  - name: Base Address
-    size: 2
-    type: hexint
-  - name: Data
-    size: Size-4
-    type: bytearray
-  name: AUDIO_PACK_4
-  offset: 14675014
-  size: 5050
-  terminator: 0
-  type: data
 14688200: &id111
   entries:
   - name: Text Palette
@@ -2065,53 +2033,6 @@
   name: STAFF_TEXT
   offset: 14762303
   size: 3241
-  type: data
-15073280: &id003
-  entries:
-  - name: Size
-    size: 2
-    type: int
-  - name: Base Address
-    size: 2
-    type: hexint
-  - name: Data
-    size: Size-4
-    type: bytearray
-  name: AUDIO_PACK_1
-  offset: 15073280
-  size: 17880
-  terminator: 0
-  type: data
-15400587: &id005
-  entries:
-  - name: Size
-    size: 2
-    type: int
-  - name: Base Address
-    size: 2
-    type: hexint
-  - name: Data
-    size: Size-4
-    type: bytearray
-  name: AUDIO_PACK_145
-  offset: 15400587
-  size: 340
-  type: data
-15618790: &id004
-  entries:
-  - name: Size
-    size: 2
-    type: int
-  - name: Base Address
-    size: 2
-    type: hexint
-  - name: Data
-    size: Size-4
-    type: bytearray
-  name: AUDIO_PACK_103
-  offset: 15618790
-  size: 1017
-  terminator: 0
   type: data
 15667227: &id112
   entries:
@@ -2234,11 +2155,6 @@
   type: data
 ANIMATION_SEQUENCE_POINTERS: *id001
 ATTRACT_MODE_TXT: *id002
-AUDIO_PACK_1: *id003
-AUDIO_PACK_103: *id004
-AUDIO_PACK_145: *id005
-AUDIO_PACK_4: *id006
-AUDIO_PACK_71: *id007
 BATTLEBG_ARR_POINTERS: *id008
 BATTLEBG_GFX_POINTERS: *id009
 BATTLEBG_PALETTE_POINTERS: *id010
