@@ -2010,15 +2010,15 @@
   - name: Event Flag
     size: 2
     type: hexint
-  - name: ???
+  - name: Unknown A
     size: 3
     type: bytearray
-  - name: ????
+  - name: Unknown B
     size: 2
-  - name: ?????
+  - name: Unknown C
     size: 1
     type: hexint
-  - name: ??????
+  - name: Unknown D
     size: 54
     type: bytearray
   name: PHOTOGRAPHER_CFG_TABLE
