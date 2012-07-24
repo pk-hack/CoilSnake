@@ -9,7 +9,7 @@ class MapMusicModule(EbModule.EbModule):
     _ASMPTR = 0x6939
     _name = "Map Music"
     def __init__(self):
-        self._ptrTbl = EbTable(0xCF58EF)
+        self._ptrTbl = EbTable("OVERWORLD_EVENT_MUSIC_PTR_TABLE")
         self._entries = []
     def readFromRom(self, rom):
         self._ptrTbl.readFromRom(rom,

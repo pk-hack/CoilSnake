@@ -11,7 +11,7 @@ class MapEventModule(EbModule.EbModule):
     _PTR_LOC = 0x70d
     _PTR_BANK_LOC = 0x704
     def __init__(self):
-        self._ptrTbl = EbTable(0xD01598)
+        self._ptrTbl = EbTable("EVENT_CONTROL_PTR_TABLE")
         self._entries = [ ]
     def freeRanges(self):
         return [(0x101598, 0x10187f)]

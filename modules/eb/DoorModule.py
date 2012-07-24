@@ -224,7 +224,7 @@ class Door:
 class DoorModule(EbModule.EbModule):
     _name = "Doors"
     def __init__(self):
-        self._ptrTbl = EbTable(0xD00000)
+        self._ptrTbl = EbTable("DOOR_POINTER_TABLE")
         self._entries = [ ]
     def readFromRom(self, rom):
         self._ptrTbl.readFromRom(rom)

@@ -8,8 +8,8 @@ from re import sub
 class MapEnemyModule(EbModule.EbModule):
     _name = "Map Enemies"
     def __init__(self):
-        self._mapGroupPtrTbl = EbTable(0xD0B880)
-        self._mapEnemyTbl = EbTable(0xD01880)
+        self._mapGroupPtrTbl = EbTable("ENEMY_PLACEMENT_GROUPS_PTR_TABLE")
+        self._mapEnemyTbl = EbTable("ENEMY_PLACEMENT_DATA")
     def freeRanges(self):
         return [(0x10BBAC, 0x10C6AC)] # Groups data
     def readFromRom(self, rom):
