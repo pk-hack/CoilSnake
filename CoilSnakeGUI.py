@@ -272,7 +272,7 @@ Please specify it in the Preferences menu.""")
         # Export Button
         def exportTmp():
             self.doExport(inRom, outProj)
-        self._exportB = Button(self._root, text="Export", command=exportTmp)
+        self._exportB = Button(self._root, text="Decompile", command=exportTmp)
         self._exportB.grid(row=4, column=1, columnspan=1, sticky=W+E)
 
         # Right side: Import
@@ -320,7 +320,7 @@ Please specify it in the Preferences menu.""")
         # Import Button
         def importTmp():
             self.doImport(inProj, baseRom, outRom)
-        self._importB = Button(self._root, text="Import", command=importTmp)
+        self._importB = Button(self._root, text="Compile", command=importTmp)
         self._importB.grid(row=4, column=5, columnspan=1, sticky=W+E)
 
         # Progress bar

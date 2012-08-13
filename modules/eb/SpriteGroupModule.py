@@ -247,8 +247,13 @@ class SpriteGroupModule(EbModule.EbModule):
         for i in range(numGroups):
             g = SpriteGroup(16)
             g.load(input[i])
-            img = Image.open(
-                    resourceOpener("SpriteGroups/" + str(i).zfill(3), "png"))
+            try:
+                img = Image.open(
+                        resourceOpener("SpriteGroups/" + str(i).zfill(3), "png"))
+            except IOError:
+                print "Could not load Sprite Group #" + str(i)
+                raise
+
             g.fromImage(img)
             palData = img.getpalette()
             del(img)

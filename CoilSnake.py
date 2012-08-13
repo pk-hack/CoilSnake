@@ -96,7 +96,7 @@ def main():
 
     output_is_proj = os.path.splitext(args.output)[1] == ".snake"
     if (not output_is_proj) and (args.cleanrom == None):
-        print >> sys.stderr, "ERROR: Need a clean ROM to export to ROM"
+        print >> sys.stderr, "ERROR: Need a clean ROM to compile to ROM"
         return
     input_is_proj = os.path.splitext(args.input.name)[1] == ".snake"
 
