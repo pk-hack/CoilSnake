@@ -88,7 +88,7 @@ class Rom:
         else:
             self._freeRanges = []
     def save(self, f):
-        if type(f) == str:
+        if (type(f) == str) or (type(f) == unicode):
             f = open(f, 'wb')
         self._data.tofile(f)
     def type(self):

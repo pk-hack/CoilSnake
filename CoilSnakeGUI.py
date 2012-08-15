@@ -201,12 +201,15 @@ Please specify it in the Preferences menu.""")
         fname = tkFileDialog.askopenfilename(
                     parent=self._root, title="Select a ROM to expand",
                     filetypes=[('SNES ROMs','*.smc'), ('All files','*.*')])
-        r.load(fname)
-        EbRomExpander.expandRom(r, ex)
-        r.save(fname)
-        del(r)
-        tkMessageBox.showinfo("Expansion Successful",
-                "Your ROM was expanded.")
+        if len(fname) > 0:
+            r.load(fname)
+            if ((not ex) and (len(r) >= 0x400000)) or (ex and (len(r) >= 0x600000)):
+                tkMessageBox.showerror(parent=self._root, title="Error", message="This ROM is already expanded.")
+            else:
+                EbRomExpander.expandRom(r, ex)
+                r.save(fname)
+                del(r)
+                tkMessageBox.showinfo(parent=self._root, title="Expansion Successful", message="Your ROM was expanded.")
     def expandRomEx(self):
         self.expandRom(ex=True)
     def main(self):
