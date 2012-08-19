@@ -1085,8 +1085,8 @@
   - name: Direction
     size: 1
     values:
-    - party
     - enemy
+    - party
   - name: Target
     size: 1
     values:
