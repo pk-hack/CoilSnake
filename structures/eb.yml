@@ -1016,7 +1016,7 @@
     - Poo can use
     - Item can change
     - Cannot be given away
-    - Unknown
+    - Can be stored
     - Item disappears when used
     name: Misc Flags
     size: 1
@@ -1136,13 +1136,13 @@
     - Other
     name: Type
     size: 1
-  - name: Target
+  - name: Usability Outside of Battle
     size: 1
     values:
     - ???
-    - Nobody
-    - Enemies
-    - Allies
+    - Other
+    - Usable
+    - Unusable
   - name: Effect
     size: 2
   - name: Level learned by Ness
