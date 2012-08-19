@@ -7,16 +7,14 @@ Earthbound:
     structure file: structures/eb.yml
     free ranges:
     - (0x007d1c, 0x007fff) # from eb.yml
-#    - (0x00f8c2, 0x00ffaf) # from eb.yml
-# ^ Also used by the General Movement Hack
+    - (0x00f8c2, 0x00ffaf) # from eb.yml
     - (0x03fdf4, 0x03ffff) # from eb.yml
     - (0x04fd4b, 0x04ffff) # from eb.yml
     - (0x09ff2f, 0x09ffff) # from eb.yml
     - (0x15f70d, 0x15ffff) # from eb.yml
     - (0x17fbe8, 0x17ffff) # from eb.yml
     - (0x2009b4, 0x201358) # Unused compressed SRAM
-#    - (0x2e9201, 0x2effff) # from eb.yml
-# ^ Commented out so that we don't overwrite Bozo's General Movement Hack
+    - (0x2e9200, 0x2effff) # from eb.yml
     - (0x2FF0D7, 0x2FF1BA) # from eb.yml
     - (0x2FF53B, 0x2FF5BA) # from eb.yml
     - (0x2FF5EB, 0x2FFFFF) # from eb.yml

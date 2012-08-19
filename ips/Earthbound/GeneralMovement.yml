@@ -1,0 +1,7 @@
+Title: General Movement Hack
+Header: 0x200
+Auto-Apply: False
+Ranges:
+- (0xf8c2, 0xfadb)
+- (0x2e9231, 0x2e9235)
+- (0x2e9400, 0x2eee4e)

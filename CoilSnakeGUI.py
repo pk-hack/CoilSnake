@@ -169,10 +169,10 @@ Please specify it in the Preferences menu.""")
             scriptFnames = [ projDir + "/ccscript/" + x 
                     for x in listdir(projDir + "/ccscript")
                     if x.endswith('.ccs') ]
-            # Compile scripts using the CCC, and put the data at $F00000
+            # Compile scripts using the CCC, and put the data at $F10000
             print "Calling external CCScript Compiler"
             process = Popen(
-                    [self._prefs["CCC"], "-n", "-o", newRom, "-s", "F00000",
+                    [self._prefs["CCC"], "-n", "-o", newRom, "-s", "F10000",
                         "--summary", projDir + "/ccscript/summary.txt"] +
                     scriptFnames)
             process.wait()

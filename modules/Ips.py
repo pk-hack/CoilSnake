@@ -22,21 +22,25 @@ class Ips:
                     size |= ord(ips.read(1))
                     if size == 0:
                         # RLE data
-                        rleSize = ord(ips.read(1))
-                        rleSize |= ord(ips.read(1)) << 8
+                        rleSize = ord(ips.read(1)) << 8
+                        rleSize |= ord(ips.read(1))
                         value = ord(ips.read(1))
-                        self._instructions.append(
+                        if offsetInt >= 0:
+                            # This happens if we're trying to write to before
+                            # the globalOffset. IE: If the IPS was writing to
+                            # the header
+                            self._instructions.append(
                                 ('RLE', (offsetInt, rleSize, value)))
-
-                        self._lastOffsetUsed = max(self._lastOffsetUsed,
+                            self._lastOffsetUsed = max(self._lastOffsetUsed,
                                 offsetInt + rleSize - 1)
                     else:
                         # Record data
                         data = map(lambda x: ord(x), list(ips.read(size)))
-                        self._instructions.append(
+                        if offsetInt >= 0:
+                            # Same as above comment
+                            self._instructions.append(
                                 ('RECORD', (offsetInt, size, data)))
-
-                        self._lastOffsetUsed = max(self._lastOffsetUsed,
+                            self._lastOffsetUsed = max(self._lastOffsetUsed,
                                 offsetInt + size - 1)
         except:
             raise RuntimeError("Not a valid IPS file: " + fname)
@@ -48,13 +52,13 @@ class Ips:
         for (instr, args) in self._instructions:
             if instr == 'RLE':
                 offset, size, value = args
-                for offset in range(offset, offset+size):
-                    rom[offset] = value
-                #print (instr, hex(offset), hex(offset+size), hex(value))
+                #print (instr, hex(offset), hex(offset+size-1), hex(value))
+                for i in range(offset, offset+size):
+                    rom[i] = value
             elif instr == 'RECORD':
                 offset, size, data = args
+                #print (instr, hex(offset), hex(offset+size-1), map(hex, data))
                 rom.write(offset, data)
-                #print (instr, hex(offset), hex(offset+size), map(hex, data))
     def isApplied(self, rom):
         if self._lastOffsetUsed >= len(rom):
             return False

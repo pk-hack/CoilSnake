@@ -144,7 +144,8 @@ class Rom:
             self[i] = data
         elif type(data) == list:
             if (i < 0) or (i >= self._size) or (i+len(data) > self._size):
-                raise ValueError("Writing outside of ROM range")
+                raise ValueError("Writing outside of ROM range (" + hex(i) + "+"
+                    + str(len(data)) + "/" + hex(self._size) + ")")
             self[i:i+len(data)] = data
         elif type(data) == array.array:
             if (i < 0) or (i >= self._size) or (i+len(data) > self._size):
