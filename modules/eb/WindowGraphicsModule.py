@@ -36,7 +36,7 @@ class WindowGraphicsModule(EbModule.EbModule):
         self._gfx1 = EbTileGraphics(416, 8, 2)
         self._gfx2 = EbTileGraphics(7, 8, 2)
         self._flavPals = [EbPalettes(8,4) for i in range(7)]
-        self._flavNames = [(i,TextTableEntry(None, 20)) for i in self._ASMPTRS_NAMES]
+        self._flavNames = [(i,TextTableEntry(None, 25)) for i in self._ASMPTRS_NAMES]
     def freeRanges(self):
         return [(0x200000, 0x20079f)] # Graphics
     def readFromRom(self, rom):
