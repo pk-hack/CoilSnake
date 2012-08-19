@@ -93,6 +93,29 @@ class Rom:
         self._data.tofile(f)
     def type(self):
         return self._type
+    # Expansion
+    def expand(self, newSize):
+        if self._type == 'Earthbound':
+            if (newSize != 0x400000) and (newSize != 0x600000):
+                raise RuntimeError("Cannot expand an Earthbound ROM to " +
+                        hex(newSize) + " bytes.")
+            else:
+                if len(self) == 0x300000:
+                    self._data.fromlist([0] * 0x100000)
+                    self._size += 0x100000
+                    # For the super old text editor, heh
+                    for i in range(0,4096):
+                        r[i*256 + 255 + 0x300000] = 2
+                if (newSize == 0x600000) and (len(self) == 0x400000):
+                    self[0x00ffd5] = 0x25
+                    self[0x00ffd7] = 0x0d
+                    self._data.fromlist([0] * 0x200000)
+                    self._size += 0x200000
+                    for i in range(0x8000, 0x8000 + 0x8000):
+                        self[0x400000 + i] = r[i]
+        else:
+            raise RuntimeError("Don't know how to expand ROM of type \"" +
+                    self._type + "\".")
     # Reading methods
     def read(self, i):
         if (i < 0) or (i >= self._size):
@@ -139,6 +162,12 @@ class Rom:
         # TODO do some check so that free ranges don't overlap
         self._freeRanges += ranges
         self._freeRanges.sort()
+    def isRangeFree(self, searchRange):
+        searchBegin, searchEnd = searchRange
+        for begin, end in self._freeRanges:
+            if (searchBegin >= begin) and (searchEnd <= end):
+                return True
+        return False
     def markRangeAsNotFree(self, usedRange):
         usedBegin, usedEnd = usedRange
         for i in range(len(self._freeRanges)):

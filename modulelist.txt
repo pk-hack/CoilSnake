@@ -1,3 +1,4 @@
+PatchModule
 eb.CccInterfaceModule
 eb.SkipNamingModule
 eb.MapSpriteModule
