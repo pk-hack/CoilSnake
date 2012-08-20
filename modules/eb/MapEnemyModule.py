@@ -11,7 +11,7 @@ class MapEnemyModule(EbModule.EbModule):
         self._mapGroupPtrTbl = EbTable(0xD0B880)
         self._mapEnemyTbl = EbTable(0xD01880)
     def freeRanges(self):
-        return [(0x10BBAC, 0x10C6AC)] # Groups data
+        return [(0x10BBAC, 0x10C60C)] # Groups data
     def readFromRom(self, rom):
         self._mapEnemyTbl.readFromRom(rom)
         updateProgress(2.5)
