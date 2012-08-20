@@ -1,6 +1,7 @@
 from modules.GenericModule import GenericModule
 
 from zlib import crc32
+import sys
 
 try:
     from modules.eb import NativeComp
@@ -408,10 +409,14 @@ def _comp(udata):
 
 # Frontends
 def decomp(rom, cdata):
-    if hasNativeComp:
-        return NativeComp.decomp(rom, cdata)
-    else:
-        return _decomp(rom, cdata)
+    try:
+        if hasNativeComp:
+            return NativeComp.decomp(rom, cdata)
+        else:
+            return _decomp(rom, cdata)
+    except SystemError:
+        print >> sys.stderr, "Could not decompress data @ " + hex(cdata)
+        raise
 
 def comp(udata):
     if hasNativeComp:

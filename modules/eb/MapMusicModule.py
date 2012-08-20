@@ -29,7 +29,7 @@ class MapMusicModule(EbModule.EbModule):
     def writeToRom(self, rom):
         self._ptrTbl.clear(165)
         writeLoc = 0xf58ef
-        writeRangeEnd = 0xf61e6 # TODO Can re-use bank space from doors
+        writeRangeEnd = 0xf61e5 # TODO Can re-use bank space from doors
         i=0
         for entry in self._entries:
             entryLen = len(entry)*4
