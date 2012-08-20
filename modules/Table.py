@@ -186,7 +186,7 @@ class Table:
         for field in filter(
                 lambda x: x.has_key('type') and (x['type'] == 'hexint'),
                 self._format):
-            s = re.sub(field['name'] + ": (\d+)",
+            s = re.sub(re.escape(field['name']) + ": (\d+)",
                     lambda i: field['name'] + ': ' +
                     hex(int(i.group(0)[i.group(0).find(': ')+2:])) ,s)
         return s

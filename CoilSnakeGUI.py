@@ -83,12 +83,13 @@ class CoilSnakeFrontend:
         if save:
             fname = tkFileDialog.asksaveasfilename(
                     parent=self._root, title="Select an output ROM",
-                    filetypes=[('SNES ROMs','*.smc'), ('All files','*.*')])
+                    filetypes=[('SNES ROMs','*.smc'), ('SNES ROMs','*.sfc'), ('All files','*.*')])
         else:
             fname = tkFileDialog.askopenfilename(
                     parent=self._root, title="Select a ROM",
-                    filetypes=[('SNES ROMs','*.smc'), ('All files','*.*')])
-        self.setText(entry, fname)
+                    filetypes=[('SNES ROMs','*.smc'), ('SNES ROMs', '*.sfc'), ('All files','*.*')])
+        if len(fname) > 0:
+            self.setText(entry, fname)
     def browseForProject(self, entry, save=False):
         fname = tkFileDialog.askdirectory(
                 parent=self._root, title="Select a Project Directory",
@@ -200,7 +201,7 @@ Please specify it in the Preferences menu.""")
         r = Rom.Rom('romtypes.yaml')
         fname = tkFileDialog.askopenfilename(
                     parent=self._root, title="Select a ROM to expand",
-                    filetypes=[('SNES ROMs','*.smc'), ('All files','*.*')])
+                    filetypes=[('SNES ROMs','*.smc'), ('SNES ROMs','*.sfc'), ('All files','*.*')])
         if len(fname) > 0:
             r.load(fname)
             if ((not ex) and (len(r) >= 0x400000)) or (ex and (len(r) >= 0x600000)):
