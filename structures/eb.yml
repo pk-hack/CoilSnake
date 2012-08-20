@@ -1141,8 +1141,8 @@
     values:
     - ???
     - Other
-    - Usable
     - Unusable
+    - Usable
   - name: Effect
     size: 2
   - name: Level learned by Ness
