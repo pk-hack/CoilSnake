@@ -1004,7 +1004,7 @@
   entries:
   - name: Name
     size: 25
-    type: standardtext
+    type: standardtext null-terminated
   - name: Type
     size: 1
   - name: Cost

@@ -61,6 +61,11 @@ class TextTableEntry:
     def val(self):
         return self._data
 
+class NullTerminatedTextTableEntry(TextTableEntry):
+    def writeToRom(self, rom, addr):
+        EbModule.writeStandardText(rom, addr, self._data, self._size - 1)
+        rom[addr+self._size-1] = 0
+
 def ebEntryGenerator(spec, table_map):
     if not spec.has_key("type"):
         return genericEntryGenerator(spec, table_map)
@@ -70,6 +75,8 @@ def ebEntryGenerator(spec, table_map):
         return PaletteTableEntry(spec["name"], spec["size"])
     elif spec['type'] == 'standardtext':
         return TextTableEntry(spec["name"], spec["size"])
+    elif spec['type'] == 'standardtext null-terminated':
+        return NullTerminatedTextTableEntry(spec["name"], spec["size"])
     else:
         return genericEntryGenerator(spec, table_map)
 
