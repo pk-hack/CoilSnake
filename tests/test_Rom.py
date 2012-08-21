@@ -44,11 +44,11 @@ class testRom(unittest.TestCase):
         self.assertRaises(ValueError, self.rom.read, 1024)
         self.assertRaises(ValueError, self.rom.read, 9999)
 
-        self.assertEqual(self.rom.readList(0x25c, 0), [ ])
-        self.assertEqual(self.rom.readList(0x25c, 1), [ 0xa0 ])
-        self.assertEqual(self.rom.readList(0x25c, 5), [ 0xa0, 0x0b, 0x71, 0x5d,
-            0x91 ])
-        self.assertEqual(self.rom.readList(1022, 2), [ 0x10, 0x20 ])
+        self.assertEqual(len(self.rom.readList(0x25c, 0)), 0)
+        self.assertEqual(self.rom.readList(0x25c, 1).tolist(), [ 0xa0 ])
+        self.assertEqual(self.rom.readList(0x25c, 5).tolist(),
+                [ 0xa0, 0x0b, 0x71, 0x5d, 0x91 ])
+        self.assertEqual(self.rom.readList(1022, 2).tolist(), [ 0x10, 0x20 ])
         self.assertRaises(ValueError, self.rom.readList, 0, -1)
         self.assertRaises(ValueError, self.rom.readList, -1, 0)
         self.assertRaises(ValueError, self.rom.readList, -1, -1)
