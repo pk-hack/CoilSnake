@@ -12,11 +12,14 @@ Use the GUI frontend with CCScript support
 
     ./CoilSnakeGUI.py
 
-Import from ROM to CoilSnake project:
+Decompile a ROM to a CoilSnake project:
 
-    ./CoilSnake.py EB.smc MyProject/MyProject.csproj
+    ./CoilSnake.py -d EB.smc MyProject/
 
-Compile CoilSnake project into a ROM:
+Compile a CoilSnake project into a ROM:
 
-    ./CoilSnake.py --cleanrom EB-clean.smc MyProject/MyProject.csproj EB-new.smc
+    ./CoilSnake.py -c MyProject/ EB-clean.smc EB-new.smc
 
+Upgrade an old CoilSnake project to be compatible with this version:
+
+    ./CoilSnake.py -u EB-clean.smc MyProject/

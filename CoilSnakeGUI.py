@@ -27,16 +27,12 @@ class CoilSnakeFrontend:
             with open(self.PREFS_FNAME, 'r') as f:
                 self._prefs = yaml.load(f, Loader=yaml.CSafeLoader)
         except IOError:
-            self._prefs = {
-                    'Emulator': "",
-                    'CCC': "",
-                    'import_proj': "",
-                    'import_baserom': "",
-                    'import_rom': "",
-                    'export_proj': "",
-                    'export_rom': "",
-                    'title': 0,
-                    }
+            self._prefs = { 'title': 0 }
+    def getPrefsValue(self, key):
+        try:
+            return self._prefs[key]
+        except KeyError:
+            return ""
     def savePrefs(self):
         with open(self.PREFS_FNAME, "w") as f:
             yaml.dump(self._prefs, f, Dumper=yaml.CSafeDumper)
@@ -113,6 +109,7 @@ Please specify it in the Preferences menu.""")
             self.resetConsole()
             self._exportB["state"] = DISABLED
             self._importB["state"] = DISABLED
+            self._upgradeB["state"] = DISABLED
             # Save the fields to preferences
             self._prefs["export_rom"] = romEntry.get()
             self._prefs["export_proj"] = projEntry.get()
@@ -123,19 +120,20 @@ Please specify it in the Preferences menu.""")
             self._cs = CoilSnake.CoilSnake()
             self._progBar.step(10)
             thread = Thread(target=self._doExportHelp,
-                    args=(romEntry.get(), projEntry.get()+"/Project.snake",
+                    args=(romEntry.get(), projEntry.get(),
                         time(), ))
             thread.start()
     def _doExportHelp(self, rom, proj, startTime):
         try:
-            self._cs.romToProj(rom, proj)
-            print "Done! (Took %0.2fs)" % (time()-startTime)
+            if self._cs.romToProj(rom, proj):
+                print "Done! (Took %0.2fs)" % (time()-startTime)
         except Exception as inst:
             print "\nError! Something went wrong:"
             print_exc()
         self._progBar["value"] = 0
         self._exportB["state"] = NORMAL
         self._importB["state"] = NORMAL
+        self._upgradeB["state"] = NORMAL
         del(self._cs)
     def doImport(self, projEntry, cleanRomEntry, romEntry):
         if self._prefs["CCC"] == "":
@@ -149,6 +147,7 @@ Please specify it in the Preferences menu.""")
             self.resetConsole()
             self._exportB["state"] = DISABLED
             self._importB["state"] = DISABLED
+            self._upgradeB["state"] = DISABLED
             self._importRunB["state"] = DISABLED
             # Save the fields to preferences
             self._prefs["import_proj"] = projEntry.get()
@@ -183,19 +182,52 @@ Please specify it in the Preferences menu.""")
             self._cs = CoilSnake.CoilSnake()
             self._progBar.step(4)
             thread = Thread(target=self._doImportHelp,
-                    args=(projDir+"/Project.snake", newRom, time()))
+                    args=(projDir, newRom, time()))
             thread.start()
     def _doImportHelp(self, proj, rom, startTime):
         try:
-            self._cs.projToRom(proj, rom, rom)
-            print "Done! (Took %0.2fs)" % (time()-startTime)
+            if self._cs.projToRom(proj, rom, rom):
+                print "Done! (Took %0.2fs)" % (time()-startTime)
         except Exception as inst:
             print "\nError! Something went wrong:"
             print_exc()
         self._progBar["value"] = 0
         self._exportB["state"] = NORMAL
         self._importB["state"] = NORMAL
+        self._upgradeB["state"] = NORMAL
         self._importRunB["state"] = NORMAL
+        del(self._cs)
+    def doUpgrade(self, romEntry, projEntry):
+        if (romEntry.get() != "") and (projEntry.get() != ""):
+            # Update the GUI
+            self.resetConsole()
+            self._exportB["state"] = DISABLED
+            self._importB["state"] = DISABLED
+            self._upgradeB["state"] = DISABLED
+            # Save the fields to preferences
+            self._prefs["upgrade_rom"] = romEntry.get()
+            self._prefs["upgrade_proj"] = projEntry.get()
+            self.savePrefs()
+
+            self._progBar["value"] = 0
+            print "Initializing CoilSnake\n"
+            self._cs = CoilSnake.CoilSnake()
+            self._progBar.step(10)
+            thread = Thread(target=self._doUpgradeHelp,
+                    args=(romEntry.get(), projEntry.get(),
+                        time(), ))
+            thread.start()
+    def _doUpgradeHelp(self, rom, proj, startTime):
+        try:
+            if self._cs.upgradeProject(rom, proj):
+                print "Done! (Took %0.2fs)" % (time()-startTime)
+        except Exception as inst:
+            print "\nError! Something went wrong:"
+            print_exc()
+        self._progBar["value"] = 0
+        self._exportB["state"] = NORMAL
+        self._importB["state"] = NORMAL
+        self._upgradeB["state"] = NORMAL
         del(self._cs)
     def expandRom(self, ex=False):
         r = Rom.Rom('romtypes.yaml')
@@ -215,11 +247,11 @@ Please specify it in the Preferences menu.""")
         self.expandRom(ex=True)
     def main(self):
         self._root = Tk()
-        if self._prefs["title"] == 1:
+        if self.getPrefsValue("title") == 1:
             self._root.wm_title(getTitle() + " " + _version)
         else:
             self._root.wm_title("CoilSnake" + " " + _version)
-            if self._prefs["title"] == 0:
+            if self.getPrefsValue("title") == 0:
                 self._prefs["title"] = 1
                 self.savePrefs()
 
@@ -254,7 +286,7 @@ Please specify it in the Preferences menu.""")
                 row=1, column=0, sticky=E)
         inRom = Entry(self._root)
         inRom.grid(row=1, column=1)
-        self.setText(inRom, self._prefs["export_rom"])
+        self.setText(inRom, self.getPrefsValue("export_rom"))
         def browseTmp():
             self.browseForRom(inRom)
         def runTmp():
@@ -268,7 +300,7 @@ Please specify it in the Preferences menu.""")
                 row=2, column=0, sticky=E)
         outProj = Entry(self._root)
         outProj.grid(row=2, column=1)
-        self.setText(outProj, self._prefs["export_proj"])
+        self.setText(outProj, self.getPrefsValue("export_proj"))
         def browseTmp():
             self.browseForProject(outProj, save=True)
         Button(self._root, text="Browse...",
@@ -277,7 +309,7 @@ Please specify it in the Preferences menu.""")
         def exportTmp():
             self.doExport(inRom, outProj)
         self._exportB = Button(self._root, text="Decompile", command=exportTmp)
-        self._exportB.grid(row=4, column=1, columnspan=1, sticky=W+E)
+        self._exportB.grid(row=3, column=1, columnspan=1, sticky=W+E)
 
         # Right side: Import
         Label(self._root, text="Project -> New ROM").grid(
@@ -287,7 +319,7 @@ Please specify it in the Preferences menu.""")
                 row=1, column=4, sticky=E)
         baseRom = Entry(self._root)
         baseRom.grid(row=1, column=5)
-        self.setText(baseRom, self._prefs["import_baserom"])
+        self.setText(baseRom, self.getPrefsValue("import_baserom"))
         def browseTmp():
             self.browseForRom(baseRom)
         def runTmp():
@@ -295,13 +327,13 @@ Please specify it in the Preferences menu.""")
         Button(self._root, text="Browse...",
                 command=browseTmp).grid(row=1, column=6)
         Button(self._root, text="Run",
-                command=runTmp).grid(row=1, column=7, sticky=W)
+                command=runTmp).grid(row=1, column=7, sticky=E+W)
         # Project dir selector
         Label(self._root, text="Project Directory:").grid(
                 row=2, column=4, sticky=E)
-        inProj = Entry(self._root, text=self._prefs["import_proj"])
+        inProj = Entry(self._root, text=self.getPrefsValue("import_proj"))
         inProj.grid(row=2, column=5)
-        self.setText(inProj, self._prefs["import_proj"])
+        self.setText(inProj, self.getPrefsValue("import_proj"))
         def browseTmp():
             self.browseForProject(inProj, save=False)
         Button(self._root, text="Browse...",
@@ -309,9 +341,9 @@ Please specify it in the Preferences menu.""")
         # ROM file selector
         Label(self._root, text="Output ROM:").grid(
                 row=3, column=4, sticky=E)
-        outRom = Entry(self._root, text=self._prefs["import_rom"])
+        outRom = Entry(self._root, text=self.getPrefsValue("import_rom"))
         outRom.grid(row=3, column=5)
-        self.setText(outRom, self._prefs["import_rom"])
+        self.setText(outRom, self.getPrefsValue("import_rom"))
         def browseTmp():
             self.browseForRom(outRom, save=True)
         def runTmp():
@@ -320,17 +352,50 @@ Please specify it in the Preferences menu.""")
                 command=browseTmp).grid(row=3, column=6)
         self._importRunB = Button(self._root, text="Run",
                 command=runTmp)
-        self._importRunB.grid(row=3, column=7, sticky=W)
+        self._importRunB.grid(row=3, column=7, sticky=E+W)
         # Import Button
         def importTmp():
             self.doImport(inProj, baseRom, outRom)
         self._importB = Button(self._root, text="Compile", command=importTmp)
         self._importB.grid(row=4, column=5, columnspan=1, sticky=W+E)
 
+        # Upgrade
+        a=Label(self._root, text="Upgrade Project",justify=CENTER).grid(
+                row=5, column=1, columnspan=1)
+        # ROM file selector
+        Label(self._root, text="Base ROM:").grid(
+                row=6, column=0, sticky=E)
+        upgradeRom = Entry(self._root)
+        upgradeRom.grid(row=6, column=1)
+        self.setText(upgradeRom, self.getPrefsValue("upgrade_rom"))
+        def browseTmp():
+            self.browseForRom(upgradeRom)
+        def runTmp():
+            self.runRom(upgradeRom)
+        Button(self._root, text="Browse...",
+                command=browseTmp).grid(row=6, column=2, sticky=W)
+        Button(self._root, text="Run",
+                command=runTmp).grid(row=6, column=3, sticky=W)
+        # Project dir selector
+        Label(self._root, text="Project Directory:").grid(
+                row=7, column=0, sticky=E)
+        upgradeProj = Entry(self._root)
+        upgradeProj.grid(row=7, column=1)
+        self.setText(upgradeProj, self.getPrefsValue("upgrade_proj"))
+        def browseTmp():
+            self.browseForProject(upgradeProj, save=True)
+        Button(self._root, text="Browse...",
+                command=browseTmp).grid(row=7, column=2, sticky=W)
+        # Upgrade Button
+        def upgradeTmp():
+            self.doUpgrade(upgradeRom, upgradeProj)
+        self._upgradeB = Button(self._root, text="Upgrade", command=upgradeTmp)
+        self._upgradeB.grid(row=8, column=1, columnspan=1, sticky=W+E)
+
         # Progress bar
         self._progBar = Progressbar(self._root,
                 orient=HORIZONTAL, mode='determinate')
-        self._progBar.grid(row=5, column=0, columnspan=8, sticky=W+E)
+        self._progBar.grid(row=9, column=0, columnspan=8, sticky=W+E)
         def updProg(dp):
             Progress.__updateProgress__(dp)
             # Note: The number of modules is hardcoded here as "17"
@@ -339,7 +404,7 @@ Please specify it in the Preferences menu.""")
 
         # Console
         consoleFrame = Frame(self._root)
-        consoleFrame.grid(row=6, column=0, columnspan=8, sticky=W+E)
+        consoleFrame.grid(row=10, column=0, columnspan=8, sticky=W+E)
         s = Scrollbar(consoleFrame)
         self._console = Text(consoleFrame, width=80, height=6)
         s.pack(side=RIGHT, fill=Y)

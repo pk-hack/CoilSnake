@@ -1,6 +1,26 @@
 import os
 import yaml
 
+# This is a number which tells you the latest version number for the project
+# format. Version numbers are necessary because the format of data files may
+# change between versions of CoilSnake.
+FORMAT_VERSION = 2
+
+# Names for each version, corresponding the the CS version
+VERSION_NAMES = {
+        1: "1.0",
+        2: "1.1"
+        }
+
+def getVersionName(version):
+    try:
+        return VERSION_NAMES[version]
+    except KeyError:
+        return "???"
+
+# The default project filename
+PROJECT_FILENAME = "Project.snake"
+
 class Project:
     def __init__(self):
         self._romtype = "Unknown"
@@ -19,6 +39,11 @@ class Project:
             if (romtype == None) or (romtype == data["romtype"]):
                 self._romtype = data["romtype"]
                 self._resources = data["resources"]
+                if "version" in data:
+                    self._version = data["version"]
+                else:
+                    self._version = 1
+
                 if self._resources == None:
                     self._resources = { }
             else: # Loading a project of the wrong romtype
@@ -37,11 +62,16 @@ class Project:
         tmp = { }
         tmp['romtype'] = self._romtype
         tmp['resources'] = self._resources
-        f = open(filename, 'w')
+        tmp['version'] = FORMAT_VERSION
+        f = open(filename, 'w+')
         yaml.dump(tmp, f, Dumper=yaml.CSafeDumper)
         f.close()
     def type(self):
         return self._romtype
+    def version(self):
+        return self._version
+    def setVersion(self, version):
+        self._version = version
     def getResource(self, modName, resourceName, extension="dat", mode="rw"):
         if modName not in self._resources:
             self._resources[modName] = { }

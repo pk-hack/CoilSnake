@@ -1,4 +1,7 @@
+from modules.Progress import updateProgress
 import EbTablesModule
+
+import yaml
 
 class MiscTablesModule(EbTablesModule.EbTablesModule):
     _name = "Misc Tables"
@@ -38,3 +41,46 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
 #            0xD01598, # Map Event Tile Ptr Tbl
 
             ]
+    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+            resourceOpenerW):
+        # Helper function
+        def replaceField(fname, oldField, newField, valueMap):
+            if newField == None:
+                newField = oldField
+            valueMap = dict((k.lower(), v) for k,v in valueMap.iteritems())
+            with resourceOpenerR(fname, 'yml') as f:
+                data = yaml.load(f, Loader=yaml.CSafeLoader)
+                for i in data:
+                    if data[i][oldField] in valueMap:
+                        data[i][newField] = valueMap[data[i][oldField].lower()].lower()
+                    else:
+                        data[i][newField] = data[i][oldField]
+                    if newField != oldField:
+                        del data[i][oldField]
+            with resourceOpenerW(fname, 'yml') as f:
+                yaml.dump(data, f, default_flow_style=False,
+                        Dumper=yaml.CSafeDumper)
+
+        if oldVersion == newVersion:
+            updateProgress(100)
+            return
+        elif oldVersion == 1:
+            # PSI_ABILITY_TABLE: "Target" -> "Usability Outside of Battle"
+            # Values: "Nobody"  -> "Other"
+            #         "Enemies" -> "Unusable
+            #         "Allies"  -> "Usable"
+            replaceField('psi_ability_table', 
+                    "Target", "Usability Outside of Battle", 
+                    { "Nobody": "Other",
+                        "Enemies": "Unusable",
+                        "Allies": "Usable" })
+            replaceField('battle_action_table',
+                    "Direction", None,
+                    { "Party": "Enemy",
+                        "Enemy": "Party" })
+
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                    resourceOpenerW)
+        else:
+            raise RuntimeException("Don't know how to upgrade from version",
+                    oldVersion, "to", newVersion)

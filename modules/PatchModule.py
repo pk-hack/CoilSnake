@@ -7,6 +7,23 @@ import yaml
 
 class PatchModule(GenericModule):
     _name = "Patches"
+    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+            resourceOpenerW):
+        if oldVersion == newVersion:
+            updateProgress(100)
+            return
+        elif oldVersion == 1:
+            global updateProgress
+            tmp = updateProgress
+            updateProgress = lambda x: None
+            self.readFromRom(rom)
+            self.writeToProject(resourceOpenerW)
+            updateProgress = tmp
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                    resourceOpenerW)
+        else:
+            raise RuntimeException("Don't know how to upgrade from version",
+                    oldVersion, "to", newVersion)
     def readFromRom(self, rom):
         self._patches = dict()
         # Loop through all the patches for this romtyp
