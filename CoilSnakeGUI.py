@@ -17,9 +17,6 @@ from modules import Rom, Progress
 from modules.Fun import getTitle
 from tools import EbRomExpander
 
-_version = "1.0"
-_releaseDate = "5/28/12"
-
 class CoilSnakeFrontend:
     PREFS_FNAME = "prefs.yml"
     def __init__(self):
@@ -41,15 +38,15 @@ class CoilSnakeFrontend:
         self.savePrefs()
     def aboutMenu(self):
         am = Toplevel(self._root)
-        Label(am, text="CoilSnake " + _version,
+        Label(am, text="CoilSnake " + CoilSnake._VERSION,
                 font=("Helvetica", 16)).pack(fill=X)
         Label(am,
                 text=
-                "Released on " + _releaseDate + ".\n\n"
+                "Released on " + CoilSnake._RELEASE_DATE + ".\n\n"
                 + "Created by MrTenda.\n\n"
                 + "With help from\n"
                 + "  Penguin, Mr. Accident, Goplat,\n"
-                + "  AnyoneEB, Reg, Captain Bozo,\n"
+                + "  AnyoneEB, Reg, H.S, Captain Bozo,\n"
                 + "  and the rest of the PK Hack community.",
                 anchor="w",justify="left",bg="white",borderwidth=5,
                 relief=GROOVE).pack(
@@ -248,9 +245,9 @@ Please specify it in the Preferences menu.""")
     def main(self):
         self._root = Tk()
         if self.getPrefsValue("title") == 1:
-            self._root.wm_title(getTitle() + " " + _version)
+            self._root.wm_title(getTitle() + " " + CoilSnake._VERSION)
         else:
-            self._root.wm_title("CoilSnake" + " " + _version)
+            self._root.wm_title("CoilSnake" + " " + CoilSnake._VERSION)
             if self.getPrefsValue("title") == 0:
                 self._prefs["title"] = 1
                 self.savePrefs()

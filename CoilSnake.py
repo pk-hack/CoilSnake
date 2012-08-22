@@ -10,6 +10,9 @@ from modules.Progress import setProgress
 
 #from meliae import scanner
 
+_VERSION = "1.1"
+_RELEASE_DATE = "8/21/12"
+
 class CoilSnake:
     def __init__(self):
         self.loadModules()
@@ -145,6 +148,7 @@ class CoilSnake:
 
 
 def main():
+    print "CoilSnake", _VERSION, "(" + _RELEASE_DATE + ")"
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-c', '--compile', action='store', nargs=3,
