@@ -64,13 +64,13 @@ class CoilSnakeFrontend:
         self._prefs["Emulator"] = tkFileDialog.askopenfilename(
                 parent=self._root,
                 title="Select an Emulator Executable",
-                initialfile=self._prefs["Emulator"])
+                initialfile=self.getPrefsValue("Emulator"))
         self.savePrefs()
     def setCccExe(self):
         self._prefs["CCC"] = tkFileDialog.askopenfilename(
                 parent=self._root,
                 title="Select the CCC Executable",
-                initialfile=self._prefs["CCC"])
+                initialfile=self.getPrefsValue("CCC"))
         self.savePrefs()
     def browseForRom(self, entry, save=False):
         if save:
@@ -90,13 +90,13 @@ class CoilSnakeFrontend:
         self.setText(entry, fname)
     def runRom(self, entry):
         romFname = entry.get()
-        if self._prefs["Emulator"] == "":
+        if self.getPrefsValue("Emulator") == "":
             tkMessageBox.showerror(parent=self._root,
                     title="Error",
                     message="""Emulator executable not specified.
 Please specify it in the Preferences menu.""")
         elif romFname != "":
-            Popen([self._prefs["Emulator"], romFname])
+            Popen([self.getPrefsValue("Emulator"), romFname])
     def resetConsole(self):
         self._console.delete(1.0, END)
         self._console.see(END)
@@ -133,7 +133,7 @@ Please specify it in the Preferences menu.""")
         self._upgradeB["state"] = NORMAL
         del(self._cs)
     def doImport(self, projEntry, cleanRomEntry, romEntry):
-        if self._prefs["CCC"] == "":
+        if self.getPrefsValue("CCC") == "":
             tkMessageBox.showerror(parent=self._root,
                     title="Error",
                     message="""CCScript Compiler executable not specified.
@@ -169,7 +169,7 @@ Please specify it in the Preferences menu.""")
             # Compile scripts using the CCC, and put the data at $F10000
             print "Calling external CCScript Compiler"
             process = Popen(
-                    [self._prefs["CCC"], "-n", "-o", newRom, "-s", "F10000",
+                    [self.getPrefsValue("CCC"), "-n", "-o", newRom, "-s", "F10000",
                         "--summary", projDir + "/ccscript/summary.txt"] +
                     scriptFnames)
             process.wait()
