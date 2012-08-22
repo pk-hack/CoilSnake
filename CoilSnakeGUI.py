@@ -11,6 +11,7 @@ from traceback import print_exc
 from Tkinter import *
 import tkFileDialog, tkMessageBox
 from ttk import Progressbar
+import Image
 
 import CoilSnake
 from modules import Rom, Progress
@@ -38,15 +39,21 @@ class CoilSnakeFrontend:
         self.savePrefs()
     def aboutMenu(self):
         am = Toplevel(self._root)
-        Label(am, text="CoilSnake " + CoilSnake._VERSION,
-                font=("Helvetica", 16)).pack(fill=X)
+        #Label(am, text="CoilSnake " + CoilSnake._VERSION,
+        #        font=("Helvetica", 16)).pack(fill=X)
+        photo = PhotoImage(file="resources/logo.gif")
+        photoLabel = Label(am, image=photo)
+        photoLabel.photo = photo
+        photoLabel.pack(fill='both', expand=1)
+
         Label(am,
                 text=
                 "Released on " + CoilSnake._RELEASE_DATE + ".\n\n"
-                + "Created by MrTenda.\n\n"
+                + "Created by MrTenda.\n"
+                + "Logo art by Reg.\n\n"
                 + "With help from\n"
-                + "  Penguin, Mr. Accident, Goplat,\n"
-                + "  AnyoneEB, Reg, H.S, Captain Bozo,\n"
+                + "  Penguin, Reg, Mr. Accident, Goplat,\n"
+                + "  AnyoneEB, H.S, Captain Bozo,\n"
                 + "  and the rest of the PK Hack community.",
                 anchor="w",justify="left",bg="white",borderwidth=5,
                 relief=GROOVE).pack(
