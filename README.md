@@ -6,7 +6,9 @@ CoilSnake is a modular ROM hacking tool. It provides a layer of abstraction and 
 How To Use 
 ----------
 
-Examples:
+Tutorial @ http://datacrystal.romhacking.net/wiki/CoilSnake_Tutorial
+
+Quick Examples:
 
 Use the GUI frontend with CCScript support
 
