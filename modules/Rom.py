@@ -180,7 +180,7 @@ class Rom:
                     del(self._freeRanges[i])
                 else: # usedEnd > end
                     del(self._freeRanges[i])
-                    self._markRangeAsNotFree(end+1, usedEnd)
+                    self.markRangeAsNotFree((end+1, usedEnd))
                 break
             elif (usedBegin > begin) and (usedEnd <= end):
                 self._freeRanges[i] = (begin, usedBegin-1)
