@@ -265,7 +265,7 @@ class TilesetModule(EbModule.EbModule):
             # Estimate the number of palettes for this map tileset
             if i == 31:
                 #k = 0xDAFAA7 - self._palPtrTbl[i,0].val()
-                k = 7
+                k = 8
             else:
                 k = self._palPtrTbl[i+1,0].val() - self._palPtrTbl[i,0].val()
                 k /= 0xc0
