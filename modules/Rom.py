@@ -88,11 +88,23 @@ class Rom:
         else:
             self._freeRanges = []
     def save(self, f):
+        # Make the last byte 0xff to be compatible with Lunar IPS patcher
+        self[self._size-1] = 0xff
         if (type(f) == str) or (type(f) == unicode):
             f = open(f, 'wb')
         self._data.tofile(f)
     def type(self):
         return self._type
+    # Header stuff
+    def addHeader(self):
+        if self._type == 'Earthbound':
+            for i in range(0x200):
+                self._data.insert(0, 0)
+            self._size += 0x200
+        else:
+            raise RuntimeError(
+                    "Don't know how to add header to ROM of type \"" +
+                    self._type + "\".")
     # Expansion
     def expand(self, newSize):
         if self._type == 'Earthbound':
@@ -104,8 +116,8 @@ class Rom:
                     self._data.fromlist([0] * 0x100000)
                     self._size += 0x100000
                     # For the super old text editor, heh
-                    for i in range(0,4096):
-                        r[i*256 + 255 + 0x300000] = 2
+                    #for i in range(0,4096):
+                    #    r[i*256 + 255 + 0x300000] = 2
                 if (newSize == 0x600000) and (len(self) == 0x400000):
                     self[0x00ffd5] = 0x25
                     self[0x00ffd7] = 0x0d

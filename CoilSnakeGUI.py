@@ -249,6 +249,27 @@ Please specify it in the Preferences menu.""")
                 tkMessageBox.showinfo(parent=self._root, title="Expansion Successful", message="Your ROM was expanded.")
     def expandRomEx(self):
         self.expandRom(ex=True)
+    def addHeaderRom(self):
+        r = Rom.Rom('romtypes.yaml')
+        fname = tkFileDialog.askopenfilename(
+                    parent=self._root, title="Select a ROM to which to add a header",
+                    filetypes=[('SNES ROMs','*.smc'), ('SNES ROMs','*.sfc'), ('All files','*.*')])
+        if len(fname) > 0:
+            r.load(fname)
+            r.addHeader()
+            r.save(fname)
+            del(r)
+            tkMessageBox.showinfo(parent=self._root, title="Header Addition Successful", message="Your ROM was given a header.")
+    def stripHeaderRom(self):
+        r = Rom.Rom('romtypes.yaml')
+        fname = tkFileDialog.askopenfilename(
+                    parent=self._root, title="Select a ROM from which to remove a header",
+                    filetypes=[('SNES ROMs','*.smc'), ('SNES ROMs','*.sfc'), ('All files','*.*')])
+        if len(fname) > 0:
+            r.load(fname)
+            r.save(fname)
+            del(r)
+            tkMessageBox.showinfo(parent=self._root, title="Header Remove Successful", message="Your ROM's header was removed.")
     def main(self):
         self._root = Tk()
         if self.getPrefsValue("title") == 1:
@@ -273,6 +294,10 @@ Please specify it in the Preferences menu.""")
                 command=self.expandRom)
         toolsMenu.add_command(label="Expand ROM to 48 MBit",
                 command=self.expandRomEx)
+        toolsMenu.add_command(label="Add Header to ROM",
+                command=self.addHeaderRom)
+        toolsMenu.add_command(label="Remove Header from ROM",
+                command=self.stripHeaderRom)
         menuBar.add_cascade(label="Tools", menu=toolsMenu)
         # Help menu
         helpMenu = Menu(menuBar, tearoff=0)

@@ -13,8 +13,8 @@ def expandRom(r, ex=False):
        r._data.fromlist([0] * 0x100000)
        r._size += 0x100000
        # For the super old text editor, heh
-       for i in range(0,4096):
-           r[i*256 + 255 + 0x300000] = 2
+       #for i in range(0,4096):
+       #    r[i*256 + 255 + 0x300000] = 2
    # Expand from 32 mbit to 48 mbit
    if ex and (len(r) == 0x400000):
        r[0x00ffd5] = 0x25
