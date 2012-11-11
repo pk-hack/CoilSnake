@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+from subprocess import Popen
+from shutil import copyfile
 import argparse
 import os
 import sys
@@ -75,7 +77,7 @@ class CoilSnake:
             proj.setVersion(Project.FORMAT_VERSION)
             proj.write(inputFname + os.sep + Project.PROJECT_FILENAME)
             return True
-    def projToRom(self, inputFname, cleanRomFname, outRomFname):
+    def projToRom(self, inputFname, cleanRomFname, outRomFname, ccc=None):
         # Open project
         proj = Project.Project()
         proj.load(inputFname + os.sep + Project.PROJECT_FILENAME)
@@ -90,9 +92,24 @@ class CoilSnake:
                   " with this version of CoilSnake.\nPlease upgrade this" \
                   " project before trying to use it."
             return False
+        # Compile scripts using CCScript
+        if cleanRomFname != outRomFname:
+            copyfile(cleanRomFname, outRomFname)
+        if ccc:
+            scriptFnames = [ inputFname + os.sep + "ccscript" + os.sep + x
+                    for x in os.listdir(inputFname + os.sep + "ccscript")
+                    if x.endswith('.ccs') ]
+            print "Calling external CCScript Compiler...",
+            process = Popen(
+                    [ccc, "-n", "-o", outRomFname, "-s", "F10000",
+                        "--summary", inputFname + os.sep + "ccscript" + os.sep +
+                        "summary.txt"] +
+                    scriptFnames)
+            process.wait()
+            print "Done"
         # Open rom
         rom = Rom.Rom("romtypes.yaml")
-        rom.load(cleanRomFname)
+        rom.load(outRomFname)
         # Make sure project type matches romtype
         if rom.type() != proj.type():
             print "Rom type '" + rom.type() + "' does not match" \
@@ -161,13 +178,15 @@ def main():
             dest="upgradeInfo", help="Upgrade a Project to be compatible with"
             + " this version of CoilSnake",
             metavar=("BaseROM", "ProjectDirectory"))
+    parser.add_argument("--ccc", help="Path to CCScript Compiler Executable")
     args = parser.parse_args()
 
     if args.compileInfo != None:
         # Compile
         cs = CoilSnake()
         cs.projToRom(args.compileInfo[0],
-                args.compileInfo[1], args.compileInfo[2])
+                args.compileInfo[1], args.compileInfo[2],
+                args.ccc)
     elif args.decompileInfo != None:
         # Decompile
         cs = CoilSnake()
