@@ -1,6 +1,7 @@
 PatchModule
 eb.CccInterfaceModule
 eb.SkipNamingModule
+eb.MiscTextModule
 eb.MapSpriteModule
 eb.DoorModule
 eb.SpriteGroupModule
