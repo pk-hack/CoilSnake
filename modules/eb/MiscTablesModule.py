@@ -2,6 +2,7 @@ from modules.Progress import updateProgress
 import EbTablesModule
 
 import yaml
+from re import sub
 
 class MiscTablesModule(EbTablesModule.EbTablesModule):
     _name = "Misc Tables"
@@ -65,6 +66,21 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
             updateProgress(100)
             return
         elif oldVersion == 2:
+            replaceField("timed_delivery_table",
+                    "Suitable Area Text Pointer",
+                    "Delivery Success Text Pointer",
+                    { })
+            replaceField("timed_delivery_table",
+                    "Unsuitable Area Text Pointer",
+                    "Delivery Failure Text Pointer",
+                    { })
+            with resourceOpenerR("timed_delivery_table", "yml") as f:
+                out = yaml.load(f, Loader=yaml.CSafeLoader)
+                s = yaml.dump(out, default_flow_style=False, Dumper=yaml.CSafeDumper)
+            s = sub("Event Flag: (\d+)",
+                    lambda i: "Event Flag: " + hex(int(i.group(0)[12:])), s)
+            with resourceOpenerW("timed_delivery_table", "yml") as f:
+                f.write(s)
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
                     resourceOpenerW)
         elif oldVersion == 1:
@@ -81,7 +97,6 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
                     "Direction", None,
                     { "Party": "Enemy",
                         "Enemy": "Party" })
-
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
                     resourceOpenerW)
         else:
