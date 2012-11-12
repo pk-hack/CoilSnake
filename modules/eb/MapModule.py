@@ -21,7 +21,7 @@ class MapModule(EbModule.EbModule):
                 ["Enabled", "Disabled"])
         self.townmap = ValuedIntTableEntry(None, None,
                 ["None", "Onett", "Twoson", "Threed", "Fourside", "Scaraba",
-                "Scummers", "None 2"])
+                "Summers", "None 2"])
         self.setting = ValuedIntTableEntry(None, None,
                 ["None", "Indoors", "Exit Mouse usable",
                 "Lost Underworld sprites", "Magicant sprites", "Robot sprites",
@@ -142,3 +142,36 @@ class MapModule(EbModule.EbModule):
                 self._mapSecMiscTbl[i,0].setVal((self.teleport.val() << 7)
                         | (self.townmap.val() << 3) | self.setting.val())
                 updateProgress(pct)
+    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+            resourceOpenerW):
+        def replaceField(fname, oldField, newField, valueMap):
+            if newField == None:
+                newField = oldField
+            valueMap = dict((k, v) for k,v in valueMap.iteritems())
+            with resourceOpenerR(fname, 'yml') as f:
+                data = yaml.load(f, Loader=yaml.CSafeLoader)
+                for i in data:
+                    if data[i][oldField] in valueMap:
+                        data[i][newField] = valueMap[data[i][oldField]].lower()
+                    else:
+                        data[i][newField] = data[i][oldField]
+                    if newField != oldField:
+                        del data[i][oldField]
+            with resourceOpenerW(fname, 'yml') as f:
+                yaml.dump(data, f, Dumper=yaml.CSafeDumper,
+                        default_flow_style=False)
+
+        if oldVersion == newVersion:
+            updateProgress(100)
+            return
+        elif oldVersion == 2:
+            replaceField("map_sectors", "Town Map", None,
+                    { "scummers": "summers" })
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                    resourceOpenerW)
+        elif oldVersion == 1:
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                    resourceOpenerW)
+        else:
+            raise RuntimeException("Don't know how to upgrade from version",
+                    oldVersion, "to", newVersion)
