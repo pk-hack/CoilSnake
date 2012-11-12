@@ -368,3 +368,6 @@ class SpriteGroupModule(EbModule.EbModule):
             replaceFieldName("sprite_groups", "Unknown B", "Collision Settings")
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
                     resourceOpenerW)
+        elif oldVersion == 1:
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                    resourceOpenerW)

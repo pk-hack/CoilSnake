@@ -159,3 +159,23 @@ class MiscTextModule(EbModule.EbModule):
         with resourceOpener("text_misc", "yml") as f:
             self._data = yaml.load(f, Loader=yaml.CSafeLoader)
         updateProgress(50.0)
+    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+            resourceOpenerW):
+        global updateProgress
+        if oldVersion == newVersion:
+            updateProgress(100)
+            return
+        elif oldVersion == 2:
+            tmp = updateProgress
+            updateProgress = lambda x: None
+            self.readFromRom(rom)
+            self.writeToProject(resourceOpenerW)
+            updateProgress = tmp
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                    resourceOpenerW)
+        elif oldVersion == 1:
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                    resourceOpenerW)
+        else:
+            raise RuntimeException("Don't know how to upgrade from version",
+                    oldVersion, "to", newVersion)
