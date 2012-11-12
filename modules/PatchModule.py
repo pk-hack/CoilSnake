@@ -9,6 +9,7 @@ class PatchModule(GenericModule):
     _name = "Patches"
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
             resourceOpenerW):
+        global updateProgress
         if oldVersion == newVersion:
             updateProgress(100)
             return
@@ -16,7 +17,6 @@ class PatchModule(GenericModule):
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
                                         resourceOpenerW)
         elif oldVersion == 1:
-            global updateProgress
             tmp = updateProgress
             updateProgress = lambda x: None
             self.readFromRom(rom)
