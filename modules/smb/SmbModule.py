@@ -59,5 +59,5 @@ def writeText(rom, addr, text, maxlen):
         rom.write(addr + pos, [0x24] * (maxlen-pos))
 
 class SmbModule(GenericModule):
-    def compatibilityWithRomtype(self, romtype):
+    def compatibleWithRomtype(self, romtype):
         return romtype == "Super Mario Bros"

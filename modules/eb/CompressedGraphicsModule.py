@@ -1,6 +1,6 @@
 import EbModule
 from EbTablesModule import EbTable
-from EbDataBlocks import EbCompressedData
+from EbDataBlocks import DataBlock, EbCompressedData
 from modules.Progress import updateProgress
 
 from array import array
@@ -355,6 +355,8 @@ class EbPalettes:
         self._pals[palNum][colorNum] = (r&0xf8, g&0xf8, b&0xf8)
     def getData(self):
         return self._pals
+    def getFlatColors(self):
+        return reduce(lambda x,y: x.__add__(list(y)), self._pals, [])
     def __len__(self):
         return self._numPalettes
     def palSize(self):
@@ -392,6 +394,9 @@ class EbTownMap:
         img = Image.open(resourceOpener(self.name(), 'png'))
         if img.mode != 'P':
             raise RuntimeError(self.name() + " is not an indexed PNG.")
+        # The game has problems if you try to use color 0 of subpal 1
+        #   directly after using color 0 of subpal 0
+        self._pals[1,0] = (0,0,0)
         self._arr.readFromImage(img, self._pals, self._gfx)
     def name(self):
         return self._name
@@ -463,7 +468,32 @@ class CompressedGraphicsModule(EbModule.EbModule):
             map(lambda x: "TownMaps/" + x,
                 ["Onett", "Twoson", "Threed", "Fourside", "Scaraba", "Summers"]),
             range(0x202190, 0x202190 + 0x18 * 4, 4))
+    _ASMPTR_TOWN_MAP_ICON_GFX = 0x4d62f
+    _ASMPTR_TOWN_MAP_ICON_PAL = 0x4d5c4
+    _TOWN_MAP_ICON_PREVIEW_SUBPALS = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
 
+            0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+
+            1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     def __init__(self):
         self._logos = [
                 EbLogo("Logos/Nintendo", 0xeea3, 0xeebb, 0xeed3),
@@ -472,38 +502,98 @@ class CompressedGraphicsModule(EbModule.EbModule):
                 ]
         self._townmaps = map(lambda (x,y): EbTownMap(x, y),
                 self.TOWN_MAP_PTRS)
-        self._pct = 50.0/(len(self._logos) + len(self._townmaps))
+        self._townmap_icons = EbTileGraphics(288, 8, 4)
+        self._townmap_icons_pal = EbPalettes(2, 16)
+        self._pct = 50.0/(len(self._logos) + len(self._townmaps) + 1)
     def free(self):
         del(self._logos)
         del(self._townmaps)
+    def readTownMapIconsFromRom(self, rom):
+        self._townmap_icons_pal.readFromBlock(rom,
+                loc=EbModule.toRegAddr(
+                    EbModule.readAsmPointer(rom,
+                        self._ASMPTR_TOWN_MAP_ICON_PAL)))
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(rom,
+                        self._ASMPTR_TOWN_MAP_ICON_GFX)))
+            self._townmap_icons.readFromBlock(cb)
     def readFromRom(self, rom):
         for logo in self._logos:
             logo.readFromRom(rom)
             updateProgress(self._pct)
-        for map in self._townmaps:
-            map.readFromRom(rom)
+        for tmap in self._townmaps:
+            tmap.readFromRom(rom)
             updateProgress(self._pct)
+
+        self.readTownMapIconsFromRom(rom)
+        updateProgress(self._pct)
     def freeRanges(self):
-        return [(0x2021a8, 0x20ed02),
-                (0x214ec1, 0x2155d2)]
+        return [(0x2021a8, 0x20ed02), # Town Map data
+                (0x214ec1, 0x2155d2), # Logo arrs/gfx/pals
+                (0x21ea50, 0x21f203)] # Town map icon GFX and pal
     def writeToRom(self, rom):
         for logo in self._logos:
             logo.writeToRom(rom)
             updateProgress(self._pct)
-        for map in self._townmaps:
-            map.writeToRom(rom)
+        for tmap in self._townmaps:
+            tmap.writeToRom(rom)
             updateProgress(self._pct)
+
+        with DataBlock(self._townmap_icons_pal.sizeBlock()) as b:
+            self._townmap_icons_pal.writeToBlock(b)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_TOWN_MAP_ICON_PAL,
+                    EbModule.toSnesAddr(b.writeToFree(rom)))
+        with EbCompressedData(self._townmap_icons.sizeBlock()) as cb:
+            self._townmap_icons.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_TOWN_MAP_ICON_GFX,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        updateProgress(self._pct)
+    def writeTownMapIconsToProject(self, resourceOpener):
+        arr = EbArrangement(16, 18)
+        for i in range(16*18):
+            arr[i%16, i/16] = (False, False, False,
+                    self._TOWN_MAP_ICON_PREVIEW_SUBPALS[i], i)
+        img = arr.toImage(self._townmap_icons, self._townmap_icons_pal)
+        with resourceOpener("TownMaps/icons", "png") as imgFile:
+            img.save(imgFile, "png")
+            imgFile.close()
     def writeToProject(self, resourceOpener):
         for logo in self._logos:
             logo.writeToProject(resourceOpener)
             updateProgress(self._pct)
-        for map in self._townmaps:
-            map.writeToProject(resourceOpener)
+        for tmap in self._townmaps:
+            tmap.writeToProject(resourceOpener)
             updateProgress(self._pct)
+
+        self.writeTownMapIconsToProject(resourceOpener)
+        updateProgress(self._pct)
     def readFromProject(self, resourceOpener):
         for logo in self._logos:
             logo.readFromProject(resourceOpener)
             updateProgress(self._pct)
-        for map in self._townmaps:
-            map.readFromProject(resourceOpener)
+        for tmap in self._townmaps:
+            tmap.readFromProject(resourceOpener)
             updateProgress(self._pct)
+
+        with resourceOpener("TownMaps/icons", "png") as imgFile:
+            img = Image.open(imgFile)
+            if img.mode != 'P':
+                raise RuntimeError("TownMaps/icons is not an indexed PNG.")
+            self._townmap_icons.loadFromImage(img)
+            self._townmap_icons_pal.loadFromImage(img)
+        updateProgress(self._pct)
+    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+            resourceOpenerW):
+        if oldVersion == newVersion:
+            updateProgress(100)
+            return
+        elif oldVersion <= 2:
+            self.readTownMapIconsFromRom(rom)
+            self.writeTownMapIconsToProject(resourceOpenerW)
+            self.upgradeProject(3, newVersion, rom, resourceOpenerR,
+                                        resourceOpenerW)
+        else:
+            raise RuntimeException("Don't know how to upgrade from version",
+                    oldVersion, "to", newVersion)
