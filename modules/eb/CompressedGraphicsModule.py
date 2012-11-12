@@ -282,6 +282,13 @@ class EbPalettes:
         for p in self._pals:
             EbModule.writePalette(block, loc, p)
             loc += self._numColors * 2
+    def loadFromImage(self, img):
+        palData = img.getpalette()
+        m = 0
+        for j in range(self._numPalettes):
+            for k in range(self._numColors):
+                self[j,k] = (palData[m], palData[m+1], palData[m+2])
+                m += 3
     def sizeBlock(self):
         return 2 * self._numColors * self._numPalettes
     # Adjusts the palette so the the colors in a given portion of an image are

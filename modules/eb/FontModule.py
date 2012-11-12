@@ -1,6 +1,9 @@
 import EbModule
 from modules.Progress import updateProgress
 
+from EbDataBlocks import EbCompressedData
+from CompressedGraphicsModule import EbTileGraphics, EbPalettes, EbArrangement
+
 from array import array
 
 from PIL import Image
@@ -68,6 +71,21 @@ class Font:
 
 class FontModule(EbModule.EbModule):
     _name = "Fonts"
+    _CREDITS_PREVIEW_SUBPALS = [
+            1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1,
+            1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+    _ASMPTR_CREDITS_GFX = 0x4f1a7
+    _ADDR_CREDITS_PAL = 0x21e914
     def __init__(self):
         self._fonts = [
                 Font(0x210cda, 0x210c7a, 16, 16),
@@ -76,15 +94,46 @@ class FontModule(EbModule.EbModule):
                 Font(0x21193a, 0x2118da, 8, 16),
                 Font(0x211f9a, 0x211f3a, 8, 8)
                 ]
-        self._pct = 50.0/len(self._fonts)
+        self._cfont = EbTileGraphics(192, 8, 2)
+        self._cpal = EbPalettes(2, 4)
+        self._pct = 50.0/(len(self._fonts)+1)
+    def freeRanges(self):
+        return [(0x21e528, 0x21e913)] # Credits font graphics
+    def readCreditsFontFromRom(self, rom):
+        self._cpal.readFromBlock(rom, loc=self._ADDR_CREDITS_PAL)
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(
+                            rom, self._ASMPTR_CREDITS_GFX)))
+            self._cfont.readFromBlock(cb)
     def readFromRom(self, rom):
         for f in self._fonts:
             f.readFromRom(rom)
             updateProgress(self._pct)
+
+        self.readCreditsFontFromRom(rom)
+        updateProgress(self._pct)
     def writeToRom(self, rom):
         for f in self._fonts:
             f.writeToRom(rom)
             updateProgress(self._pct)
+
+        self._cpal.writeToBlock(rom, loc=self._ADDR_CREDITS_PAL)
+        with EbCompressedData(self._cfont.sizeBlock()) as cb:
+            self._cfont.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_CREDITS_GFX,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        updateProgress(self._pct)
+    def writeCreditsFontToProject(self, resourceOpener):
+        arr = EbArrangement(16, 12)
+        for i in range(192):
+            arr[i%16, i/16] = (False, False, False,
+                    self._CREDITS_PREVIEW_SUBPALS[i], i)
+        img = arr.toImage(self._cfont, self._cpal)
+        with resourceOpener("Fonts/credits", "png") as imgFile:
+            img.save(imgFile, "png")
+            imgFile.close()
     def writeToProject(self, resourceOpener):
         out = dict()
         i=0
@@ -101,6 +150,9 @@ class FontModule(EbModule.EbModule):
                         Dumper=yaml.CSafeDumper)
             i += 1
             updateProgress(self._pct)
+
+        self.writeCreditsFontToProject(resourceOpener)
+        updateProgress(self._pct)
     def readFromProject(self, resourceOpener):
         i = 0
         for font in self._fonts:
@@ -114,3 +166,24 @@ class FontModule(EbModule.EbModule):
                 font.loadWidths(input)
             i += 1
             updateProgress(self._pct)
+
+        with resourceOpener("Fonts/credits", "png") as imgFile:
+            img = Image.open(imgFile)
+            if img.mode != 'P':
+                    raise RuntimeError("Fonts/credits is not an indexed PNG.")
+            self._cfont.loadFromImage(img)
+            self._cpal.loadFromImage(img)
+        updateProgress(self._pct)
+    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+            resourceOpenerW):
+        if oldVersion == newVersion:
+            updateProgress(100)
+            return
+        elif oldVersion <= 2:
+            self.readCreditsFontFromRom(rom)
+            self.writeCreditsFontToProject(resourceOpenerW)
+            self.upgradeProject(3, newVersion, rom, resourceOpenerR,
+                                        resourceOpenerW)
+        else:
+            raise RuntimeException("Don't know how to upgrade from version",
+                    oldVersion, "to", newVersion)
