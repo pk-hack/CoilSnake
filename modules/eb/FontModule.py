@@ -106,6 +106,8 @@ class FontModule(EbModule.EbModule):
         for font in self._fonts:
             with resourceOpener("Fonts/" + str(i), "png") as imgFile:
                 img = Image.open(imgFile)
+                if img.mode != 'P':
+                    raise RuntimeError("Fonts/" + str(i) + " is not an indexed PNG.")
                 font.fromImage(img)
             with resourceOpener("Fonts/" + str(i) + "_widths", "yml") as f:
                 input = yaml.load(f, Loader=yaml.CSafeLoader)

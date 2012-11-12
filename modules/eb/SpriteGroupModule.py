@@ -265,6 +265,10 @@ class SpriteGroupModule(EbModule.EbModule):
                 print "Could not load Sprite Group #" + str(i)
                 raise
 
+            if img.mode != 'P':
+                raise RuntimeError("SpriteGroups/" +
+                        str(i).zfill(3) + " is not an indexed PNG.")
+
             g.fromImage(img)
             palData = img.getpalette()
             del(img)

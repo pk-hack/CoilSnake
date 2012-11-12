@@ -105,6 +105,8 @@ class BattleBgModule(EbModule.EbModule):
         for i in range(self._bbgTbl.height()):
             img = Image.open(
                     resourceOpener('BattleBGs/' + str(i).zfill(3), 'png'))
+            if img.mode != 'P':
+                raise RuntimeError("BattleBG #" + str(i).zfill(3) + " is not an indexed PNG.")
 
             np = EbPalettes(1, 16)
             colorDepth = self._bbgTbl[i,2].val()

@@ -383,6 +383,8 @@ class EbTownMap:
         imgFile.close()
     def readFromProject(self, resourceOpener):
         img = Image.open(resourceOpener(self.name(), 'png'))
+        if img.mode != 'P':
+            raise RuntimeError(self.name() + " is not an indexed PNG.")
         self._arr.readFromImage(img, self._pals, self._gfx)
     def name(self):
         return self._name
@@ -437,6 +439,8 @@ class EbLogo:
                     EbModule.toSnesAddr(pb.writeToFree(rom)))
     def readFromProject(self, resourceOpener):
         img = Image.open(resourceOpener(self.name(), 'png'))
+        if img.mode != 'P':
+            raise RuntimeError(self.name() + " is not an indexed PNG.")
         # Set all first colors of each subpalette to the image's first color
         pal = img.getpalette()
         firstColor = (pal[0], pal[1], pal[2])

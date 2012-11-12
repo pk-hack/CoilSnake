@@ -100,6 +100,8 @@ class EbBattleSprite:
         fname = f.name
         f.close()
         img = Image.open(fname)
+        if img.mode != 'P':
+            raise RuntimeError("BattleSprites/" + str(enemyNum).zfill(3) + " is not an indexed PNG.")
         self._sprite.fromImage(img)
         self._size = self.SIZES.index(
                 (self._sprite.width(),self._sprite.height()))

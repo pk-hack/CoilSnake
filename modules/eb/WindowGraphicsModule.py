@@ -108,10 +108,14 @@ class WindowGraphicsModule(EbModule.EbModule):
         # Read graphics. Just use the first of each image.
         with resourceOpener("WindowGraphics/Windows1_0", "png") as imgFile:
             img = Image.open(imgFile)
+            if img.mode != 'P':
+                raise RuntimeError("WindowGraphics/Windows1_0 is not an indexed PNG.")
             self._gfx1.loadFromImage(img)
         updateProgress(20)
         with resourceOpener("WindowGraphics/Windows2_0", "png") as imgFile:
             img = Image.open(imgFile)
+            if img.mode != 'P':
+                raise RuntimeError("WindowGraphics/Windows2_0 is not an indexed PNG.")
             self._gfx2.loadFromImage(img)
         updateProgress(20)
         # Read pals from Windows1 of each flavor.
@@ -122,6 +126,8 @@ class WindowGraphicsModule(EbModule.EbModule):
             with resourceOpener("WindowGraphics/Windows1_" + str(i),
                     "png") as imgFile:
                 img = Image.open(imgFile)
+                if img.mode != 'P':
+                    raise RuntimeError("WindowGraphics/Windows1_" + str(i) + " is not an indexed PNG.")
                 palData = img.getpalette()
                 m=0
                 for j in range(8):
@@ -132,6 +138,8 @@ class WindowGraphicsModule(EbModule.EbModule):
             with resourceOpener("WindowGraphics/Windows2_" + str(i),
                     "png") as imgFile:
                 img = Image.open(imgFile)
+                if img.mode != 'P':
+                    raise RuntimeError("WindowGraphics/Windows2_" + str(i) + " is not an indexed PNG.")
                 palData = img.getpalette()
                 m=0
                 for k in range(4):
