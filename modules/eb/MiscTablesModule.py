@@ -64,6 +64,9 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
         if oldVersion == newVersion:
             updateProgress(100)
             return
+        elif oldVersion == 2:
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                    resourceOpenerW)
         elif oldVersion == 1:
             # PSI_ABILITY_TABLE: "Target" -> "Usability Outside of Battle"
             # Values: "Nobody"  -> "Other"

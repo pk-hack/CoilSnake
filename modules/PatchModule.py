@@ -12,6 +12,9 @@ class PatchModule(GenericModule):
         if oldVersion == newVersion:
             updateProgress(100)
             return
+        elif oldVersion == 2:
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                                        resourceOpenerW)
         elif oldVersion == 1:
             global updateProgress
             tmp = updateProgress

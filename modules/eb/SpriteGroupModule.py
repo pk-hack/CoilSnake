@@ -159,9 +159,10 @@ class SpriteGroup:
             if x >= 4:
                 y += 1
                 x = 0
+    _SIZES = [ "16x16", "16x16 2", "24x16", "32x16", "48x16", "16x24", "24x24", "16x32", "32x32", "48x32", "24x40", "16x48", "32x48", "48x48", "64x48", "64x64", "64x80" ]
     def dump(self):
-        return { 'Unknown A': self._unknownA,
-                'Unknown B': self._unknownB.tolist(),
+        return { 'Size': self._SIZES[self._unknownA],
+                'Collision Settings': self._unknownB.tolist(),
                 'Swim Flags': map(lambda (a,x): x, self._sprites),
                 'Length': self._numSprites
                 }
@@ -169,8 +170,8 @@ class SpriteGroup:
         self._numSprites = d['Length']
         self._sprites = [
                 [EbRegSprite(),False] for i in range(self._numSprites)]
-        self._unknownA = d['Unknown A']
-        self._unknownB = d['Unknown B']
+        self._unknownA = self.getSizeFromString(d['Size'])
+        self._unknownB = d['Collision Settings']
         sf = d['Swim Flags']
         i = 0
         try:
@@ -179,6 +180,16 @@ class SpriteGroup:
                 i += 1
         except IndexError:
             pass
+    def getSizeAsString(self):
+        if self._unknownA <= 16:
+            return self._SIZES[self._unknownA]
+        else:
+            return str(self._unknownA)
+    def getSizeFromString(self, s):
+        if s in self._SIZES:
+            return self._SIZES.index(s)
+        else:
+            return int(s)
 
 class SpriteGroupModule(EbModule.EbModule):
     _name = "Sprite Groups"
@@ -303,3 +314,57 @@ class SpriteGroupModule(EbModule.EbModule):
         # Write the palettes
         self._grPalTbl.writeToRom(rom)
         updateProgress(5)
+    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+            resourceOpenerW):
+        def replaceField(fname, oldField, newField, valueMap):
+            if newField == None:
+                newField = oldField
+            valueMap = dict((k, v) for k,v in valueMap.iteritems())
+            with resourceOpenerR(fname, 'yml') as f:
+                data = yaml.load(f, Loader=yaml.CSafeLoader)
+                for i in data:
+                    if data[i][oldField] in valueMap:
+                        data[i][newField] = valueMap[data[i][oldField]].lower()
+                    else:
+                        data[i][newField] = data[i][oldField]
+                    if newField != oldField:
+                        del data[i][oldField]
+            with resourceOpenerW(fname, 'yml') as f:
+                yaml.dump(data, f, Dumper=yaml.CSafeDumper)
+        def replaceFieldName(fname, oldField, newField):
+            if newField == None:
+                newField = oldField
+            with resourceOpenerR(fname, 'yml') as f:
+                data = yaml.load(f, Loader=yaml.CSafeLoader)
+                for i in data:
+                    data[i][newField] = data[i][oldField]
+                    del data[i][oldField]
+            with resourceOpenerW(fname, 'yml') as f:
+                yaml.dump(data, f, Dumper=yaml.CSafeDumper)
+
+        if oldVersion == newVersion:
+            updateProgress(100)
+            return
+        elif oldVersion == 2:
+            replaceField("sprite_groups",
+                    "Unknown A", "Size",
+                    { 0: "16x16",
+                        1: "16x16 2",
+                        2: "24x16",
+                        3: "32x16",
+                        4: "48x16",
+                        5: "16x24",
+                        6: "24x24",
+                        7: "16x32",
+                        8: "32x32",
+                        9: "48x32",
+                        10: "24x40",
+                        11: "16x48",
+                        12: "32x48",
+                        13: "48x48",
+                        14: "64x48",
+                        15: "64x64",
+                        16: "64x80" })
+            replaceFieldName("sprite_groups", "Unknown B", "Collision Settings")
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                    resourceOpenerW)
