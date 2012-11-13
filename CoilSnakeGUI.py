@@ -164,33 +164,19 @@ Please specify it in the Preferences menu.""")
             projDir = projEntry.get()
             # Reset the progress bar
             self._progBar["value"] = 0
-            # Copy the clean rom to the output rom
+
             self._console.delete(1.0, END)
-            print "Copying ROM"
-            copyfile(oldRom, newRom)
-            self._progBar.step(2)
-            # Get a list of the script filenames in projDir/ccscript
-            scriptFnames = [ projDir + "/ccscript/" + x 
-                    for x in listdir(projDir + "/ccscript")
-                    if x.endswith('.ccs') ]
-            # Compile scripts using the CCC, and put the data at $F10000
-            print "Calling external CCScript Compiler"
-            process = Popen(
-                    [self.getPrefsValue("CCC"), "-n", "-o", newRom, "-s", "F10000",
-                        "--summary", projDir + "/ccscript/summary.txt"] +
-                    scriptFnames)
-            process.wait()
-            self._progBar.step(4)
             # Run CoilSnake as usual
             print "Initializing CoilSnake\n"
             self._cs = CoilSnake.CoilSnake()
-            self._progBar.step(4)
+            self._progBar.step(10)
             thread = Thread(target=self._doImportHelp,
-                    args=(projDir, newRom, time()))
+                    args=(projDir, oldRom, newRom, time()))
             thread.start()
-    def _doImportHelp(self, proj, rom, startTime):
+    def _doImportHelp(self, proj, oldRom, newRom, startTime):
         try:
-            if self._cs.projToRom(proj, rom, rom):
+            if self._cs.projToRom(proj, oldRom, newRom,
+                    self.getPrefsValue("CCC")):
                 print "Done! (Took %0.2fs)" % (time()-startTime)
         except Exception as inst:
             print "\nError! Something went wrong:"
