@@ -134,6 +134,12 @@ def write4BPPArea(source, target, off, x, y, bitOffset=0):
     write2BPPArea(source, target, off + 16, x, y, bitOffset + 2)
     return 32
 
+# From JHack
+def write8BPPArea(source, target, off, x, y):
+    for i in range(0,4):
+        write2BPPArea(source, target, off + 16 * i, x, y, 2 * i)
+    return 64
+
 def readPaletteColor(rom, addr):
     bgrBlock = ((rom[addr] & 0xff) | ((rom[addr+1] & 0xff) << 8)) & 0x7FFF
     return ((bgrBlock & 0x001f) * 8,

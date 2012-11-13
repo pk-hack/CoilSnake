@@ -135,6 +135,9 @@ class EbTileGraphics:
                 elif self._bpp == 4:
                     off += EbModule.read4BPPArea(
                         tile, block._data, off, 0, 0)
+                elif self._bpp == 8:
+                    off += EbModule.read8BPPArea(
+                            tile, block._data, off, 0, 0)
             except IndexError:
                 pass # Load an empty tile if it's out of range of the data
             self._tiles.append(tile)
@@ -147,11 +150,16 @@ class EbTileGraphics:
             elif self._bpp == 4:
                 loc += EbModule.write4BPPArea(
                         t, block._data, loc, 0, 0)
+            elif self._bpp == 8:
+                loc += EbModule.write8BPPArea(
+                        t, block._data, loc, 0, 0)
     def sizeBlock(self):
         if self._bpp == 2:
             return 16 * self._numTiles
         elif self._bpp == 4:
             return 32 * self._numTiles
+        elif self._bpp == 8:
+            return 64 * self._numTiles
     # Returns the tile number
     def setFromImage(self, img, x, y, pals, palNum, indexed=False):
         # Check for normal tile
@@ -500,6 +508,11 @@ class CompressedGraphicsModule(EbModule.EbModule):
     _ASMPTR_PRESENTED_GFX = 0x4de1b
     _ASMPTR_PRESENTED_ARR = 0x4dde2
     _ASMPTR_PRESENTED_PAL = 0x4de47
+    _ASMPTR_GAS_GFX = 0xf0f0
+    _ASMPTR_GAS_ARR = 0xf11b
+    _ASMPTR_GAS_PAL1 = 0xf147
+    _ASMPTR_GAS_PAL2 = 0xf3ba
+    _ASMPTR_GAS_PAL3 = 0xf3f0
     def __init__(self):
         self._logos = [
                 EbLogo("Logos/Nintendo", 0xeea3, 0xeebb, 0xeed3),
@@ -519,7 +532,13 @@ class CompressedGraphicsModule(EbModule.EbModule):
         self._presented_arr = EbArrangement(32, 32)
         self._presented_pal = EbPalettes(1, 4)
 
-        self._pct = 50.0/(len(self._logos) + len(self._townmaps) + 1 + 2)
+        self._gas_gfx = EbTileGraphics(632, 8, 8)
+        self._gas_arr = EbArrangement(32, 32)
+        self._gas_pal1 = EbPalettes(1, 256)
+        self._gas_pal2 = EbPalettes(1, 256)
+        self._gas_pal3 = EbPalettes(1, 256)
+
+        self._pct = 50.0/(len(self._logos) + len(self._townmaps) + 1 + 2 + 1)
     def free(self):
         del(self._logos)
         del(self._townmaps)
@@ -571,6 +590,37 @@ class CompressedGraphicsModule(EbModule.EbModule):
                         EbModule.readAsmPointer(rom,
                         self._ASMPTR_PRESENTED_ARR)))
             self._presented_arr.readFromBlock(cb)
+    def readGasFromRom(self, rom):
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(rom,
+                        self._ASMPTR_GAS_GFX)))
+            self._gas_gfx.readFromBlock(cb)
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(rom,
+                        self._ASMPTR_GAS_ARR)))
+            self._gas_arr.readFromBlock(cb)
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(rom,
+                        self._ASMPTR_GAS_PAL1)))
+            self._gas_pal1.readFromBlock(cb)
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(rom,
+                        self._ASMPTR_GAS_PAL2)))
+            self._gas_pal2.readFromBlock(cb)
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(rom,
+                        self._ASMPTR_GAS_PAL3)))
+            self._gas_pal3.readFromBlock(cb)
     def readFromRom(self, rom):
         for logo in self._logos:
             logo.readFromRom(rom)
@@ -583,11 +633,12 @@ class CompressedGraphicsModule(EbModule.EbModule):
         updateProgress(self._pct)
         self.readProducedPresentedFromRom(rom)
         updateProgress(self._pct * 2)
+        self.readGasFromRom(rom)
+        updateProgress(self._pct)
     def freeRanges(self):
         return [(0x2021a8, 0x20ed02), # Town Map data
-                (0x214ec1, 0x2155d2), # Logo arrs/gfx/pals
-                (0x21ea50, 0x21f203), # Town map icon GFX and pal
-                (0x21aadf, 0x21ae7b)] # Produced/Presented GFX/Arrs/Pal
+                (0x214ec1, 0x21ae7b), # Company Logos, Prod/Pres, and Gas
+                (0x21ea50, 0x21f203)] # Town map icon GFX and pal
     def writeToRom(self, rom):
         for logo in self._logos:
             logo.writeToRom(rom)
@@ -632,6 +683,28 @@ class CompressedGraphicsModule(EbModule.EbModule):
             EbModule.writeAsmPointer(rom, self._ASMPTR_PRESENTED_ARR,
                     EbModule.toSnesAddr(cb.writeToFree(rom)))
         updateProgress(self._pct)
+
+        with EbCompressedData(self._gas_gfx.sizeBlock()) as cb:
+            self._gas_gfx.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_GAS_GFX,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        with EbCompressedData(self._gas_arr.sizeBlock()) as cb:
+            self._gas_arr.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_GAS_ARR,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        with EbCompressedData(self._gas_pal1.sizeBlock()) as cb:
+            self._gas_pal1.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_GAS_PAL1,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        with EbCompressedData(self._gas_pal2.sizeBlock()) as cb:
+            self._gas_pal2.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_GAS_PAL2,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        with EbCompressedData(self._gas_pal3.sizeBlock()) as cb:
+            self._gas_pal3.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_GAS_PAL3,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        updateProgress(self._pct)
     def writeTownMapIconsToProject(self, resourceOpener):
         arr = EbArrangement(16, 18)
         for i in range(16*18):
@@ -652,6 +725,22 @@ class CompressedGraphicsModule(EbModule.EbModule):
         with resourceOpener("Logos/PresentedBy", "png") as imgFile:
             img.save(imgFile, 'png')
             imgFile.close()
+    def writeGasToProject(self, resourceOpener):
+        img = self._gas_arr.toImage(
+                self._gas_gfx, self._gas_pal1)
+        with resourceOpener("Logos/GasStation1", "png") as imgFile:
+            img.save(imgFile, 'png')
+            imgFile.close()
+        img = self._gas_arr.toImage(
+                self._gas_gfx, self._gas_pal2)
+        with resourceOpener("Logos/GasStation2", "png") as imgFile:
+            img.save(imgFile, 'png')
+            imgFile.close()
+        img = self._gas_arr.toImage(
+                self._gas_gfx, self._gas_pal3)
+        with resourceOpener("Logos/GasStation3", "png") as imgFile:
+            img.save(imgFile, 'png')
+            imgFile.close()
     def writeToProject(self, resourceOpener):
         for logo in self._logos:
             logo.writeToProject(resourceOpener)
@@ -664,6 +753,8 @@ class CompressedGraphicsModule(EbModule.EbModule):
         updateProgress(self._pct)
         self.writeProducedPresentedToProject(resourceOpener)
         updateProgress(self._pct * 2)
+        self.writeGasToProject(resourceOpener)
+        updateProgress(self._pct)
     def readFromProject(self, resourceOpener):
         for logo in self._logos:
             logo.readFromProject(resourceOpener)
@@ -696,6 +787,23 @@ class CompressedGraphicsModule(EbModule.EbModule):
             self._presented_arr.readFromImage(img, self._presented_pal, 
                     self._presented_gfx)
         updateProgress(self._pct)
+
+        with resourceOpener("Logos/GasStation1", "png") as imgFile:
+            img = Image.open(imgFile)
+            if img.mode != 'P':
+                raise RuntimeError("Logos/GasStation1 is not an indexed PNG.")
+            self._gas_arr.readFromImage(img, self._gas_pal1, self._gas_gfx)
+        with resourceOpener("Logos/GasStation2", "png") as imgFile:
+            img = Image.open(imgFile)
+            if img.mode != 'P':
+                raise RuntimeError("Logos/GasStation2 is not an indexed PNG.")
+            self._gas_pal2.loadFromImage(img)
+        with resourceOpener("Logos/GasStation3", "png") as imgFile:
+            img = Image.open(imgFile)
+            if img.mode != 'P':
+                raise RuntimeError("Logos/GasStation3 is not an indexed PNG.")
+            self._gas_pal3.loadFromImage(img)
+        updateProgress(self._pct)
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
             resourceOpenerW):
         if oldVersion == newVersion:
@@ -707,6 +815,9 @@ class CompressedGraphicsModule(EbModule.EbModule):
 
             self.readProducedPresentedFromRom(rom)
             self.writeProducedPresentedToProject(resourceOpenerW)
+
+            self.readGasFromRom(rom)
+            self.writeGasToProject(resourceOpenerW)
 
             self.upgradeProject(3, newVersion, rom, resourceOpenerR,
                                         resourceOpenerW)
