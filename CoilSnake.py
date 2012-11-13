@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-from subprocess import Popen
+from subprocess import Popen, PIPE, STDOUT
 from shutil import copyfile
 import argparse
 import os
@@ -104,9 +104,15 @@ class CoilSnake:
                     [ccc, "-n", "-o", outRomFname, "-s", "F10000",
                         "--summary", inputFname + os.sep + "ccscript" + os.sep +
                         "summary.txt"] +
-                    scriptFnames)
+                    scriptFnames, stdout=PIPE, stderr=STDOUT)
             process.wait()
-            print "Done"
+            if process.returncode == 0:
+                print "Done"
+            else:
+                print
+                print process.stdout.read(),
+                raise RuntimeError("There is an error in your CCScript code."
+                    + " Scroll up to see the error message.")
         # Open rom
         rom = Rom.Rom("romtypes.yaml")
         rom.load(outRomFname)

@@ -13,6 +13,8 @@ class CccInterfaceModule(EbModule.EbModule):
         f.close()
         updateProgress(50)
     def readFromProject(self, resourceOpener):
+        # Clear the labels dict
+        EbModule.labelsDict.clear()
         # Read the summary file
         sumFile = resourceOpener('ccscript/summary', 'txt')
         summary = sumFile.readlines()

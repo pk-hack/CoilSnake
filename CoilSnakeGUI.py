@@ -79,6 +79,11 @@ class CoilSnakeFrontend:
                 title="Select the CCC Executable",
                 initialfile=self.getPrefsValue("CCC"))
         self.savePrefs()
+    def toggleErrorDetails(self):
+        if self.getPrefsValue("ErrorDetails") == "1":
+            self._prefs["ErrorDetails"] = "0"
+        else:
+            self._prefs["ErrorDetails"] = "1"
     def browseForRom(self, entry, save=False):
         if save:
             fname = tkFileDialog.asksaveasfilename(
@@ -132,8 +137,9 @@ Please specify it in the Preferences menu.""")
             if self._cs.romToProj(rom, proj):
                 print "Done! (Took %0.2fs)" % (time()-startTime)
         except Exception as inst:
-            print "\nError! Something went wrong:"
-            print_exc()
+            print "\nError:", str(inst)
+            if self.getPrefsValue("ErrorDetails") == "1":
+                print_exc()
         self._progBar["value"] = 0
         self._exportB["state"] = NORMAL
         self._importB["state"] = NORMAL
@@ -179,8 +185,9 @@ Please specify it in the Preferences menu.""")
                     self.getPrefsValue("CCC")):
                 print "Done! (Took %0.2fs)" % (time()-startTime)
         except Exception as inst:
-            print "\nError! Something went wrong:"
-            print_exc()
+            print "\nError:", str(inst)
+            if self.getPrefsValue("ErrorDetails") == "1":
+                print_exc()
         self._progBar["value"] = 0
         self._exportB["state"] = NORMAL
         self._importB["state"] = NORMAL
@@ -212,8 +219,9 @@ Please specify it in the Preferences menu.""")
             if self._cs.upgradeProject(rom, proj):
                 print "Done! (Took %0.2fs)" % (time()-startTime)
         except Exception as inst:
-            print "\nError! Something went wrong:"
-            print_exc()
+            print "\nError:", str(inst)
+            if self.getPrefsValue("ErrorDetails") == "1":
+                print_exc()
         self._progBar["value"] = 0
         self._exportB["state"] = NORMAL
         self._importB["state"] = NORMAL
@@ -273,6 +281,8 @@ Please specify it in the Preferences menu.""")
                 command=self.setCccExe)
         prefMenu.add_command(label="Emulator Executable",
                 command=self.setEmulatorExe)
+        prefMenu.add_command(label="Toggle Error Details",
+                command=self.toggleErrorDetails)
         menuBar.add_cascade(label="Preferences", menu=prefMenu)
         # Tools pulldown menu
         toolsMenu = Menu(menuBar, tearoff=0)

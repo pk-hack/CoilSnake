@@ -12,9 +12,6 @@ class PointerTableEntry(IntTableEntry):
             try:
                 self._data = EbModule.labelsDict[data]
             except KeyError:
-                # TODO Error, invalid label
-                # self._data = 0
-                print EbModule.labelsDict
                 raise RuntimeError("Invalid label: '" + data + "'")
     def dump(self):
         return '$' + hex(self._data)[2:]
