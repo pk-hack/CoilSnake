@@ -494,17 +494,32 @@ class CompressedGraphicsModule(EbModule.EbModule):
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    _ASMPTR_PRODUCED_GFX = 0x4dd73
+    _ASMPTR_PRODUCED_ARR = 0x4dd3a
+    _ASMPTR_PRODUCED_PAL = 0x4dd9f
+    _ASMPTR_PRESENTED_GFX = 0x4de1b
+    _ASMPTR_PRESENTED_ARR = 0x4dde2
+    _ASMPTR_PRESENTED_PAL = 0x4de47
     def __init__(self):
         self._logos = [
                 EbLogo("Logos/Nintendo", 0xeea3, 0xeebb, 0xeed3),
                 EbLogo("Logos/APE", 0xeefb, 0xef13, 0xef2b),
                 EbLogo("Logos/HALKEN", 0xef52, 0xef6a, 0xef82)
                 ]
+
         self._townmaps = map(lambda (x,y): EbTownMap(x, y),
                 self.TOWN_MAP_PTRS)
         self._townmap_icons = EbTileGraphics(288, 8, 4)
         self._townmap_icons_pal = EbPalettes(2, 16)
-        self._pct = 50.0/(len(self._logos) + len(self._townmaps) + 1)
+
+        self._produced_gfx = EbTileGraphics(256, 8)
+        self._produced_arr = EbArrangement(32, 32)
+        self._produced_pal = EbPalettes(1, 4)
+        self._presented_gfx = EbTileGraphics(256, 8)
+        self._presented_arr = EbArrangement(32, 32)
+        self._presented_pal = EbPalettes(1, 4)
+
+        self._pct = 50.0/(len(self._logos) + len(self._townmaps) + 1 + 2)
     def free(self):
         del(self._logos)
         del(self._townmaps)
@@ -519,6 +534,43 @@ class CompressedGraphicsModule(EbModule.EbModule):
                         EbModule.readAsmPointer(rom,
                         self._ASMPTR_TOWN_MAP_ICON_GFX)))
             self._townmap_icons.readFromBlock(cb)
+    def readProducedPresentedFromRom(self, rom):
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(rom,
+                        self._ASMPTR_PRODUCED_PAL)))
+            self._produced_pal.readFromBlock(cb)
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(rom,
+                        self._ASMPTR_PRODUCED_GFX)))
+            self._produced_gfx.readFromBlock(cb)
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(rom,
+                        self._ASMPTR_PRODUCED_ARR)))
+            self._produced_arr.readFromBlock(cb)
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(rom,
+                        self._ASMPTR_PRESENTED_PAL)))
+            self._presented_pal.readFromBlock(cb)
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(rom,
+                        self._ASMPTR_PRESENTED_GFX)))
+            self._presented_gfx.readFromBlock(cb)
+        with EbCompressedData() as cb:
+            cb.readFromRom(rom,
+                    EbModule.toRegAddr(
+                        EbModule.readAsmPointer(rom,
+                        self._ASMPTR_PRESENTED_ARR)))
+            self._presented_arr.readFromBlock(cb)
     def readFromRom(self, rom):
         for logo in self._logos:
             logo.readFromRom(rom)
@@ -529,10 +581,13 @@ class CompressedGraphicsModule(EbModule.EbModule):
 
         self.readTownMapIconsFromRom(rom)
         updateProgress(self._pct)
+        self.readProducedPresentedFromRom(rom)
+        updateProgress(self._pct * 2)
     def freeRanges(self):
         return [(0x2021a8, 0x20ed02), # Town Map data
                 (0x214ec1, 0x2155d2), # Logo arrs/gfx/pals
-                (0x21ea50, 0x21f203)] # Town map icon GFX and pal
+                (0x21ea50, 0x21f203), # Town map icon GFX and pal
+                (0x21aadf, 0x21ae7b)] # Produced/Presented GFX/Arrs/Pal
     def writeToRom(self, rom):
         for logo in self._logos:
             logo.writeToRom(rom)
@@ -550,6 +605,33 @@ class CompressedGraphicsModule(EbModule.EbModule):
             EbModule.writeAsmPointer(rom, self._ASMPTR_TOWN_MAP_ICON_GFX,
                     EbModule.toSnesAddr(cb.writeToFree(rom)))
         updateProgress(self._pct)
+
+        with EbCompressedData(self._produced_pal.sizeBlock()) as cb:
+            self._produced_pal.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_PRODUCED_PAL,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        with EbCompressedData(self._produced_gfx.sizeBlock()) as cb:
+            self._produced_gfx.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_PRODUCED_GFX,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        with EbCompressedData(self._produced_arr.sizeBlock()) as cb:
+            self._produced_arr.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_PRODUCED_ARR,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        updateProgress(self._pct)
+        with EbCompressedData(self._presented_pal.sizeBlock()) as cb:
+            self._presented_pal.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_PRESENTED_PAL,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        with EbCompressedData(self._presented_gfx.sizeBlock()) as cb:
+            self._presented_gfx.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_PRESENTED_GFX,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        with EbCompressedData(self._presented_arr.sizeBlock()) as cb:
+            self._presented_arr.writeToBlock(cb)
+            EbModule.writeAsmPointer(rom, self._ASMPTR_PRESENTED_ARR,
+                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+        updateProgress(self._pct)
     def writeTownMapIconsToProject(self, resourceOpener):
         arr = EbArrangement(16, 18)
         for i in range(16*18):
@@ -558,6 +640,17 @@ class CompressedGraphicsModule(EbModule.EbModule):
         img = arr.toImage(self._townmap_icons, self._townmap_icons_pal)
         with resourceOpener("TownMaps/icons", "png") as imgFile:
             img.save(imgFile, "png")
+            imgFile.close()
+    def writeProducedPresentedToProject(self, resourceOpener):
+        img = self._produced_arr.toImage(
+                self._produced_gfx, self._produced_pal)
+        with resourceOpener("Logos/ProducedBy", "png") as imgFile:
+            img.save(imgFile, 'png')
+            imgFile.close()
+        img = self._presented_arr.toImage(
+                self._presented_gfx, self._presented_pal)
+        with resourceOpener("Logos/PresentedBy", "png") as imgFile:
+            img.save(imgFile, 'png')
             imgFile.close()
     def writeToProject(self, resourceOpener):
         for logo in self._logos:
@@ -569,6 +662,8 @@ class CompressedGraphicsModule(EbModule.EbModule):
 
         self.writeTownMapIconsToProject(resourceOpener)
         updateProgress(self._pct)
+        self.writeProducedPresentedToProject(resourceOpener)
+        updateProgress(self._pct * 2)
     def readFromProject(self, resourceOpener):
         for logo in self._logos:
             logo.readFromProject(resourceOpener)
@@ -584,6 +679,23 @@ class CompressedGraphicsModule(EbModule.EbModule):
             self._townmap_icons.loadFromImage(img)
             self._townmap_icons_pal.loadFromImage(img)
         updateProgress(self._pct)
+
+        with resourceOpener("Logos/ProducedBy", "png") as imgFile:
+            img = Image.open(imgFile)
+            if img.mode != 'P':
+                raise RuntimeError("Logos/ProducedBy is not an indexed PNG.")
+            self._produced_pal.loadFromImage(img)
+            self._produced_arr.readFromImage(img, self._produced_pal,
+                    self._produced_gfx)
+        updateProgress(self._pct)
+        with resourceOpener("Logos/PresentedBy", "png") as imgFile:
+            img = Image.open(imgFile)
+            if img.mode != 'P':
+                raise RuntimeError("Logos/PresentedBy is not an indexed PNG.")
+            self._presented_pal.loadFromImage(img)
+            self._presented_arr.readFromImage(img, self._presented_pal, 
+                    self._presented_gfx)
+        updateProgress(self._pct)
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
             resourceOpenerW):
         if oldVersion == newVersion:
@@ -592,6 +704,10 @@ class CompressedGraphicsModule(EbModule.EbModule):
         elif oldVersion <= 2:
             self.readTownMapIconsFromRom(rom)
             self.writeTownMapIconsToProject(resourceOpenerW)
+
+            self.readProducedPresentedFromRom(rom)
+            self.writeProducedPresentedToProject(resourceOpenerW)
+
             self.upgradeProject(3, newVersion, rom, resourceOpenerR,
                                         resourceOpenerW)
         else:
