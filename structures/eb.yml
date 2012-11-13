@@ -50,7 +50,7 @@
   offset: 12779520
   size: 256
   type: data
-12837456: &id133
+12837456: &id136
   entries:
   - name: X Offset
     size: 2
@@ -113,7 +113,7 @@
   offset: 12844429
   size: 40
   type: data
-12844477: &id131
+12844477: &id134
   entries:
   - name: Sprite
     size: 2
@@ -211,15 +211,14 @@
   type: data
 12908871: &id079
   entries:
-  - endianness: m
-    name: Unknown
+  - name: Unknown
     size: 3
-    type: pointer
+    type: hilomid pointer
   name: MUSIC_PACK_POINTER_TABLE
   offset: 12908871
   size: 507
   type: data
-12917522: &id108
+12917522: &id109
   entries:
   - name: Text
     terminator: 2
@@ -246,7 +245,7 @@
   offset: 13159917
   size: 3072
   type: data
-13162989: &id109
+13162989: &id110
   entries:
   - name: Text
     terminator: 2
@@ -464,7 +463,7 @@
   size: 2494
   terminator: 0
   type: data
-13434837: &id130
+13434837: &id133
   entries:
   - name: Pointer
     size: 4
@@ -501,7 +500,7 @@
   offset: 13526292
   size: 1024
   type: data
-13556805: &id105
+13556805: &id106
   entries:
   - base: 13500416
     name: Pointer
@@ -592,7 +591,7 @@
   offset: 13567480
   size: 44
   type: data
-13567524: &id116
+13567524: &id119
   entries:
   - name: Pointer
     size: 4
@@ -619,7 +618,7 @@
   offset: 13567560
   size: 847
   type: data
-13568407: &id122
+13568407: &id125
   entries:
   - name: Pointer
     size: 4
@@ -646,7 +645,7 @@
   offset: 13568439
   size: 275
   type: data
-13568714: &id123
+13568714: &id126
   entries:
   - name: Pointer
     size: 4
@@ -673,7 +672,7 @@
   offset: 13568722
   size: 781
   type: data
-13569503: &id124
+13569503: &id127
   entries:
   - name: Pointer
     size: 4
@@ -700,7 +699,7 @@
   offset: 13569511
   size: 77
   type: data
-13569588: &id125
+13569588: &id128
   entries:
   - name: Pointer
     size: 4
@@ -727,7 +726,7 @@
   offset: 13569624
   size: 154
   type: data
-13569778: &id126
+13569778: &id129
   entries:
   - name: Pointer
     size: 4
@@ -754,7 +753,7 @@
   offset: 13569782
   size: 902
   type: data
-13570684: &id127
+13570684: &id130
   entries:
   - name: Pointer
     size: 4
@@ -781,7 +780,7 @@
   offset: 13570688
   size: 297
   type: data
-13570985: &id128
+13570985: &id131
   entries:
   - name: Pointer
     size: 4
@@ -808,7 +807,7 @@
   offset: 13570989
   size: 1991
   type: data
-13572980: &id129
+13572980: &id132
   entries:
   - name: Pointer
     size: 4
@@ -835,7 +834,7 @@
   offset: 13572992
   size: 11
   type: data
-13573003: &id117
+13573003: &id120
   entries:
   - name: Pointer
     size: 4
@@ -862,7 +861,7 @@
   offset: 13573027
   size: 528
   type: data
-13573555: &id118
+13573555: &id121
   entries:
   - name: Pointer
     size: 4
@@ -889,7 +888,7 @@
   offset: 13573587
   size: 22
   type: data
-13573609: &id119
+13573609: &id122
   entries:
   - name: Pointer
     size: 4
@@ -979,7 +978,7 @@
   offset: 13574809
   size: 286
   type: data
-13575095: &id120
+13575095: &id123
   entries:
   - name: Pointer
     size: 4
@@ -1006,7 +1005,7 @@
   offset: 13575107
   size: 484
   type: data
-13575591: &id121
+13575591: &id124
   entries:
   - name: Pointer
     size: 4
@@ -1224,7 +1223,7 @@
   offset: 13979648
   size: 9906
   type: data
-13989554: &id104
+13989554: &id105
   entries:
   - name: Item 1
     size: 1
@@ -1260,7 +1259,7 @@
   offset: 13990016
   size: 496
   type: data
-13990574: &id106
+13990574: &id107
   entries:
   - name: Name
     size: 25
@@ -1724,7 +1723,7 @@
   offset: 13997449
   size: 21714
   type: data
-14019163: &id103
+14019163: &id104
   entries:
   - name: Offense
     size: 1
@@ -1775,7 +1774,7 @@
   offset: 14019191
   size: 308
   type: data
-14019499: &id107
+14019499: &id108
   entries:
   - name: X
     size: 2
@@ -1805,7 +1804,7 @@
   offset: 14021371
   size: 448
   type: data
-14021819: &id114
+14021819: &id115
   entries:
   - name: Item ID
     size: 1
@@ -1866,7 +1865,7 @@
   offset: 14022133
   size: 80
   type: data
-14022213: &id113
+14022213: &id114
   entries:
   - name: Sprite Group
     size: 2
@@ -1928,7 +1927,7 @@
   offset: 14192464
   size: 24846
   type: data
-14218174: &id132
+14218174: &id135
   entries:
   - name: Palette
     size: 8
@@ -1998,7 +1997,7 @@
   size: 5050
   terminator: 0
   type: data
-14688200: &id111
+14688200: &id112
   entries:
   - name: Text Palette
     size: 8
@@ -2037,7 +2036,7 @@
   offset: 14688648
   size: 8
   type: data
-14688656: &id115
+14688656: &id116
   entries:
   - name: Pointer
     size: 4
@@ -2066,7 +2065,7 @@
   offset: 14757770
   size: 1984
   type: data
-14762303: &id102
+14762303: &id103
   entries:
   - name: Text
     terminator: 0
@@ -2074,6 +2073,33 @@
   name: STAFF_TEXT
   offset: 14762303
   size: 3241
+  type: data
+14805268: &id102
+  entries:
+  - name: Palette
+    size: 8
+    type: palette
+  name: STAFF_CREDITS_FONT_PALETTE
+  offset: 14805268
+  size: 16
+  type: data
+14807491: &id117
+  entries:
+  - name: Palette
+    size: 32
+    type: palette
+  name: TOWN_MAP_ICON_PALETTE
+  offset: 14807491
+  size: 64
+  type: data
+14808209: &id118
+  entries:
+  - name: Pointer
+    size: 4
+    type: pointer
+  name: TOWN_MAP_ICON_PLACEMENT_PTR_TABLE
+  offset: 14808209
+  size: 24
   type: data
 15073280: &id003
   entries:
@@ -2122,7 +2148,7 @@
   size: 1017
   terminator: 0
   type: data
-15667227: &id112
+15667227: &id113
   entries:
   - name: Tileset
     size: 2
@@ -2194,7 +2220,7 @@
   offset: 15668031
   size: 1856
   type: data
-15682112: &id110
+15682112: &id111
   entries:
   - name: Text
     terminator: 2
@@ -2342,37 +2368,40 @@ SOUND_STONE_PALETTE: *id098
 SPRITE_GROUPING_PTR_TABLE: *id099
 SPRITE_GROUP_PALETTES: *id100
 SPRITE_PLACEMENT_PTR_TABLE: *id101
-STAFF_TEXT: *id102
-STATS_GROWTH_VARS: *id103
-STORE_TABLE: *id104
-SWIRL_POINTER_TABLE: *id105
-TELEPHONE_CONTACTS_TABLE: *id106
-TELEPORT_DESTINATION_TABLE: *id107
-TEXT_DATA: *id108
-TEXT_DATA_2: *id109
-TEXT_DATA_EF4A40: *id110
-TEXT_WINDOW_FLAVOUR_PALETTES: *id111
-TILESET_TABLE: *id112
-TIMED_DELIVERY_TABLE: *id113
-TIMED_ITEM_TRANSFORMATION_TABLE: *id114
-TOWN_MAP_GFX_POINTER_TABLE: *id115
-UNKNOWN_DPOINTERS_1: *id116
-UNKNOWN_DPOINTERS_10: *id117
-UNKNOWN_DPOINTERS_11: *id118
-UNKNOWN_DPOINTERS_12: *id119
-UNKNOWN_DPOINTERS_15: *id120
-UNKNOWN_DPOINTERS_16: *id121
-UNKNOWN_DPOINTERS_2: *id122
-UNKNOWN_DPOINTERS_3: *id123
-UNKNOWN_DPOINTERS_4: *id124
-UNKNOWN_DPOINTERS_5: *id125
-UNKNOWN_DPOINTERS_6: *id126
-UNKNOWN_DPOINTERS_7: *id127
-UNKNOWN_DPOINTERS_8: *id128
-UNKNOWN_DPOINTERS_9: *id129
-UNKNOWN_PTR_CCFFD5: *id130
-UNUSED_FORSALE_SIGN_SPRITE_TABLE: *id131
-WARNING_PALETTE: *id132
-WINDOW_CONFIGURATION_TABLE: *id133
+STAFF_CREDITS_FONT_PALETTE: *id102
+STAFF_TEXT: *id103
+STATS_GROWTH_VARS: *id104
+STORE_TABLE: *id105
+SWIRL_POINTER_TABLE: *id106
+TELEPHONE_CONTACTS_TABLE: *id107
+TELEPORT_DESTINATION_TABLE: *id108
+TEXT_DATA: *id109
+TEXT_DATA_2: *id110
+TEXT_DATA_EF4A40: *id111
+TEXT_WINDOW_FLAVOUR_PALETTES: *id112
+TILESET_TABLE: *id113
+TIMED_DELIVERY_TABLE: *id114
+TIMED_ITEM_TRANSFORMATION_TABLE: *id115
+TOWN_MAP_GFX_POINTER_TABLE: *id116
+TOWN_MAP_ICON_PALETTE: *id117
+TOWN_MAP_ICON_PLACEMENT_PTR_TABLE: *id118
+UNKNOWN_DPOINTERS_1: *id119
+UNKNOWN_DPOINTERS_10: *id120
+UNKNOWN_DPOINTERS_11: *id121
+UNKNOWN_DPOINTERS_12: *id122
+UNKNOWN_DPOINTERS_15: *id123
+UNKNOWN_DPOINTERS_16: *id124
+UNKNOWN_DPOINTERS_2: *id125
+UNKNOWN_DPOINTERS_3: *id126
+UNKNOWN_DPOINTERS_4: *id127
+UNKNOWN_DPOINTERS_5: *id128
+UNKNOWN_DPOINTERS_6: *id129
+UNKNOWN_DPOINTERS_7: *id130
+UNKNOWN_DPOINTERS_8: *id131
+UNKNOWN_DPOINTERS_9: *id132
+UNKNOWN_PTR_CCFFD5: *id133
+UNUSED_FORSALE_SIGN_SPRITE_TABLE: *id134
+WARNING_PALETTE: *id135
+WINDOW_CONFIGURATION_TABLE: *id136
 
 ...
