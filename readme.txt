@@ -1,5 +1,7 @@
 CoilSnake Manual of Random Stuff
 
+Tutorial: http://datacrystal.romhacking.net/wiki/CoilSnake_Tutorial
+
 In General:
 - All PNG files need to be Indexed PNGs. That is, they need to have a palette instead of being in RGB mode.
 - If your PNG does not get saved correctly to the rom, it probably has too many unique tiles. Or maybe you are using too many different colors per 8x8 tile, if the problem is in a logo screen or town map.
@@ -23,17 +25,18 @@ Enemies:
 - Valid battle sprite dimensions are 0x0, 32x32, 64x32, 32x64, 64x64, 128x64, and 128x128.
 
 Map Enemy Groups:
-- Probabilities for each subgroup must add up to "8". Undefined results if they don't.
+- Probabilities for each subgroup must add up to 8.
 
 Sprite Groups:
-- The sprite palettes are specified in a separate file. Edit them there if you want to.
+- The sprite palettes are specified in sprite_group_palettes.yml. Edit them there if you want to.
+- Palettes in each sprite image must exactly match one of the palettes in sprite_group_palettes.yml
 - Use the "show grid" function on your favorite image editing software to make editing the PNGs easier. Use a grid-size of 8x8.
-- "Swam Flags" determine whether a sprite will sink or not when in Deep Darkness water. True = don't sink at all. This is used for present boxes, Krakens, etc.
+- "Swim Flags" determine whether a sprite will sink or not when in Deep Darkness water. True = don't sink at all. This is used for present boxes, Krakens, etc.
 - Remember to change the "Length" attribute appropriately for the Sprite Group you're editing in sprite_groups.yml
-- Unknown A explanation?: http://local-static1.forum-files.fobby.net/forum_attachments/0023/2521/spt.txt
 
 Logos:
-- The first color of the image's palette will be used as the background
+- The first color of the company logo image's palette will be used as the background
+- Only the graphics from GasStation1.png will be used. GasStation2.png and GasStation3.png are only used for their palette.
 
 Window Graphics:
 - The Windows2 pngs are the window borders used for flavored palettes. Windows1 contains the borders used for "Plain" flavor.

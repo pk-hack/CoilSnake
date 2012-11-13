@@ -6,7 +6,7 @@ import yaml
 from re import sub
 
 class MapEnemyModule(EbModule.EbModule):
-    _name = "Map Enemies"
+    _name = "Enemy Map Groups"
     def __init__(self):
         self._mapGroupPtrTbl = EbTable(0xD0B880)
         self._mapEnemyTbl = EbTable(0xD01880)
@@ -139,14 +139,24 @@ class MapEnemyModule(EbModule.EbModule):
 
                 subg1 = [ ]
                 if rate1 > 0:
+                    probTotal = 0
                     for eid in group["Sub-Group 1"]:
                         entry = group["Sub-Group 1"][eid]
+                        probTotal += entry["Probability"]
                         subg1.append((entry["Probability"], entry["Enemy Group"]))
+                    if probTotal != 8:
+                        raise RuntimeError(("Map Enemy Group #%s's Sub-Group 1"
+                            + " probabilities do not total to 8.") % gid)
                 subg2 = [ ]
                 if rate2 > 0:
+                    probTotal = 0
                     for eid in group["Sub-Group 2"]:
                         entry = group["Sub-Group 2"][eid]
+                        probTotal += entry["Probability"]
                         subg2.append((entry["Probability"], entry["Enemy Group"]))
+                    if probTotal != 8:
+                         raise RuntimeError(("Map Enemy Group #%s's Sub-Group 2"
+                             + " probabilities do not total to 8.") % gid)
                 self._mapGroups.append(
                         (flag, rate1, rate2, subg1, subg2))
                 updateProgress(pct)
