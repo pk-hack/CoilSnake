@@ -2,6 +2,8 @@ import array
 import os
 import yaml
 
+from copy import copy
+
 class Rom:
     def __init__(self, romtypeFname=None):
         self._data = array.array('B')
@@ -12,6 +14,13 @@ class Rom:
         if (romtypeFname):
             with open(romtypeFname, 'r') as f:
                 self._type_map = yaml.load(f, Loader=yaml.CSafeLoader)
+    def copy(self):
+        r = Rom()
+        r._data = copy(self._data)
+        r._size = self._size
+        r._type = self._type
+        r._type_map = self._type_map
+        r._freeRanges = self._freeRanges
     def checkRomType(self):
         for t, d in self._type_map.iteritems():
             offset, data, platform = d['offset'], d['data'], d['platform']

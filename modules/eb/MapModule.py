@@ -17,6 +17,8 @@ class MapModule(EbModule.EbModule):
         self._mapSecTsetPalsTbl = EbTable(0xD7A800)
         self._mapSecMusicTbl = EbTable(0xDCD637)
         self._mapSecMiscTbl = EbTable(0xD7B200)
+        self._mapSecTownMapTbl = EbTable(0xEFA70F)
+
         self.teleport = ValuedIntTableEntry(None, None,
                 ["Enabled", "Disabled"])
         self.townmap = ValuedIntTableEntry(None, None,
@@ -26,6 +28,12 @@ class MapModule(EbModule.EbModule):
                 ["None", "Indoors", "Exit Mouse usable",
                 "Lost Underworld sprites", "Magicant sprites", "Robot sprites",
                 "Butterflies", "Indoors and Butterflies"])
+
+        self.townmap_image = ValuedIntTableEntry(None, None,
+                ["None", "Onett", "Twoson", "Threed", "Fourside", "Scaraba",
+                "Summers" ])
+        self.townmap_arrow = ValuedIntTableEntry(None, None,
+                ["None", "Up", "Down", "Right", "Left"])
     def readFromRom(self, rom):
         # Read map tiles
         map_ptrs_addr = \
@@ -52,11 +60,13 @@ class MapModule(EbModule.EbModule):
         updateProgress(25)
         # Read sector data
         self._mapSecTsetPalsTbl.readFromRom(rom)
-        updateProgress(25.0/3)
+        updateProgress(25.0/4)
         self._mapSecMusicTbl.readFromRom(rom)
-        updateProgress(25.0/3)
+        updateProgress(25.0/4)
         self._mapSecMiscTbl.readFromRom(rom)
-        updateProgress(25.0/3)
+        updateProgress(25.0/4)
+        self._mapSecTownMapTbl.readFromRom(rom)
+        updateProgress(25.0/4)
     def writeToRom(self, rom):
         map_ptrs_addr = \
             EbModule.toRegAddr(rom.readMulti(self._MAP_PTRS_PTR_ADDR, 3))
@@ -83,11 +93,13 @@ class MapModule(EbModule.EbModule):
         updateProgress(25)
         # Write sector data
         self._mapSecTsetPalsTbl.writeToRom(rom)
-        updateProgress(25.0/3)
+        updateProgress(25.0/4)
         self._mapSecMusicTbl.writeToRom(rom)
-        updateProgress(25.0/3)
+        updateProgress(25.0/4)
         self._mapSecMiscTbl.writeToRom(rom)
-        updateProgress(25.0/3)
+        updateProgress(25.0/4)
+        self._mapSecTownMapTbl.writeToRom(rom)
+        updateProgress(25.0/4)
     def writeToProject(self, resourceOpener):
         # Write map tiles
         with resourceOpener("map_tiles", "map") as f:
@@ -104,6 +116,8 @@ class MapModule(EbModule.EbModule):
             self.teleport.setVal(self._mapSecMiscTbl[i,0].val() >> 7)
             self.townmap.setVal((self._mapSecMiscTbl[i,0].val() >> 3) & 7)
             self.setting.setVal(self._mapSecMiscTbl[i,0].val() & 3)
+            self.townmap_image.setVal(self._mapSecTownMapTbl[i,0].val() & 0xf)
+            self.townmap_arrow.setVal(self._mapSecTownMapTbl[i,0].val() >> 4)
             out[i] = {
                     "Tileset": self._mapSecTsetPalsTbl[i,0].val() >> 3,
                     "Palette": self._mapSecTsetPalsTbl[i,0].val() & 7,
@@ -111,7 +125,11 @@ class MapModule(EbModule.EbModule):
                     "Teleport": self.teleport.dump(),
                     "Town Map": self.townmap.dump(),
                     "Setting": self.setting.dump(),
-                    "Item": self._mapSecMiscTbl[i,1].dump() }
+                    "Item": self._mapSecMiscTbl[i,1].dump(),
+                    "Town Map Image": self.townmap_image.dump(),
+                    "Town Map Arrow": self.townmap_arrow.dump(),
+                    "Town Map X": self._mapSecTownMapTbl[i,1].dump(),
+                    "Town Map Y": self._mapSecTownMapTbl[i,2].dump() }
         updateProgress(12.5)
         with resourceOpener("map_sectors", "yml") as f:
             yaml.dump(out, f, Dumper=yaml.CSafeDumper, default_flow_style=False)
@@ -127,6 +145,7 @@ class MapModule(EbModule.EbModule):
         self._mapSecTsetPalsTbl.clear(2560)
         self._mapSecMusicTbl.clear(2560)
         self._mapSecMiscTbl.clear(2560)
+        self._mapSecTownMapTbl.clear(2560)
         pct = (25.0/2560)
         with resourceOpener("map_sectors", "yml") as f:
             input = yaml.load(f, Loader=yaml.CSafeLoader)
@@ -141,9 +160,17 @@ class MapModule(EbModule.EbModule):
                 self.setting.load(entry["Setting"])
                 self._mapSecMiscTbl[i,0].setVal((self.teleport.val() << 7)
                         | (self.townmap.val() << 3) | self.setting.val())
+                self.townmap_image.load(entry["Town Map Image"])
+                self.townmap_arrow.load(entry["Town Map Arrow"])
+                self._mapSecTownMapTbl[i,0].setVal(
+                        (self.townmap_arrow.val() << 4) |
+                        (self.townmap_image.val() & 0xf))
+                self._mapSecTownMapTbl[i,1].load(entry["Town Map X"])
+                self._mapSecTownMapTbl[i,2].load(entry["Town Map Y"])
                 updateProgress(pct)
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
             resourceOpenerW):
+        global updateProgress
         def replaceField(fname, oldField, newField, valueMap):
             if newField == None:
                 newField = oldField
@@ -164,13 +191,30 @@ class MapModule(EbModule.EbModule):
         if oldVersion == newVersion:
             updateProgress(100)
             return
-        elif oldVersion == 2:
+        elif oldVersion <= 2:
             replaceField("map_sectors", "Town Map", None,
                     { "scummers": "summers" })
-            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
-        elif oldVersion == 1:
-            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+
+            # Need to add the Town Map Image/Arrow/X/Y fields
+            tmp = updateProgress
+            updateProgress = lambda x: None
+            self.readFromRom(rom)
+            updateProgress = tmp
+
+            with resourceOpenerR("map_sectors", 'yml') as f:
+                data = yaml.load(f, Loader=yaml.CSafeLoader)
+                for i in data:
+                    self.townmap_image.setVal(self._mapSecTownMapTbl[i,0].val() & 0xf)
+                    self.townmap_arrow.setVal(self._mapSecTownMapTbl[i,0].val() >> 4)
+                    data[i]["Town Map Image"] = self.townmap_image.dump()
+                    data[i]["Town Map Arrow"] = self.townmap_arrow.dump()
+                    data[i]["Town Map X"] = self._mapSecTownMapTbl[i,1].dump()
+                    data[i]["Town Map Y"] = self._mapSecTownMapTbl[i,2].dump()
+            with resourceOpenerW("map_sectors", 'yml') as f:
+                yaml.dump(data, f, Dumper=yaml.CSafeDumper,
+                        default_flow_style=False)
+
+            self.upgradeProject(3, newVersion, rom, resourceOpenerR,
                     resourceOpenerW)
         else:
             raise RuntimeException("Don't know how to upgrade from version",
