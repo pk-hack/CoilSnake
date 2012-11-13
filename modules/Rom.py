@@ -84,6 +84,8 @@ class Rom:
                     lambda y: tuple(map(lambda z: int(z, 0),
                         y[1:-1].split(','))),
                     self._type_map[self._type]['free ranges'])
+            self._freeRanges = [(a,b) for (a,b)
+                    in self._freeRanges if (b < self._size) ]
             self._freeRanges.sort()
         else:
             self._freeRanges = []
@@ -215,15 +217,12 @@ class Rom:
                 return begin
         # TODO what if there is enough free space available, but not starting
         # with the mask?
-        return -1
+        raise RuntimeError("Not enough free space left in the ROM."
+            + " Try using an expanded ROM as your base ROM.")
     def writeToFree(self, data):
         loc = self.getFreeLoc(len(data))
-        if loc < 0:
-            raise RuntimeError(
-                    "writeToFree: not enough free space left")
-        else:
-            self.write(loc, data)
-            return loc
+        self.write(loc, data)
+        return loc
     # Overloaded operators
     def __getitem__(self, key):
         if (type(key) == slice):
