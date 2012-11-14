@@ -10,7 +10,7 @@ FORMAT_VERSION = 3
 VERSION_NAMES = {
         1: "1.0",
         2: "1.1",
-        3: "1.1.1",
+        3: "1.2",
         }
 
 def getVersionName(version):

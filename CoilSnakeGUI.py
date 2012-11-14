@@ -7,6 +7,8 @@ from shutil import copyfile
 from threading import Thread
 from time import time
 from traceback import print_exc
+from platform import python_version
+import sys
 
 from Tkinter import *
 import tkFileDialog, tkMessageBox
@@ -48,13 +50,18 @@ class CoilSnakeFrontend:
 
         Label(am,
                 text=
-                "Released on " + CoilSnake._RELEASE_DATE + ".\n\n"
-                + "Created by MrTenda.\n"
-                + "Logo art by Reg.\n\n"
+                (("CoilSnake %s\n"
+                + "Released on %s\n\n"
+                + "Created by MrTenda\n"
+                + "Logo art by Reg\n\n"
                 + "With help from\n"
-                + "  Penguin, Reg, Mr. Accident, Goplat,\n"
-                + "  AnyoneEB, H.S, Captain Bozo,\n"
-                + "  and the rest of the PK Hack community.",
+                + "  Penguin, Reg, H.S, Michael1,\n"
+                + "  Mr. Accident, AnyoneEB, Goplat, Captain Bozo,\n"
+                + "  and the rest of the PK Hack community.\n"
+                + "\n"
+                + "Running on Python %s") % (
+                    CoilSnake._VERSION,
+                    CoilSnake._RELEASE_DATE, python_version())),
                 anchor="w",justify="left",bg="white",borderwidth=5,
                 relief=GROOVE).pack(
                         fill='both', expand=1)
