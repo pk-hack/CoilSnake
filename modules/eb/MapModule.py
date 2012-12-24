@@ -217,5 +217,5 @@ class MapModule(EbModule.EbModule):
             self.upgradeProject(3, newVersion, rom, resourceOpenerR,
                     resourceOpenerW)
         else:
-            raise RuntimeException("Don't know how to upgrade from version",
-                    oldVersion, "to", newVersion)
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                                                            resourceOpenerW)

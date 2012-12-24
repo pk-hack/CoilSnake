@@ -34,10 +34,10 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
 #            0xC3F054, # Font Ptr Tbl
 #            0xC4C05E, # File select text # TODO need to fix this
 #            0xC8CDED, # Compressed text ptr tbl
-            0xCCF47F, # PSI Anim Pals
+#            0xCCF47F, # PSI Anim Pals
 #            0xCCF58F, # PSI Anim Ptrs
 #            0xCEDC45, # Swirl Ptr Tbl
-            0xCEF806 # Sound stone pal
+#            0xCEF806 # Sound stone pal
 #            0xCF58EF, # Music Event Ptr Tbl
 #            0xD01598, # Map Event Tile Ptr Tbl
 
@@ -65,6 +65,13 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
         if oldVersion == newVersion:
             updateProgress(100)
             return
+        elif oldVersion == 3:
+            replaceField("item_configuration_table",
+                    "Effect", "Action", { })
+            replaceField("psi_ability_table",
+                    "Effect", "Action", { })
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                    resourceOpenerW)
         elif oldVersion == 2:
             replaceField("timed_delivery_table",
                     "Suitable Area Text Pointer",
@@ -100,5 +107,5 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
                     resourceOpenerW)
         else:
-            raise RuntimeException("Don't know how to upgrade from version",
+            raise RuntimeError("Don't know how to upgrade from version",
                     oldVersion, "to", newVersion)

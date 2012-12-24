@@ -1211,7 +1211,7 @@
     name: Misc Flags
     size: 1
     type: bitfield
-  - name: Effect
+  - name: Action
     size: 2
   - name: Argument
     size: 4
@@ -1338,7 +1338,7 @@
     - Other
     - Unusable
     - Usable
-  - name: Effect
+  - name: Action
     size: 2
   - name: Level learned by Ness
     size: 1

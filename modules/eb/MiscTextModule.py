@@ -173,9 +173,6 @@ class MiscTextModule(EbModule.EbModule):
             updateProgress = tmp
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
                     resourceOpenerW)
-        elif oldVersion == 1:
+        else:
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
                     resourceOpenerW)
-        else:
-            raise RuntimeException("Don't know how to upgrade from version",
-                    oldVersion, "to", newVersion)

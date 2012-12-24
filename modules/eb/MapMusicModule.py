@@ -34,7 +34,7 @@ class MapMusicModule(EbModule.EbModule):
         for entry in self._entries:
             entryLen = len(entry)*4
             if writeLoc+entryLen > writeRangeEnd:
-                raise RuntimeException("Not enough room for map music")
+                raise RuntimeError("Not enough room for map music")
             self._ptrTbl[i,0].setVal(writeLoc & 0xffff)
             i += 1
 

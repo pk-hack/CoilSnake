@@ -375,7 +375,7 @@ class TilesetModule(EbModule.EbModule):
             for (mp,pal) in mtset_pals:
                 if palWriteLoc + 0xc0 > palRangeEnd:
                     # TODO Error, not enough space for all these palettes
-                    raise RuntimeException("Too many palettes")
+                    raise RuntimeError("Too many palettes")
                 pal.writeToBlock(rom, palWriteLoc)
                 palWriteLoc += 0xc0
             updateProgress(pct)

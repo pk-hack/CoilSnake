@@ -13,9 +13,6 @@ class PatchModule(GenericModule):
         if oldVersion == newVersion:
             updateProgress(100)
             return
-        elif oldVersion == 2:
-            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                                        resourceOpenerW)
         elif oldVersion == 1:
             tmp = updateProgress
             updateProgress = lambda x: None
@@ -25,8 +22,8 @@ class PatchModule(GenericModule):
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
                     resourceOpenerW)
         else:
-            raise RuntimeException("Don't know how to upgrade from version",
-                    oldVersion, "to", newVersion)
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                                        resourceOpenerW)
     def readFromRom(self, rom):
         self._patches = dict()
         # Loop through all the patches for this romtyp
