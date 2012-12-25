@@ -235,7 +235,7 @@ Please specify it in the Preferences menu.""")
         self._upgradeB["state"] = NORMAL
         del(self._cs)
     def expandRom(self, ex=False):
-        r = Rom.Rom('romtypes.yaml')
+        r = Rom.Rom('resources/romtypes.yaml')
         fname = tkFileDialog.askopenfilename(
                     parent=self._root, title="Select a ROM to expand",
                     filetypes=[('SNES ROMs','*.smc'), ('SNES ROMs','*.sfc'), ('All files','*.*')])
@@ -251,7 +251,7 @@ Please specify it in the Preferences menu.""")
     def expandRomEx(self):
         self.expandRom(ex=True)
     def addHeaderRom(self):
-        r = Rom.Rom('romtypes.yaml')
+        r = Rom.Rom('resources/romtypes.yaml')
         fname = tkFileDialog.askopenfilename(
                     parent=self._root, title="Select a ROM to which to add a header",
                     filetypes=[('SNES ROMs','*.smc'), ('SNES ROMs','*.sfc'), ('All files','*.*')])
@@ -262,7 +262,7 @@ Please specify it in the Preferences menu.""")
             del(r)
             tkMessageBox.showinfo(parent=self._root, title="Header Addition Successful", message="Your ROM was given a header.")
     def stripHeaderRom(self):
-        r = Rom.Rom('romtypes.yaml')
+        r = Rom.Rom('resources/romtypes.yaml')
         fname = tkFileDialog.askopenfilename(
                     parent=self._root, title="Select a ROM from which to remove a header",
                     filetypes=[('SNES ROMs','*.smc'), ('SNES ROMs','*.sfc'), ('All files','*.*')])

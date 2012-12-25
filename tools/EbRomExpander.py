@@ -35,7 +35,7 @@ def main():
 
     args = parser.parse_args()
 
-    r = Rom.Rom('romtypes.yaml')
+    r = Rom.Rom('resources/romtypes.yaml')
     r.load(args.input)
 
     expandRom(r, args.ex)

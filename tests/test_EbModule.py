@@ -14,11 +14,11 @@ class testEbModule(unittest.TestCase):
     """
 
     def setUp(self):
-        self.rom = Rom.Rom("../romtypes.yaml")
+        self.rom = Rom.Rom("../resources/romtypes.yaml")
         self.rom.load("roms/EB_fake_24mbit.smc")
 
     def _testDecomp(self, decompFunc):
-        r = Rom.Rom("../romtypes.yaml")
+        r = Rom.Rom("../resources/romtypes.yaml")
         r.load("roms/EarthBound.smc")
         tmp = decompFunc(r, 0x2021a8)
         onett_map = array.array('B')
@@ -41,7 +41,7 @@ class testEbModule(unittest.TestCase):
         cdata = compFunc(udata)
         self.assertEqual(len(cdata), 10877)
 
-        r = Rom.Rom("../romtypes.yaml")
+        r = Rom.Rom("../resources/romtypes.yaml")
         r.load("roms/EB_fake_32mbit.smc")
         r.write(0x300000, cdata)
 

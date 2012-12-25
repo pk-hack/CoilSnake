@@ -16,7 +16,7 @@ class Eb0Table(Table):
     eb_table_map = None
     def __init__(self, addr):
         if Eb0Table.eb_table_map == None:
-            with open("structures/eb0.yml") as f:
+            with open("resources/structures/eb0.yml") as f:
                 i=1
                 for doc in yaml.load_all(f, Loader=yaml.CSafeLoader):
                     if i == 1:

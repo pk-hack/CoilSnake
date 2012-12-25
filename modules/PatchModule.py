@@ -28,11 +28,11 @@ class PatchModule(GenericModule):
         self._patches = dict()
         # Loop through all the patches for this romtyp
         for ipsDescFname in [s for s in os.listdir(
-            'ips/' + rom.type()) if s.lower().endswith(".yml")]:
+            'resources/ips/' + rom.type()) if s.lower().endswith(".yml")]:
             patchName = ipsDescFname[:-4]
             ips = Ips()
-            ips.load('ips/' + rom.type() + '/' + patchName + '.ips')
-            with open('ips/' + rom.type() + '/' + ipsDescFname) as ipsDescFile:
+            ips.load('resources/ips/' + rom.type() + '/' + patchName + '.ips')
+            with open('resources/ips/' + rom.type() + '/' + ipsDescFname) as ipsDescFile:
                 ipsDesc = yaml.load(ipsDescFile, Loader=yaml.CSafeLoader)
                 if ipsDesc["Auto-Apply"]:
                     self._patches[ipsDesc["Title"]] = "enabled"
@@ -41,9 +41,9 @@ class PatchModule(GenericModule):
         updateProgress(50)
     def writeToRom(self, rom):
         for ipsDescFname in [s for s in os.listdir(
-            'ips/' + rom.type()) if s.lower().endswith(".yml")]:
+            'resources/ips/' + rom.type()) if s.lower().endswith(".yml")]:
             patchName = ipsDescFname[:-4]
-            with open('ips/' + rom.type() + '/' + ipsDescFname) as ipsDescFile:
+            with open('resources/ips/' + rom.type() + '/' + ipsDescFname) as ipsDescFile:
                 ipsDesc = yaml.load(ipsDescFile, Loader=yaml.CSafeLoader)
                 if ((ipsDesc["Title"] in self._patches) and
                         (self._patches[ipsDesc["Title"]].lower() == "enabled")):
@@ -64,7 +64,7 @@ class PatchModule(GenericModule):
                     offset = 0
                     if "Header" in ipsDesc:
                         offset = ipsDesc["Header"]
-                    ips.load('ips/' + rom.type() + '/' + patchName + '.ips',
+                    ips.load('resources/ips/' + rom.type() + '/' + patchName + '.ips',
                             offset)
                     ips.apply(rom)
                     # Mark the used ranges as used

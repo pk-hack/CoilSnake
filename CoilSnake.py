@@ -20,7 +20,7 @@ class CoilSnake:
         self.loadModules()
     def loadModules(self):
         self._modules = []
-        with open('modulelist.txt', 'r') as f:
+        with open('resources/modulelist.txt', 'r') as f:
             for line in f:
                 line = line.rstrip('\n')
                 if line[0] == '#':
@@ -54,7 +54,7 @@ class CoilSnake:
             # Perform the upgrade:
 
             # Open rom
-            rom = Rom.Rom("romtypes.yaml")
+            rom = Rom.Rom("resources/romtypes.yaml")
             rom.load(baseRomFname)
             # Make sure project type matches romtype
             if rom.type() != proj.type():
@@ -114,7 +114,7 @@ class CoilSnake:
                 raise RuntimeError("There is an error in your CCScript code."
                     + " Scroll up to see the error message.")
         # Open rom
-        rom = Rom.Rom("romtypes.yaml")
+        rom = Rom.Rom("resources/romtypes.yaml")
         rom.load(outRomFname)
         # Make sure project type matches romtype
         if rom.type() != proj.type():
@@ -145,7 +145,7 @@ class CoilSnake:
         return True
     def romToProj(self, inputRomFname, outputFname):
         # Load the ROM
-        rom = Rom.Rom("romtypes.yaml")
+        rom = Rom.Rom("resources/romtypes.yaml")
         rom.load(inputRomFname)
         # Load the Project
         proj = Project.Project()

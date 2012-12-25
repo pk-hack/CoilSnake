@@ -123,7 +123,7 @@ class testRom(unittest.TestCase):
         self.assertRaises(IOError, self.rom.save, "dne/a.bin")
 
     def testRomtypes(self):
-        self.rom = Rom.Rom("../romtypes.yaml")
+        self.rom = Rom.Rom("../resources/romtypes.yaml")
         self.rom.load("roms/EB_fake_noheader.smc")
         self.assertEqual(self.rom.type(), "Earthbound")
         self.rom.load("roms/EB_fake_header.smc")

@@ -85,7 +85,7 @@ class EbTable(Table):
     def __init__(self, addr):
         if EbTable.eb_table_map == None:
             #print "Loading eb.yml"
-            with open("structures/eb.yml") as f:
+            with open("resources/structures/eb.yml") as f:
                 i=1
                 for doc in yaml.load_all(f, Loader=yaml.CSafeLoader):
                     if i == 1:
