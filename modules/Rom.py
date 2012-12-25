@@ -135,7 +135,7 @@ class Rom:
                     self._data.fromlist([0] * 0x200000)
                     self._size += 0x200000
                     for i in range(0x8000, 0x8000 + 0x8000):
-                        self[0x400000 + i] = r[i]
+                        self[0x400000 + i] = self[i]
         else:
             raise RuntimeError("Don't know how to expand ROM of type \"" +
                     self._type + "\".")
