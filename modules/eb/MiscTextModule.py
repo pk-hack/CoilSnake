@@ -149,6 +149,9 @@ class MiscTextModule(EbModule.EbModule):
             catDict = self._data[cat]
             for (desc, loc, size) in items:
                 EbModule.writeStandardText(rom, loc, catDict[desc], size)
+                if (cat == "Status Window") and (len(catDict[desc]) < size):
+                    rom.write(loc+len(catDict[desc]),
+                            [00] * (size-len(catDict[desc])))
             updateProgress(self._pct)
     def writeToProject(self, resourceOpener):
         with resourceOpener("text_misc", "yml") as f:
