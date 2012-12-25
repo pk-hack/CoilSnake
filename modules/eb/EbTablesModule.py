@@ -6,7 +6,9 @@ import yaml
 
 class PointerTableEntry(IntTableEntry):
     def load(self, data):
-        if data[0] == '$':
+        if type(data) != str:
+            raise RuntimeError("Invalid pointer or label: '%s'" % data)
+        elif data[0] == '$':
             self._data = int(data[1:], 16)
         else:
             try:
