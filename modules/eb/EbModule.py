@@ -9,6 +9,9 @@ try:
 except ImportError:
     hasNativeComp = False
 
+if not hasNativeComp:
+    print "WARNING: Could not load native EarthBound compression library"
+
 from modules import Rom
 
 labelsDict = dict()
