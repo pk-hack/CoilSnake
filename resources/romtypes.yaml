@@ -14,7 +14,7 @@ Earthbound:
     - (0x15f70d, 0x15ffff) # from eb.yml
     - (0x17fbe8, 0x17ffff) # from eb.yml
     - (0x2009b4, 0x201358) # Unused compressed SRAM
-    - (0x2e9200, 0x2effff) # from eb.yml
+    - (0x2e9201, 0x2effff) # from eb.yml
     - (0x2FF0D7, 0x2FF1BA) # from eb.yml
     - (0x2FF53B, 0x2FF5BA) # from eb.yml
     - (0x2FF5EB, 0x2FFFFF) # from eb.yml
