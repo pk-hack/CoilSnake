@@ -1576,6 +1576,9 @@
   entries:
   - name: '"The" Flag'
     size: 1
+    values:
+    - False
+    - True
   - name: Name
     size: 25
     type: standardtext
@@ -1598,6 +1601,16 @@
     size: 2
   - name: Run Flag
     size: 1
+    values:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - True
+    - False
   - name: HP
     size: 2
   - name: PP
@@ -1693,8 +1706,20 @@
     size: 1
   - name: Boss Flag
     size: 1
+    values:
+    - False
+    - True
   - name: Item Rarity
     size: 1
+    values:
+    - 1/128
+    - 2/128
+    - 4/128
+    - 8/128
+    - 16/128
+    - 32/128
+    - 64/128
+    - 128/128
   - name: Item Dropped
     size: 1
   - name: Initial Status

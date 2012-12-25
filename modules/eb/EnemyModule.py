@@ -1,3 +1,4 @@
+from modules.GenericModule import replaceField
 import EbModule
 from EbTablesModule import EbTable
 from EbDataBlocks import EbCompressedData
@@ -316,3 +317,40 @@ class EnemyModule(EbModule.EbModule):
                     i += 1
                 self._enemyGroups.append(enemyList)
                 updateProgress(pct)
+    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+        resourceOpenerW):
+        if oldVersion == newVersion:
+            updateProgress(100)
+            return
+        elif oldVersion == 3:
+            replaceField("enemy_configuration_table",
+                    '"The" Flag', None,
+                    { 0: "False",
+                      1: "True" },
+                    resourceOpenerR, resourceOpenerW)
+            replaceField("enemy_configuration_table",
+                    "Boss Flag", None,
+                    { 0: "False",
+                      1: "True" },
+                    resourceOpenerR, resourceOpenerW)
+            replaceField("enemy_configuration_table",
+                    "Run Flag", None,
+                    { 7: "True",
+                        8: "False" },
+                    resourceOpenerR, resourceOpenerW)
+            replaceField("enemy_configuration_table",
+                    "Item Rarity", None,
+                    { 0: "1/128",
+                      1: "2/128",
+                      2: "4/128",
+                      3: "8/128",
+                      4: "16/128",
+                      5: "32/128",
+                      6: "64/128",
+                      7: "128/128" },
+                    resourceOpenerR, resourceOpenerW)
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                    resourceOpenerW)
+        else:
+            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
+                    resourceOpenerW)
