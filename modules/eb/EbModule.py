@@ -7,7 +7,21 @@ try:
     from modules.eb import NativeComp
     hasNativeComp = True
 except ImportError:
-    hasNativeComp = False
+    try:
+        import os
+        old_dir = os.getcwd()
+        os.chdir("modules/eb")
+
+        from distutils.core import run_setup
+        options = "build_ext --inplace clean"
+        run_setup('build_NativeComp.py', options.split())
+
+        os.chdir(old_dir)
+
+        from modules.eb import NativeComp
+        hasNativeComp = True
+    except:
+        hasNativeComp = False
 
 if not hasNativeComp:
     print "WARNING: Could not load native EarthBound compression library"

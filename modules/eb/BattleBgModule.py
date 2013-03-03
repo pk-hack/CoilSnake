@@ -55,12 +55,12 @@ class BattleBgModule(EbModule.EbModule):
             if (self._bbgGfxArrs[gfxNum] == None):
                 # Max size used in rom: 421 (2bpp) 442 (4bpp)
                 tg = EbTileGraphics(512, 8, colorDepth)
-                with EbCompressedData() as tgb:
+                with EbCompressedData(tg.sizeBlock()) as tgb:
                     tgb.readFromRom(rom, EbModule.toRegAddr(
                         self._bbgGfxPtrTbl[gfxNum,0].val()))
                     tg.readFromBlock(tgb)
                 a = EbArrangement(32, 32)
-                with EbCompressedData() as ab:
+                with EbCompressedData(a.sizeBlock()) as ab:
                     ab.readFromRom(rom, EbModule.toRegAddr(
                         self._bbgArrPtrTbl[gfxNum,0].val()))
                     a.readFromBlock(ab)
