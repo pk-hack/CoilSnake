@@ -96,6 +96,10 @@ class SpriteGroup:
         block[loc+8] = self._bank
         for i in range(len(self._spritePtrs)):
             block[loc+9+2*i] = self._spritePtrs[i] & 0xff
+            if block[loc+9+2*i] & 1 == 1:
+                block[loc+9+2*i] -= 1
+            else:
+                block[loc+9+2*i] += 1
             block[loc+9+2*i+1] = self._spritePtrs[i] >> 8
     def writeSpritesToFree(self, rom):
         if self._numSprites == 0:
