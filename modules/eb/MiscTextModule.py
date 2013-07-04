@@ -163,7 +163,7 @@ class MiscTextModule(EbModule.EbModule):
             self._data = yaml.load(f, Loader=yaml.CSafeLoader)
         updateProgress(50.0)
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-            resourceOpenerW):
+            resourceOpenerW, resourceDeleter):
         global updateProgress
         if oldVersion == newVersion:
             updateProgress(100)
@@ -175,7 +175,7 @@ class MiscTextModule(EbModule.EbModule):
             self.writeToProject(resourceOpenerW)
             updateProgress = tmp
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)
         else:
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)

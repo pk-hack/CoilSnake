@@ -169,7 +169,7 @@ class MapModule(EbModule.EbModule):
                 self._mapSecTownMapTbl[i,2].load(entry["Town Map Y"])
                 updateProgress(pct)
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-            resourceOpenerW):
+            resourceOpenerW, resourceDeleter):
         global updateProgress
         def replaceField(fname, oldField, newField, valueMap):
             if newField == None:
@@ -215,7 +215,7 @@ class MapModule(EbModule.EbModule):
                         default_flow_style=False)
 
             self.upgradeProject(3, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)
         else:
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                                                            resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)

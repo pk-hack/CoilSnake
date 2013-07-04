@@ -175,7 +175,7 @@ class FontModule(EbModule.EbModule):
             self._cpal.loadFromImage(img)
         updateProgress(self._pct)
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-            resourceOpenerW):
+            resourceOpenerW, resourceDeleter):
         if oldVersion == newVersion:
             updateProgress(100)
             return
@@ -183,7 +183,7 @@ class FontModule(EbModule.EbModule):
             self.readCreditsFontFromRom(rom)
             self.writeCreditsFontToProject(resourceOpenerW)
             self.upgradeProject(3, newVersion, rom, resourceOpenerR,
-                                        resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)
         else:
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                                        resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)

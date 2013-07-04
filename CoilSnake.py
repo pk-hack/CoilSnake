@@ -72,7 +72,8 @@ class CoilSnake:
                 sys.stdout.flush()
                 m.upgradeProject(proj.version(), Project.FORMAT_VERSION, rom,
                         lambda x,y: proj.getResource(n,x,y,'rb'),
-                        lambda x,y: proj.getResource(n,x,y,'wb'))
+                        lambda x,y: proj.getResource(n,x,y,'wb'),
+                        lambda x: proj.deleteResource(n,x))
                 print "(%0.2fs)" % (time.time() - startTime)
             proj.setVersion(Project.FORMAT_VERSION)
             proj.write(inputFname + os.sep + Project.PROJECT_FILENAME)

@@ -805,7 +805,7 @@ class CompressedGraphicsModule(EbModule.EbModule):
             self._gas_pal3.loadFromImage(img)
         updateProgress(self._pct)
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-            resourceOpenerW):
+            resourceOpenerW, resourceDeleter):
         if oldVersion == newVersion:
             updateProgress(100)
             return
@@ -820,7 +820,7 @@ class CompressedGraphicsModule(EbModule.EbModule):
             self.writeGasToProject(resourceOpenerW)
 
             self.upgradeProject(3, newVersion, rom, resourceOpenerR,
-                                        resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)
         else:
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                                                            resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)

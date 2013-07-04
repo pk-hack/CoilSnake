@@ -9,9 +9,7 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
     _tableIDs = [
             0xC3FD8D, # Attract mode text
             0xD5F645, # Timed Item Delivery
-#            0xE01FC8, # Text Window Flavor palettes
             0xE12F8A, # Photographer
-            0xEFA37A, # Command Window text?
             0xCF8985, # NPC Configuration Table
             0xD5EA77, # Condiment Table
             0xD5EBAB, # Scripted Teleport Destination Table
@@ -31,19 +29,16 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
             0xD55000, # Item Data
             0xC23109, # Consolation Item
             0xC3E250, # Windows
-#            0xC3F054, # Font Ptr Tbl
 #            0xC4C05E, # File select text # TODO need to fix this
 #            0xC8CDED, # Compressed text ptr tbl
 #            0xCCF47F, # PSI Anim Pals
 #            0xCCF58F, # PSI Anim Ptrs
-#            0xCEDC45, # Swirl Ptr Tbl
-#            0xCEF806 # Sound stone pal
 #            0xCF58EF, # Music Event Ptr Tbl
 #            0xD01598, # Map Event Tile Ptr Tbl
 
             ]
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-            resourceOpenerW):
+            resourceOpenerW, resourceDeleter):
         # Helper function
         def replaceField(fname, oldField, newField, valueMap):
             if newField == None:
@@ -70,8 +65,11 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
                     "Effect", "Action", { })
             replaceField("psi_ability_table",
                     "Effect", "Action", { })
+
+            resourceDeleter("cmd_window_text")
+
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)
         elif oldVersion == 2:
             replaceField("timed_delivery_table",
                     "Suitable Area Text Pointer",
@@ -89,7 +87,7 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
             with resourceOpenerW("timed_delivery_table", "yml") as f:
                 f.write(s)
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)
         elif oldVersion == 1:
             # PSI_ABILITY_TABLE: "Target" -> "Usability Outside of Battle"
             # Values: "Nobody"  -> "Other"
@@ -105,7 +103,7 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
                     { "Party": "Enemy",
                         "Enemy": "Party" })
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)
         else:
             raise RuntimeError("Don't know how to upgrade from version",
                     oldVersion, "to", newVersion)

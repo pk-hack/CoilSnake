@@ -40,5 +40,5 @@ class GenericModule:
     def writeToProject(self, resourceOpener):
         updateProgress(50)
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-            resourceOpenerW):
+            resourceOpenerW, resourceDeleter):
         updateProgress(100)

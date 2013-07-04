@@ -319,7 +319,7 @@ class SpriteGroupModule(EbModule.EbModule):
         self._grPalTbl.writeToRom(rom)
         updateProgress(5)
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-            resourceOpenerW):
+            resourceOpenerW, resourceDeleter):
         def replaceField(fname, oldField, newField, valueMap):
             if newField == None:
                 newField = oldField
@@ -371,7 +371,7 @@ class SpriteGroupModule(EbModule.EbModule):
                         16: "64x80" })
             replaceFieldName("sprite_groups", "Unknown B", "Collision Settings")
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
-        elif oldVersion == 1:
+                    resourceOpenerW, resourceDeleter)
+        else:
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)

@@ -318,7 +318,7 @@ class EnemyModule(EbModule.EbModule):
                 self._enemyGroups.append(enemyList)
                 updateProgress(pct)
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-        resourceOpenerW):
+        resourceOpenerW, resourceDeleter):
         if oldVersion == newVersion:
             updateProgress(100)
             return
@@ -350,7 +350,7 @@ class EnemyModule(EbModule.EbModule):
                       7: "128/128" },
                     resourceOpenerR, resourceOpenerW)
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)
         else:
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)

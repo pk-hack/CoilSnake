@@ -85,3 +85,12 @@ class Project:
             os.makedirs(os.path.dirname(fname))
         f = open(fname, mode)
         return f
+    def deleteResource(self, modName, resourceName):
+        if modName not in self._resources:
+            raise RuntimeError("No such module %s" % modName)
+        if resourceName not in self._resources[modName]:
+            raise RuntimeError("No such resource %s in module %s" %
+                    (resourceName, modName))
+        fname = os.path.join(self._dirName,self._resources[modName][resourceName])
+        if os.path.isfile(fname):
+            os.remove(fname)

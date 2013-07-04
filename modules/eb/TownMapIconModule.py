@@ -103,7 +103,7 @@ class TownMapIconModule(EbModule.EbModule):
             f.write(s)
         updateProgress(25)
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-            resourceOpenerW):
+            resourceOpenerW, resourceDeleter):
         global updateProgress
         if oldVersion == newVersion:
             updateProgress(100)
@@ -115,7 +115,7 @@ class TownMapIconModule(EbModule.EbModule):
             self.writeToProject(resourceOpenerW)
             updateProgress = tmp
             self.upgradeProject(3, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)
         else:
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW)
+                    resourceOpenerW, resourceDeleter)
