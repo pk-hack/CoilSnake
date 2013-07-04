@@ -1,3 +1,4 @@
+UsedRangeModule
 PatchModule
 eb.CccInterfaceModule
 eb.SkipNamingModule
