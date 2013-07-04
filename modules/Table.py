@@ -62,6 +62,42 @@ class ValuedIntTableEntry(IntTableEntry):
         except IndexError:
             return self._data
 
+class BitFieldTableEntry(IntTableEntry):
+    def __init__(self, name, size, values):
+        self.name = name
+        self._size = size
+        values = map(lambda x: str(x).lower(), values)
+        self._values = {}
+        self._reverseValues = {}
+        i = 0
+        for value in values:
+            self._values[value] = i
+            self._reverseValues[i] = value
+            i += 1
+    def load(self, data):
+        if type(data) == list:
+            self._data = 0
+            for bit in data:
+                if type(bit) is str:
+                    bit = bit.lower()
+                    if bit in self._values:
+                        self._data |= (1<<self._values[bit])
+                elif type(bit) is int:
+                    self._data |= (1<<bit)
+        elif type(data) == int:
+            self._data = data
+        else:
+            self._data = 0
+    def dump(self):
+        out = []
+        for x in xrange(0,8*self._size-1):
+            if self._data & (1<<x):
+                if x in self._reverseValues:
+                    out.append(self._reverseValues[x])
+                else:
+                    out.append(x)
+        return out
+
 class ByteArrayTableEntry:
     def __init__(self, name, size):
         self.name = name
@@ -119,8 +155,10 @@ def genericEntryGenerator(spec, table_map):
     elif spec["type"] == 'one-based int':
         return OneBasedIntTableEntry(spec["name"], spec["size"])
     elif spec["type"] == "bitfield":
-        # TODO: Do something fancy here
-        return IntTableEntry(spec["name"], spec["size"])
+        if spec.has_key('bitvalues'):
+            return BitFieldTableEntry(spec["name"], spec["size"], spec["bitvalues"])
+        else:
+            return BitFieldTableEntry(spec["name"], spec["size"], [])
     else:
         raise RuntimeError("Unknown data entry type " + spec["type"])
 

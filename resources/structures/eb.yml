@@ -1206,7 +1206,7 @@
     - Poo can use
     - Item can change
     - Cannot be given away
-    - Unknown
+    - Cannot be stored with Escargo Express
     - Item disappears when used
     name: Misc Flags
     size: 1
@@ -1332,6 +1332,7 @@
     - Other
     name: Type
     size: 1
+    type: bitfield
   - name: Usability Outside of Battle
     size: 1
     values:
