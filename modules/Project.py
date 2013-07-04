@@ -94,3 +94,5 @@ class Project:
         fname = os.path.join(self._dirName,self._resources[modName][resourceName])
         if os.path.isfile(fname):
             os.remove(fname)
+        del self._resources[modName][resourceName]
+

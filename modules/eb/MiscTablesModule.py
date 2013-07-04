@@ -92,6 +92,8 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
                         17: 16 })
 
             resourceDeleter("cmd_window_text")
+            resourceDeleter("psi_anim_palettes")
+            resourceDeleter("sound_stone_palette")
 
             self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
                     resourceOpenerW, resourceDeleter)
