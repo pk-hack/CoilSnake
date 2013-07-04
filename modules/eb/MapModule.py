@@ -115,7 +115,7 @@ class MapModule(EbModule.EbModule):
         for i in range(self._mapSecTsetPalsTbl.height()):
             self.teleport.setVal(self._mapSecMiscTbl[i,0].val() >> 7)
             self.townmap.setVal((self._mapSecMiscTbl[i,0].val() >> 3) & 7)
-            self.setting.setVal(self._mapSecMiscTbl[i,0].val() & 3)
+            self.setting.setVal(self._mapSecMiscTbl[i,0].val() & 7)
             self.townmap_image.setVal(self._mapSecTownMapTbl[i,0].val() & 0xf)
             self.townmap_arrow.setVal(self._mapSecTownMapTbl[i,0].val() >> 4)
             out[i] = {
