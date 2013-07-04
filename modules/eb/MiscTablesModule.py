@@ -40,15 +40,20 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
             resourceOpenerW, resourceDeleter):
         # Helper function
+        def lowerIfStr(s):
+            if type(s) is str:
+                return s.lower()
+            else:
+                return s
         def replaceField(fname, oldField, newField, valueMap):
             if newField == None:
                 newField = oldField
-            valueMap = dict((k.lower(), v) for k,v in valueMap.iteritems())
+            valueMap = dict((lowerIfStr(k), v) for k,v in valueMap.iteritems())
             with resourceOpenerR(fname, 'yml') as f:
                 data = yaml.load(f, Loader=yaml.CSafeLoader)
                 for i in data:
-                    if data[i][oldField] in valueMap:
-                        data[i][newField] = valueMap[data[i][oldField].lower()].lower()
+                    if lowerIfStr(data[i][oldField]) in valueMap:
+                        data[i][newField] = lowerIfStr(valueMap[lowerIfStr(data[i][oldField])])
                     else:
                         data[i][newField] = data[i][oldField]
                     if newField != oldField:
@@ -65,6 +70,26 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
                     "Effect", "Action", { })
             replaceField("psi_ability_table",
                     "Effect", "Action", { })
+            replaceField("psi_ability_table",
+                    "PSI Name", None,
+                    { 0: None,
+                        1: 0,
+                        2: 1,
+                        3: 2,
+                        4: 3,
+                        5: 4,
+                        6: 5,
+                        7: 6,
+                        8: 7,
+                        9: 8,
+                        10: 9,
+                        11: 10,
+                        12: 11,
+                        13: 12,
+                        14: 13,
+                        15: 14,
+                        16: 15,
+                        17: 16 })
 
             resourceDeleter("cmd_window_text")
 

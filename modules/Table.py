@@ -23,6 +23,18 @@ class IntTableEntry:
     def val(self):
         return self._data
 
+class OneBasedIntTableEntry(IntTableEntry):
+    def load(self, data):
+        if data is None:
+            self._data = 0
+        else:
+            self._data = data + 1
+    def dump(self):
+        if self._data == 0:
+            return None
+        else:
+            return (self._data - 1)
+
 class HexIntTableEntry(IntTableEntry):
     def load(self, data):
         if type(data) == str:
@@ -104,6 +116,8 @@ def genericEntryGenerator(spec, table_map):
         return ByteArrayTableEntry(spec["name"], spec["size"])
     elif spec["type"] == 'boolean':
         return BooleanTableEntry(spec["name"])
+    elif spec["type"] == 'one-based int':
+        return OneBasedIntTableEntry(spec["name"], spec["size"])
     elif spec["type"] == "bitfield":
         # TODO: Do something fancy here
         return IntTableEntry(spec["name"], spec["size"])

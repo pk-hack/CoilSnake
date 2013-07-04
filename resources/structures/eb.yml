@@ -1315,6 +1315,7 @@
   - name: PSI Name
     size: 1
     substtable: PSI_NAME_TABLE
+    type: one-based int 
   - name: Strength
     size: 1
     values:
