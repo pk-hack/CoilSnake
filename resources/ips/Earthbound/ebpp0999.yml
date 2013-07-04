@@ -2,4 +2,7 @@ Title: EB++ Version 0.999
 Auto-Apply: False
 Ranges:
 - (0xf8c2, 0xf95d)
-- (0x2e9200, 0x2e9e54)
+# Note: EB++ actually does use byte 0x2e9200, but it really shouldn't be doing so.
+#       This is a bug in EB++.
+#       As a workaround, we just let EB++ overwrite this byte.
+- (0x2e9201, 0x2e9e54)
