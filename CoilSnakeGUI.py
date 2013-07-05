@@ -432,8 +432,8 @@ Please specify it in the Preferences menu.""")
         self._progBar.grid(row=9, column=0, columnspan=8, sticky=W+E)
         def updProg(dp):
             Progress.__updateProgress__(dp)
-            # Note: The number of modules is hardcoded here as "19"
-            self._progBar.step((90.0/19) * (dp/100.0))
+            # Note: The number of modules is hardcoded here as "20"
+            self._progBar.step((90.0/20) * (dp/100.0))
         Progress.updateProgress = updProg
 
         # Console

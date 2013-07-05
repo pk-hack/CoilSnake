@@ -335,7 +335,8 @@ class EnemyModule(EbModule.EbModule):
                     resourceOpenerR, resourceOpenerW)
             replaceField("enemy_configuration_table",
                     "Run Flag", None,
-                    { 7: "True",
+                    { 6: "Unknown",
+                        7: "True",
                         8: "False" },
                     resourceOpenerR, resourceOpenerW)
             replaceField("enemy_configuration_table",

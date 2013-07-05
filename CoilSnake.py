@@ -12,8 +12,8 @@ from modules.Progress import setProgress
 
 #from meliae import scanner
 
-_VERSION = "1.2"
-_RELEASE_DATE = "11/13/12"
+_VERSION = "1.3"
+_RELEASE_DATE = "7/4/13"
 
 class CoilSnake:
     def __init__(self):
