@@ -204,12 +204,19 @@ class Rom:
                 else: # usedEnd > end
                     del(self._freeRanges[i])
                     self.markRangeAsNotFree((end+1, usedEnd))
-                break
+                return
             elif (usedBegin > begin) and (usedEnd <= end):
                 self._freeRanges[i] = (begin, usedBegin-1)
                 if usedEnd != end:
                     self._freeRanges.insert(i, (usedEnd+1, end))
-                break
+                    self._freeRanges.sort()
+                return
+            elif (usedBegin > begin) and (usedBegin < end) and (usedEnd > end):
+                self._freeRanges[i] = (begin, usedBegin-1)
+                self.markRangeAsNotFree((end+1, usedEnd))
+                return
+        raise RuntimeError("(%s,%s) is at least partially already marked as used" %
+                (hex(usedBegin), hex(usedEnd)))
     # Find a free range starting at addr such that add & mask == 0
     def getFreeLoc(self, size, mask=0):
         ranges = filter(lambda (x,y): x & mask == 0, self._freeRanges)
