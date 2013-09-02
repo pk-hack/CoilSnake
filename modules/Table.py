@@ -90,7 +90,7 @@ class BitFieldTableEntry(IntTableEntry):
             self._data = 0
     def dump(self):
         out = []
-        for x in xrange(0,8*self._size-1):
+        for x in xrange(0,8*self._size):
             if self._data & (1<<x):
                 if x in self._reverseValues:
                     out.append(self._reverseValues[x])
