@@ -2,6 +2,7 @@
 
 from subprocess import Popen
 from os import listdir
+from os.path import dirname, isdir, join
 import yaml
 from shutil import copyfile
 from threading import Thread
@@ -18,6 +19,13 @@ import Image
 import CoilSnake
 from modules import Rom, Progress
 from modules.Fun import getTitle
+
+# Import CCScriptWriter from the submodule, if possible.
+if isdir(join("tools", "CCScriptWriter")):
+    sys.path.append(join("tools", "CCScriptWriter"))
+    from CCScriptWriter import CCScriptWriter
+else:
+    CCScriptWriter = None
 
 class CoilSnakeFrontend:
     PREFS_FNAME = "prefs.yml"
@@ -273,6 +281,47 @@ Please specify it in the Preferences menu.""")
             r.save(fname)
             del(r)
             tkMessageBox.showinfo(parent=self._root, title="Header Remove Successful", message="Your ROM's header was removed.")
+    def extractEarthBoundDialogue(self):
+        if not CCScriptWriter:
+            tkMessageBox.showerror("CCScriptWriter Not Installed", "You need to place CCScriptWriter.py in the tools/CCScriptWriter folder.", parent=self._root)
+            return
+        romName = tkFileDialog.askopenfilename(
+                    parent=self._root, title="Select an EarthBound ROM from which to extract the dialogue text",
+                    filetypes=[('SNES ROMs','*.smc'), ('SNES ROMs','*.sfc'), ('All files','*.*')])
+        if not romName:
+            return
+        r = Rom.Rom('resources/romtypes.yaml')
+        r.load(romName)
+        if r.type() != "Earthbound":
+            tkMessageBox.showerror("Invalid EarthBound ROM", "You have specified an invalid EarthBound ROM.", self._root)
+            return
+        del r
+        projectName = tkFileDialog.askopenfilename(
+                    parent=self._root, title="Select a CoilSnake project to modify",
+                    filetypes=[('CoilSnake Project','Project.snake')])
+        if not projectName:
+            return
+        projectDir = join(dirname(projectName), "ccscript")
+        thread = Thread(target=self._runCCScriptWriter, args=(projectDir, romName))
+        thread.start()
+    def _runCCScriptWriter(self, projectDir, romName):
+        print("CCScriptWriter v1.1")
+        start = time()
+        romFile = open(romName, "rb")
+        try:
+            ccsw = CCScriptWriter(romFile, projectDir, False)
+            ccsw.loadDialogue(True)
+            ccsw.processDialogue()
+            ccsw.outputDialogue(True)
+        except Exception as inst:
+            print "\nError:", str(inst)
+            if self.getPrefsValue("ErrorDetails") == "1":
+                print_exc()
+        else:
+            print "Complete. Time: {:.2f}s".format(float(time() - start))
+            tkMessageBox.showinfo(title="Dialogue Extraction Successful", message="Successfully extracted EarthBound dialogue.", parent=self._root)
+        finally:
+            romFile.close()
     def main(self):
         self._root = Tk()
         if self.getPrefsValue("title") == 1:
@@ -303,6 +352,8 @@ Please specify it in the Preferences menu.""")
                 command=self.addHeaderRom)
         toolsMenu.add_command(label="Remove Header from ROM",
                 command=self.stripHeaderRom)
+        toolsMenu.add_command(label="Extract EarthBound Dialogue to Project",
+                command=self.extractEarthBoundDialogue)
         menuBar.add_cascade(label="Tools", menu=toolsMenu)
         # Help menu
         helpMenu = Menu(menuBar, tearoff=0)

@@ -1,0 +1,3 @@
+[submodule "tools/CCScriptWriter"]
+	path = tools/CCScriptWriter
+	url = http://github.com/Lyrositor/CCScriptWriter
