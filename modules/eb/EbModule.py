@@ -1,7 +1,7 @@
-from modules.GenericModule import GenericModule
-
 from zlib import crc32
 import sys
+
+from modules.GenericModule import GenericModule
 
 try:
     from modules.eb import NativeComp
@@ -26,8 +26,6 @@ except ImportError:
 if not hasNativeComp:
     print "WARNING: Could not load native EarthBound compression library"
 
-from modules import Rom
-
 labelsDict = dict()
 
 class EbModule(GenericModule):
@@ -37,13 +35,13 @@ class EbModule(GenericModule):
 # Helper functions
 
 def toRegAddr(addr):
-    if (addr >= 0xc00000):
+    if addr >= 0xc00000:
         return addr - 0xc00000
     else:
         return addr
 
 def toSnesAddr(addr):
-    if (addr >= 0x400000):
+    if addr >= 0x400000:
         return addr
     else:
         return addr + 0xc00000
@@ -230,7 +228,7 @@ def _decomp(rom, cdata):
         cdata += 1
         if cmdtype >= 4:
             bpos2 = (rom.read(cdata) << 8) + rom.read(cdata + 1)
-            if (bpos2 < 0):
+            if bpos2 < 0:
                 return [ -2, cdata - start + 1 ]
             cdata += 2
 

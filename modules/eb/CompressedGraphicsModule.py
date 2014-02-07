@@ -1,10 +1,10 @@
+from array import array
+from PIL import Image
+
 import EbModule
-from EbTablesModule import EbTable
 from EbDataBlocks import DataBlock, EbCompressedData
 from modules.Progress import updateProgress
 
-from array import array
-from PIL import Image
 
 #<Penguin> found it. VHOPPPCC CCCCCCCC
 #<Penguin> v for vertical flip, h for horizontal flip, o for priority bit, p for
@@ -90,11 +90,11 @@ class EbArrangement:
                             tx * gfx._tileSize, ty * gfx._tileSize,
                             pals, 0, indexed=True)
                     self[tx,ty] = (vf, hf, False, 0, tid)
-            del(img)
+            del img
         else:
             # Need to do subpalette filling
             imgRGB = img.convert("RGB")
-            del(img)
+            del img
 
             for ty in xrange(self.height()):
                 for tx in xrange(self.width()):
@@ -107,7 +107,7 @@ class EbArrangement:
                             tx * gfx._tileSize, ty * gfx._tileSize,
                             pals, subPalNum)
                     self[tx,ty] = (vf, hf, False, subPalNum, tid)
-            del(imgRGB)
+            del imgRGB
             pals.fill()
 
 class EbTileGraphics:
@@ -126,9 +126,9 @@ class EbTileGraphics:
         off = loc
         self._tiles = []
         for i in xrange(self._numTiles):
-            try:
-                tile = [array('B', [0]*self._tileSize)
+            tile = [array('B', [0]*self._tileSize)
                         for i in xrange(self._tileSize)]
+            try:
                 if self._bpp == 2:
                     off += EbModule.read2BPPArea(
                         tile, block._data, off, 0, 0)
@@ -139,7 +139,7 @@ class EbTileGraphics:
                     off += EbModule.read8BPPArea(
                             tile, block._data, off, 0, 0)
             except IndexError:
-                pass # Load an empty tile if it's out of range of the data
+                pass  # Load an empty tile if it's out of range of the data
             self._tiles.append(tile)
         self._usedTiles = self._numTiles
     def writeToBlock(self, block, loc=0):
@@ -182,14 +182,14 @@ class EbTileGraphics:
         # Check for non-flipped tile
         try:
             tIndex = self._usedDict[EbModule.hashArea(newTile)]
-            return (False, False, tIndex)
+            return False, False, tIndex
         except KeyError:
             pass
 
         # Check for only horizontally flipped tile
         try:
             tIndex = self._usedDict[EbModule.hashArea(reversed(newTile))]
-            return (False, True, tIndex)
+            return False, True, tIndex
         except KeyError:
             pass
 
@@ -198,7 +198,7 @@ class EbTileGraphics:
             col.reverse()
         try:
             tIndex = self._usedDict[EbModule.hashArea(reversed(newTile))]
-            return (True, True, tIndex)
+            return True, True, tIndex
         except KeyError:
             pass
 
@@ -206,19 +206,19 @@ class EbTileGraphics:
         tH = EbModule.hashArea(newTile)
         try:
             tIndex = self._usedDict[tH]
-            return (True, False, tIndex)
+            return True, False, tIndex
         except KeyError:
             pass
 
         # We need to add a new tile
         if self._usedTiles >= self._numTiles:
             # TODO ERROR: Not enough room for a new tile
-            return (False, False, 0)
+            return False, False, 0
         # Remember, newTile is still vflipped
         self._tiles.append(newTile)
         self._usedDict[tH] = self._usedTiles
         self._usedTiles += 1
-        return (True, False, self._usedTiles-1)
+        return True, False, self._usedTiles-1
     # For dumping a simple raw compressed graphic
     def dumpToImage(self, pal, width=16):
         height = self._numTiles / width
@@ -270,7 +270,7 @@ class EbPalettes:
         self._pals = [ [ (-1,-1,-1) for i in range(numColors) ]
                 for i in range(numPalettes) ]
     def __eq__(self, other):
-        if other == None:
+        if other is None:
             return False
         else:
             return ((self._numPalettes == other._numPalettes)
@@ -513,35 +513,33 @@ class CompressedGraphicsModule(EbModule.EbModule):
     _ASMPTR_GAS_PAL1 = 0xf147
     _ASMPTR_GAS_PAL2 = 0xf3ba
     _ASMPTR_GAS_PAL3 = 0xf3f0
-    def __init__(self):
-        self._logos = [
-                EbLogo("Logos/Nintendo", 0xeea3, 0xeebb, 0xeed3),
-                EbLogo("Logos/APE", 0xeefb, 0xef13, 0xef2b),
-                EbLogo("Logos/HALKEN", 0xef52, 0xef6a, 0xef82)
-                ]
 
-        self._townmaps = map(lambda (x,y): EbTownMap(x, y),
-                self.TOWN_MAP_PTRS)
+    def __init__(self):
+        EbModule.EbModule.__init__(self)
+        self._logos = [
+            EbLogo("Logos/Nintendo", 0xeea3, 0xeebb, 0xeed3),
+            EbLogo("Logos/APE", 0xeefb, 0xef13, 0xef2b),
+            EbLogo("Logos/HALKEN", 0xef52, 0xef6a, 0xef82)
+        ]
+        self._townmaps = map(lambda (x, y): EbTownMap(x, y),
+                             self.TOWN_MAP_PTRS)
         self._townmap_icons = EbTileGraphics(288, 8, 4)
         self._townmap_icons_pal = EbPalettes(2, 16)
-
         self._produced_gfx = EbTileGraphics(256, 8)
         self._produced_arr = EbArrangement(32, 32)
         self._produced_pal = EbPalettes(1, 4)
         self._presented_gfx = EbTileGraphics(256, 8)
         self._presented_arr = EbArrangement(32, 32)
         self._presented_pal = EbPalettes(1, 4)
-
         self._gas_gfx = EbTileGraphics(632, 8, 8)
         self._gas_arr = EbArrangement(32, 32)
         self._gas_pal1 = EbPalettes(1, 256)
         self._gas_pal2 = EbPalettes(1, 256)
         self._gas_pal3 = EbPalettes(1, 256)
-
-        self._pct = 50.0/(len(self._logos) + len(self._townmaps) + 1 + 2 + 1)
+        self._pct = 50.0 / (len(self._logos) + len(self._townmaps) + 1 + 2 + 1)
     def free(self):
-        del(self._logos)
-        del(self._townmaps)
+        del self._logos
+        del self._townmaps
     def readTownMapIconsFromRom(self, rom):
         self._townmap_icons_pal.readFromBlock(rom,
                 loc=EbModule.toRegAddr(

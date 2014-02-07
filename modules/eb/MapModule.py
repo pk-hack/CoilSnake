@@ -13,33 +13,32 @@ class MapModule(EbModule.EbModule):
     _MAP_WIDTH = 256
 
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._tiles = []
         self._mapSecTsetPalsTbl = EbTable(0xD7A800)
         self._mapSecMusicTbl = EbTable(0xDCD637)
         self._mapSecMiscTbl = EbTable(0xD7B200)
         self._mapSecTownMapTbl = EbTable(0xEFA70F)
-
         self.teleport = ValuedIntTableEntry(None, None,
-                ["Enabled", "Disabled"])
+                                            ["Enabled", "Disabled"])
         self.townmap = ValuedIntTableEntry(None, None,
-                ["None", "Onett", "Twoson", "Threed", "Fourside", "Scaraba",
-                "Summers", "None 2"])
+                                           ["None", "Onett", "Twoson", "Threed", "Fourside", "Scaraba",
+                                            "Summers", "None 2"])
         self.setting = ValuedIntTableEntry(None, None,
-                ["None", "Indoors", "Exit Mouse usable",
-                "Lost Underworld sprites", "Magicant sprites", "Robot sprites",
-                "Butterflies", "Indoors and Butterflies"])
-
+                                           ["None", "Indoors", "Exit Mouse usable",
+                                            "Lost Underworld sprites", "Magicant sprites", "Robot sprites",
+                                            "Butterflies", "Indoors and Butterflies"])
         self.townmap_image = ValuedIntTableEntry(None, None,
-                ["None", "Onett", "Twoson", "Threed", "Fourside", "Scaraba",
-                "Summers" ])
+                                                 ["None", "Onett", "Twoson", "Threed", "Fourside", "Scaraba",
+                                                  "Summers"])
         self.townmap_arrow = ValuedIntTableEntry(None, None,
-                ["None", "Up", "Down", "Right", "Left"])
+                                                 ["None", "Up", "Down", "Right", "Left"])
     def readFromRom(self, rom):
         # Read map tiles
         map_ptrs_addr = \
             EbModule.toRegAddr(rom.readMulti(self._MAP_PTRS_PTR_ADDR, 3))
         map_addrs = map(lambda x: \
-            EbModule.toRegAddr(rom.readMulti(map_ptrs_addr+x*4,4)), \
+            EbModule.toRegAddr(rom.readMulti(map_ptrs_addr+x*4,4)),
             range(8))
         self._tiles = map(
                 lambda y: rom.readList(map_addrs[y%8] + ((y>>3)<<8),
@@ -71,7 +70,7 @@ class MapModule(EbModule.EbModule):
         map_ptrs_addr = \
             EbModule.toRegAddr(rom.readMulti(self._MAP_PTRS_PTR_ADDR, 3))
         map_addrs = map(lambda x: \
-            EbModule.toRegAddr(rom.readMulti(map_ptrs_addr+x*4,4)), \
+            EbModule.toRegAddr(rom.readMulti(map_ptrs_addr+x*4,4)),
             range(8))
         for i in range(self._MAP_HEIGHT):
             rom.write(map_addrs[i%8] + ((i>>3)<<8), map(lambda x: x & 0xff,
@@ -172,7 +171,7 @@ class MapModule(EbModule.EbModule):
             resourceOpenerW, resourceDeleter):
         global updateProgress
         def replaceField(fname, oldField, newField, valueMap):
-            if newField == None:
+            if newField is None:
                 newField = oldField
             valueMap = dict((k, v) for k,v in valueMap.iteritems())
             with resourceOpenerR(fname, 'yml') as f:

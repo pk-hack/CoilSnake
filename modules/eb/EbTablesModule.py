@@ -83,7 +83,7 @@ class EbTable(Table):
     tableEntryGenerator = staticmethod(ebEntryGenerator)
     eb_table_map = None
     def __init__(self, addr):
-        if EbTable.eb_table_map == None:
+        if EbTable.eb_table_map is None:
             #print "Loading eb.yml"
             with open("resources/structures/eb.yml") as f:
                 i=1
@@ -100,7 +100,9 @@ class EbTable(Table):
 class EbTablesModule(EbModule.EbModule):
     _name = "EarthBound Tables"
     _tableIDs = [ ]
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._tm = TablesModule(EbTable, self._tableIDs)
     def free(self):
         self._tm.free()

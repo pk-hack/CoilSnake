@@ -1,10 +1,11 @@
+from PIL import Image
+
 import EbModule
-from EbTablesModule import EbTable, TextTableEntry
+from EbTablesModule import TextTableEntry
 from EbDataBlocks import EbCompressedData
 from CompressedGraphicsModule import EbTileGraphics, EbArrangement, EbPalettes
 from modules.Progress import updateProgress
 
-from PIL import Image
 
 # Preview Arrangement Palette
 #[0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 6, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 6, 6, 6, 6, 3, 3, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 1, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 1, 0, 0, 7, 7, 7, 7, 7, 7, 7 ]
@@ -32,11 +33,13 @@ class WindowGraphicsModule(EbModule.EbModule):
             6, 3, 3, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 6, 3, 3, 3,
             3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 1, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0,
             0, 0, 0, 1, 0, 0 ]
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._gfx1 = EbTileGraphics(416, 8, 2)
         self._gfx2 = EbTileGraphics(7, 8, 2)
-        self._flavPals = [EbPalettes(8,4) for i in range(7)]
-        self._flavNames = [(i,TextTableEntry(None, 25)) for i in self._ASMPTRS_NAMES]
+        self._flavPals = [EbPalettes(8, 4) for i in range(7)]
+        self._flavNames = [(i, TextTableEntry(None, 25)) for i in self._ASMPTRS_NAMES]
     def freeRanges(self):
         return [(0x200000, 0x20079f)] # Graphics
     def readFromRom(self, rom):

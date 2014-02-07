@@ -7,7 +7,9 @@ from re import sub
 
 class MapEnemyModule(EbModule.EbModule):
     _name = "Enemy Map Groups"
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._mapGroupPtrTbl = EbTable(0xD0B880)
         self._mapEnemyTbl = EbTable(0xD01880)
     def freeRanges(self):
@@ -31,20 +33,20 @@ class MapEnemyModule(EbModule.EbModule):
             # Read the enemies/probabilities
             group1 = [ ]
             if rate1 > 0:
-                sum = 0
-                while sum < 8:
+                rateSum = 0
+                while rateSum < 8:
                     prob = rom[loc]
                     enemy = rom.readMulti(loc+1, 2)
-                    sum += prob
+                    rateSum += prob
                     loc += 3
                     group1.append((prob, enemy))
             group2 = [ ]
             if rate2 > 0:
-                sum = 0
-                while sum < 8:
+                rateSum = 0
+                while rateSum < 8:
                     prob = rom[loc]
                     enemy = rom.readMulti(loc+1, 2)
-                    sum += prob
+                    rateSum += prob
                     loc += 3
                     group2.append((prob, enemy))
 

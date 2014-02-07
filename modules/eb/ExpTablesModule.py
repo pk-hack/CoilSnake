@@ -1,6 +1,5 @@
 import EbModule
 from EbTablesModule import EbTable
-from modules.TablesModule import TablesModule
 from modules.Progress import updateProgress
 
 #Table Addr, Max Entries, ASM Ptr Locs, Reg Ptr Locs, Reg pointer locs with offset
@@ -44,9 +43,11 @@ _tableIDs = [
 
 class ExpTablesModule(EbModule.EbModule):
     _name = "Expanded Tables"
+
     def __init__(self):
-        self._tables = map(lambda (x,a,b,c,d): (EbTable(x),a,b,c,d), _tableIDs)
-        self._pct = 50.0/len(self._tables)
+        EbModule.EbModule.__init__(self)
+        self._tables = map(lambda (x, a, b, c, d): (EbTable(x), a, b, c, d), _tableIDs)
+        self._pct = 50.0 / len(self._tables)
     def readFromRom(self, rom):
         for (t,a,b,c,d) in self._tables:
             t.readFromRom(rom)

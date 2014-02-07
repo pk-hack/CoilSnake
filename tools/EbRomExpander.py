@@ -28,5 +28,5 @@ def main():
 
     r.save(args.output)
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
     sys.exit(main())

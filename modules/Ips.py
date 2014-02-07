@@ -1,13 +1,13 @@
-import os
-
 class Ips:
-    def load(self, fname, globalOffset = 0):
+    def __init__(self):
         self._instructions = []
+
+    def load(self, fname, globalOffset = 0):
         self._lastOffsetUsed = 0
         try:
             with open(fname, 'rb') as ips:
                 ips.seek(0)
-                if (ips.read(5) != 'PATCH'):
+                if ips.read(5) != 'PATCH':
                     raise RuntimeError("Not an IPS file: " + fname)
                 # Read in the records
                 while True:

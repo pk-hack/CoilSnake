@@ -1,5 +1,6 @@
 from modules.GenericModule import GenericModule
 
+
 def charToByte(c):
     if (c >= '0') and (c <= '9'):
         return ord(c)-0x30

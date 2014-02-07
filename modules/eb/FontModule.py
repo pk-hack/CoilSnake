@@ -86,17 +86,19 @@ class FontModule(EbModule.EbModule):
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
     _ASMPTR_CREDITS_GFX = 0x4f1a7
     _ADDR_CREDITS_PAL = 0x21e914
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._fonts = [
-                Font(0x210cda, 0x210c7a, 16, 16),
-                Font(0x2013b9, 0x201359, 16, 16),
-                Font(0x2122fa, 0x21229a, 16, 16),
-                Font(0x21193a, 0x2118da, 8, 16),
-                Font(0x211f9a, 0x211f3a, 8, 8)
-                ]
+            Font(0x210cda, 0x210c7a, 16, 16),
+            Font(0x2013b9, 0x201359, 16, 16),
+            Font(0x2122fa, 0x21229a, 16, 16),
+            Font(0x21193a, 0x2118da, 8, 16),
+            Font(0x211f9a, 0x211f3a, 8, 8)
+        ]
         self._cfont = EbTileGraphics(192, 8, 2)
         self._cpal = EbPalettes(2, 4)
-        self._pct = 50.0/(len(self._fonts)+1)
+        self._pct = 50.0 / (len(self._fonts) + 1)
     def freeRanges(self):
         return [(0x21e528, 0x21e913)] # Credits font graphics
     def readCreditsFontFromRom(self, rom):

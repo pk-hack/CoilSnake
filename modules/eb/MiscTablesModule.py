@@ -46,7 +46,7 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
             else:
                 return s
         def replaceField(fname, oldField, newField, valueMap):
-            if newField == None:
+            if newField is None:
                 newField = oldField
             valueMap = dict((lowerIfStr(k), v) for k,v in valueMap.iteritems())
             with resourceOpenerR(fname, 'yml') as f:

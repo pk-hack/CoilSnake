@@ -27,5 +27,5 @@ def main():
             f.write("  " + column_names[j] + ": " + attr + "\n")
             j += 1
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
     sys.exit(main())

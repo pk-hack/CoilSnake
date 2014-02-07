@@ -134,9 +134,11 @@ class MiscTextModule(EbModule.EbModule):
                 ( "Escargo Express Window Title", 0x045c10, 12 ),
                 ( "Phone Window Title", 0x045995, 4 ) ])
             ]
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._data = {}
-        self._pct = 50.0/len(self.ENTRY_LOCS)
+        self._pct = 50.0 / len(self.ENTRY_LOCS)
     def readFromRom(self, rom):
         for (cat, items) in self.ENTRY_LOCS:
             catDict = {}

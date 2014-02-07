@@ -11,7 +11,9 @@ class BattleBgModule(EbModule.EbModule):
     _ASMPTRS_GFX = [0x2d1ba, 0x2d4dc, 0x2d8c3, 0x4a3ba]
     _ASMPTRS_ARR = [0x2d2c1, 0x2d537, 0x2d91f, 0x4a416]
     _ASMPTRS_PAL = [0x2d3bb, 0x2d61b, 0x2d7e8, 0x2d9e8, 0x4a4d0]
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._bbgGfxPtrTbl = EbTable(0xcad7a1)
         self._bbgArrPtrTbl = EbTable(0xcad93d)
         self._bbgPalPtrTbl = EbTable(0xcadad9)
@@ -19,13 +21,13 @@ class BattleBgModule(EbModule.EbModule):
         self._bbgDistorTbl = EbTable(0xCAF708)
         self._bbgTbl = EbTable(0xcadca1)
     def free(self):
-        del(self._bbgGfxPtrTbl)
-        del(self._bbgArrPtrTbl)
-        del(self._bbgPalPtrTbl)
-        del(self._bbgTbl)
+        del self._bbgGfxPtrTbl
+        del self._bbgArrPtrTbl
+        del self._bbgPalPtrTbl
+        del self._bbgTbl
 
-        del(self._bbgGfxArrs)
-        del(self._bbgPals)
+        del self._bbgGfxArrs
+        del self._bbgPals
     def readFromRom(self, rom):
         self._bbgTbl.readFromRom(rom)
         pct = 50.0/(6+self._bbgTbl.height())
@@ -52,7 +54,7 @@ class BattleBgModule(EbModule.EbModule):
         for i in range(self._bbgTbl.height()):
             gfxNum = self._bbgTbl[i,0].val()
             colorDepth = self._bbgTbl[i,2].val()
-            if (self._bbgGfxArrs[gfxNum] == None):
+            if self._bbgGfxArrs[gfxNum] is None:
                 # Max size used in rom: 421 (2bpp) 442 (4bpp)
                 tg = EbTileGraphics(512, 8, colorDepth)
                 with EbCompressedData(tg.sizeBlock()) as tgb:
@@ -67,7 +69,7 @@ class BattleBgModule(EbModule.EbModule):
                 
                 self._bbgGfxArrs[gfxNum] = (tg, a)
             palNum = self._bbgTbl[i,1].val()
-            if (self._bbgPals[palNum] == None):
+            if self._bbgPals[palNum] is None:
                 with DataBlock(32) as pb:
                     pb.readFromRom(rom,
                             EbModule.toRegAddr(self._bbgPalPtrTbl[palNum,0].val()))
@@ -91,7 +93,7 @@ class BattleBgModule(EbModule.EbModule):
             imgFile = resourceOpener('BattleBGs/' + str(i).zfill(3), 'png')
             img.save(imgFile, 'png')
             imgFile.close()
-            del(img)
+            del img
             updateProgress(pct)
     def readFromProject(self, resourceOpener):
         self._bbgTbl.readFromProject(resourceOpener)
@@ -125,12 +127,12 @@ class BattleBgModule(EbModule.EbModule):
                 self._bbgTbl[i,0].setVal(j)
             j=0
             for p in self._bbgPals:
-                if (p == np):
+                if p == np:
                     self._bbgTbl[i,1].setVal(j)
                     break
                 j += 1
             else:
-                self._bbgPals.append((np))
+                self._bbgPals.append(np)
                 self._bbgTbl[i,1].setVal(j)
             updateProgress(pct)
     def freeRanges(self):

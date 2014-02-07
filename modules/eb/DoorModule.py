@@ -69,16 +69,16 @@ class Door:
                 return "ladder"
         else:
             return Door._TYPE_NAMES[self._type]
-    def setTypeFromString(self, str):
-        str = str.lower()
-        if str == "rope":
+    def setTypeFromString(self, typeStr):
+        typeStr = typeStr.lower()
+        if typeStr == "rope":
             self._type = 1
             self._isRope = True
-        elif str == "ladder":
+        elif typeStr == "ladder":
             self._type = 1
             self._isRope = False
         else:
-            self._type = Door._TYPE_NAMES.index(str)
+            self._type = Door._TYPE_NAMES.index(typeStr)
     def dump(self):
         out = { "X": self._x,
                 "Y": self._y,
@@ -162,7 +162,7 @@ class Door:
                     # Need to write a new destination
                     if (destWriteLoc + 11) > destRangeEnd:
                         # TODO Error, not enough space
-                        raise RunetimeError("Not enough door destination space")
+                        raise RuntimeError("Not enough door destination space")
                     destBlock.writeToRom(rom, destWriteLoc)
                     destLocs[destHash] = destWriteLoc & 0xffff
                     rom[addr+3] = destWriteLoc & 0xff
@@ -189,7 +189,7 @@ class Door:
                     # Need to write a new destination
                     if (destWriteLoc + 6) > destRangeEnd:
                         # TODO Error, not enough space
-                        raise RunetimeError("Not enough door destination space")
+                        raise RuntimeError("Not enough door destination space")
                     destBlock.writeToRom(rom, destWriteLoc)
                     destLocs[destHash] = destWriteLoc & 0xffff
                     rom[addr+3] = destWriteLoc & 0xff
@@ -214,7 +214,7 @@ class Door:
                     # Need to write a new destination
                     if (destWriteLoc + 4) > destRangeEnd:
                         # TODO Error, not enough space
-                        raise RunetimeError("Not enough door destination space")
+                        raise RuntimeError("Not enough door destination space")
                     destBlock.writeToRom(rom, destWriteLoc)
                     destLocs[destHash] = destWriteLoc & 0xffff
                     rom[addr+3] = destWriteLoc & 0xff
@@ -223,9 +223,11 @@ class Door:
 
 class DoorModule(EbModule.EbModule):
     _name = "Doors"
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._ptrTbl = EbTable(0xD00000)
-        self._entries = [ ]
+        self._entries = []
     def readFromRom(self, rom):
         self._ptrTbl.readFromRom(rom)
         updateProgress(5)
@@ -283,7 +285,7 @@ class DoorModule(EbModule.EbModule):
             for y in input:
                 row = input[y]
                 for x in row:
-                    if row[x] == None:
+                    if row[x] is None:
                         self._entries.append(None)
                     else:
                         entry = []
@@ -302,7 +304,7 @@ class DoorModule(EbModule.EbModule):
         pct = 45.0/(40*32)
         i=0
         for entry in self._entries:
-            if (entry == None) or (not entry):
+            if (entry is None) or (not entry):
                 self._ptrTbl[i,0].setVal(emptyEntryPtr)
             else:
                 entryLen = len(entry)

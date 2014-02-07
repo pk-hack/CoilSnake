@@ -1,8 +1,9 @@
+import yaml
+
 import Eb0Module
-from modules.Table import Table, IntTableEntry, genericEntryGenerator
+from modules.Table import Table, genericEntryGenerator
 from modules.TablesModule import TablesModule
 
-import yaml
 
 def eb0EntryGenerator(spec, table_map):
     if not spec.has_key("type"):
@@ -15,7 +16,7 @@ class Eb0Table(Table):
     tableEntryGenerator = staticmethod(eb0EntryGenerator)
     eb_table_map = None
     def __init__(self, addr):
-        if Eb0Table.eb_table_map == None:
+        if Eb0Table.eb_table_map is None:
             with open("resources/structures/eb0.yml") as f:
                 i=1
                 for doc in yaml.load_all(f, Loader=yaml.CSafeLoader):
@@ -30,7 +31,9 @@ class Eb0Table(Table):
 class Eb0TablesModule(Eb0Module.Eb0Module):
     _name = "EarthBound Zero Tables"
     _tableIDs = [ ]
+
     def __init__(self):
+        Eb0Module.Eb0Module.__init__(self)
         self._tm = TablesModule(Eb0Table, self._tableIDs)
     def free(self):
         self._tm.free()

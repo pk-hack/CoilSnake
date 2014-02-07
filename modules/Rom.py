@@ -11,7 +11,7 @@ class Rom:
         self._type = "Unknown"
         self._type_map = { }
         self._freeRanges = [ ]
-        if (romtypeFname):
+        if romtypeFname:
             with open(romtypeFname, 'r') as f:
                 self._type_map = yaml.load(f, Loader=yaml.CSafeLoader)
     def copy(self):
@@ -25,7 +25,7 @@ class Rom:
         for t, d in self._type_map.iteritems():
             offset, data, platform = d['offset'], d['data'], d['platform']
 
-            if (platform == "SNES"):
+            if platform == "SNES":
                 # Validate the ROM and check if it's headered
 
                 # Check for unheadered HiROM
@@ -74,7 +74,7 @@ class Rom:
                 except:
                     pass
 
-            elif (self[offset:offset+len(data)].tolist() == data):
+            elif self[offset:offset+len(data)].tolist() == data:
                 return t
         else:
             return "Unknown"
@@ -145,14 +145,14 @@ class Rom:
             raise ValueError("Reading outside of ROM range")
         return self._data[i]
     def readList(self, i, len):
-        if (len < 0):
+        if len < 0:
             raise ValueError("Can only read a list of non-negative length")
         elif (i < 0) or (i >= self._size) or (i+len > self._size):
             raise ValueError("Reading outside of ROM range")
         return self._data[i:i+len]
     def readMulti(self, i, len):
         # Note: reads in reverse endian
-        if (len < 0):
+        if len < 0:
             raise ValueError("Can only read an int of non-negative length")
         elif (i < 0) or (i >= self._size) or (i+len > self._size):
             raise ValueError("Reading outside of ROM range")
@@ -241,12 +241,12 @@ class Rom:
         return loc
     # Overloaded operators
     def __getitem__(self, key):
-        if (type(key) == slice):
+        if type(key) == slice:
             return self._data[key]
         else:
             return self._data[key]
     def __setitem__(self, key, item):
-        if (type(key) == slice):
+        if type(key) == slice:
             self._data[key] = array.array('B',item)
         else:
             self._data[key] = item

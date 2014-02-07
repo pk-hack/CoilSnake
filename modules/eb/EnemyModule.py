@@ -71,7 +71,7 @@ class EbSprite:
         return self._height
     def __getitem__(self, key):
         x, y = key
-        return sprite[x][y]
+        return self._sprite[x][y]
 
 class EbBattleSprite:
     SIZES = [ (0,0), (32,32), (64,32), (32,64), (64,64), (128,64), (128, 128) ]
@@ -107,7 +107,7 @@ class EbBattleSprite:
         self._size = self.SIZES.index(
                 (self._sprite.width(),self._sprite.height()))
         palData = img.getpalette()
-        del(img)
+        del img
         for i in range(pal.palSize()):
             pal[0,i] = (palData[i*3], palData[i*3+1], palData[i*3+2])
 
@@ -116,16 +116,17 @@ class EnemyModule(EbModule.EbModule):
     _ASMPTR_GFX = 0x2ee0b
     _REGPTR_GFX = [ 0x2ebe0, 0x2f014, 0x2f065 ]
     _ASMPTR_PAL = 0x2ef74
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._enemyCfgTable = EbTable(0xd59589)
         self._bsPtrTbl = EbTable(0xce62ee)
         self._bsPalsTable = EbTable(0xce6514)
         self._enemyGroupTbl = EbTable(0xD0C60D)
         self._enemyGroupBgTbl = EbTable(0xCBD89A)
-
-        self._bsprites = [ ]
-        self._bsPals = [ ]
-        self._enemyGroups = [ ]
+        self._bsprites = []
+        self._bsPals = []
+        self._enemyGroups = []
     def readFromRom(self, rom):
         self._bsPtrTbl.readFromRom(rom,
                 EbModule.toRegAddr(EbModule.readAsmPointer(rom,
@@ -161,7 +162,7 @@ class EnemyModule(EbModule.EbModule):
         for i in range(self._enemyGroupTbl.height()):
             group = [ ]
             ptr = EbModule.toRegAddr(self._enemyGroupTbl[i,0].val())
-            while(rom[ptr] != 0xff):
+            while rom[ptr] != 0xff:
                 group.append((rom.readMulti(ptr+1,2), rom[ptr]))
                 ptr += 3
             self._enemyGroups.append(group)

@@ -24,9 +24,9 @@ class SkipNamingModule(EbModule.EbModule):
         with resourceOpener("naming_skip", "yml") as f:
             self._data = yaml.load(f, Loader=yaml.CSafeLoader)
         updateProgress(50)
-    def writeLoaderAsm(self, rom, loc, str, strlen, memLoc, byte2):
+    def writeLoaderAsm(self, rom, loc, s, strlen, memLoc, byte2):
         i=0
-        for ch in str[0:strlen]:
+        for ch in s[0:strlen]:
             rom.write(loc, [0xa9, ord(ch)+0x30, 0x8d, memLoc + i, byte2])
             i += 1
             loc += 5

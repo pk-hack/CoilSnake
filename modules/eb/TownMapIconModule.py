@@ -9,18 +9,20 @@ from re import sub
 class TownMapIconModule(EbModule.EbModule):
     _name = "Town Map Icon Positions"
     _ASMPTR_PTR_TBL = 0x4d464
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._ptrTbl = EbTable(0xE1F491)
-        self._entries = [ ]
+        self._entries = []
         self._entryIdField = ValuedIntTableEntry(None, None,
-                ["Onett", "Twoson", "Threed", "Fourside", "Scaraba", "Summers"])
+                                                 ["Onett", "Twoson", "Threed", "Fourside", "Scaraba", "Summers"])
         self._iconField = ValuedIntTableEntry(None, None,
-                ["0", "Hamburger Shop", "Bakery", "Hotel",
-                "Restaurant", "Hospital", "Shop", "Dept Store", "Bus Stop",
-                "South to Twoson", "North to Onett", "South to Threed",
-                "West to Twoson", "East to Desert", "West to Desert",
-                "East to Toto", "Hint", "Ness", "Small Ness",
-                "North", "South", "West", "East" ])
+                                              ["0", "Hamburger Shop", "Bakery", "Hotel",
+                                               "Restaurant", "Hospital", "Shop", "Dept Store", "Bus Stop",
+                                               "South to Twoson", "North to Onett", "South to Threed",
+                                               "West to Twoson", "East to Desert", "West to Desert",
+                                               "East to Toto", "Hint", "Ness", "Small Ness",
+                                               "North", "South", "West", "East"])
     def freeRanges(self):
         return [(0x21f491, 0x21f580)] # Pointer Table and Data
     def readFromRom(self, rom):

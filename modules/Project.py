@@ -35,10 +35,10 @@ class Project:
             self._dirName = os.path.dirname(f.name)
 
         try:
-            if (type(f) == str):
+            if type(f) == str:
                 f = open(f, 'r') 
             data = yaml.load(f, Loader=yaml.CSafeLoader)
-            if (romtype == None) or (romtype == data["romtype"]):
+            if (romtype is None) or (romtype == data["romtype"]):
                 self._romtype = data["romtype"]
                 self._resources = data["resources"]
                 if "version" in data:
@@ -46,7 +46,7 @@ class Project:
                 else:
                     self._version = 1
 
-                if self._resources == None:
+                if self._resources is None:
                     self._resources = { }
             else: # Loading a project of the wrong romtype
                 self._romtype = romtype
@@ -55,16 +55,13 @@ class Project:
             # Project file doesn't exist
             if not os.path.exists(self._dirName):
                 os.makedirs(self._dirName)
-            if romtype == None:
+            if romtype is None:
                 self._romtype = "Unknown"
             else:
                 self._romtype = romtype
             self._resources = { }
     def write(self, filename):
-        tmp = { }
-        tmp['romtype'] = self._romtype
-        tmp['resources'] = self._resources
-        tmp['version'] = FORMAT_VERSION
+        tmp = {'romtype': self._romtype, 'resources': self._resources, 'version': FORMAT_VERSION}
         f = open(filename, 'w+')
         yaml.dump(tmp, f, Dumper=yaml.CSafeDumper)
         f.close()

@@ -1,24 +1,21 @@
 #! /usr/bin/env python
 
 from subprocess import Popen
-from os import listdir
 from os.path import dirname, isdir, join
 import yaml
-from shutil import copyfile
 from threading import Thread
 from time import time
 from traceback import print_exc
 from platform import python_version
-import sys
-
 from Tkinter import *
-import tkFileDialog, tkMessageBox
+import tkFileDialog
+import tkMessageBox
 from ttk import Progressbar
-import Image
 
 import CoilSnake
 from modules import Rom, Progress
 from modules.Fun import getTitle
+
 
 # Import CCScriptWriter from the submodule, if possible.
 if isdir(join("tools", "CCScriptWriter")):
@@ -158,7 +155,7 @@ Please specify it in the Preferences menu.""")
         self._exportB["state"] = NORMAL
         self._importB["state"] = NORMAL
         self._upgradeB["state"] = NORMAL
-        del(self._cs)
+        del self._cs
     def doImport(self, projEntry, cleanRomEntry, romEntry):
         if self.getPrefsValue("CCC") == "":
             tkMessageBox.showerror(parent=self._root,
@@ -207,7 +204,7 @@ Please specify it in the Preferences menu.""")
         self._importB["state"] = NORMAL
         self._upgradeB["state"] = NORMAL
         self._importRunB["state"] = NORMAL
-        del(self._cs)
+        del self._cs
     def doUpgrade(self, romEntry, projEntry):
         if (romEntry.get() != "") and (projEntry.get() != ""):
             # Update the GUI
@@ -240,7 +237,7 @@ Please specify it in the Preferences menu.""")
         self._exportB["state"] = NORMAL
         self._importB["state"] = NORMAL
         self._upgradeB["state"] = NORMAL
-        del(self._cs)
+        del self._cs
     def expandRom(self, ex=False):
         r = Rom.Rom('resources/romtypes.yaml')
         fname = tkFileDialog.askopenfilename(
@@ -248,7 +245,7 @@ Please specify it in the Preferences menu.""")
                     filetypes=[('SNES ROMs','*.smc'), ('SNES ROMs','*.sfc'), ('All files','*.*')])
         if len(fname) > 0:
             r.load(fname)
-            if ((not ex) and (len(r) >= 0x400000)) or (ex and (len(r) >= 0x600000)):
+            if (not ex and len(r) >= 0x400000) or (ex and (len(r) >= 0x600000)):
                 tkMessageBox.showerror(parent=self._root, title="Error", message="This ROM is already expanded.")
             else:
                 if ex:
@@ -256,7 +253,7 @@ Please specify it in the Preferences menu.""")
                 else:
                     r.expand(0x400000)
                 r.save(fname)
-                del(r)
+                del r
                 tkMessageBox.showinfo(parent=self._root, title="Expansion Successful", message="Your ROM was expanded.")
     def expandRomEx(self):
         self.expandRom(ex=True)
@@ -269,7 +266,7 @@ Please specify it in the Preferences menu.""")
             r.load(fname)
             r.addHeader()
             r.save(fname)
-            del(r)
+            del r
             tkMessageBox.showinfo(parent=self._root, title="Header Addition Successful", message="Your ROM was given a header.")
     def stripHeaderRom(self):
         r = Rom.Rom('resources/romtypes.yaml')
@@ -279,7 +276,7 @@ Please specify it in the Preferences menu.""")
         if len(fname) > 0:
             r.load(fname)
             r.save(fname)
-            del(r)
+            del r
             tkMessageBox.showinfo(parent=self._root, title="Header Remove Successful", message="Your ROM's header was removed.")
     def extractEarthBoundDialogue(self):
         if not CCScriptWriter:
@@ -293,7 +290,7 @@ Please specify it in the Preferences menu.""")
         r = Rom.Rom('resources/romtypes.yaml')
         r.load(romName)
         if r.type() != "Earthbound":
-            tkMessageBox.showerror("Invalid EarthBound ROM", "You have specified an invalid EarthBound ROM.", self._root)
+            tkMessageBox.showerror("Invalid EarthBound ROM", "You have specified an invalid EarthBound ROM.", parent=self._root)
             return
         del r
         projectName = tkFileDialog.askopenfilename(
@@ -516,6 +513,6 @@ Please specify it in the Preferences menu.""")
 
         self._root.mainloop()
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
     csf = CoilSnakeFrontend()
     sys.exit(csf.main())

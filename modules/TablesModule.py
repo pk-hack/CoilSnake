@@ -1,8 +1,5 @@
 import GenericModule
-from modules.Table import Table
 from modules.Progress import updateProgress
-
-import yaml
 
 # For encoding/decoding text entries
 # Note: this assumes only 1-character replacements
@@ -14,12 +11,14 @@ import yaml
 
 class TablesModule(GenericModule.GenericModule):
     _name = "Generic Tables"
+
     def __init__(self, TableClass, tableIDs):
+        GenericModule.GenericModule.__init__(self)
         self._tables = map(lambda x: TableClass(x), tableIDs)
-        self._pct = 50.0/len(self._tables)
+        self._pct = 50.0 / len(self._tables)
     def free(self):
         for t in self._tables:
-            del(t)
+            del t
     def readFromRom(self, rom):
         for t in self._tables:
             t.readFromRom(rom)

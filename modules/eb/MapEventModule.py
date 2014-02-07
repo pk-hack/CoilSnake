@@ -1,18 +1,20 @@
-import EbModule
-from EbTablesModule import EbTable
-from EbDataBlocks import DataBlock
-from modules.Progress import updateProgress
-
 import yaml
 from re import sub
+
+import EbModule
+from EbTablesModule import EbTable
+from modules.Progress import updateProgress
+
 
 class MapEventModule(EbModule.EbModule):
     _name = "Map Events"
     _PTR_LOC = 0x70d
     _PTR_BANK_LOC = 0x704
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._ptrTbl = EbTable(0xD01598)
-        self._entries = [ ]
+        self._entries = []
     def freeRanges(self):
         return [(0x101598, 0x10187f)]
     def readFromRom(self, rom):
@@ -24,7 +26,7 @@ class MapEventModule(EbModule.EbModule):
         for i in range(20):
             addr = bank | self._ptrTbl[i,0].val()
             tsetEntry = []
-            while (rom.readMulti(addr, 2) != 0):
+            while rom.readMulti(addr, 2) != 0:
                 flag = rom.readMulti(addr, 2)
                 num = rom.readMulti(addr+2, 2)
                 addr += 4
@@ -42,10 +44,9 @@ class MapEventModule(EbModule.EbModule):
         for entry in self._entries:
             entryOut = []
             for (flag, changes) in entry:
-                changeOut = { "Event Flag": flag }
-                changeOut["Changes"] = changes
+                changeOut = {"Event Flag": flag, "Changes": changes}
                 entryOut.append(changeOut)
-            if entryOut == []:
+            if not entryOut:
                 out[i] = None
             else:
                 out[i] = entryOut
@@ -63,7 +64,7 @@ class MapEventModule(EbModule.EbModule):
             for mtset in input:
                 entry = []
                 entryIn = input[mtset]
-                if (entryIn != None):
+                if entryIn is not None:
                     for csetIn in entryIn:
                         entry.append((csetIn["Event Flag"],
                             csetIn["Changes"]))

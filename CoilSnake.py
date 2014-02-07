@@ -15,11 +15,13 @@ from modules.Progress import setProgress
 _VERSION = "1.3"
 _RELEASE_DATE = "7/4/13"
 
+
 class CoilSnake:
     def __init__(self):
-        self.loadModules()
-    def loadModules(self):
         self._modules = []
+        self.loadModules()
+
+    def loadModules(self):
         with open('resources/modulelist.txt', 'r') as f:
             for line in f:
                 line = line.rstrip('\n')
@@ -31,6 +33,7 @@ class CoilSnake:
                     mod = getattr(mod, comp)
                 self._modules.append((line, getattr(mod,components[-1])()))
         #scanner.dump_all_objects('loadmod.json')
+
     def upgradeProject(self, baseRomFname, inputFname):
         # Open project
         proj = Project.Project()
@@ -188,25 +191,25 @@ def main():
     parser.add_argument("--ccc", help="Path to CCScript Compiler Executable")
     args = parser.parse_args()
 
-    if args.compileInfo != None:
+    if args.compileInfo is not None:
         # Compile
         cs = CoilSnake()
         cs.projToRom(args.compileInfo[0],
                 args.compileInfo[1], args.compileInfo[2],
                 args.ccc)
-    elif args.decompileInfo != None:
+    elif args.decompileInfo is not None:
         # Decompile
         cs = CoilSnake()
         cs.romToProj(args.decompileInfo[0],
                 args.decompileInfo[1])
-    elif args.upgradeInfo != None:
+    elif args.upgradeInfo is not None:
         # Upgrade
         cs = CoilSnake()
         cs.upgradeProject(args.upgradeInfo[0],
                 args.upgradeInfo[1])
 
 #import cProfile
-if (__name__ == '__main__'):
+if __name__ == '__main__':
     sys.exit(main())
     #cProfile.run('main()', 'main.prof')
     #sys.exit(0)

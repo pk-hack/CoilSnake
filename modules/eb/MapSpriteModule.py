@@ -14,9 +14,11 @@ class SpritePlacement:
 class MapSpriteModule(EbModule.EbModule):
     _name = "Map Sprites"
     _PTR_LOC = 0x2261
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._ptrTbl = EbTable(0xCF61E7)
-        self._entries = [ ]
+        self._entries = []
     def readFromRom(self, rom):
         ptr = EbModule.toRegAddr(rom.readMulti(self._PTR_LOC, 3))
         updateProgress(5)
@@ -31,7 +33,7 @@ class MapSpriteModule(EbModule.EbModule):
                 entry = [ ]
                 size = rom.readMulti(loc, 2)
                 loc += 2
-                for i in range(size):
+                for j in range(size):
                     entry.append(SpritePlacement(
                         rom.readMulti(loc, 2),
                         rom[loc+3], rom[loc+2]))
@@ -46,7 +48,7 @@ class MapSpriteModule(EbModule.EbModule):
         rowOut = dict()
         pct = 45.0/(40*32)
         for entry in self._entries:
-            if entry != None:
+            if entry is not None:
                 rowOut[x%32] = map(
                         lambda sp: {
                             "NPC ID": sp.npcID,
@@ -76,7 +78,7 @@ class MapSpriteModule(EbModule.EbModule):
             for y in input:
                 row = input[y]
                 for x in row:
-                    if row[x] == None:
+                    if row[x] is None:
                         self._entries.append(None)
                     else:
                         self._entries.append(map(lambda x: SpritePlacement(
@@ -90,7 +92,7 @@ class MapSpriteModule(EbModule.EbModule):
         i = 0
         pct = 45.0/(40*32)
         for entry in self._entries:
-            if (entry == None) or (not entry):
+            if (entry is None) or (not entry):
                 self._ptrTbl[i,0].setVal(0)
             else:
                 entryLen = len(entry)

@@ -3,7 +3,7 @@ import yaml
 
 def replaceField(fname, oldField, newField, valueMap, resourceOpenerR,
         resourceOpenerW):
-    if newField == None:
+    if newField is None:
         newField = oldField
         valueMap = dict((k.lower() if (type(k) == str) else k, v) for k,v in valueMap.iteritems())
         with resourceOpenerR(fname, 'yml') as f:
@@ -23,6 +23,9 @@ def replaceField(fname, oldField, newField, valueMap, resourceOpenerR,
                     Dumper=yaml.CSafeDumper)
 
 class GenericModule:
+    def __init__(self):
+        self._name = None
+
     def name(self):
         return self._name
     def compatibleWithRomtype(self, romtype):

@@ -6,6 +6,7 @@ class CccInterfaceModule(EbModule.EbModule):
     _name = "CCScript"
 
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._usedRange = None
     def writeToProject(self, resourceOpener):
         # Just create an empty compilation summary file
@@ -35,13 +36,13 @@ class CccInterfaceModule(EbModule.EbModule):
                         labelKey = modName + "." + line.split(' ',1)[0]
                         labelVal = int(line[-6:],16)
                         EbModule.labelsDict[labelKey] = labelVal
-                elif line.startswith("-") and modName != None:
+                elif line.startswith("-") and modName is not None:
                     inModuleSection = True
                 elif line.startswith("Labels in module "):
                     modName = line[17:]
         updateProgress(50)
     def writeToRom(self, rom):
-        if self._usedRange != None:
+        if self._usedRange is not None:
             # Mark the range as used in the Rom object
             rom.markRangeAsNotFree(self._usedRange)
         updateProgress(50)

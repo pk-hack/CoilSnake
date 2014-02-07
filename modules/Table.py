@@ -9,6 +9,7 @@ class IntTableEntry:
         return self._size
     def readFromRom(self, rom, addr):
         self._data = rom.readMulti(addr, self._size)
+        pass
     def writeToRom(self, rom, addr):
         rom.writeMulti(addr, self._data, self._size)
     def load(self, data):
@@ -33,7 +34,7 @@ class OneBasedIntTableEntry(IntTableEntry):
         if self._data == 0:
             return None
         else:
-            return (self._data - 1)
+            return self._data - 1
 
 class HexIntTableEntry(IntTableEntry):
     def load(self, data):
@@ -44,8 +45,7 @@ class HexIntTableEntry(IntTableEntry):
 
 class ValuedIntTableEntry(IntTableEntry):
     def __init__(self, name, size, values):
-        self.name = name
-        self._size = size
+        IntTableEntry.__init__(self, name, size)
         self._values = map(lambda x: str(x).lower(), values)
     def load(self, data):
         try:
@@ -64,8 +64,7 @@ class ValuedIntTableEntry(IntTableEntry):
 
 class BitFieldTableEntry(IntTableEntry):
     def __init__(self, name, size, values):
-        self.name = name
-        self._size = size
+        IntTableEntry.__init__(self, name, size)
         values = map(lambda x: str(x).lower(), values)
         self._values = {}
         self._reverseValues = {}
@@ -172,7 +171,7 @@ class Table:
         self._data = []
         self._table_map = table_map
     def readFromRom(self, rom, addr=None):
-        if addr == None:
+        if addr is None:
             addr = self._addr
         self._data = []
         i = 0
@@ -187,13 +186,13 @@ class Table:
                 row.append(entry)
             self._data.append(row)
     def clear(self, height=0):
-        del(self._data)
+        del self._data
         self._data = map(lambda x:
                 map(lambda y: self.tableEntryGenerator(y, self._table_map),
                     self._format),
                 range(height))
     def writeToRom(self, rom, addr=None, limitSize=True):
-        if addr == None:
+        if addr is None:
             addr = self._addr
         # First check to see if we're gonna go OOB
         dataSize = sum(map(lambda y: sum(map(lambda x: x.size(), y)), self._data))
@@ -213,17 +212,19 @@ class Table:
         self.writeToRom(rom, addr=addr, limitSize=False)
         return addr
     def readFromProject(self, resourceOpener, name=None):
-        if name == None:
+        if name is None:
             name = self.name()
         f = resourceOpener(name, 'yml')
         contents = f.read()
         f.close()
         self.load(contents)
-    def writeToProject(self, resourceOpener, hiddenColumns=[]):
+    def writeToProject(self, resourceOpener, hiddenColumns=None):
+        if not hiddenColumns: hiddenColumns = []
         f = resourceOpener(self.name(), 'yml')
         f.write(self.dump(hiddenColumns))
         f.close()
-    def dump(self, hiddenColumns=[]):
+    def dump(self, hiddenColumns=None):
+        if not hiddenColumns: hiddenColumns = []
         out = { }
         for i in range(0,len(self._data)):
             outRow = { }
@@ -240,7 +241,7 @@ class Table:
                 self._format):
             s = re.sub(re.escape(field['name']) + ": (\d+)",
                     lambda i: field['name'] + ': ' +
-                    hex(int(i.group(0)[i.group(0).find(': ')+2:])) ,s)
+                    hex(int(i.group(0)[i.group(0).find(': ')+2:])), s)
         return s
     def load(self, inputRaw):
         input = yaml.load(inputRaw, Loader=yaml.CSafeLoader)

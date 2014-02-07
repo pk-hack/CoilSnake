@@ -8,7 +8,9 @@ from re import sub
 class MapMusicModule(EbModule.EbModule):
     _ASMPTR = 0x6939
     _name = "Map Music"
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._ptrTbl = EbTable(0xCF58EF)
         self._entries = []
     def readFromRom(self, rom):

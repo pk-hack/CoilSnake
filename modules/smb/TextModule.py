@@ -22,9 +22,11 @@ class TextModule(SmbModule.SmbModule):
                 ( "Warp Zone Welcome", 0x007d3, 0x15 ),
                 ( "Player 2", 0x007fd, 5 ) ])
             ]
+
     def __init__(self):
+        SmbModule.SmbModule.__init__(self)
         self._data = {}
-        self._pct = 50.0/len(self.ENTRY_LOCS)
+        self._pct = 50.0 / len(self.ENTRY_LOCS)
     def readFromRom(self, rom):
         for (cat, items) in self.ENTRY_LOCS:
             catDict = {}

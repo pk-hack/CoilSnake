@@ -31,7 +31,7 @@ class DataBlock:
 
 class EbCompressedData:
     def __init__(self, size=None):
-        if size != None:
+        if size is not None:
             self._data = array('B', [0]*size)
     def __enter__(self):
         return self

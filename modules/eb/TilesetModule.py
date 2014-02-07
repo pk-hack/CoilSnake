@@ -68,7 +68,7 @@ class MapPalette:
         i=0
         for j in range(6):
             subpal = []
-            for j in range(16):
+            for k in range(16):
                 subpal.append((
                         int(s[i],32)<<3,
                         int(s[i+1],32)<<3,
@@ -206,13 +206,15 @@ class Tileset:
 
 class TilesetModule(EbModule.EbModule):
     _name = "Tilesets"
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._gfxPtrTbl = EbTable(0xEF105B)
         self._arrPtrTbl = EbTable(0xEF10AB)
         self._colPtrTbl = EbTable(0xEF117B)
         self._mapTsetTbl = EbTable(0xEF101B)
         self._palPtrTbl = EbTable(0xEF10FB)
-        self._tsets = [ Tileset() for i in range(20) ]
+        self._tsets = [Tileset() for i in range(20)]
     def freeRanges(self):
         return [(0x17c600, 0x17fbe7),
                 (0x190000, 0x19fc17),
@@ -318,7 +320,6 @@ class TilesetModule(EbModule.EbModule):
                             # TODO Error, not enough space for collisions
                             print "Ran out of collision space"
                             raise Exception
-                            addr = 0
                         else:
                             colLocs[hash] = colWriteLoc
                             addr = colWriteLoc

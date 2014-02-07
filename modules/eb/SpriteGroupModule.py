@@ -130,7 +130,7 @@ class SpriteGroup:
         # Output a list of pointers
         self._spritePtrs = map(lambda (n,f): (locStart + n*spBlockSize) | f, spritePtrs)
         for i in range(len(spritePtrs)):
-            self._spritePtrs[i] |= (self._sprites[i][1]<<1)
+            self._spritePtrs[i] |= ((self._sprites[i][1])<<1)
     def toImage(self, pal):
         # Image will be a 4x4 grid of sprites
         img = Image.new("P", (self._w*8*4, self._h*8*4), 0)
@@ -193,7 +193,9 @@ class SpriteGroup:
 
 class SpriteGroupModule(EbModule.EbModule):
     _name = "Sprite Groups"
+
     def __init__(self):
+        EbModule.EbModule.__init__(self)
         self._grPtrTbl = EbTable(0xef133f)
         self._grPalTbl = EbTable(0xc30000)
         self._groups = None
@@ -205,8 +207,8 @@ class SpriteGroupModule(EbModule.EbModule):
                 (0x140000, 0x14ffff),
                 (0x150000, 0x154fff)]
     def free(self):
-        del(self._grPtrTbl)
-        del(self._grPalTbl)
+        del self._grPtrTbl
+        del self._grPalTbl
     def readFromRom(self, rom):
         self._grPtrTbl.readFromRom(rom)
         updateProgress(5)
@@ -241,7 +243,7 @@ class SpriteGroupModule(EbModule.EbModule):
             imgFile = resourceOpener("SpriteGroups/" + str(i).zfill(3), 'png')
             img.save(imgFile, 'png', transparency=0)
             imgFile.close()
-            del(img)
+            del img
             i += 1
             updateProgress(pct)
         yaml.dump(out, resourceOpener("sprite_groups", "yml"),
@@ -271,7 +273,7 @@ class SpriteGroupModule(EbModule.EbModule):
 
             g.fromImage(img)
             palData = img.getpalette()
-            del(img)
+            del img
             self._groups.append(g)
             pal = [ ]
 
@@ -285,8 +287,8 @@ class SpriteGroupModule(EbModule.EbModule):
                     break
             else:
                 # Error, this image uses an invalid palette
-                for j in range(8):
-                    print j, ":", self._grPalTbl[j,0].val()[1:]
+                for k in range(8):
+                    print k, ":", self._grPalTbl[k,0].val()[1:]
                 raise RuntimeError("Sprite Group #" + str(i)
                         + " uses an invalid palette: " + str(pal))
             updateProgress(pct)
@@ -321,7 +323,7 @@ class SpriteGroupModule(EbModule.EbModule):
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
             resourceOpenerW, resourceDeleter):
         def replaceField(fname, oldField, newField, valueMap):
-            if newField == None:
+            if newField is None:
                 newField = oldField
             valueMap = dict((k, v) for k,v in valueMap.iteritems())
             with resourceOpenerR(fname, 'yml') as f:
@@ -336,7 +338,7 @@ class SpriteGroupModule(EbModule.EbModule):
             with resourceOpenerW(fname, 'yml') as f:
                 yaml.dump(data, f, Dumper=yaml.CSafeDumper)
         def replaceFieldName(fname, oldField, newField):
-            if newField == None:
+            if newField is None:
                 newField = oldField
             with resourceOpenerR(fname, 'yml') as f:
                 data = yaml.load(f, Loader=yaml.CSafeLoader)
