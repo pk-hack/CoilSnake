@@ -6,6 +6,7 @@ from modules.Progress import updateProgress
 import yaml
 from re import sub
 
+
 class TownMapIconModule(EbModule.EbModule):
     _name = "Town Map Icon Positions"
     _ASMPTR_PTR_TBL = 0x4d464
@@ -23,48 +24,53 @@ class TownMapIconModule(EbModule.EbModule):
                                                "West to Twoson", "East to Desert", "West to Desert",
                                                "East to Toto", "Hint", "Ness", "Small Ness",
                                                "North", "South", "West", "East"])
+
     def freeRanges(self):
-        return [(0x21f491, 0x21f580)] # Pointer Table and Data
+        return [(0x21f491, 0x21f580)]  # Pointer Table and Data
+
     def readFromRom(self, rom):
         self._ptrTbl.readFromRom(rom,
-                EbModule.toRegAddr(EbModule.readAsmPointer(rom,
-                    self._ASMPTR_PTR_TBL)))
+                                 EbModule.toRegAddr(
+                                     EbModule.readAsmPointer(rom,
+                                                             self._ASMPTR_PTR_TBL)))
         updateProgress(5)
         for i in range(self._ptrTbl.height()):
-            loc = EbModule.toRegAddr(self._ptrTbl[i,0].val())
+            loc = EbModule.toRegAddr(self._ptrTbl[i, 0].val())
             entry = []
             while True:
                 x = rom[loc]
                 if x == 0xff:
                     break
-                y = rom[loc+1]
-                icon = rom[loc+2]
-                flag = rom.readMulti(loc+3, 2)
+                y = rom[loc + 1]
+                icon = rom[loc + 2]
+                flag = rom.readMulti(loc + 3, 2)
                 entry.append((x, y, icon, flag))
                 loc += 5
             self._entries.append(entry)
             i += 1
         updateProgress(45)
+
     def writeToRom(self, rom):
         self._ptrTbl.clear(6)
         i = 0
         for entry in self._entries:
-            writeLoc = rom.getFreeLoc(len(entry)*5 + 1)
-            self._ptrTbl[i,0].setVal(
-                    EbModule.toSnesAddr(writeLoc))
+            writeLoc = rom.getFreeLoc(len(entry) * 5 + 1)
+            self._ptrTbl[i, 0].setVal(
+                EbModule.toSnesAddr(writeLoc))
             for (x, y, icon, flag) in entry:
                 rom[writeLoc] = x
-                rom[writeLoc+1] = y
-                rom[writeLoc+2] = icon
-                rom.writeMulti(writeLoc+3, flag, 2)
+                rom[writeLoc + 1] = y
+                rom[writeLoc + 2] = icon
+                rom.writeMulti(writeLoc + 3, flag, 2)
                 writeLoc += 5
             rom[writeLoc] = 0xff
             i += 1
         updateProgress(45)
         EbModule.writeAsmPointer(rom, self._ASMPTR_PTR_TBL,
-                EbModule.toSnesAddr(
-                    self._ptrTbl.writeToFree(rom)))
+                                 EbModule.toSnesAddr(
+                                     self._ptrTbl.writeToFree(rom)))
         updateProgress(5)
+
     def readFromProject(self, resourceOpener):
         self._entries = [None] * 6
         with resourceOpener("TownMaps/icon_positions", "yml") as f:
@@ -81,6 +87,7 @@ class TownMapIconModule(EbModule.EbModule):
                 self._entryIdField.load(name)
                 self._entries[self._entryIdField.val()] = entry
         updateProgress(50)
+
     def writeToProject(self, resourceOpener):
         out = dict()
         i = 0
@@ -92,20 +99,21 @@ class TownMapIconModule(EbModule.EbModule):
                     "X": x,
                     "Y": y,
                     "Icon": self._iconField.dump(),
-                    "Event Flag": flag })
+                    "Event Flag": flag})
             self._entryIdField.setVal(i)
             out[self._entryIdField.dump()] = outEntry
             i += 1
         updateProgress(25)
         with resourceOpener("TownMaps/icon_positions", "yml") as f:
             s = yaml.dump(out, default_flow_style=False,
-                    Dumper=yaml.CSafeDumper)
+                          Dumper=yaml.CSafeDumper)
             s = sub("Event Flag: (\d+)",
                     lambda i: "Event Flag: " + hex(int(i.group(0)[12:])), s)
             f.write(s)
         updateProgress(25)
+
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-            resourceOpenerW, resourceDeleter):
+                       resourceOpenerW, resourceDeleter):
         global updateProgress
         if oldVersion == newVersion:
             updateProgress(100)
@@ -117,7 +125,8 @@ class TownMapIconModule(EbModule.EbModule):
             self.writeToProject(resourceOpenerW)
             updateProgress = tmp
             self.upgradeProject(3, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW, resourceDeleter)
+                                resourceOpenerW, resourceDeleter)
         else:
-            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW, resourceDeleter)
+            self.upgradeProject(
+                oldVersion + 1, newVersion, rom, resourceOpenerR,
+                resourceOpenerW, resourceDeleter)

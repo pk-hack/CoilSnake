@@ -2,9 +2,11 @@ import sys
 
 __progress = 0.0
 
+
 def setProgress(p):
     global __progress
     __progress = p
+
 
 def __updateProgress__(dp):
     global __progress

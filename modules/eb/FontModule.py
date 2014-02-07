@@ -9,7 +9,9 @@ from array import array
 from PIL import Image
 import yaml
 
+
 class Font:
+
     def __init__(self, gfxAddr, widthsAddr, charW, charH):
         self._gfxAddr = gfxAddr
         self._widthsAddr = widthsAddr
@@ -17,73 +19,80 @@ class Font:
         self._charH = charH
         self._chars = None
         self._charWidths = None
+
     def readFromRom(self, rom):
         self._chars = []
         addr = self._gfxAddr
         for i in range(96):
-            charGfx = [ array('B', [0] * self._charH)
-                    for k in range(self._charW) ]
+            charGfx = [array('B', [0] * self._charH)
+                       for k in range(self._charW)]
             for j in range(0, self._charW, 8):
                 addr += EbModule.read1BPPArea(charGfx, rom, addr,
-                        self._charH, j, 0)
+                                              self._charH, j, 0)
             self._chars.append(charGfx)
-        self._charWidths = rom[self._widthsAddr:self._widthsAddr+96]
+        self._charWidths = rom[self._widthsAddr:self._widthsAddr + 96]
+
     def writeToRom(self, rom):
         addr = self._gfxAddr
         for char in self._chars:
             for j in range(0, self._charW, 8):
                 addr += EbModule.write1BPPArea(char, rom, addr,
-                        self._charH, j, 0)
+                                               self._charH, j, 0)
         rom.write(self._widthsAddr, self._charWidths)
+
     def toImage(self):
         img = Image.new("P", (self._charW * 16, self._charH * 6), 1)
         # We only need two colors: white and black
-        img.putpalette([255,255,255,0,0,0])
+        img.putpalette([255, 255, 255, 0, 0, 0])
         # Draw the characters
         imgData = img.load()
         for i in range(16):
             for j in range(6):
                 for y in range(self._charH):
                     for x in range(self._charW):
-                        imgData[i*self._charW+x, j*self._charH+y] = \
-                            self._chars[i+j*16][x][y]
+                        imgData[i * self._charW + x, j * self._charH + y] = \
+                            self._chars[i + j * 16][x][y]
         return img
+
     def fromImage(self, img):
-        self._chars = [ [ array('B', [0] * self._charH) for k in
-            range(self._charW) ] for j in range(0,96) ]
+        self._chars = [[array('B', [0] * self._charH) for k in
+                        range(self._charW)] for j in range(0, 96)]
         imgData = img.load()
         for i in range(16):
             for j in range(6):
                 for y in range(self._charH):
                     for x in range(self._charW):
-                        self._chars[i+j*16][x][y] = imgData[
-                                i*self._charW+x,
-                                j*self._charH+y] & 1
+                        self._chars[i + j * 16][x][y] = imgData[
+                            i * self._charW + x,
+                            j * self._charH + y] & 1
+
     def dumpWidths(self):
         out = dict()
         for i in range(96):
             out[i] = self._charWidths[i]
         return out
+
     def loadWidths(self, input):
-        self._charWidths = [0]*96
+        self._charWidths = [0] * 96
         for i in range(96):
             self._charWidths[i] = input[i]
+
 
 class FontModule(EbModule.EbModule):
     _name = "Fonts"
     _CREDITS_PREVIEW_SUBPALS = [
-            1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1,
-            1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+        1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1,
+        1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     _ASMPTR_CREDITS_GFX = 0x4f1a7
     _ADDR_CREDITS_PAL = 0x21e914
 
@@ -99,16 +108,19 @@ class FontModule(EbModule.EbModule):
         self._cfont = EbTileGraphics(192, 8, 2)
         self._cpal = EbPalettes(2, 4)
         self._pct = 50.0 / (len(self._fonts) + 1)
+
     def freeRanges(self):
-        return [(0x21e528, 0x21e913)] # Credits font graphics
+        return [(0x21e528, 0x21e913)]  # Credits font graphics
+
     def readCreditsFontFromRom(self, rom):
         self._cpal.readFromBlock(rom, loc=self._ADDR_CREDITS_PAL)
         with EbCompressedData() as cb:
             cb.readFromRom(rom,
-                    EbModule.toRegAddr(
-                        EbModule.readAsmPointer(
-                            rom, self._ASMPTR_CREDITS_GFX)))
+                           EbModule.toRegAddr(
+                               EbModule.readAsmPointer(
+                                   rom, self._ASMPTR_CREDITS_GFX)))
             self._cfont.readFromBlock(cb)
+
     def readFromRom(self, rom):
         for f in self._fonts:
             f.readFromRom(rom)
@@ -116,6 +128,7 @@ class FontModule(EbModule.EbModule):
 
         self.readCreditsFontFromRom(rom)
         updateProgress(self._pct)
+
     def writeToRom(self, rom):
         for f in self._fonts:
             f.writeToRom(rom)
@@ -125,20 +138,22 @@ class FontModule(EbModule.EbModule):
         with EbCompressedData(self._cfont.sizeBlock()) as cb:
             self._cfont.writeToBlock(cb)
             EbModule.writeAsmPointer(rom, self._ASMPTR_CREDITS_GFX,
-                    EbModule.toSnesAddr(cb.writeToFree(rom)))
+                                     EbModule.toSnesAddr(cb.writeToFree(rom)))
         updateProgress(self._pct)
+
     def writeCreditsFontToProject(self, resourceOpener):
         arr = EbArrangement(16, 12)
         for i in range(192):
-            arr[i%16, i/16] = (False, False, False,
-                    self._CREDITS_PREVIEW_SUBPALS[i], i)
+            arr[i % 16, i / 16] = (False, False, False,
+                                   self._CREDITS_PREVIEW_SUBPALS[i], i)
         img = arr.toImage(self._cfont, self._cpal)
         with resourceOpener("Fonts/credits", "png") as imgFile:
             img.save(imgFile, "png")
             imgFile.close()
+
     def writeToProject(self, resourceOpener):
         out = dict()
-        i=0
+        i = 0
         for font in self._fonts:
             # Write the PNG
             img = font.toImage()
@@ -149,19 +164,21 @@ class FontModule(EbModule.EbModule):
             out = font.dumpWidths()
             with resourceOpener("Fonts/" + str(i) + "_widths", "yml") as f:
                 yaml.dump(out, f, default_flow_style=False,
-                        Dumper=yaml.CSafeDumper)
+                          Dumper=yaml.CSafeDumper)
             i += 1
             updateProgress(self._pct)
 
         self.writeCreditsFontToProject(resourceOpener)
         updateProgress(self._pct)
+
     def readFromProject(self, resourceOpener):
         i = 0
         for font in self._fonts:
             with resourceOpener("Fonts/" + str(i), "png") as imgFile:
                 img = Image.open(imgFile)
                 if img.mode != 'P':
-                    raise RuntimeError("Fonts/" + str(i) + " is not an indexed PNG.")
+                    raise RuntimeError(
+                        "Fonts/" + str(i) + " is not an indexed PNG.")
                 font.fromImage(img)
             with resourceOpener("Fonts/" + str(i) + "_widths", "yml") as f:
                 input = yaml.load(f, Loader=yaml.CSafeLoader)
@@ -176,8 +193,9 @@ class FontModule(EbModule.EbModule):
             self._cfont.loadFromImage(img)
             self._cpal.loadFromImage(img)
         updateProgress(self._pct)
+
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-            resourceOpenerW, resourceDeleter):
+                       resourceOpenerW, resourceDeleter):
         if oldVersion == newVersion:
             updateProgress(100)
             return
@@ -185,7 +203,8 @@ class FontModule(EbModule.EbModule):
             self.readCreditsFontFromRom(rom)
             self.writeCreditsFontToProject(resourceOpenerW)
             self.upgradeProject(3, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW, resourceDeleter)
+                                resourceOpenerW, resourceDeleter)
         else:
-            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW, resourceDeleter)
+            self.upgradeProject(
+                oldVersion + 1, newVersion, rom, resourceOpenerR,
+                resourceOpenerW, resourceDeleter)

@@ -5,6 +5,7 @@ from modules.Progress import updateProgress
 
 import yaml
 
+
 class MapModule(EbModule.EbModule):
     _name = "Map"
     _MAP_PTRS_PTR_ADDR = 0xa1db
@@ -33,72 +34,81 @@ class MapModule(EbModule.EbModule):
                                                   "Summers"])
         self.townmap_arrow = ValuedIntTableEntry(None, None,
                                                  ["None", "Up", "Down", "Right", "Left"])
+
     def readFromRom(self, rom):
         # Read map tiles
         map_ptrs_addr = \
             EbModule.toRegAddr(rom.readMulti(self._MAP_PTRS_PTR_ADDR, 3))
-        map_addrs = map(lambda x: \
-            EbModule.toRegAddr(rom.readMulti(map_ptrs_addr+x*4,4)),
-            range(8))
+        map_addrs = map(lambda x:
+                        EbModule.toRegAddr(
+                            rom.readMulti(map_ptrs_addr + x * 4, 4)),
+                        range(8))
         self._tiles = map(
-                lambda y: rom.readList(map_addrs[y%8] + ((y>>3)<<8),
-                    self._MAP_WIDTH).tolist(),
-                range(self._MAP_HEIGHT))
+            lambda y: rom.readList(map_addrs[y % 8] + ((y >> 3) << 8),
+                                   self._MAP_WIDTH).tolist(),
+            range(self._MAP_HEIGHT))
         k = self._LOCAL_TSET_ADDR
-        for i in range(self._MAP_HEIGHT>>3):
+        for i in range(self._MAP_HEIGHT >> 3):
             for j in range(self._MAP_WIDTH):
-                self._tiles[i<<3][j] |= (rom[k] & 3) << 8
-                self._tiles[(i<<3)|1][j] |= ((rom[k] >> 2) & 3) << 8
-                self._tiles[(i<<3)|2][j] |= ((rom[k] >> 4) & 3) << 8
-                self._tiles[(i<<3)|3][j] |= ((rom[k] >> 6) & 3) << 8
-                self._tiles[(i<<3)|4][j] |= (rom[k+0x3000] & 3) << 8
-                self._tiles[(i<<3)|5][j] |= ((rom[k+0x3000] >> 2) & 3) << 8
-                self._tiles[(i<<3)|6][j] |= ((rom[k+0x3000] >> 4) & 3) << 8
-                self._tiles[(i<<3)|7][j] |= ((rom[k+0x3000] >> 6) & 3) << 8
+                self._tiles[i << 3][j] |= (rom[k] & 3) << 8
+                self._tiles[(i << 3) | 1][j] |= ((rom[k] >> 2) & 3) << 8
+                self._tiles[(i << 3) | 2][j] |= ((rom[k] >> 4) & 3) << 8
+                self._tiles[(i << 3) | 3][j] |= ((rom[k] >> 6) & 3) << 8
+                self._tiles[(i << 3) | 4][j] |= (rom[k + 0x3000] & 3) << 8
+                self._tiles[(i << 3) | 5][j] |= (
+                    (rom[k + 0x3000] >> 2) & 3) << 8
+                self._tiles[(i << 3) | 6][j] |= (
+                    (rom[k + 0x3000] >> 4) & 3) << 8
+                self._tiles[(i << 3) | 7][j] |= (
+                    (rom[k + 0x3000] >> 6) & 3) << 8
                 k += 1
         updateProgress(25)
         # Read sector data
         self._mapSecTsetPalsTbl.readFromRom(rom)
-        updateProgress(25.0/4)
+        updateProgress(25.0 / 4)
         self._mapSecMusicTbl.readFromRom(rom)
-        updateProgress(25.0/4)
+        updateProgress(25.0 / 4)
         self._mapSecMiscTbl.readFromRom(rom)
-        updateProgress(25.0/4)
+        updateProgress(25.0 / 4)
         self._mapSecTownMapTbl.readFromRom(rom)
-        updateProgress(25.0/4)
+        updateProgress(25.0 / 4)
+
     def writeToRom(self, rom):
         map_ptrs_addr = \
             EbModule.toRegAddr(rom.readMulti(self._MAP_PTRS_PTR_ADDR, 3))
-        map_addrs = map(lambda x: \
-            EbModule.toRegAddr(rom.readMulti(map_ptrs_addr+x*4,4)),
-            range(8))
+        map_addrs = map(lambda x:
+                        EbModule.toRegAddr(
+                            rom.readMulti(map_ptrs_addr + x * 4, 4)),
+                        range(8))
         for i in range(self._MAP_HEIGHT):
-            rom.write(map_addrs[i%8] + ((i>>3)<<8), map(lambda x: x & 0xff,
-                self._tiles[i]))
+            rom.write(
+                map_addrs[i % 8] + ((i >> 3) << 8), map(lambda x: x & 0xff,
+                                                        self._tiles[i]))
         k = self._LOCAL_TSET_ADDR
-        for i in range(self._MAP_HEIGHT>>3):
+        for i in range(self._MAP_HEIGHT >> 3):
             for j in range(self._MAP_WIDTH):
-                c = ((self._tiles[i<<3][j] >> 8)
-                        | ((self._tiles[(i<<3)|1][j] >> 8) << 2)
-                        | ((self._tiles[(i<<3)|2][j] >> 8) << 4)
-                        | ((self._tiles[(i<<3)|3][j] >> 8) << 6))
+                c = ((self._tiles[i << 3][j] >> 8)
+                     | ((self._tiles[(i << 3) | 1][j] >> 8) << 2)
+                     | ((self._tiles[(i << 3) | 2][j] >> 8) << 4)
+                     | ((self._tiles[(i << 3) | 3][j] >> 8) << 6))
                 rom.write(k, c)
-                c = ((self._tiles[(i<<3)|4][j] >> 8)
-                        | ((self._tiles[(i<<3)|5][j] >> 8) << 2)
-                        | ((self._tiles[(i<<3)|6][j] >> 8) << 4)
-                        | ((self._tiles[(i<<3)|7][j] >> 8) << 6))
-                rom.write(k+0x3000, c)
+                c = ((self._tiles[(i << 3) | 4][j] >> 8)
+                     | ((self._tiles[(i << 3) | 5][j] >> 8) << 2)
+                     | ((self._tiles[(i << 3) | 6][j] >> 8) << 4)
+                     | ((self._tiles[(i << 3) | 7][j] >> 8) << 6))
+                rom.write(k + 0x3000, c)
                 k += 1
         updateProgress(25)
         # Write sector data
         self._mapSecTsetPalsTbl.writeToRom(rom)
-        updateProgress(25.0/4)
+        updateProgress(25.0 / 4)
         self._mapSecMusicTbl.writeToRom(rom)
-        updateProgress(25.0/4)
+        updateProgress(25.0 / 4)
         self._mapSecMiscTbl.writeToRom(rom)
-        updateProgress(25.0/4)
+        updateProgress(25.0 / 4)
         self._mapSecTownMapTbl.writeToRom(rom)
-        updateProgress(25.0/4)
+        updateProgress(25.0 / 4)
+
     def writeToProject(self, resourceOpener):
         # Write map tiles
         with resourceOpener("map_tiles", "map") as f:
@@ -112,68 +122,75 @@ class MapModule(EbModule.EbModule):
         # Write sector data
         out = dict()
         for i in range(self._mapSecTsetPalsTbl.height()):
-            self.teleport.setVal(self._mapSecMiscTbl[i,0].val() >> 7)
-            self.townmap.setVal((self._mapSecMiscTbl[i,0].val() >> 3) & 7)
-            self.setting.setVal(self._mapSecMiscTbl[i,0].val() & 7)
-            self.townmap_image.setVal(self._mapSecTownMapTbl[i,0].val() & 0xf)
-            self.townmap_arrow.setVal(self._mapSecTownMapTbl[i,0].val() >> 4)
+            self.teleport.setVal(self._mapSecMiscTbl[i, 0].val() >> 7)
+            self.townmap.setVal((self._mapSecMiscTbl[i, 0].val() >> 3) & 7)
+            self.setting.setVal(self._mapSecMiscTbl[i, 0].val() & 7)
+            self.townmap_image.setVal(self._mapSecTownMapTbl[i, 0].val() & 0xf)
+            self.townmap_arrow.setVal(self._mapSecTownMapTbl[i, 0].val() >> 4)
             out[i] = {
-                    "Tileset": self._mapSecTsetPalsTbl[i,0].val() >> 3,
-                    "Palette": self._mapSecTsetPalsTbl[i,0].val() & 7,
-                    "Music": self._mapSecMusicTbl[i,0].dump(),
-                    "Teleport": self.teleport.dump(),
-                    "Town Map": self.townmap.dump(),
-                    "Setting": self.setting.dump(),
-                    "Item": self._mapSecMiscTbl[i,1].dump(),
-                    "Town Map Image": self.townmap_image.dump(),
-                    "Town Map Arrow": self.townmap_arrow.dump(),
-                    "Town Map X": self._mapSecTownMapTbl[i,1].dump(),
-                    "Town Map Y": self._mapSecTownMapTbl[i,2].dump() }
+                "Tileset": self._mapSecTsetPalsTbl[i, 0].val() >> 3,
+                "Palette": self._mapSecTsetPalsTbl[i, 0].val() & 7,
+                "Music": self._mapSecMusicTbl[i, 0].dump(),
+                "Teleport": self.teleport.dump(),
+                "Town Map": self.townmap.dump(),
+                "Setting": self.setting.dump(),
+                "Item": self._mapSecMiscTbl[i, 1].dump(),
+                "Town Map Image": self.townmap_image.dump(),
+                "Town Map Arrow": self.townmap_arrow.dump(),
+                "Town Map X": self._mapSecTownMapTbl[i, 1].dump(),
+                "Town Map Y": self._mapSecTownMapTbl[i, 2].dump()}
         updateProgress(12.5)
         with resourceOpener("map_sectors", "yml") as f:
-            yaml.dump(out, f, Dumper=yaml.CSafeDumper, default_flow_style=False)
+            yaml.dump(
+                out,
+                f,
+                Dumper=yaml.CSafeDumper,
+                default_flow_style=False)
         updateProgress(12.5)
+
     def readFromProject(self, resourceOpener):
         # Read map data
         with resourceOpener("map_tiles", "map") as f:
             self._tiles = map(lambda y:
-                    map(lambda x: int(x, 16), y.split(" ")),
-                    f.readlines())
+                              map(lambda x: int(x, 16), y.split(" ")),
+                              f.readlines())
         updateProgress(25)
         # Read sector data
         self._mapSecTsetPalsTbl.clear(2560)
         self._mapSecMusicTbl.clear(2560)
         self._mapSecMiscTbl.clear(2560)
         self._mapSecTownMapTbl.clear(2560)
-        pct = (25.0/2560)
+        pct = (25.0 / 2560)
         with resourceOpener("map_sectors", "yml") as f:
             input = yaml.load(f, Loader=yaml.CSafeLoader)
             for i in input:
                 entry = input[i]
-                self._mapSecTsetPalsTbl[i,0].setVal(
-                        (entry["Tileset"] << 3) | entry["Palette"])
-                self._mapSecMusicTbl[i,0].load(entry["Music"])
-                self._mapSecMiscTbl[i,1].load(entry["Item"])
+                self._mapSecTsetPalsTbl[i, 0].setVal(
+                    (entry["Tileset"] << 3) | entry["Palette"])
+                self._mapSecMusicTbl[i, 0].load(entry["Music"])
+                self._mapSecMiscTbl[i, 1].load(entry["Item"])
                 self.teleport.load(entry["Teleport"])
                 self.townmap.load(entry["Town Map"])
                 self.setting.load(entry["Setting"])
-                self._mapSecMiscTbl[i,0].setVal((self.teleport.val() << 7)
-                        | (self.townmap.val() << 3) | self.setting.val())
+                self._mapSecMiscTbl[i, 0].setVal((self.teleport.val() << 7)
+                                                 | (self.townmap.val() << 3) | self.setting.val())
                 self.townmap_image.load(entry["Town Map Image"])
                 self.townmap_arrow.load(entry["Town Map Arrow"])
-                self._mapSecTownMapTbl[i,0].setVal(
-                        (self.townmap_arrow.val() << 4) |
-                        (self.townmap_image.val() & 0xf))
-                self._mapSecTownMapTbl[i,1].load(entry["Town Map X"])
-                self._mapSecTownMapTbl[i,2].load(entry["Town Map Y"])
+                self._mapSecTownMapTbl[i, 0].setVal(
+                    (self.townmap_arrow.val() << 4) |
+                    (self.townmap_image.val() & 0xf))
+                self._mapSecTownMapTbl[i, 1].load(entry["Town Map X"])
+                self._mapSecTownMapTbl[i, 2].load(entry["Town Map Y"])
                 updateProgress(pct)
+
     def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-            resourceOpenerW, resourceDeleter):
+                       resourceOpenerW, resourceDeleter):
         global updateProgress
+
         def replaceField(fname, oldField, newField, valueMap):
             if newField is None:
                 newField = oldField
-            valueMap = dict((k, v) for k,v in valueMap.iteritems())
+            valueMap = dict((k, v) for k, v in valueMap.iteritems())
             with resourceOpenerR(fname, 'yml') as f:
                 data = yaml.load(f, Loader=yaml.CSafeLoader)
                 for i in data:
@@ -185,14 +202,14 @@ class MapModule(EbModule.EbModule):
                         del data[i][oldField]
             with resourceOpenerW(fname, 'yml') as f:
                 yaml.dump(data, f, Dumper=yaml.CSafeDumper,
-                        default_flow_style=False)
+                          default_flow_style=False)
 
         if oldVersion == newVersion:
             updateProgress(100)
             return
         elif oldVersion <= 2:
             replaceField("map_sectors", "Town Map", None,
-                    { "scummers": "summers" })
+                         {"scummers": "summers"})
 
             # Need to add the Town Map Image/Arrow/X/Y fields
             tmp = updateProgress
@@ -203,18 +220,21 @@ class MapModule(EbModule.EbModule):
             with resourceOpenerR("map_sectors", 'yml') as f:
                 data = yaml.load(f, Loader=yaml.CSafeLoader)
                 for i in data:
-                    self.townmap_image.setVal(self._mapSecTownMapTbl[i,0].val() & 0xf)
-                    self.townmap_arrow.setVal(self._mapSecTownMapTbl[i,0].val() >> 4)
+                    self.townmap_image.setVal(
+                        self._mapSecTownMapTbl[i, 0].val() & 0xf)
+                    self.townmap_arrow.setVal(
+                        self._mapSecTownMapTbl[i, 0].val() >> 4)
                     data[i]["Town Map Image"] = self.townmap_image.dump()
                     data[i]["Town Map Arrow"] = self.townmap_arrow.dump()
-                    data[i]["Town Map X"] = self._mapSecTownMapTbl[i,1].dump()
-                    data[i]["Town Map Y"] = self._mapSecTownMapTbl[i,2].dump()
+                    data[i]["Town Map X"] = self._mapSecTownMapTbl[i, 1].dump()
+                    data[i]["Town Map Y"] = self._mapSecTownMapTbl[i, 2].dump()
             with resourceOpenerW("map_sectors", 'yml') as f:
                 yaml.dump(data, f, Dumper=yaml.CSafeDumper,
-                        default_flow_style=False)
+                          default_flow_style=False)
 
             self.upgradeProject(3, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW, resourceDeleter)
+                                resourceOpenerW, resourceDeleter)
         else:
-            self.upgradeProject(oldVersion+1, newVersion, rom, resourceOpenerR,
-                    resourceOpenerW, resourceDeleter)
+            self.upgradeProject(
+                oldVersion + 1, newVersion, rom, resourceOpenerR,
+                resourceOpenerW, resourceDeleter)
