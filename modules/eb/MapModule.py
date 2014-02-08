@@ -7,7 +7,7 @@ import yaml
 
 
 class MapModule(EbModule.EbModule):
-    _name = "Map"
+    NAME = "Map"
     _MAP_PTRS_PTR_ADDR = 0xa1db
     _LOCAL_TSET_ADDR = 0x175000
     _MAP_HEIGHT = 320
@@ -35,7 +35,7 @@ class MapModule(EbModule.EbModule):
         self.townmap_arrow = ValuedIntTableEntry(None, None,
                                                  ["None", "Up", "Down", "Right", "Left"])
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         # Read map tiles
         map_ptrs_addr = \
             EbModule.toRegAddr(rom.readMulti(self._MAP_PTRS_PTR_ADDR, 3))
@@ -73,7 +73,7 @@ class MapModule(EbModule.EbModule):
         self._mapSecTownMapTbl.readFromRom(rom)
         updateProgress(25.0 / 4)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         map_ptrs_addr = \
             EbModule.toRegAddr(rom.readMulti(self._MAP_PTRS_PTR_ADDR, 3))
         map_addrs = map(lambda x:
@@ -109,7 +109,7 @@ class MapModule(EbModule.EbModule):
         self._mapSecTownMapTbl.writeToRom(rom)
         updateProgress(25.0 / 4)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         # Write map tiles
         with resourceOpener("map_tiles", "map") as f:
             for row in self._tiles:
@@ -148,7 +148,7 @@ class MapModule(EbModule.EbModule):
                 default_flow_style=False)
         updateProgress(12.5)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         # Read map data
         with resourceOpener("map_tiles", "map") as f:
             self._tiles = map(lambda y:
@@ -183,7 +183,7 @@ class MapModule(EbModule.EbModule):
                 self._mapSecTownMapTbl[i, 2].load(entry["Town Map Y"])
                 updateProgress(pct)
 
-    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                        resourceOpenerW, resourceDeleter):
         global updateProgress
 
@@ -214,7 +214,7 @@ class MapModule(EbModule.EbModule):
             # Need to add the Town Map Image/Arrow/X/Y fields
             tmp = updateProgress
             updateProgress = lambda x: None
-            self.readFromRom(rom)
+            self.read_from_rom(rom)
             updateProgress = tmp
 
             with resourceOpenerR("map_sectors", 'yml') as f:
@@ -232,9 +232,9 @@ class MapModule(EbModule.EbModule):
                 yaml.dump(data, f, Dumper=yaml.CSafeDumper,
                           default_flow_style=False)
 
-            self.upgradeProject(3, newVersion, rom, resourceOpenerR,
+            self.upgrade_project(3, newVersion, rom, resourceOpenerR,
                                 resourceOpenerW, resourceDeleter)
         else:
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)

@@ -140,7 +140,11 @@ class EbBattleSprite:
 
 
 class EnemyModule(EbModule.EbModule):
-    _name = "Enemies"
+    NAME = "Enemies"
+    FREE_RANGES = [(0x0d0000, 0x0dffff),  # Battle Sprites
+                   (0x0e0000, 0x0e6913),  # Battle Sprites continued & Battle Sprite palettes
+                   (0x10d52d, 0x10dfb3)]  # Enemy Group Data
+
     _ASMPTR_GFX = 0x2ee0b
     _REGPTR_GFX = [0x2ebe0, 0x2f014, 0x2f065]
     _ASMPTR_PAL = 0x2ef74
@@ -156,7 +160,7 @@ class EnemyModule(EbModule.EbModule):
         self._bsPals = []
         self._enemyGroups = []
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         self._bsPtrTbl.readFromRom(rom,
                                    EbModule.toRegAddr(
                                        EbModule.readAsmPointer(rom,
@@ -199,12 +203,7 @@ class EnemyModule(EbModule.EbModule):
             self._enemyGroups.append(group)
             updateProgress(pct)
 
-    def freeRanges(self):
-        return [(0x0d0000, 0x0dffff),  # Battle Sprites
-                (0x0e0000, 0x0e6913),  # Battle Sprites Cont'd & Btl Spr. Pals
-                (0x10d52d, 0x10dfb3)]  # Enemy Group Data
-
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         pct = 40.0 / (len(self._bsprites) + len(self._bsPals) + 3)
         # Write the main table
         self._enemyCfgTable.writeToRom(rom)
@@ -252,7 +251,7 @@ class EnemyModule(EbModule.EbModule):
         self._enemyGroupTbl.writeToRom(rom)
         updateProgress(5)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         pct = 40.0 / (self._enemyCfgTable.height() + 1)
         # First, write the Enemy Configuration Table
         self._enemyCfgTable.writeToProject(resourceOpener, [4, 14])
@@ -294,7 +293,7 @@ class EnemyModule(EbModule.EbModule):
             yaml.dump(out, f, Dumper=yaml.CSafeDumper)
         updateProgress(5)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         # First, read the Enemy Configuration Table
         self._enemyCfgTable.readFromProject(resourceOpener)
         pct = 40.0 / (self._enemyCfgTable.height())
@@ -354,7 +353,7 @@ class EnemyModule(EbModule.EbModule):
                 self._enemyGroups.append(enemyList)
                 updateProgress(pct)
 
-    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                        resourceOpenerW, resourceDeleter):
         if oldVersion == newVersion:
             updateProgress(100)
@@ -387,10 +386,10 @@ class EnemyModule(EbModule.EbModule):
                           6: "64/128",
                           7: "128/128"},
                          resourceOpenerR, resourceOpenerW)
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)
         else:
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)

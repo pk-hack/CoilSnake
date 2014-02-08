@@ -5,9 +5,9 @@ import yaml
 
 
 class SkipNamingModule(EbModule.EbModule):
-    _name = "Skip Names"
+    NAME = "Skip Names"
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         out = {"Enable Skip": False,
                "Enable Summary": False,
                "Name1": "Ness",
@@ -22,7 +22,7 @@ class SkipNamingModule(EbModule.EbModule):
                       Dumper=yaml.CSafeDumper)
         updateProgress(50)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         with resourceOpener("naming_skip", "yml") as f:
             self._data = yaml.load(f, Loader=yaml.CSafeLoader)
         updateProgress(50)
@@ -39,7 +39,7 @@ class SkipNamingModule(EbModule.EbModule):
             loc += 5
         return loc
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         if self._data["Enable Skip"]:
             rom[0x1faae] = 0x5c
             loc = rom.getFreeLoc(10 + 4 * 5 * 5 + 3 * 6 * 5)

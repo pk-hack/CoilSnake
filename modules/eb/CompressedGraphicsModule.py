@@ -541,7 +541,11 @@ class EbLogo:
 
 
 class CompressedGraphicsModule(EbModule.EbModule):
-    _name = "Compressed Graphics"
+    NAME = "Compressed Graphics"
+    FREE_RANGES = [(0x2021a8, 0x20ed02),  # Town Map data
+                   (0x214ec1, 0x21ae7b),  # Company Logos, "Produced by" and "Presented by", and Gas Station
+                   (0x21ea50, 0x21f203)]  # Town map icon graphics and palette
+
     TOWN_MAP_PTRS = zip(
         map(lambda x: "TownMaps/" + x,
             ["Onett", "Twoson", "Threed", "Fourside", "Scaraba", "Summers"]),
@@ -694,7 +698,7 @@ class CompressedGraphicsModule(EbModule.EbModule):
                                                        self._ASMPTR_GAS_PAL3)))
             self._gas_pal3.readFromBlock(cb)
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         for logo in self._logos:
             logo.readFromRom(rom)
             updateProgress(self._pct)
@@ -709,12 +713,7 @@ class CompressedGraphicsModule(EbModule.EbModule):
         self.readGasFromRom(rom)
         updateProgress(self._pct)
 
-    def freeRanges(self):
-        return [(0x2021a8, 0x20ed02),  # Town Map data
-                (0x214ec1, 0x21ae7b),  # Company Logos, Prod/Pres, and Gas
-                (0x21ea50, 0x21f203)]  # Town map icon GFX and pal
-
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         for logo in self._logos:
             logo.writeToRom(rom)
             updateProgress(self._pct)
@@ -820,7 +819,7 @@ class CompressedGraphicsModule(EbModule.EbModule):
             img.save(imgFile, 'png')
             imgFile.close()
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         for logo in self._logos:
             logo.writeToProject(resourceOpener)
             updateProgress(self._pct)
@@ -835,7 +834,7 @@ class CompressedGraphicsModule(EbModule.EbModule):
         self.writeGasToProject(resourceOpener)
         updateProgress(self._pct)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         for logo in self._logos:
             logo.readFromProject(resourceOpener)
             updateProgress(self._pct)
@@ -885,7 +884,7 @@ class CompressedGraphicsModule(EbModule.EbModule):
             self._gas_pal3.loadFromImage(img)
         updateProgress(self._pct)
 
-    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                        resourceOpenerW, resourceDeleter):
         if oldVersion == newVersion:
             updateProgress(100)
@@ -900,9 +899,9 @@ class CompressedGraphicsModule(EbModule.EbModule):
             self.readGasFromRom(rom)
             self.writeGasToProject(resourceOpenerW)
 
-            self.upgradeProject(3, newVersion, rom, resourceOpenerR,
+            self.upgrade_project(3, newVersion, rom, resourceOpenerR,
                                 resourceOpenerW, resourceDeleter)
         else:
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)

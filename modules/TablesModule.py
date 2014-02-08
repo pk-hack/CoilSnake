@@ -11,7 +11,7 @@ from modules.Progress import updateProgress
 
 
 class TablesModule(GenericModule.GenericModule):
-    _name = "Generic Tables"
+    NAME = "Generic Tables"
 
     def __init__(self, TableClass, tableIDs):
         GenericModule.GenericModule.__init__(self)
@@ -22,22 +22,22 @@ class TablesModule(GenericModule.GenericModule):
         for t in self._tables:
             del t
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         for t in self._tables:
             t.readFromRom(rom)
             updateProgress(self._pct)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         for t in self._tables:
             t.writeToRom(rom)
             updateProgress(self._pct)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         for t in self._tables:
             t.writeToProject(resourceOpener)
             updateProgress(self._pct)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         for t in self._tables:
             t.readFromProject(resourceOpener)
             updateProgress(self._pct)

@@ -60,7 +60,7 @@ class EbCompressedData:
             print "Error decompressing data @", hex(addr)
         else:
             self._data = array('B', ucdata)
-#    def writeToProject(self, resourceOpener):
+#    def write_to_project(self, resourceOpener):
 #        f = resourceOpener("dump", "smc")
 #        self._data.tofile(f)
 #        f.close()

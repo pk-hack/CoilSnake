@@ -27,12 +27,11 @@ def replaceField(fname, oldField, newField, valueMap, resourceOpenerR,
 
 
 class GenericModule:
+    NAME = "Abstract Generic Module"
+    FREE_RANGES = []
 
     def __init__(self):
-        self._name = None
-
-    def name(self):
-        return self._name
+        pass
 
     def compatibleWithRomtype(self, romtype):
         return True
@@ -40,21 +39,17 @@ class GenericModule:
     def free(self):
         pass
 
-    def freeRanges(self):
-        return []
-
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         updateProgress(50)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         updateProgress(50)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resource_open):
         updateProgress(50)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resource_open):
         updateProgress(50)
 
-    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
-                       resourceOpenerW, resourceDeleter):
+    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         updateProgress(100)

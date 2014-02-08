@@ -8,7 +8,9 @@ from re import sub
 
 
 class TownMapIconModule(EbModule.EbModule):
-    _name = "Town Map Icon Positions"
+    NAME = "Town Map Icon Positions"
+    FREE_RANGES = [(0x21f491, 0x21f580)]  # Pointer Table and Data
+
     _ASMPTR_PTR_TBL = 0x4d464
 
     def __init__(self):
@@ -25,10 +27,7 @@ class TownMapIconModule(EbModule.EbModule):
                                                "East to Toto", "Hint", "Ness", "Small Ness",
                                                "North", "South", "West", "East"])
 
-    def freeRanges(self):
-        return [(0x21f491, 0x21f580)]  # Pointer Table and Data
-
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         self._ptrTbl.readFromRom(rom,
                                  EbModule.toRegAddr(
                                      EbModule.readAsmPointer(rom,
@@ -50,7 +49,7 @@ class TownMapIconModule(EbModule.EbModule):
             i += 1
         updateProgress(45)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         self._ptrTbl.clear(6)
         i = 0
         for entry in self._entries:
@@ -71,7 +70,7 @@ class TownMapIconModule(EbModule.EbModule):
                                      self._ptrTbl.writeToFree(rom)))
         updateProgress(5)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         self._entries = [None] * 6
         with resourceOpener("TownMaps/icon_positions", "yml") as f:
             data = yaml.load(f, Loader=yaml.CSafeLoader)
@@ -88,7 +87,7 @@ class TownMapIconModule(EbModule.EbModule):
                 self._entries[self._entryIdField.val()] = entry
         updateProgress(50)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         out = dict()
         i = 0
         for entry in self._entries:
@@ -112,7 +111,7 @@ class TownMapIconModule(EbModule.EbModule):
             f.write(s)
         updateProgress(25)
 
-    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                        resourceOpenerW, resourceDeleter):
         global updateProgress
         if oldVersion == newVersion:
@@ -121,12 +120,12 @@ class TownMapIconModule(EbModule.EbModule):
         elif oldVersion <= 2:
             tmp = updateProgress
             updateProgress = lambda x: None
-            self.readFromRom(rom)
-            self.writeToProject(resourceOpenerW)
+            self.read_from_rom(rom)
+            self.write_to_project(resourceOpenerW)
             updateProgress = tmp
-            self.upgradeProject(3, newVersion, rom, resourceOpenerR,
+            self.upgrade_project(3, newVersion, rom, resourceOpenerR,
                                 resourceOpenerW, resourceDeleter)
         else:
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)

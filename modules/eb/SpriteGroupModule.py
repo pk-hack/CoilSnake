@@ -239,7 +239,13 @@ class SpriteGroup:
 
 
 class SpriteGroupModule(EbModule.EbModule):
-    _name = "Sprite Groups"
+    NAME = "Sprite Groups"
+    FREE_RANGES = [(0x2f1a7f, 0x2f4a3f),
+                   (0x110000, 0x11ffff),
+                   (0x120000, 0x12ffff),
+                   (0x130000, 0x13ffff),
+                   (0x140000, 0x14ffff),
+                   (0x150000, 0x154fff)]
 
     def __init__(self):
         EbModule.EbModule.__init__(self)
@@ -247,19 +253,11 @@ class SpriteGroupModule(EbModule.EbModule):
         self._grPalTbl = EbTable(0xc30000)
         self._groups = None
 
-    def freeRanges(self):
-        return [(0x2f1a7f, 0x2f4a3f),
-                (0x110000, 0x11ffff),
-                (0x120000, 0x12ffff),
-                (0x130000, 0x13ffff),
-                (0x140000, 0x14ffff),
-                (0x150000, 0x154fff)]
-
     def free(self):
         del self._grPtrTbl
         del self._grPalTbl
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         self._grPtrTbl.readFromRom(rom)
         updateProgress(5)
         self._grPalTbl.readFromRom(rom)
@@ -281,7 +279,7 @@ class SpriteGroupModule(EbModule.EbModule):
             self._groups.append(g)
             updateProgress(pct)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         # Write the palettes
         self._grPalTbl.writeToProject(resourceOpener)
         updateProgress(5)
@@ -301,7 +299,7 @@ class SpriteGroupModule(EbModule.EbModule):
                   Dumper=yaml.CSafeDumper)
         updateProgress(5)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         self._grPalTbl.readFromProject(resourceOpener)
         updateProgress(5)
         input = yaml.load(resourceOpener("sprite_groups", "yml"),
@@ -348,7 +346,7 @@ class SpriteGroupModule(EbModule.EbModule):
                                    + " uses an invalid palette: " + str(pal))
             updateProgress(pct)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         numGroups = len(self._groups)
         self._grPtrTbl.clear(numGroups)
         with DataBlock(sum(map(
@@ -376,7 +374,7 @@ class SpriteGroupModule(EbModule.EbModule):
         self._grPalTbl.writeToRom(rom)
         updateProgress(5)
 
-    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                        resourceOpenerW, resourceDeleter):
         def replaceField(fname, oldField, newField, valueMap):
             if newField is None:
@@ -432,10 +430,10 @@ class SpriteGroupModule(EbModule.EbModule):
                 "sprite_groups",
                 "Unknown B",
                 "Collision Settings")
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)
         else:
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)

@@ -7,7 +7,9 @@ from modules.Progress import updateProgress
 
 
 class MapEventModule(EbModule.EbModule):
-    _name = "Map Events"
+    NAME = "Map Events"
+    FREE_RANGES = [(0x101598, 0x10187f)]
+
     _PTR_LOC = 0x70d
     _PTR_BANK_LOC = 0x704
 
@@ -16,10 +18,7 @@ class MapEventModule(EbModule.EbModule):
         self._ptrTbl = EbTable(0xD01598)
         self._entries = []
 
-    def freeRanges(self):
-        return [(0x101598, 0x10187f)]
-
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         self._ptrTbl.readFromRom(rom,
                                  EbModule.toRegAddr(rom.readMulti(self._PTR_LOC, 3)))
         updateProgress(5)
@@ -41,7 +40,7 @@ class MapEventModule(EbModule.EbModule):
             self._entries.append(tsetEntry)
             updateProgress(pct)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         out = dict()
         i = 0
         for entry in self._entries:
@@ -62,7 +61,7 @@ class MapEventModule(EbModule.EbModule):
             f.write(s)
         updateProgress(25)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         with resourceOpener("map_changes", "yml") as f:
             input = yaml.load(f, Loader=yaml.CSafeLoader)
             for mtset in input:
@@ -75,7 +74,7 @@ class MapEventModule(EbModule.EbModule):
                 self._entries.append(entry)
                 updateProgress(50.0 / 20)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         self._ptrTbl.clear(20)
         blockSize = 0
         for entry in self._entries:

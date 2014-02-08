@@ -232,7 +232,14 @@ class Tileset:
 
 
 class TilesetModule(EbModule.EbModule):
-    _name = "Tilesets"
+    NAME = "Tilesets"
+    FREE_RANGES = [(0x17c600, 0x17fbe7),
+                   (0x190000, 0x19fc17),
+                   (0x1b0000, 0x1bf2ea),
+                   (0x1c0000, 0x1cd636),
+                   (0x1d0000, 0x1dfecd),
+                   (0x1e0000, 0x1ef0e6),
+                   (0x1f0000, 0x1fc242)]
 
     def __init__(self):
         EbModule.EbModule.__init__(self)
@@ -243,16 +250,7 @@ class TilesetModule(EbModule.EbModule):
         self._palPtrTbl = EbTable(0xEF10FB)
         self._tsets = [Tileset() for i in range(20)]
 
-    def freeRanges(self):
-        return [(0x17c600, 0x17fbe7),
-                (0x190000, 0x19fc17),
-                (0x1b0000, 0x1bf2ea),
-                (0x1c0000, 0x1cd636),
-                (0x1d0000, 0x1dfecd),
-                (0x1e0000, 0x1ef0e6),
-                (0x1f0000, 0x1fc242)]
-
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         self._gfxPtrTbl.readFromRom(rom)
         updateProgress(2)
         self._arrPtrTbl.readFromRom(rom)
@@ -309,7 +307,7 @@ class TilesetModule(EbModule.EbModule):
                 romLoc += 0xc0
             updateProgress(pct)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         numTsets = len(self._tsets)
         self._gfxPtrTbl.clear(numTsets)
         self._arrPtrTbl.clear(numTsets)
@@ -419,7 +417,7 @@ class TilesetModule(EbModule.EbModule):
         ranges = [(a, b) for (a, b) in ranges if a < b]
         rom.addFreeRanges(ranges)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         # Dump an additional YML with color0 data
         out = dict()
         for i in range(0, 32):  # For each map tset
@@ -449,7 +447,7 @@ class TilesetModule(EbModule.EbModule):
             i += 1
             updateProgress(pct)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         i = 0
         pct = 45.0 / len(self._tsets)
         for tset in self._tsets:

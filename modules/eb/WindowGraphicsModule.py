@@ -10,7 +10,9 @@ from modules.Progress import updateProgress
 # Preview Arrangement Palette
 #[0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 6, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 6, 6, 6, 6, 3, 3, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 1, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 1, 0, 0, 7, 7, 7, 7, 7, 7, 7 ]
 class WindowGraphicsModule(EbModule.EbModule):
-    _name = "Window Graphics"
+    NAME = "Window Graphics"
+    FREE_RANGES = [(0x200000, 0x20079f)]  # Graphics
+
     _ASMPTR_1 = 0x47c47
     _ASMPTR_2 = 0x47caa
     _ASMPTRS_NAMES = [0x1F70F, 0x1F72A, 0x1F745, 0x1F760, 0x1F77B]
@@ -43,10 +45,7 @@ class WindowGraphicsModule(EbModule.EbModule):
         self._flavNames = [(i, TextTableEntry(None, 25))
                            for i in self._ASMPTRS_NAMES]
 
-    def freeRanges(self):
-        return [(0x200000, 0x20079f)]  # Graphics
-
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         with EbCompressedData() as tgb1:
             tgb1.readFromRom(rom, EbModule.toRegAddr(
                 EbModule.readAsmPointer(rom, self._ASMPTR_1)))
@@ -69,7 +68,7 @@ class WindowGraphicsModule(EbModule.EbModule):
                 EbModule.readAsmPointer(rom, ptr)))
         updateProgress(5)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         with EbCompressedData(self._gfx1.sizeBlock()) as gb:
             self._gfx1.writeToBlock(gb)
             EbModule.writeAsmPointer(rom, self._ASMPTR_1,
@@ -92,7 +91,7 @@ class WindowGraphicsModule(EbModule.EbModule):
             EbModule.writeAsmPointer(rom, ptr, loc)
         updateProgress(5)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         arr1 = EbArrangement(16, 26)
         for i in range(416):
             arr1[
@@ -124,7 +123,7 @@ class WindowGraphicsModule(EbModule.EbModule):
                 print >>f, field.dump()
         updateProgress(10)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         # Read graphics. Just use the first of each image.
         with resourceOpener("WindowGraphics/Windows1_0", "png") as imgFile:
             img = Image.open(imgFile)

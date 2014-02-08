@@ -73,9 +73,9 @@ class CoilSnake:
             for (n, m) in curMods:
                 setProgress(0)
                 startTime = time.time()
-                print "-", m.name(), "...   0.00%",
+                print "-", m.NAME, "...   0.00%",
                 sys.stdout.flush()
-                m.upgradeProject(proj.version(), Project.FORMAT_VERSION, rom,
+                m.upgrade_project(proj.version(), Project.FORMAT_VERSION, rom,
                                  lambda x, y: proj.getResource(n, x, y, 'rb'),
                                  lambda x, y: proj.getResource(n, x, y, 'wb'),
                                  lambda x: proj.deleteResource(n, x))
@@ -135,7 +135,7 @@ class CoilSnake:
         # Add the ranges from the compatible modules to the free range list
         newRanges = []
         for (n, m) in curMods:
-            newRanges += m.freeRanges()
+            newRanges += m.FREE_RANGES
         rom.addFreeRanges(newRanges)
 
         print "From Project : ", inputFname, "(", proj.type(), ")"
@@ -143,10 +143,10 @@ class CoilSnake:
         for (n, m) in curMods:
             setProgress(0)
             startTime = time.time()
-            print "-", m.name(), "...   0.00%",
+            print "-", m.NAME, "...   0.00%",
             sys.stdout.flush()
-            m.readFromProject(lambda x, y: proj.getResource(n, x, y, 'rb'))
-            m.writeToRom(rom)
+            m.read_from_project(lambda x, y: proj.getResource(n, x, y, 'rb'))
+            m.write_to_rom(rom)
             m.free()
             print "(%0.2fs)" % (time.time() - startTime)
         rom.save(outRomFname)
@@ -168,12 +168,12 @@ class CoilSnake:
         for (n, m) in curMods:
             setProgress(0)
             startTime = time.time()
-            print "-", m.name(), "...   0.00%",
+            print "-", m.NAME, "...   0.00%",
             sys.stdout.flush()
-            m.readFromRom(rom)
-            m.writeToProject(lambda x, y: proj.getResource(n, x, y, 'wb'))
+            m.read_from_rom(rom)
+            m.write_to_project(lambda x, y: proj.getResource(n, x, y, 'wb'))
             m.free()
-            #scanner.dump_all_objects( m.name() + '.json' )
+            #scanner.dump_all_objects( m.NAME + '.json' )
             print "(%0.2fs)" % (time.time() - startTime)
         #scanner.dump_all_objects( 'complete.json' )
         proj.write(outputFname + os.sep + Project.PROJECT_FILENAME)

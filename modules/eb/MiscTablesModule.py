@@ -6,7 +6,7 @@ from re import sub
 
 
 class MiscTablesModule(EbTablesModule.EbTablesModule):
-    _name = "Misc Tables"
+    NAME = "Misc Tables"
     _tableIDs = [
         0xC3FD8D,  # Attract mode text
         0xD5F645,  # Timed Item Delivery
@@ -39,7 +39,7 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
 
     ]
 
-    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                        resourceOpenerW, resourceDeleter):
         # Helper function
         def lowerIfStr(s):
@@ -100,7 +100,7 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
             resourceDeleter("psi_anim_palettes")
             resourceDeleter("sound_stone_palette")
 
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)
         elif oldVersion == 2:
@@ -122,7 +122,7 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
                     lambda i: "Event Flag: " + hex(int(i.group(0)[12:])), s)
             with resourceOpenerW("timed_delivery_table", "yml") as f:
                 f.write(s)
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)
         elif oldVersion == 1:
@@ -139,7 +139,7 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
                          "Direction", None,
                          {"Party": "Enemy",
                           "Enemy": "Party"})
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)
         else:

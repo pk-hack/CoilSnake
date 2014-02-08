@@ -5,9 +5,9 @@ import yaml
 
 
 class UsedRangeModule(GenericModule):
-    _name = "Used Ranges"
+    NAME = "Used Ranges"
 
-    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                        resourceOpenerW, resourceDeleter):
         global updateProgress
         if oldVersion == newVersion:
@@ -16,18 +16,18 @@ class UsedRangeModule(GenericModule):
         elif oldVersion == 3:
             tmp = updateProgress
             updateProgress = lambda x: None
-            self.readFromRom(rom)
-            self.writeToProject(resourceOpenerW)
+            self.read_from_rom(rom)
+            self.write_to_project(resourceOpenerW)
             updateProgress = tmp
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)
         else:
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         with resourceOpener("used_ranges", "yml") as f:
             f.write(
                 "# List all ranges which CoilSnake should not touch\n"
@@ -35,7 +35,7 @@ class UsedRangeModule(GenericModule):
                 + "# - (0x350000, 0x350100)")
         updateProgress(50)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         with resourceOpener("used_ranges", "yml") as f:
             ranges = yaml.load(f, Loader=yaml.CSafeLoader)
             if ranges is None:
@@ -47,11 +47,11 @@ class UsedRangeModule(GenericModule):
                     ranges)
         updateProgress(50)
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         self._ranges = {"Ranges": []}
         updateProgress(50)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         for r in self._ranges:
             rom.markRangeAsNotFree(r)
         updateProgress(50)

@@ -15,7 +15,7 @@ class SpritePlacement:
 
 
 class MapSpriteModule(EbModule.EbModule):
-    _name = "Map Sprites"
+    NAME = "Map Sprites"
     _PTR_LOC = 0x2261
 
     def __init__(self):
@@ -23,7 +23,7 @@ class MapSpriteModule(EbModule.EbModule):
         self._ptrTbl = EbTable(0xCF61E7)
         self._entries = []
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         ptr = EbModule.toRegAddr(rom.readMulti(self._PTR_LOC, 3))
         updateProgress(5)
         self._ptrTbl.readFromRom(rom, ptr)
@@ -47,7 +47,7 @@ class MapSpriteModule(EbModule.EbModule):
                 self._entries.append(None)
             updateProgress(pct)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         out = dict()
         x = y = 0
         rowOut = dict()
@@ -75,7 +75,7 @@ class MapSpriteModule(EbModule.EbModule):
             yaml.dump(out, f, Dumper=yaml.CSafeDumper)
         updateProgress(5)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         self._entries = []
         pct = 45.0 / (40 * 32)
         with resourceOpener("map_sprites", "yml") as f:
@@ -92,7 +92,7 @@ class MapSpriteModule(EbModule.EbModule):
                             row[x]))
                     updateProgress(pct)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         self._ptrTbl.clear(32 * 40)
         writeLoc = 0xf61e7
         writeRangeEnd = 0xf8984

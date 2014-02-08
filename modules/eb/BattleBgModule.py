@@ -8,7 +8,9 @@ from PIL import Image
 
 
 class BattleBgModule(EbModule.EbModule):
-    _name = "Battle Backgrounds"
+    NAME = "Battle Backgrounds"
+    FREE_RANGES = [(0xa0000, 0xadca0), (0xb0000, 0xbd899)]
+
     _ASMPTRS_GFX = [0x2d1ba, 0x2d4dc, 0x2d8c3, 0x4a3ba]
     _ASMPTRS_ARR = [0x2d2c1, 0x2d537, 0x2d91f, 0x4a416]
     _ASMPTRS_PAL = [0x2d3bb, 0x2d61b, 0x2d7e8, 0x2d9e8, 0x4a4d0]
@@ -31,7 +33,7 @@ class BattleBgModule(EbModule.EbModule):
         del self._bbgGfxArrs
         del self._bbgPals
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         self._bbgTbl.readFromRom(rom)
         pct = 50.0 / (6 + self._bbgTbl.height())
         self._bbgGfxPtrTbl.readFromRom(rom,
@@ -84,7 +86,7 @@ class BattleBgModule(EbModule.EbModule):
                     self._bbgPals[palNum] = p
             updateProgress(pct)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         pct = 50.0 / (3 + self._bbgTbl.height())
         self._bbgTbl.writeToProject(resourceOpener, hiddenColumns=[0, 1])
         updateProgress(pct)
@@ -103,7 +105,7 @@ class BattleBgModule(EbModule.EbModule):
             del img
             updateProgress(pct)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         self._bbgTbl.readFromProject(resourceOpener)
         pct = 50.0 / (2 + self._bbgTbl.height())
         self._bbgScrollTbl.readFromProject(resourceOpener)
@@ -145,10 +147,7 @@ class BattleBgModule(EbModule.EbModule):
                 self._bbgTbl[i, 1].setVal(j)
             updateProgress(pct)
 
-    def freeRanges(self):
-        return [(0xa0000, 0xadca0), (0xb0000, 0xbd899)]
-
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         self._bbgGfxPtrTbl.clear(len(self._bbgGfxArrs))
         self._bbgArrPtrTbl.clear(len(self._bbgGfxArrs))
         self._bbgPalPtrTbl.clear(len(self._bbgPals))

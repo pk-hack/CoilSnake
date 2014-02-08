@@ -7,17 +7,15 @@ from re import sub
 
 
 class MapEnemyModule(EbModule.EbModule):
-    _name = "Enemy Map Groups"
+    NAME = "Enemy Map Groups"
+    FREE_RANGES = [(0x10BBAC, 0x10C60C)]  # Groups data
 
     def __init__(self):
         EbModule.EbModule.__init__(self)
         self._mapGroupPtrTbl = EbTable(0xD0B880)
         self._mapEnemyTbl = EbTable(0xD01880)
 
-    def freeRanges(self):
-        return [(0x10BBAC, 0x10C60C)]  # Groups data
-
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         self._mapEnemyTbl.readFromRom(rom)
         updateProgress(2.5)
         self._mapGroupPtrTbl.readFromRom(rom)
@@ -57,7 +55,7 @@ class MapEnemyModule(EbModule.EbModule):
             self._mapGroups.append((flag, rate1, rate2, group1, group2))
             updateProgress(pct)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         self._mapEnemyTbl.writeToRom(rom)
         updateProgress(2.5)
         self._mapGroupPtrTbl.clear(len(self._mapGroups))
@@ -91,7 +89,7 @@ class MapEnemyModule(EbModule.EbModule):
         self._mapGroupPtrTbl.writeToRom(rom)
         updateProgress(2.5)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         self._mapEnemyTbl.writeToProject(resourceOpener)
         updateProgress(2.5)
 
@@ -129,7 +127,7 @@ class MapEnemyModule(EbModule.EbModule):
             f.write(s)
         updateProgress(2.5)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         self._mapEnemyTbl.readFromProject(resourceOpener)
         updateProgress(5)
 

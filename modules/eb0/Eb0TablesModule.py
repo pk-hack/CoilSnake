@@ -31,7 +31,7 @@ class Eb0Table(Table):
 
 
 class Eb0TablesModule(Eb0Module.Eb0Module):
-    _name = "EarthBound Zero Tables"
+    NAME = "EarthBound Zero Tables"
     _tableIDs = []
 
     def __init__(self):
@@ -41,14 +41,14 @@ class Eb0TablesModule(Eb0Module.Eb0Module):
     def free(self):
         self._tm.free()
 
-    def readFromRom(self, rom):
-        self._tm.readFromRom(rom)
+    def read_from_rom(self, rom):
+        self._tm.read_from_rom(rom)
 
-    def writeToRom(self, rom):
-        self._tm.writeToRom(rom)
+    def write_to_rom(self, rom):
+        self._tm.write_to_rom(rom)
 
-    def writeToProject(self, resourceOpener):
-        self._tm.writeToProject(resourceOpener)
+    def write_to_project(self, resourceOpener):
+        self._tm.write_to_project(resourceOpener)
 
-    def readFromProject(self, resourceOpener):
-        self._tm.readFromProject(resourceOpener)
+    def read_from_project(self, resourceOpener):
+        self._tm.read_from_project(resourceOpener)

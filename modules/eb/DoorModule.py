@@ -230,14 +230,14 @@ class Door:
 
 
 class DoorModule(EbModule.EbModule):
-    _name = "Doors"
+    NAME = "Doors"
 
     def __init__(self):
         EbModule.EbModule.__init__(self)
         self._ptrTbl = EbTable(0xD00000)
         self._entries = []
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         self._ptrTbl.readFromRom(rom)
         updateProgress(5)
         pct = 45.0 / (40 * 32)
@@ -261,7 +261,7 @@ class DoorModule(EbModule.EbModule):
             i += 1
             updateProgress(pct)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         out = dict()
         x = y = 0
         rowOut = dict()
@@ -290,7 +290,7 @@ class DoorModule(EbModule.EbModule):
             f.write(s)
         updateProgress(5)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         self._entries = []
         pct = 45.0 / (40 * 32)
         with resourceOpener("map_doors", "yml") as f:
@@ -310,7 +310,7 @@ class DoorModule(EbModule.EbModule):
                         self._entries.append(entry)
                     updateProgress(pct)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         self._ptrTbl.clear(32 * 40)
         destWriteLoc = 0xF0000
         destRangeEnd = 0xF58EE  # TODO Is this correct? Can we go more?

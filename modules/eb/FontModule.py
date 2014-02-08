@@ -79,7 +79,9 @@ class Font:
 
 
 class FontModule(EbModule.EbModule):
-    _name = "Fonts"
+    NAME = "Fonts"
+    FREE_RANGES = [(0x21e528, 0x21e913)]  # Credits font graphics
+
     _CREDITS_PREVIEW_SUBPALS = [
         1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1,
         1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1,
@@ -109,9 +111,6 @@ class FontModule(EbModule.EbModule):
         self._cpal = EbPalettes(2, 4)
         self._pct = 50.0 / (len(self._fonts) + 1)
 
-    def freeRanges(self):
-        return [(0x21e528, 0x21e913)]  # Credits font graphics
-
     def readCreditsFontFromRom(self, rom):
         self._cpal.readFromBlock(rom, loc=self._ADDR_CREDITS_PAL)
         with EbCompressedData() as cb:
@@ -121,7 +120,7 @@ class FontModule(EbModule.EbModule):
                                    rom, self._ASMPTR_CREDITS_GFX)))
             self._cfont.readFromBlock(cb)
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         for f in self._fonts:
             f.readFromRom(rom)
             updateProgress(self._pct)
@@ -129,7 +128,7 @@ class FontModule(EbModule.EbModule):
         self.readCreditsFontFromRom(rom)
         updateProgress(self._pct)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         for f in self._fonts:
             f.writeToRom(rom)
             updateProgress(self._pct)
@@ -151,7 +150,7 @@ class FontModule(EbModule.EbModule):
             img.save(imgFile, "png")
             imgFile.close()
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         out = dict()
         i = 0
         for font in self._fonts:
@@ -171,7 +170,7 @@ class FontModule(EbModule.EbModule):
         self.writeCreditsFontToProject(resourceOpener)
         updateProgress(self._pct)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         i = 0
         for font in self._fonts:
             with resourceOpener("Fonts/" + str(i), "png") as imgFile:
@@ -194,7 +193,7 @@ class FontModule(EbModule.EbModule):
             self._cpal.loadFromImage(img)
         updateProgress(self._pct)
 
-    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                        resourceOpenerW, resourceDeleter):
         if oldVersion == newVersion:
             updateProgress(100)
@@ -202,9 +201,9 @@ class FontModule(EbModule.EbModule):
         elif oldVersion <= 2:
             self.readCreditsFontFromRom(rom)
             self.writeCreditsFontToProject(resourceOpenerW)
-            self.upgradeProject(3, newVersion, rom, resourceOpenerR,
+            self.upgrade_project(3, newVersion, rom, resourceOpenerR,
                                 resourceOpenerW, resourceDeleter)
         else:
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)

@@ -5,7 +5,7 @@ import yaml
 
 
 class TextModule(SmbModule.SmbModule):
-    _name = "Text"
+    NAME = "Text"
     ENTRY_LOCS = [
         ("Title Screen", [
             ("Copyright", 0x09fb5, 0x0e),
@@ -29,7 +29,7 @@ class TextModule(SmbModule.SmbModule):
         self._data = {}
         self._pct = 50.0 / len(self.ENTRY_LOCS)
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         for (cat, items) in self.ENTRY_LOCS:
             catDict = {}
             for (desc, loc, size) in items:
@@ -37,20 +37,20 @@ class TextModule(SmbModule.SmbModule):
             self._data[cat] = catDict
             updateProgress(self._pct)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         for (cat, items) in self.ENTRY_LOCS:
             catDict = self._data[cat]
             for (desc, loc, size) in items:
                 SmbModule.writeText(rom, loc, catDict[desc], size)
             updateProgress(self._pct)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         with resourceOpener("text", "yml") as f:
             yaml.dump(self._data, f, default_flow_style=False,
                       Dumper=yaml.CSafeDumper)
         updateProgress(50.0)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         with resourceOpener("text", "yml") as f:
             self._data = yaml.load(f, Loader=yaml.CSafeLoader)
         updateProgress(50.0)

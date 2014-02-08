@@ -2,5 +2,5 @@ import Eb0TablesModule
 
 
 class MiscTablesModule(Eb0TablesModule.Eb0TablesModule):
-    _name = "Misc Tables"
+    NAME = "Misc Tables"
     _tableIDs = []

@@ -8,14 +8,14 @@ from re import sub
 
 class MapMusicModule(EbModule.EbModule):
     _ASMPTR = 0x6939
-    _name = "Map Music"
+    NAME = "Map Music"
 
     def __init__(self):
         EbModule.EbModule.__init__(self)
         self._ptrTbl = EbTable(0xCF58EF)
         self._entries = []
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         self._ptrTbl.readFromRom(rom,
                                  EbModule.toRegAddr(rom.readMulti(self._ASMPTR, 3)))
         updateProgress(25)
@@ -31,7 +31,7 @@ class MapMusicModule(EbModule.EbModule):
             self._entries.append(entry)
         updateProgress(25)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         self._ptrTbl.clear(165)
         writeLoc = 0xf58ef
         writeRangeEnd = 0xf61e5  # TODO Can re-use bank space from doors
@@ -55,7 +55,7 @@ class MapMusicModule(EbModule.EbModule):
             rom.addFreeRanges([(writeLoc, writeRangeEnd)])
         updateProgress(25)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         out = dict()
         i = 0
         for entry in self._entries:
@@ -75,7 +75,7 @@ class MapMusicModule(EbModule.EbModule):
             f.write(s)
         updateProgress(25)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         with resourceOpener("map_music", "yml") as f:
             input = yaml.load(f, Loader=yaml.CSafeLoader)
             for i in input:

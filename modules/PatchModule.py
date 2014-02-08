@@ -7,9 +7,9 @@ import yaml
 
 
 class PatchModule(GenericModule):
-    _name = "Patches"
+    NAME = "Patches"
 
-    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                        resourceOpenerW, resourceDeleter):
         global updateProgress
         if oldVersion == newVersion:
@@ -18,18 +18,18 @@ class PatchModule(GenericModule):
         elif oldVersion == 1:
             tmp = updateProgress
             updateProgress = lambda x: None
-            self.readFromRom(rom)
-            self.writeToProject(resourceOpenerW)
+            self.read_from_rom(rom)
+            self.write_to_project(resourceOpenerW)
             updateProgress = tmp
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)
         else:
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         self._patches = dict()
         # Loop through all the patches for this romtyp
         for ipsDescFname in [s for s in os.listdir(
@@ -45,7 +45,7 @@ class PatchModule(GenericModule):
                     self._patches[ipsDesc["Title"]] = "disabled"
         updateProgress(50)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         for ipsDescFname in [s for s in os.listdir(
                 'resources/ips/' + rom.type()) if s.lower().endswith(".yml")]:
             patchName = ipsDescFname[:-4]
@@ -80,13 +80,13 @@ class PatchModule(GenericModule):
                         rom.markRangeAsNotFree(range)
         updateProgress(50)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         with resourceOpener("patches", "yml") as f:
             yaml.dump(self._patches, f, default_flow_style=False,
                       Dumper=yaml.CSafeDumper)
         updateProgress(50)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         with resourceOpener("patches", "yml") as f:
             self._patches = yaml.load(f, Loader=yaml.CSafeLoader)
         updateProgress(50)

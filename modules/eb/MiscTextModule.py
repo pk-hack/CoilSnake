@@ -5,7 +5,7 @@ import yaml
 
 
 class MiscTextModule(EbModule.EbModule):
-    _name = "Misc Text"
+    NAME = "Misc Text"
     ENTRY_LOCS = [
         # From JHack
         ("Starting Text", [
@@ -141,7 +141,7 @@ class MiscTextModule(EbModule.EbModule):
         self._data = {}
         self._pct = 50.0 / len(self.ENTRY_LOCS)
 
-    def readFromRom(self, rom):
+    def read_from_rom(self, rom):
         for (cat, items) in self.ENTRY_LOCS:
             catDict = {}
             for (desc, loc, size) in items:
@@ -149,7 +149,7 @@ class MiscTextModule(EbModule.EbModule):
             self._data[cat] = catDict
             updateProgress(self._pct)
 
-    def writeToRom(self, rom):
+    def write_to_rom(self, rom):
         for (cat, items) in self.ENTRY_LOCS:
             catDict = self._data[cat]
             for (desc, loc, size) in items:
@@ -159,18 +159,18 @@ class MiscTextModule(EbModule.EbModule):
                               [00] * (size - len(catDict[desc])))
             updateProgress(self._pct)
 
-    def writeToProject(self, resourceOpener):
+    def write_to_project(self, resourceOpener):
         with resourceOpener("text_misc", "yml") as f:
             yaml.dump(self._data, f, default_flow_style=False,
                       Dumper=yaml.CSafeDumper)
         updateProgress(50.0)
 
-    def readFromProject(self, resourceOpener):
+    def read_from_project(self, resourceOpener):
         with resourceOpener("text_misc", "yml") as f:
             self._data = yaml.load(f, Loader=yaml.CSafeLoader)
         updateProgress(50.0)
 
-    def upgradeProject(self, oldVersion, newVersion, rom, resourceOpenerR,
+    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                        resourceOpenerW, resourceDeleter):
         global updateProgress
         if oldVersion == newVersion:
@@ -179,13 +179,13 @@ class MiscTextModule(EbModule.EbModule):
         elif oldVersion == 2:
             tmp = updateProgress
             updateProgress = lambda x: None
-            self.readFromRom(rom)
-            self.writeToProject(resourceOpenerW)
+            self.read_from_rom(rom)
+            self.write_to_project(resourceOpenerW)
             updateProgress = tmp
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)
         else:
-            self.upgradeProject(
+            self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)
