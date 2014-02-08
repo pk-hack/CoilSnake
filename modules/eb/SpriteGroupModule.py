@@ -1,12 +1,12 @@
-import EbModule
-from EbTablesModule import EbTable
-from EbDataBlocks import DataBlock
-from modules.Progress import updateProgress
-
 from array import array
 import yaml
 from PIL import Image
 from functools import reduce
+
+import EbModule
+from EbTablesModule import EbTable
+from EbDataBlocks import DataBlock
+from modules.Progress import updateProgress
 
 
 class EbRegSprite:
@@ -253,7 +253,7 @@ class SpriteGroupModule(EbModule.EbModule):
         self._grPalTbl = EbTable(0xc30000)
         self._groups = None
 
-    def free(self):
+    def __exit__(self, type, value, traceback):
         del self._grPtrTbl
         del self._grPalTbl
 

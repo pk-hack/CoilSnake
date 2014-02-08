@@ -64,6 +64,6 @@ def writeText(rom, addr, text, maxlen):
 
 
 class SmbModule(GenericModule):
-
-    def compatibleWithRomtype(self, romtype):
+    @staticmethod
+    def is_compatible_with_romtype(romtype):
         return romtype == "Super Mario Bros"

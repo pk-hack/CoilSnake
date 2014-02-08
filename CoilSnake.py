@@ -10,6 +10,8 @@ import time
 from modules import Project, Rom
 from modules.Progress import setProgress
 
+
+
 #from meliae import scanner
 
 _VERSION = "1.3"
@@ -19,10 +21,10 @@ _RELEASE_DATE = "7/4/13"
 class CoilSnake:
 
     def __init__(self):
-        self._modules = []
-        self.loadModules()
+        self._all_modules = []
+        self.load_modules()
 
-    def loadModules(self):
+    def load_modules(self):
         with open('resources/modulelist.txt', 'r') as f:
             for line in f:
                 line = line.rstrip('\n')
@@ -32,8 +34,8 @@ class CoilSnake:
                 components = line.split('.')
                 for comp in components:
                     mod = getattr(mod, comp)
-                self._modules.append((line, getattr(mod, components[-1])()))
-        # scanner.dump_all_objects('loadmod.json')
+                self._all_modules.append((line, getattr(mod, components[-1])))
+                # scanner.dump_all_objects('loadmod.json')
 
     def upgradeProject(self, baseRomFname, inputFname):
         # Open project
@@ -65,29 +67,28 @@ class CoilSnake:
                 print "Rom type '" + rom.type() + "' does not match" \
                       " Project type '" + proj.type() + "'"
                 return False
-            # Make list of compatible modules
-            curMods = filter(
-                lambda x_y: x_y[1].compatibleWithRomtype(rom.type()),
-                self._modules)
 
-            for (n, m) in curMods:
+            compatible_modules = (x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type()))
+            for (module_name, module_class) in compatible_modules:
                 setProgress(0)
-                startTime = time.time()
-                print "-", m.NAME, "...   0.00%",
+                start_time = time.time()
+                print "-", module_class.NAME, "...   0.00%",
                 sys.stdout.flush()
-                m.upgrade_project(proj.version(), Project.FORMAT_VERSION, rom,
-                                 lambda x, y: proj.getResource(n, x, y, 'rb'),
-                                 lambda x, y: proj.getResource(n, x, y, 'wb'),
-                                 lambda x: proj.deleteResource(n, x))
-                print "(%0.2fs)" % (time.time() - startTime)
+                with module_class() as module:
+                    module.upgrade_project(proj.version(), Project.FORMAT_VERSION, rom,
+                                           lambda x, y: proj.getResource(module_name, x, y, 'rb'),
+                                           lambda x, y: proj.getResource(module_name, x, y, 'wb'),
+                                           lambda x: proj.deleteResource(module_name, x))
+                print "(%0.2fs)" % (time.time() - start_time)
+
             proj.setVersion(Project.FORMAT_VERSION)
-            proj.write(inputFname + os.sep + Project.PROJECT_FILENAME)
+            proj.write(os.path.join(inputFname, Project.PROJECT_FILENAME))
             return True
 
     def projToRom(self, inputFname, cleanRomFname, outRomFname, ccc=None):
         # Open project
         proj = Project.Project()
-        proj.load(inputFname + os.sep + Project.PROJECT_FILENAME)
+        proj.load(os.path.join(inputFname, Project.PROJECT_FILENAME))
         # Check that the project is readable by this version of CS
         if proj.version() > Project.FORMAT_VERSION:
             print "Project '" + inputFname + "' is not compatible" \
@@ -128,27 +129,23 @@ class CoilSnake:
             print "Rom type '" + rom.type() + "' does not match" \
                   " Project type '" + proj.type() + "'"
             return False
-        # Make list of compatible modules
-        curMods = filter(
-            lambda x_y1: x_y1[1].compatibleWithRomtype(rom.type()),
-            self._modules)
-        # Add the ranges from the compatible modules to the free range list
-        newRanges = []
-        for (n, m) in curMods:
-            newRanges += m.FREE_RANGES
-        rom.addFreeRanges(newRanges)
 
+        compatible_modules = list(x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type()))
+        new_free_ranges = []
+        for (module_name, module_class) in compatible_modules:
+            new_free_ranges += module_class.FREE_RANGES
+        rom.addFreeRanges(new_free_ranges)
         print "From Project : ", inputFname, "(", proj.type(), ")"
         print "To       ROM : ", outRomFname, "(", rom.type(), ")"
-        for (n, m) in curMods:
+        for (module_name, module_class) in compatible_modules:
             setProgress(0)
-            startTime = time.time()
-            print "-", m.NAME, "...   0.00%",
+            start_time = time.time()
+            print "-", module_class.NAME, "...   0.00%",
             sys.stdout.flush()
-            m.read_from_project(lambda x, y: proj.getResource(n, x, y, 'rb'))
-            m.write_to_rom(rom)
-            m.free()
-            print "(%0.2fs)" % (time.time() - startTime)
+            with module_class() as module:
+                module.read_from_project(lambda x, y: proj.getResource(module_name, x, y, 'rb'))
+                module.write_to_rom(rom)
+            print "(%0.2fs)" % (time.time() - start_time)
         rom.save(outRomFname)
         return True
 
@@ -162,21 +159,18 @@ class CoilSnake:
 
         print "From   ROM :", inputRomFname, "(", rom.type(), ")"
         print "To Project :", outputFname, "(", proj.type(), ")"
-        curMods = filter(
-            lambda x_y2: x_y2[1].compatibleWithRomtype(rom.type()),
-            self._modules)
-        for (n, m) in curMods:
+        compatible_modules = (x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type()))
+        for (module_name, module_class) in compatible_modules:
             setProgress(0)
-            startTime = time.time()
-            print "-", m.NAME, "...   0.00%",
+            start_time = time.time()
+            print "-", module_class.NAME, "...   0.00%",
             sys.stdout.flush()
-            m.read_from_rom(rom)
-            m.write_to_project(lambda x, y: proj.getResource(n, x, y, 'wb'))
-            m.free()
-            #scanner.dump_all_objects( m.NAME + '.json' )
-            print "(%0.2fs)" % (time.time() - startTime)
-        #scanner.dump_all_objects( 'complete.json' )
-        proj.write(outputFname + os.sep + Project.PROJECT_FILENAME)
+            with module_class() as module:
+                test = module_class()
+                module.read_from_rom(rom)
+                module.write_to_project(lambda x, y: proj.getResource(module_name, x, y, 'wb'))
+            print "(%0.2fs)" % (time.time() - start_time)
+        proj.write(os.path.join(outputFname, Project.PROJECT_FILENAME))
         return True
 
 

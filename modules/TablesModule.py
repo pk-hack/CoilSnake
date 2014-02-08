@@ -18,7 +18,7 @@ class TablesModule(GenericModule.GenericModule):
         self._tables = map(lambda x: TableClass(x), tableIDs)
         self._pct = 50.0 / len(self._tables)
 
-    def free(self):
+    def __exit__(self, type, value, traceback):
         for t in self._tables:
             del t
 

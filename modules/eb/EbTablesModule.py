@@ -1,8 +1,8 @@
+import yaml
+
 import EbModule
 from modules.Table import Table, IntTableEntry, genericEntryGenerator
 from modules.TablesModule import TablesModule
-
-import yaml
 
 
 class PointerTableEntry(IntTableEntry):
@@ -133,8 +133,8 @@ class EbTablesModule(EbModule.EbModule):
         EbModule.EbModule.__init__(self)
         self._tm = TablesModule(EbTable, self._tableIDs)
 
-    def free(self):
-        self._tm.free()
+    def __exit__(self, type, value, traceback):
+        self._tm.__exit__(type, value, traceback)
 
     def read_from_rom(self, rom):
         self._tm.read_from_rom(rom)

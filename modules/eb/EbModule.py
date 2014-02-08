@@ -3,6 +3,7 @@ import sys
 
 from modules.GenericModule import GenericModule
 
+
 try:
     from modules.eb import NativeComp
     hasNativeComp = True
@@ -30,8 +31,8 @@ labelsDict = dict()
 
 
 class EbModule(GenericModule):
-
-    def compatibleWithRomtype(self, romtype):
+    @staticmethod
+    def is_compatible_with_romtype(romtype):
         return romtype == "Earthbound"
 
 # Helper functions

@@ -1,10 +1,10 @@
+from PIL import Image
+
 import EbModule
 from EbTablesModule import EbTable
 from EbDataBlocks import EbCompressedData, DataBlock
 from CompressedGraphicsModule import EbArrangement, EbTileGraphics, EbPalettes
 from modules.Progress import updateProgress
-
-from PIL import Image
 
 
 class BattleBgModule(EbModule.EbModule):
@@ -24,7 +24,7 @@ class BattleBgModule(EbModule.EbModule):
         self._bbgDistorTbl = EbTable(0xCAF708)
         self._bbgTbl = EbTable(0xcadca1)
 
-    def free(self):
+    def __exit__(self, type, value, traceback):
         del self._bbgGfxPtrTbl
         del self._bbgArrPtrTbl
         del self._bbgPalPtrTbl

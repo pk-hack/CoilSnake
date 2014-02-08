@@ -1,5 +1,6 @@
-from modules.Progress import updateProgress
 import yaml
+
+from modules.Progress import updateProgress
 
 
 def replaceField(fname, oldField, newField, valueMap, resourceOpenerR,
@@ -30,13 +31,17 @@ class GenericModule:
     NAME = "Abstract Generic Module"
     FREE_RANGES = []
 
+    @staticmethod
+    def is_compatible_with_romtype(romtype):
+        return True
+
     def __init__(self):
         pass
 
-    def compatibleWithRomtype(self, romtype):
-        return True
+    def __enter__(self):
+        return self
 
-    def free(self):
+    def __exit__(self, type, value, traceback):
         pass
 
     def read_from_rom(self, rom):

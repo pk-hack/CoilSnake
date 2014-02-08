@@ -1,10 +1,12 @@
 from array import array
 from PIL import Image
+from functools import reduce
 
 import EbModule
 from EbDataBlocks import DataBlock, EbCompressedData
 from modules.Progress import updateProgress
-from functools import reduce
+
+
 
 
 #<Penguin> found it. VHOPPPCC CCCCCCCC
@@ -612,7 +614,7 @@ class CompressedGraphicsModule(EbModule.EbModule):
         self._gas_pal3 = EbPalettes(1, 256)
         self._pct = 50.0 / (len(self._logos) + len(self._townmaps) + 1 + 2 + 1)
 
-    def free(self):
+    def __exit__(self, type, value, traceback):
         del self._logos
         del self._townmaps
 

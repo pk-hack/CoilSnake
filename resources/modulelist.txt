@@ -7,7 +7,6 @@ eb.MapSpriteModule
 eb.DoorModule
 eb.SpriteGroupModule
 eb.MiscTablesModule
-#eb.ExpTablesModule
 eb.TownMapIconModule
 eb.MapModule
 eb.MapEnemyModule
