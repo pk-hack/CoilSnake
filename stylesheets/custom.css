@@ -1,0 +1,27 @@
+#project_grid a {
+  width: 100%;
+}
+
+#project_grid .project {
+  margin: 10px;
+  position: relative;
+  width: 256px;
+  height: 224px;
+  border: 2px black solid;
+  background-position: center;
+}
+
+#project_grid .project span {
+  padding: 10px;
+  position: absolute;
+  right: 0;
+  top: 10px;
+  background: rgb(0, 0, 0); /* fallback color */
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  text-shadow: none;
+}
+
+h1, h2 {
+  margin: 0;
+}

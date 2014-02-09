@@ -149,9 +149,12 @@ a.button:hover {
 a.button span {
   padding-left: 50px;
   display: block;
-  height: 23px;
+  height: 27px;
 }
 
+#download-exe span {
+  background: transparent url(../images/exe-icon.png) 12px 50% no-repeat;
+}
 #download-zip span {
   background: transparent url(../images/zip-icon.png) 12px 50% no-repeat;
 }
