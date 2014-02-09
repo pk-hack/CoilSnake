@@ -6,7 +6,6 @@ from modules.TablesModule import TablesModule
 
 
 class PointerTableEntry(IntTableEntry):
-
     def load(self, data):
         if not isinstance(data, str):
             raise RuntimeError("Invalid pointer or label: '%s'" % data)
@@ -14,7 +13,7 @@ class PointerTableEntry(IntTableEntry):
             self._data = int(data[1:], 16)
         else:
             try:
-                self._data = EbModule.labelsDict[data]
+                self._data = EbModule.address_labels[data]
             except KeyError:
                 raise RuntimeError("Invalid label: '" + data + "'")
 
@@ -23,7 +22,6 @@ class PointerTableEntry(IntTableEntry):
 
 
 class PaletteTableEntry:
-
     def __init__(self, name, size):
         self.name = name
         self._size = size
@@ -51,7 +49,6 @@ class PaletteTableEntry:
 
 
 class TextTableEntry:
-
     def __init__(self, name, size):
         self.name = name
         self._size = size
@@ -84,7 +81,6 @@ class TextTableEntry:
 
 
 class NullTerminatedTextTableEntry(TextTableEntry):
-
     def writeToRom(self, rom, addr):
         EbModule.writeStandardText(rom, addr, self._data, self._size - 1)
         rom[addr + self._size - 1] = 0
@@ -120,7 +116,7 @@ class EbTable(Table):
                     elif i == 2:
                         EbTable.eb_table_map = doc
                         break
-            # print "Done"
+                        # print "Done"
         Table.__init__(self, addr, EbTable.eb_table_map)
         self._addr = EbModule.toRegAddr(self._addr)
 

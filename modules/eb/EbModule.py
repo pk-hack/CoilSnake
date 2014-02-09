@@ -6,20 +6,24 @@ from modules.GenericModule import GenericModule
 
 try:
     from modules.eb import NativeComp
+
     hasNativeComp = True
 except ImportError:
     try:
         import os
+
         old_dir = os.getcwd()
         os.chdir("modules/eb")
 
         from distutils.core import run_setup
+
         options = "build_ext --inplace clean"
         run_setup('build_NativeComp.py', options.split())
 
         os.chdir(old_dir)
 
         from modules.eb import NativeComp
+
         hasNativeComp = True
     except:
         hasNativeComp = False
@@ -27,13 +31,14 @@ except ImportError:
 if not hasNativeComp:
     print "WARNING: Could not load native EarthBound compression library"
 
-labelsDict = dict()
+address_labels = dict()
 
 
 class EbModule(GenericModule):
     @staticmethod
     def is_compatible_with_romtype(romtype):
         return romtype == "Earthbound"
+
 
 # Helper functions
 
@@ -51,6 +56,7 @@ def toSnesAddr(addr):
     else:
         return addr + 0xc00000
 
+
 # [A9 ZZ YY 85 0E A9 XX WW] <-> $WWXXYYZZ
 
 
@@ -61,12 +67,12 @@ def readAsmPointer(rom, addr):
 
 
 def writeAsmPointer(rom, addr, ptr):
-#    rom[addr] = 0xa9
+    #    rom[addr] = 0xa9
     rom[addr + 1] = ptr & 0xff
     rom[addr + 2] = (ptr >> 8) & 0xff
-#    rom[addr+3] = 0x85
-#    rom[addr+4] = 0x0e
-#    rom[addr+5] = 0xa9
+    #    rom[addr+3] = 0x85
+    #    rom[addr+4] = 0x0e
+    #    rom[addr+5] = 0xa9
     rom[addr + 6] = (ptr >> 16) & 0xff
     rom[addr + 7] = (ptr >> 24) & 0xff
 
@@ -74,6 +80,7 @@ def writeAsmPointer(rom, addr, ptr):
 def writeAsmPointers(rom, addrs, ptr):
     for addr in addrs:
         writeAsmPointer(rom, addr, ptr)
+
 
 # Used for hashing 2BPP/4BPP areas that have been read to a list of arrays
 
@@ -83,6 +90,7 @@ def hashArea(source):
     for col in source:
         csum = crc32(col, csum)
     return csum
+
 
 # From JHack
 # h = height of the image
@@ -96,6 +104,7 @@ def read1BPPArea(target, source, off, h, x, y):
             target[7 - j + x][i + y] = (b & (1 << j)) >> j
     return h
 
+
 # From JHack
 
 
@@ -107,6 +116,7 @@ def write1BPPArea(source, target, off, h, x, y):
         target[off] = b
         off += 1
     return h
+
 
 # From JHack
 
@@ -124,6 +134,7 @@ def read2BPPArea(target, source, off, x, y, bitOffset=-1):
                 target[7 - j + x][i] |= ((b & (1 << j)) >> j) << tmp1
     return 16
 
+
 # From JHack
 
 
@@ -134,6 +145,7 @@ def read4BPPArea(target, source, off, x, y, bitOffset=-1):
     read2BPPArea(target, source, off + 16, x, y, bitOffset + 2)
     return 32
 
+
 # From JHack
 
 
@@ -141,6 +153,7 @@ def read8BPPArea(target, source, off, x, y):
     for i in range(0, 4):
         read2BPPArea(target, source, off + 16 * i, x, y, 2 * i)
     return 64
+
 
 # From JHack
 
@@ -164,6 +177,7 @@ def write2BPPArea(source, target, off, x, y, bitOffset=0):
             off += 1
     return 16
 
+
 # From JHack
 
 
@@ -173,6 +187,7 @@ def write4BPPArea(source, target, off, x, y, bitOffset=0):
     write2BPPArea(source, target, off, x, y, bitOffset)
     write2BPPArea(source, target, off + 16, x, y, bitOffset + 2)
     return 32
+
 
 # From JHack
 
@@ -231,6 +246,7 @@ def writeStandardText(rom, addr, text, maxlen):
     if pos < maxlen:
         rom.write(addr + pos, 0)
 
+
 # Comp/Decomp
 
 
@@ -240,6 +256,7 @@ def initBitrevs():
     bitrevs = map(lambda x: (((x >> 2) & 0x33) | ((x << 2) & 0xCC)), bitrevs)
     bitrevs = map(lambda x: (((x >> 4) & 0x0F) | ((x << 4) & 0xF0)), bitrevs)
     return bitrevs
+
 
 _bitrevs = initBitrevs()
 
@@ -317,6 +334,7 @@ def _decomp(rom, cdata):
             return [-7, cdata - start + 1]
     return buffer
 
+
 # Appends values to the buffer
 
 
@@ -342,6 +360,7 @@ def memchr(st, needle, len_, haystack):
             return i
     return -1
 
+
 # Adapted from Cabbage's comp()
 
 
@@ -363,8 +382,8 @@ def _comp(udata):
 
             pos3 = pos2
             while ((pos3 < limit)
-                    and (pos3 < pos2 + 1024)
-                    and (udata[pos2] == udata[pos3])):
+                   and (pos3 < pos2 + 1024)
+                   and (udata[pos2] == udata[pos3])):
                 pos3 += 1
 
             if (pos3 - pos2) >= 3:
@@ -376,9 +395,9 @@ def _comp(udata):
 
             pos3 = pos2
             while ((pos3 < limit)
-                    and (pos3 < pos2 + 2048)
-                    and (udata[pos3] == udata[pos2])
-                    and (udata[pos3 + 1] == udata[pos2 + 1])):
+                   and (pos3 < pos2 + 2048)
+                   and (udata[pos3] == udata[pos2])
+                   and (udata[pos3 + 1] == udata[pos2 + 1])):
                 pos3 += 2
 
             if (pos3 - pos2) >= 6:
@@ -392,8 +411,8 @@ def _comp(udata):
             tmp = 0
             pos3 = pos2
             while ((pos3 < limit)
-                    and (pos3 < pos2 + 1024)
-                    and (udata[pos3] == udata[pos2] + tmp)):
+                   and (pos3 < pos2 + 1024)
+                   and (udata[pos3] == udata[pos2] + tmp)):
                 pos3 += 1
                 tmp += 1
 
@@ -412,8 +431,8 @@ def _comp(udata):
                 tmp = 0
                 pos4 = pos3
                 while ((pos4 < pos2)
-                        and (tmp < 1024)
-                        and (udata[pos4] == udata[pos2 + tmp])):
+                       and (tmp < 1024)
+                       and (udata[pos4] == udata[pos2 + tmp])):
                     pos4 += 1
                     tmp += 1
                 if tmp >= 5:
@@ -470,6 +489,7 @@ def _comp(udata):
 
     buffer.append(0xff)
     return buffer
+
 
 # Frontends
 

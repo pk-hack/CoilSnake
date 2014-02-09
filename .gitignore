@@ -1,8 +1,6 @@
 .idea
-*.smc
 *.pyc
 *.swp
-roms/
 projects/
 profiling/
 */*/build
@@ -11,3 +9,5 @@ profiling/
 prefs.yml
 build/*
 dist/*
+tests/data/roms/true_EarthBound.smc
+tests/data/binaries/onett_map_graphics.smc

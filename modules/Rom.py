@@ -18,6 +18,13 @@ class Rom:
             with open(romtypeFname, 'r') as f:
                 self._type_map = yaml.load(f, Loader=yaml.CSafeLoader)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        del self._data
+        del self._type_map
+
     def copy(self):
         r = Rom()
         r._data = copy(self._data)
