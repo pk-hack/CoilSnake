@@ -17,8 +17,7 @@ class TestRom(coilsnake_test.CoilSnakeTestCase):
 
     def teardown(self):
         self.teardown_temporary_wo_file()
-        del self.rom
-        del self.rom2
+        del self.rom, self.rom2
 
     def test_empty_rom(self):
         assert_equal(self.rom.type(), "Unknown")

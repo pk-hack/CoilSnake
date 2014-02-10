@@ -1,13 +1,11 @@
-import unittest
-import sys
+import os
+from nose.tools import assert_equal, assert_not_equal, assert_raises
 
-import Project
-
-
-sys.path.append('../')
+from coilsnake import Project
+import coilsnake_test
 
 
-class testProject(unittest.TestCase):
+class testProject(coilsnake_test.CoilSnakeTestCase):
     """
     A test class for the Project module
     """
@@ -16,52 +14,40 @@ class testProject(unittest.TestCase):
         self.proj = Project.Project()
 
     def testEmptyProject(self):
-        self.assertEqual(self.proj.type(), "Unknown")
-        self.assertEqual(self.proj._resources, {})
+        assert_equal(self.proj.type(), "Unknown")
+        assert_equal(self.proj._resources, {})
 
     def testLoad(self):
-        self.proj.load("projects/EB.csp")
-        self.assertEqual(self.proj.type(), "Earthbound")
-        f = self.proj.getResource("eb.MapModule", "map")
-        self.assertEqual(f.name, "projects/eb.MapModule_map.dat")
-        f.close()
+        self.proj.load(os.path.join(self.TEST_DATA_DIR, "projects", "EB.snake"))
+        assert_equal(self.proj.type(), "Earthbound")
+        with self.proj.getResource("eb.MapModule", "map") as f:
+            assert_equal(f.name, os.path.join(self.TEST_DATA_DIR, "projects", "eb.MapModule_map.dat"))
 
-        f = open("projects/Dummy.csp")
-        self.proj.load(f)
-        self.assertEqual(self.proj.type(), "DummyRomtype")
-        self.assertEqual(self.proj._resources, {})
+        with open(os.path.join(self.TEST_DATA_DIR, "projects", "Dummy.snake")) as f:
+            self.proj.load(f)
+            assert_equal(self.proj.type(), "DummyRomtype")
+            assert_equal(self.proj._resources, {})
 
     def testLoadNew(self):
-        self.proj.load("projects/dne.csp")
-        self.assertEqual(self.proj.type(), "Unknown")
-        self.assertEqual(self.proj._resources, {})
+        self.proj.load(os.path.join(self.TEST_DATA_DIR, "projects", "dne.snake"))
+        assert_equal(self.proj.type(), "Unknown")
+        assert_equal(self.proj._resources, {})
 
-        self.proj.load("projects/EB.csp")
-        self.proj.load("projects/dne.csp")
-        self.assertEqual(self.proj.type(), "Unknown")
-        self.assertEqual(self.proj._resources, {})
+        self.proj.load(os.path.join(self.TEST_DATA_DIR, "projects", "EB.snake"))
+        self.proj.load(os.path.join(self.TEST_DATA_DIR, "projects", "dne.snake"))
+        assert_equal(self.proj.type(), "Unknown")
+        assert_equal(self.proj._resources, {})
 
     def testLoadWithRomtype(self):
-        self.proj.load("projects/EB.csp", "NotEarthbound")
-        self.assertEqual(self.proj.type(), "NotEarthbound")
-        self.assertEqual(self.proj._resources, {})
+        self.proj.load(os.path.join(self.TEST_DATA_DIR, "projects", "EB.snake"), "NotEarthbound")
+        assert_equal(self.proj.type(), "NotEarthbound")
+        assert_equal(self.proj._resources, {})
 
-        self.proj.load("projects/EB.csp", "Earthbound")
-        self.assertEqual(self.proj.type(), "Earthbound")
-        f = self.proj.getResource("eb.MapModule", "map")
-        self.assertEqual(f.name, "projects/eb.MapModule_map.dat")
-        f.close()
+        self.proj.load(os.path.join(self.TEST_DATA_DIR, "projects", "EB.snake"), "Earthbound")
+        assert_equal(self.proj.type(), "Earthbound")
+        with self.proj.getResource("eb.MapModule", "map") as f:
+            assert_equal(f.name, os.path.join(self.TEST_DATA_DIR, "projects", "eb.MapModule_map.dat"))
 
-        self.proj.load("projects/EB.csp", "NotEarthbound2")
-        self.assertEqual(self.proj.type(), "NotEarthbound2")
-        self.assertEqual(self.proj._resources, {})
-
-
-def suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(testProject))
-    return suite
-
-
-if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite())
+        self.proj.load(os.path.join(self.TEST_DATA_DIR, "projects", "EB.snake"), "NotEarthbound2")
+        assert_equal(self.proj.type(), "NotEarthbound2")
+        assert_equal(self.proj._resources, {})

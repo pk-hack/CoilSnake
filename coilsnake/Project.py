@@ -1,3 +1,4 @@
+import logging
 import os
 import yaml
 
@@ -14,15 +15,17 @@ VERSION_NAMES = {
     4: "1.3"
 }
 
+# The default project filename
+PROJECT_FILENAME = "Project.snake"
+
+log = logging.getLogger(__name__)
+
 
 def getVersionName(version):
     try:
         return VERSION_NAMES[version]
     except KeyError:
         return "???"
-
-# The default project filename
-PROJECT_FILENAME = "Project.snake"
 
 
 class Project:
@@ -32,6 +35,7 @@ class Project:
         self._dirName = ""
 
     def load(self, f, romtype=None):
+        log.info("Loading %s", f)
         if isinstance(f, str):
             self._dirName = os.path.dirname(f)
         else:
