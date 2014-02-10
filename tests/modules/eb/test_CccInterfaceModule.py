@@ -2,8 +2,7 @@ import os
 import os.path
 from nose.tools import assert_equal, assert_true, assert_dict_equal, assert_false, assert_is_none
 
-from modules.eb import CccInterfaceModule
-from modules.eb import EbModule
+from coilsnake.modules.eb import CccInterfaceModule, EbModule
 import coilsnake_test
 
 

@@ -1,11 +1,10 @@
 import array
 from nose.tools import nottest
 import os
-from nose.tools import assert_equal, assert_is_none
+from nose.tools import assert_equal
 
-import modules.eb.EbModule
-import modules.eb.NativeComp
-from modules import Rom
+from coilsnake.modules.eb import EbModule, NativeComp
+from coilsnake import Rom
 import coilsnake_test
 
 
@@ -15,13 +14,13 @@ class TestEbModule(coilsnake_test.CoilSnakeTestCase):
     """
 
     def setup(self):
-        self.rom = Rom.Rom(os.path.join(self.COILSNAKE_RESOURCES_DIR, "romtypes.yaml"))
+        self.rom = Rom.Rom()
         self.rom.load(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_24mbit.smc"))
 
     @nottest
     def test_decomp(self, decomp):
         onett_map = array.array('B')
-        with Rom.Rom(os.path.join(self.COILSNAKE_RESOURCES_DIR, "romtypes.yaml")) as eb_rom:
+        with Rom.Rom() as eb_rom:
             eb_rom.load(os.path.join(self.TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
             onett_map.fromlist(decomp(eb_rom, 0x2021a8))
 
@@ -42,7 +41,7 @@ class TestEbModule(coilsnake_test.CoilSnakeTestCase):
         compressed_data = comp(uncompressed_data)
         assert_equal(len(compressed_data), 10877)
 
-        with Rom.Rom(os.path.join(self.COILSNAKE_RESOURCES_DIR, "romtypes.yaml")) as fake_eb_rom:
+        with Rom.Rom() as fake_eb_rom:
             fake_eb_rom.load(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_32mbit.smc"))
             fake_eb_rom.write(0x300000, compressed_data)
             reuncompressed_data = decomp(fake_eb_rom, 0x300000)
@@ -52,45 +51,45 @@ class TestEbModule(coilsnake_test.CoilSnakeTestCase):
 
     @nottest
     def _test_python_comp(self):
-        self.test_comp(modules.eb.EbModule._comp, modules.eb.EbModule.decomp)
+        self.test_comp(EbModule._comp, EbModule.decomp)
 
     @nottest
     def _test_python_decomp(self):
-        self.test_decomp(modules.eb.EbModule._decomp)
+        self.test_decomp(EbModule._decomp)
 
     def test_native_comp(self):
-        self.test_comp(modules.eb.NativeComp.comp, modules.eb.EbModule._decomp)
+        self.test_comp(NativeComp.comp, EbModule._decomp)
 
     def test_native_decomp(self):
-        self.test_decomp(modules.eb.NativeComp.decomp)
+        self.test_decomp(NativeComp.decomp)
 
     def test_default_comp(self):
-        self.test_comp(modules.eb.EbModule.comp, modules.eb.EbModule.decomp)
+        self.test_comp(EbModule.comp, EbModule.decomp)
 
     def test_default_decomp(self):
-        self.test_decomp(modules.eb.EbModule.decomp)
+        self.test_decomp(EbModule.decomp)
 
     def test_palette_IO(self):
         c = (48, 32, 16)
-        modules.eb.EbModule.writePaletteColor(self.rom, 0, c)
-        c2 = modules.eb.EbModule.readPaletteColor(self.rom, 0)
+        EbModule.writePaletteColor(self.rom, 0, c)
+        c2 = EbModule.readPaletteColor(self.rom, 0)
         assert_equal(c, c2)
 
         pal = [(176, 232, 24), (40, 152, 88), (216, 208, 136), (160, 0, 88),
                 (56, 40, 96), (112, 16, 240), (112, 64, 88), (48, 88, 0), (56,
                     136, 64), (176, 104, 144), (0, 48, 224), (224, 224, 136),
                 (56, 248, 168), (56, 216, 80), (184, 48, 248), (200, 112, 32)]
-        modules.eb.EbModule.writePalette(self.rom, 0, pal)
-        pal2 = modules.eb.EbModule.readPalette(self.rom, 0, 16)
+        EbModule.writePalette(self.rom, 0, pal)
+        pal2 = EbModule.readPalette(self.rom, 0, 16)
         assert_equal(pal, pal2)
 
     def test_asm_pointer_IO(self):
-        ptr = modules.eb.EbModule.readAsmPointer(self.rom, 0xeefb)
+        ptr = EbModule.readAsmPointer(self.rom, 0xeefb)
         assert_equal(ptr, 0xe14f2a)
 
-        modules.eb.EbModule.writeAsmPointer(self.rom, 0, 0xabcdef01)
+        EbModule.writeAsmPointer(self.rom, 0, 0xabcdef01)
         assert_equal(self.rom.readList(0, 8).tolist(),
                      [ 0x0, 0x01, 0xef, 0x0, 0x0, 0x0, 0xcd, 0xab ])
 
-        ptr2 = modules.eb.EbModule.readAsmPointer(self.rom, 0)
+        ptr2 = EbModule.readAsmPointer(self.rom, 0)
         assert_equal(0xabcdef01, ptr2)

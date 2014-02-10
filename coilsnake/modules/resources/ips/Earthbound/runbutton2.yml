@@ -1,0 +1,7 @@
+Title: Run Button (Relocated)
+Header: 0x200
+Auto-Apply: False
+Ranges:
+- (0x2eba00, 0x2eba16)
+- (0x2eba20, 0x2eba35)
+- (0x2eba50, 0x2eba5a)

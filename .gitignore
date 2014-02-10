@@ -1,13 +1,11 @@
 .idea
-*.pyc
-*.swp
-projects/
-profiling/
+build/
+dist/
+*.egg-info
 */*/build
 *.so
 *.zo
+*.pyc
 prefs.yml
-build/*
-dist/*
 tests/data/roms/true_EarthBound.smc
 tests/data/binaries/onett_map_graphics.smc
