@@ -7,7 +7,6 @@ from coilsnake.data_blocks import Block, AllocatableBlock, Rom, ROM_TYPE_NAME_UN
 import coilsnake_test
 from coilsnake.exceptions import FileAccessError, OutOfBoundsError, InvalidArgumentError, ValueNotUnsignedByteError, \
     CouldNotAllocateError, NotEnoughUnallocatedSpaceError
-from data_blocks import ROM_TYPE_MAP
 
 
 class TestBlock(coilsnake_test.CoilSnakeTestCase):

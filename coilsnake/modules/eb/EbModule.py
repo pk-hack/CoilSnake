@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 
 try:
-    from modules.eb import NativeComp
+    from coilsnake.modules.eb import NativeComp
 
     hasNativeComp = True
 except ImportError:
@@ -25,7 +25,7 @@ except ImportError:
 
         os.chdir(old_dir)
 
-        from modules.eb import NativeComp
+        from coilsnake.modules.eb import NativeComp
 
         hasNativeComp = True
     except:
@@ -33,6 +33,7 @@ except ImportError:
 
 if not hasNativeComp:
     print "WARNING: Could not load native EarthBound compression library"
+    raise NotImplementedError("WARNING: Could not load native EarthBound compression library")
 
 address_labels = dict()
 
@@ -225,7 +226,6 @@ def writePalette(rom, addr, pals):
 
 
 def readStandardText(rom, addr, maxlen):
-    log.debug("readStandardText called with addr[%#x], maxlen[%d]" % (addr, maxlen))
     t = rom[addr:(addr+maxlen)].to_list()
     str = ''
     for c in t:
