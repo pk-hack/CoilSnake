@@ -4,7 +4,6 @@ Earthbound:
     platform: SNES
     offset: 0xffc0 # "EARTH BOUND"
     data: [0x45, 0x41, 0x52, 0x54, 0x48, 0x20, 0x42, 0x4f, 0x55, 0x4E, 0x44]
-    structure file: resources/structures/eb.yml
     free ranges:
     - (0x007d1c, 0x007fff) # from eb.yml
     - (0x00f8c2, 0x00ffaf) # from eb.yml
@@ -71,7 +70,6 @@ Earthbound Zero:
     platform: NES
     offset: 0x3d6
     data: [ 0xd4, 0xe9, 0xed, 0xe5, 0xcd, 0xe1, 0xe3, 0xe8 ]
-    structure file: resources/structures/eb0.yml
 
 Super Mario Bros:
     platform: NES

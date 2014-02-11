@@ -7,7 +7,10 @@ class InvalidArgumentError(Exception):
 class NotImplementedError(Exception):
     pass
 
-class NotEnoughUnallocatedSpaceError(Exception):
+class CouldNotAllocateError(Exception):
+    pass
+
+class NotEnoughUnallocatedSpaceError(CouldNotAllocateError):
     pass
 
 class FileAccessError(Exception):

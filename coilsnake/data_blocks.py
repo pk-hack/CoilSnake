@@ -1,15 +1,22 @@
 import array
+import copy
 import logging
 import os
 import yaml
-from error import OutOfBoundsError, InvalidArgumentError, NotEnoughUnallocatedSpaceError, FileAccessError, \
-    ValueNotUnsignedByteError
+from coilsnake.exceptions import OutOfBoundsError, InvalidArgumentError, NotEnoughUnallocatedSpaceError, \
+    FileAccessError, ValueNotUnsignedByteError, CouldNotAllocateError
 
 
 log = logging.getLogger(__name__)
 
+def check_range_validity(range, size):
+    begin, end = range
+    if end < begin:
+        raise InvalidArgumentError("Invalid range[(%#x,%#x)] provided" % (begin, end))
+    elif (begin < 0) or (end >= size):
+        raise OutOfBoundsError("Invalid range[(%#x,%#x)] provided" % (begin, end))
 
-class DataBlock(object):
+class Block(object):
     def __init__(self):
         self.reset()
 
@@ -28,6 +35,8 @@ class DataBlock(object):
 
         try:
             self.size = int(os.path.getsize(filename))
+            del self.data
+            self.data = array.array('B')
             with open(filename, 'rb') as f:
                 self.data.fromfile(f, self.size)
         except (IOError, OSError) as e:
@@ -39,6 +48,11 @@ class DataBlock(object):
         del self.data
         self.data = array.array('B')
         self.data.fromlist(data_list)
+
+    def from_array(self, data_array):
+        self.size = len(data_array)
+        del(self.data)
+        self.data = copy.copy(data_array)
 
     def to_file(self, filename):
         with open(filename, 'wb') as f:
@@ -55,9 +69,8 @@ class DataBlock(object):
         elif (key < 0) or (key >= self.size) or (key + size > self.size):
             raise OutOfBoundsError("Attempted to read from out of bounds offset[%#x]" % key)
         else:
-            data = self[key:key + size]
-            data.reverse()
-            return reduce(lambda x, y: (x << 8) | y, data)
+            bytes_list = self[key:key + size].to_list()
+            return reduce(lambda x, y: (x << 8) | y, reversed(bytes_list))
 
     def write_multi(self, key, item, size):
         if size < 0:
@@ -81,7 +94,9 @@ class DataBlock(object):
                 raise OutOfBoundsError("Attempted to read from range (%d,%d) which is out of bounds" % (key.start,
                                        key.stop-1))
             else:
-                return self.data[key].tolist()
+                out = self.__class__()
+                out.from_array(self.data[key])
+                return out
         elif isinstance(key, int):
             if key >= self.size:
                 raise OutOfBoundsError("Attempted to read at offset[%d] which is out of bounds" % key)
@@ -124,16 +139,18 @@ class DataBlock(object):
         return not (self == other)
 
 
-class AllocatableDataBlock(DataBlock):
-    def __init__(self):
-        super(AllocatableDataBlock, self).__init__()
-
+class AllocatableBlock(Block):
+    def reset(self):
+        super(AllocatableBlock, self).reset()
         self.unallocated_ranges = []
 
     def mark_allocated(self, used_range):
+        check_range_validity(used_range, self.size)
+
         allocated_begin, allocated_end = used_range
         for i in range(len(self.unallocated_ranges)):
-            begin, end = self.unallocated_ranges[i]
+            a = self.unallocated_ranges[i]
+            begin, end = a
             if allocated_begin == begin:
                 if allocated_end < end:
                     self.unallocated_ranges[i] = (allocated_end + 1, end)
@@ -153,80 +170,86 @@ class AllocatableDataBlock(DataBlock):
                 self.unallocated_ranges[i] = (begin, allocated_begin - 1)
                 self.mark_allocated((end + 1, allocated_end))
                 return
-        raise InvalidArgumentError("Attempted to mark range (%#x,%#x) as allocated because it is at least "
+        raise CouldNotAllocateError("Couldn't mark range (%#x,%#x) as allocated because it is at least "
                                    "partially already allocated" % (allocated_begin, allocated_end))
 
     def is_unallocated(self, range):
+        check_range_validity(range, self.size)
+
         search_begin, search_end = range
         for begin, end in self.unallocated_ranges:
             if (search_begin >= begin) and (search_end <= end):
                 return True
         return False
 
-    def unallocate(self, range):
+    def is_allocated(self, range):
+        return not self.is_unallocated(range)
+
+    def deallocate(self, range):
+        check_range_validity(range, self.size)
+
         # TODO do some check so that unallocated ranges don't overlap
-        self.unallocated_ranges += range
+        # TODO attach contiguous unallocated ranges if possible
+
+        self.unallocated_ranges.append(range)
         self.unallocated_ranges.sort()
 
-    def allocate(self, data=None, size=None, mask=0):
+    def allocate(self, data=None, size=None):
         if data is None and size is None:
             raise InvalidArgumentError("Insufficient parameters provided")
+
         if size is None:
             size = len(data)
+        elif data is not None and size != len(data):
+            raise InvalidArgumentError("Parameter size[%d] and data's size[%d] differ" % (size, len(data)))
+
+        if size <= 0:
+            raise InvalidArgumentError("Cannot allocate a range of size[%d]" % size)
 
         # First find a free range
         unallocated_range = None
         for i in xrange(0, len(self.unallocated_ranges)):
             begin, end = self.unallocated_ranges[i]
-            if begin & mask != 0:
-                continue
             if size <= end - begin + 1:
-                if begin + size == end:
+                if begin + size - 1 == end:
                     # Used up the entire free range
                     del(self.unallocated_ranges[i])
                 else:
                     self.unallocated_ranges[i] = (begin + size, end)
                 unallocated_range = (begin, end)
                 break
-        # TODO what if there is enough free space available, but not starting with the mask?
+
         if unallocated_range is None:
             raise NotEnoughUnallocatedSpaceError("Not enough free space left")
 
         if data is not None:
-            self[unallocated_range[0]:unallocated_range[1]+1] = data
+            self[unallocated_range[0]:unallocated_range[0]+size] = data
 
         return unallocated_range[0]
 
 
-ROM_TYPE_MAP = None
 with open(os.path.join(os.path.dirname(__file__), "resources", "romtypes.yml"), 'r') as f:
     ROM_TYPE_MAP = yaml.load(f, Loader=yaml.CSafeLoader)
 
 ROM_TYPE_NAME_UNKNOWN = "Unknown"
 
-class Rom2(AllocatableDataBlock):
-    def __init__(self):
-        super(Rom2, self).__init__()
 
-        self.type = "Unknown"
+class Rom(AllocatableBlock):
+    def reset(self):
+        super(Rom, self).reset()
+        self.type = ROM_TYPE_NAME_UNKNOWN
 
     def from_file(self, filename):
-        super(Rom2, self).from_file(filename)
-        self._setup_rom()
+        super(Rom, self).from_file(filename)
+        self._setup_rom_post_load()
 
-    def from_list(self, data_list):
-        super(Rom2, self).from_list(data_list)
-        self._setup_rom()
-
-    def _setup_rom(self):
+    def _setup_rom_post_load(self):
         self.type = self._detect_type()
         if self.type != ROM_TYPE_NAME_UNKNOWN and 'free ranges' in ROM_TYPE_MAP[self.type]:
             self.unallocated_ranges = map(lambda y: tuple(map(lambda z: int(z, 0), y[1:-1].split(','))),
                                           ROM_TYPE_MAP[self.type]['free ranges'])
-            self.unallocated_ranges = filter(lambda (begin, end): end < self.size, self.free_ranges)
+            self.unallocated_ranges = filter(lambda (begin, end): end < self.size, self.unallocated_ranges)
             self.unallocated_ranges.sort()
-        else:
-            self.unallocated_ranges = []
 
     def _detect_type(self):
         for type_name, d in ROM_TYPE_MAP.iteritems():
@@ -239,7 +262,7 @@ class Rom2(AllocatableDataBlock):
                 try:
                     if (~self[0xffdc] & 0xff == self[0xffde]) \
                             and (~self[0xffdd] & 0xff == self[0xffdf]) \
-                            and (self[offset:offset + len(data)].tolist() == data):
+                            and (self[offset:offset + len(data)].to_list() == data):
                         return type_name
                 except OutOfBoundsError:
                     pass
@@ -248,7 +271,7 @@ class Rom2(AllocatableDataBlock):
                 try:
                     if (~self[0x7fdc] & 0xff == self[0x7fde]) \
                             and (~self[0x7fdd] & 0xff == self[0x7fdf]) \
-                            and (self[offset:offset + len(data)].tolist() == data):
+                            and (self[offset:offset + len(data)].to_list() == data):
                         return type_name
                 except OutOfBoundsError:
                     pass
@@ -257,9 +280,9 @@ class Rom2(AllocatableDataBlock):
                 try:
                     if (~self[0x101dc] & 0xff == self[0x101de]) \
                             and (~self[0x101dd] & 0xff == self[0x101df]) \
-                            and (self[offset + 0x200:offset + 0x200 + len(data)].tolist() == data):
+                            and (self[offset + 0x200:offset + 0x200 + len(data)].to_list() == data):
                         # Remove header
-                        self.data = self._data[0x200:]
+                        self.data = self.data[0x200:]
                         self.size -= 0x200
                         return type_name
                 except OutOfBoundsError:
@@ -269,15 +292,19 @@ class Rom2(AllocatableDataBlock):
                 try:
                     if (~self[0x81dc] & 0xff == self[0x81de]) \
                             and (~self[0x81dd] & 0xff == self[0x81df]) \
-                            and (self[offset + 0x200:offset + 0x200 + len(data)].tolist() == data):
+                            and (self[offset + 0x200:offset + 0x200 + len(data)].to_list() == data):
                         # Remove header
-                        self.data = self._data[0x200:]
+                        self.data = self.data[0x200:]
                         self.size -= 0x200
                         return type_name
                 except OutOfBoundsError:
                     pass
-            elif self[offset:offset + len(data)].tolist() == data:
-                return type_name
+            else:
+                try:
+                    if self[offset:offset + len(data)].to_list() == data:
+                        return type_name
+                except OutOfBoundsError:
+                    pass
         else:
             return ROM_TYPE_NAME_UNKNOWN
 
@@ -300,10 +327,10 @@ class Rom2(AllocatableDataBlock):
                 if desired_size == 0x600000 and self.size == 0x400000:
                     self[0x00ffd5] = 0x25
                     self[0x00ffd7] = 0x0d
-                    self._data.fromlist([0] * 0x200000)
-                    self._size += 0x200000
+                    self.data.fromlist([0] * 0x200000)
+                    self.size += 0x200000
                     # The data range written below is already marked as used in romtypes.yml
-                    for i in range(0x8000, 0x8000 + 0x8000):
+                    for i in xrange(0x8000, 0x8000 + 0x8000):
                         self[0x400000 + i] = self[i]
         else:
             raise NotImplementedError("Don't know how to expand ROM of type[%s]" % self.type)
