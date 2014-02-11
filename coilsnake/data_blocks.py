@@ -295,7 +295,7 @@ class Rom(AllocatableBlock):
                 except OutOfBoundsError:
                     pass
 
-                # Check for unheadered LoROM
+                # Check for headered LoROM
                 try:
                     if (~self[0x81dc] & 0xff == self[0x81de]) \
                             and (~self[0x81dd] & 0xff == self[0x81df]) \
