@@ -19,22 +19,25 @@ class MapEventModule(EbModule.EbModule):
         self._entries = []
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._ptrTbl.readFromRom(rom,
-                                 EbModule.toRegAddr(rom.readMulti(self._PTR_LOC, 3)))
+                                 EbModule.toRegAddr(rom.read_multi(self._PTR_LOC, 3)))
         updateProgress(5)
         bank = (rom[self._PTR_BANK_LOC] - 0xc0) << 16
         pct = 45.0 / 20
         for i in range(20):
             addr = bank | self._ptrTbl[i, 0].val()
             tsetEntry = []
-            while rom.readMulti(addr, 2) != 0:
-                flag = rom.readMulti(addr, 2)
-                num = rom.readMulti(addr + 2, 2)
+            while rom.read_multi(addr, 2) != 0:
+                flag = rom.read_multi(addr, 2)
+                num = rom.read_multi(addr + 2, 2)
                 addr += 4
                 changes = []
                 for j in range(num):
-                    changes.append((rom.readMulti(addr, 2),
-                                    rom.readMulti(addr + 2, 2)))
+                    changes.append((rom.read_multi(addr, 2),
+                                    rom.read_multi(addr + 2, 2)))
                     addr += 4
                 tsetEntry.append((flag, changes))
             self._entries.append(tsetEntry)
@@ -75,6 +78,10 @@ class MapEventModule(EbModule.EbModule):
                 updateProgress(50.0 / 20)
 
     def write_to_rom(self, rom):
+
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._ptrTbl.clear(20)
         blockSize = 0
         for entry in self._entries:
@@ -83,18 +90,18 @@ class MapEventModule(EbModule.EbModule):
             blockSize += 2
         if blockSize > 0xffff:
             raise RuntimeError("Too many map changes")
-        loc = rom.getFreeLoc(blockSize)
+        loc = rom.allocate(size=blockSize)
         rom[self._PTR_BANK_LOC] = (loc >> 16) + 0xc0
         i = 0
         for entry in self._entries:
             self._ptrTbl[i, 0].setVal(loc & 0xffff)
             for (flag, set) in entry:
-                rom.writeMulti(loc, flag, 2)
-                rom.writeMulti(loc + 2, len(set), 2)
+                rom.write_multi(loc, flag, 2)
+                rom.write_multi(loc + 2, len(set), 2)
                 loc += 4
                 for (before, after) in set:
-                    rom.writeMulti(loc, before, 2)
-                    rom.writeMulti(loc + 2, after, 2)
+                    rom.write_multi(loc, before, 2)
+                    rom.write_multi(loc + 2, after, 2)
                     loc += 4
             rom[loc] = 0
             rom[loc + 1] = 0
@@ -102,5 +109,5 @@ class MapEventModule(EbModule.EbModule):
             i += 1
             updateProgress(45.0 / 20)
         ptrTblLoc = self._ptrTbl.writeToFree(rom)
-        rom.writeMulti(self._PTR_LOC, EbModule.toSnesAddr(ptrTblLoc), 3)
+        rom.write_multi(self._PTR_LOC, EbModule.toSnesAddr(ptrTblLoc), 3)
         updateProgress(5)

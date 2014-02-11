@@ -106,7 +106,7 @@ class Block(object):
             raise TypeError("Invalid argument type")
 
     def __setitem__(self, key, item):
-        if isinstance(key, slice) and isinstance(item, list):
+        if isinstance(key, slice) and (isinstance(item, list) or isinstance(item, array.array)):
             if key.start > key.stop:
                 raise InvalidArgumentError("Second argument of slice %s must be greater than  the first" % key)
             elif (key.start < 0) or (key.stop-1 >= self.size):
@@ -118,7 +118,10 @@ class Block(object):
             elif (key.stop - key.start) == 0:
                 raise InvalidArgumentError("Attempted to write data of size 0")
             else:
-                self.data[key] = array.array('B', item)
+                if isinstance(item, list):
+                    self.data[key] = array.array('B', item)
+                else:
+                    self.data[key] = item
         elif isinstance(key, int) and isinstance(item, int):
             if item < 0 or item > 0xff:
                 raise ValueNotUnsignedByteError("Attempting to write value[%d] into a single byte" % item)
@@ -194,7 +197,7 @@ class AllocatableBlock(Block):
         self.unallocated_ranges.append(range)
         self.unallocated_ranges.sort()
 
-    def allocate(self, data=None, size=None):
+    def allocate(self, data=None, size=None, mask=0):
         if data is None and size is None:
             raise InvalidArgumentError("Insufficient parameters provided")
 
@@ -210,6 +213,8 @@ class AllocatableBlock(Block):
         unallocated_range = None
         for i in xrange(0, len(self.unallocated_ranges)):
             begin, end = self.unallocated_ranges[i]
+            if begin & mask != 0:
+                continue
             if size <= end - begin + 1:
                 if begin + size - 1 == end:
                     # Used up the entire free range
@@ -218,6 +223,8 @@ class AllocatableBlock(Block):
                     self.unallocated_ranges[i] = (begin + size, end)
                 unallocated_range = (begin, end)
                 break
+
+        # TODO what if there is enough free space available, but not starting with the mask?
 
         if unallocated_range is None:
             raise NotEnoughUnallocatedSpaceError("Not enough free space left")

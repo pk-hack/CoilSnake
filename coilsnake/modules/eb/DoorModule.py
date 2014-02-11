@@ -14,10 +14,13 @@ class Door:
     DESTINATION_DIRECTION_NAMES = ["Down", "Up", "Right", "Left"]
 
     def readFromRom(self, rom, addr):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._y = rom[addr]
         self._x = rom[addr + 1]
         self._type = rom[addr + 2]
-        ptr = rom.readMulti(addr + 3, 2)
+        ptr = rom.read_multi(addr + 3, 2)
         if self._type == 1:  # Rope/Ladder
             self._isRope = (ptr == 0x8000)
         elif (self._type == 3) or (self._type == 4):  # Escalator and Stairs
@@ -30,30 +33,30 @@ class Door:
         elif self._type == 2:  # Door
             ptr |= 0xF0000
             self._destTextPtr = PointerTableEntry(None, 4)
-            self._destTextPtr.setVal(rom.readMulti(ptr, 4))
+            self._destTextPtr.setVal(rom.read_multi(ptr, 4))
             if ((self._destTextPtr.val() != 0) and
                     ((self._destTextPtr.val() < 0xc00000)
                      or (self._destTextPtr.val() > 0xffffff))):
                 raise ValueError("Invalid Door")
-            self._destFlag = rom.readMulti(ptr + 4, 2)
+            self._destFlag = rom.read_multi(ptr + 4, 2)
             self._destY = rom[ptr + 6]
             self._destY |= (rom[ptr + 7] & 0x3f) << 8
             self._destDir = ValuedIntTableEntry(None, None, self.DESTINATION_DIRECTION_NAMES)
             self._destDir.setVal((rom[ptr + 7] & 0xc0) >> 6)
-            self._destX = rom.readMulti(ptr + 8, 2)
+            self._destX = rom.read_multi(ptr + 8, 2)
             self._destStyle = rom[ptr + 10]
         elif self._type == 0:  # Switch
             ptr |= 0xF0000
-            self._destFlag = rom.readMulti(ptr, 2)
+            self._destFlag = rom.read_multi(ptr, 2)
             self._destTextPtr = PointerTableEntry(None, 4)
-            self._destTextPtr.setVal(rom.readMulti(ptr + 2, 4))
+            self._destTextPtr.setVal(rom.read_multi(ptr + 2, 4))
             if ((self._destTextPtr.val() != 0) and
                     ((self._destTextPtr.val() < 0xc00000) or (self._destTextPtr.val() > 0xffffff))):
                 raise ValueError("Invalid Switch")
         elif (self._type == 5) or (self._type == 6):  # Object and Person
             ptr |= 0xF0000
             self._destTextPtr = PointerTableEntry(None, 4)
-            self._destTextPtr.setVal(rom.readMulti(ptr, 4))
+            self._destTextPtr.setVal(rom.read_multi(ptr, 4))
         else:
             raise ValueError("Unknown type " + str(self._type))
 
@@ -124,6 +127,9 @@ class Door:
             self._destTextPtr.load(input["Text Pointer"])
 
     def writeToRom(self, rom, addr, destWriteLoc, destRangeEnd, destLocs):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         rom[addr] = self._y
         rom[addr + 1] = self._x
         rom[addr + 2] = self._type
@@ -231,13 +237,16 @@ class DoorModule(EbModule.EbModule):
         self._entries = []
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._ptrTbl.readFromRom(rom)
         updateProgress(5)
         pct = 45.0 / (40 * 32)
         for i in range(self._ptrTbl.height()):
             loc = EbModule.toRegAddr(self._ptrTbl[i, 0].val())
             entry = []
-            numDoors = rom.readMulti(loc, 2)
+            numDoors = rom.read_multi(loc, 2)
             loc += 2
             for j in range(numDoors):
                 d = Door()
@@ -302,11 +311,14 @@ class DoorModule(EbModule.EbModule):
                     updateProgress(pct)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._ptrTbl.clear(32 * 40)
         destWriteLoc = 0xF0000
         destRangeEnd = 0xF58EE  # TODO Is this correct? Can we go more?
         destLocs = dict()
-        emptyEntryPtr = EbModule.toSnesAddr(rom.writeToFree([0, 0]))
+        emptyEntryPtr = EbModule.toSnesAddr(rom.allocate(data=[0, 0]))
         pct = 45.0 / (40 * 32)
         i = 0
         for entry in self._entries:
@@ -314,7 +326,7 @@ class DoorModule(EbModule.EbModule):
                 self._ptrTbl[i, 0].setVal(emptyEntryPtr)
             else:
                 entryLen = len(entry)
-                writeLoc = rom.getFreeLoc(2 + entryLen * 5)
+                writeLoc = rom.allocate(size=(2 + entryLen * 5))
                 self._ptrTbl[i, 0].setVal(EbModule.toSnesAddr(writeLoc))
                 rom[writeLoc] = entryLen & 0xff
                 rom[writeLoc + 1] = entryLen >> 8
@@ -329,5 +341,5 @@ class DoorModule(EbModule.EbModule):
         self._ptrTbl.writeToRom(rom)
         # Mark any remaining space as free
         if destWriteLoc < destRangeEnd:
-            rom.addFreeRanges([(destWriteLoc, destRangeEnd)])
+            rom.deallocate((destWriteLoc, destRangeEnd))
         updateProgress(5)

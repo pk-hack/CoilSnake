@@ -1,8 +1,10 @@
 from array import array
+import logging
 from zlib import crc32
 
 from coilsnake.modules.eb import EbModule
 
+log = logging.getLogger(__name__)
 
 class DataBlock:
     def __init__(self, size):
@@ -17,13 +19,22 @@ class DataBlock:
         pass
 
     def readFromRom(self, rom, addr):
-        self._data = rom.readList(addr, self._size)
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
+        self._data = rom[addr:addr+self._size].to_list()
 
     def writeToRom(self, rom, addr):
-        rom.write(addr, self._data)
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
+        rom[addr:addr+len(self._data)] = self._data
 
     def writeToFree(self, rom):
-        return rom.writeToFree(self._data)
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
+        return rom.allocate(self._data)
 
     def hash(self):
         return crc32(self._data)
@@ -54,6 +65,9 @@ class EbCompressedData:
         pass
 
     def readFromRom(self, rom, addr):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         ucdata = EbModule.decomp(rom, addr)
         if ucdata[0] < 0:
             print "Error decompressing data @", hex(addr)
@@ -65,8 +79,11 @@ class EbCompressedData:
         #        f.close()
 
     def writeToFree(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         cdata = EbModule.comp(self._data.tolist())
-        return rom.writeToFree(cdata)
+        return rom.allocate(cdata)
 
     def __getitem__(self, key):
         if isinstance(key, slice):

@@ -37,13 +37,14 @@ class PatchModule(GenericModule):
                 resourceOpenerW, resourceDeleter)
 
     def read_from_rom(self, rom):
+
         self._patches = dict()
-        # Loop through all the patches for this romtyp
-        for ipsDescFname in [s for s in os.listdir(get_ips_directory(rom.type())) if s.lower().endswith(".yml")]:
+        # Loop through all the patches for this romtype
+        for ipsDescFname in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
             patchName = ipsDescFname[:-4]
             ips = Ips()
-            ips.load(os.path.join(get_ips_directory(rom.type()), patchName + '.ips'))
-            with open(os.path.join(get_ips_directory(rom.type()), ipsDescFname)) as ipsDescFile:
+            ips.load(os.path.join(get_ips_directory(rom.type), patchName + '.ips'))
+            with open(os.path.join(get_ips_directory(rom.type), ipsDescFname)) as ipsDescFile:
                 ipsDesc = yaml.load(ipsDescFile, Loader=yaml.CSafeLoader)
                 if ipsDesc["Auto-Apply"]:
                     self._patches[ipsDesc["Title"]] = "enabled"
@@ -52,9 +53,12 @@ class PatchModule(GenericModule):
         updateProgress(50)
 
     def write_to_rom(self, rom):
-        for ipsDescFname in [s for s in os.listdir(get_ips_directory(rom.type())) if s.lower().endswith(".yml")]:
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
+        for ipsDescFname in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
             patchName = ipsDescFname[:-4]
-            with open(os.path.join(get_ips_directory(rom.type()), ipsDescFname)) as ipsDescFile:
+            with open(os.path.join(get_ips_directory(rom.type), ipsDescFname)) as ipsDescFile:
                 ipsDesc = yaml.load(ipsDescFile, Loader=yaml.CSafeLoader)
                 if ((ipsDesc["Title"] in self._patches) and
                         (self._patches[ipsDesc["Title"]].lower() == "enabled")):
@@ -63,7 +67,7 @@ class PatchModule(GenericModule):
 
                     # First, check that we can apply this
                     for range in ranges:
-                        if not rom.isRangeFree(range):
+                        if not rom.is_unallocated(range):
                             # Range is not free, can't apply
                             raise RuntimeError("Can't apply patch \"" +
                                                ipsDesc["Title"] + "\", range (" +
@@ -77,12 +81,12 @@ class PatchModule(GenericModule):
                         offset = ipsDesc["Header"]
                     ips.load(
                         'resources/ips/' +
-                        rom.type() + '/' + patchName + '.ips',
+                        rom.type + '/' + patchName + '.ips',
                         offset)
                     ips.apply(rom)
                     # Mark the used ranges as used
                     for range in ranges:
-                        rom.markRangeAsNotFree(range)
+                        rom.mark_allocated(range)
         updateProgress(50)
 
     def write_to_project(self, resourceOpener):

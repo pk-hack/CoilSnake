@@ -26,13 +26,16 @@ class MapPalette:
         self.flagPal = None
 
     def readFromRom(self, rom, addr, getFlagPal=True):
-        self.flag = rom.readMulti(addr, 2)
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
+        self.flag = rom.read_multi(addr, 2)
         if (self.flag != 0) and getFlagPal:
-            altAddr = rom.readMulti(addr + 0x20, 2)
+            altAddr = rom.read_multi(addr + 0x20, 2)
             self.flagPal = MapPalette()
             self.flagPal.readFromRom(rom, altAddr | 0x1a0000, getFlagPal=False)
-        self.spritePalNum = rom.read(addr + 0x40)
-        self.flashEffect = rom.read(addr + 0x60)
+        self.spritePalNum = rom[addr + 0x40]
+        self.flashEffect = rom[addr + 0x60]
         self.subpals = map(lambda x: EbModule.readPalette(rom, x, 16),
                            range(addr, addr + 32 * 6, 32))
         for subp in self.subpals:
@@ -52,8 +55,8 @@ class MapPalette:
         for subp in self.subpals:
             EbModule.writePalette(block, addr + i, subp)
             i += 32
-        #block.writeMulti(addr, self.flag, 2)
-        #block.writeMulti(addr+0x20, self.flagPalPtr, 2)
+        #block.write_multi(addr, self.flag, 2)
+        #block.write_multi(addr+0x20, self.flagPalPtr, 2)
         block[addr] = self.flag & 0xff
         block[addr + 1] = self.flag >> 8
         block[addr + 0x20] = self.flagPalPtr & 0xff
@@ -129,7 +132,7 @@ class Tileset:
 
     def readCollisionsFromRom(self, rom, addr):
         for i in range(self.numArrs):
-            tmp = rom.readMulti(addr + i * 2, 2)
+            tmp = rom.read_multi(addr + i * 2, 2)
             self.col[i] = rom[0x180000 + tmp:0x180000 + tmp + 16]
 
     def readPaletteFromRom(self, rom, mapTset, palNum, addr):
@@ -307,6 +310,9 @@ class TilesetModule(EbModule.EbModule):
             updateProgress(pct)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         numTsets = len(self._tsets)
         self._gfxPtrTbl.clear(numTsets)
         self._arrPtrTbl.clear(numTsets)
@@ -350,7 +356,7 @@ class TilesetModule(EbModule.EbModule):
                         else:
                             colLocs[hash] = colWriteLoc
                             addr = colWriteLoc
-                            rom.write(colWriteLoc, c)
+                            rom[colWriteLoc:colWriteLoc+16] = c
                             colWriteLoc += 16
                     colTable[j] = addr & 0xff
                     colTable[j + 1] = (addr >> 8) & 0xff
@@ -412,9 +418,10 @@ class TilesetModule(EbModule.EbModule):
         updateProgress(1)
 
         # Might as well use any extra leftover space
-        ranges = [(colWriteLoc, colRangeEnd), (palWriteLoc, palRangeEnd)]
-        ranges = [(a, b) for (a, b) in ranges if a < b]
-        rom.addFreeRanges(ranges)
+        if colWriteLoc < colRangeEnd:
+            rom.deallocate((colWriteLoc, colRangeEnd))
+        if palWriteLoc < palRangeEnd:
+            rom.deallocate((palWriteLoc, palRangeEnd))
 
     def write_to_project(self, resourceOpener):
         # Dump an additional YML with color0 data

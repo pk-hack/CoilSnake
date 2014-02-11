@@ -59,6 +59,7 @@ class Project:
                 self._romtype = romtype
                 self._resources = {}
         except IOError:
+            log.error("Could not open project file")
             # Project file doesn't exist
             if not os.path.exists(self._dirName):
                 os.makedirs(self._dirName)

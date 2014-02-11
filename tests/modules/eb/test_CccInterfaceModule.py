@@ -71,4 +71,4 @@ class TestCccInterfaceModule(coilsnake_test.CoilSnakeTestCase):
         self.module.used_range = (0x312345, 0x345678)
         self.module.write_to_rom(self.mock)
 
-        self.mock.markRangeAsNotFree.assert_called_once_with((0x312345, 0x345678))
+        self.mock.mark_allocated.assert_called_once_with((0x312345, 0x345678))

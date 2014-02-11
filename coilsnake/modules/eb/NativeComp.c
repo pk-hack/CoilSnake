@@ -232,7 +232,7 @@ static PyObject* decomp(PyObject* self, PyObject* args) {
         if (!PyArg_ParseTuple(args, "Oi", &rom, &addr))
                 return NULL;
 
-	romArr = PyObject_GetAttr(rom, PyString_FromString("_data"));
+	romArr = PyObject_GetAttr(rom, PyString_FromString("data"));
 	romByteArr = PyByteArray_FromObject(romArr);
 
         if (!PyByteArray_Check(romByteArr))
@@ -241,7 +241,7 @@ static PyObject* decomp(PyObject* self, PyObject* args) {
         size = PyByteArray_Size(romByteArr);
 
         if (size < 1)
-                return PyErr_Format(PyExc_TypeError, "got empty array"), NULL;
+                return PyErr_Format(PyExc_TypeError, "rom's data attribute was empty"), NULL;
 
 	romBuffer = (uchar*) PyByteArray_AsString(romByteArr);
 

@@ -23,7 +23,10 @@ class MapSpriteModule(EbModule.EbModule):
         self._entries = []
 
     def read_from_rom(self, rom):
-        ptr = EbModule.toRegAddr(rom.readMulti(self._PTR_LOC, 3))
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
+        ptr = EbModule.toRegAddr(rom.read_multi(self._PTR_LOC, 3))
         updateProgress(5)
         self._ptrTbl.readFromRom(rom, ptr)
         pct = 45.0 / (40 * 32)
@@ -34,11 +37,11 @@ class MapSpriteModule(EbModule.EbModule):
             if loc != 0:
                 loc |= 0x0F0000
                 entry = []
-                size = rom.readMulti(loc, 2)
+                size = rom.read_multi(loc, 2)
                 loc += 2
                 for j in range(size):
                     entry.append(SpritePlacement(
-                        rom.readMulti(loc, 2),
+                        rom.read_multi(loc, 2),
                         rom[loc + 3], rom[loc + 2]))
                     loc += 4
                 self._entries.append(entry)
@@ -92,6 +95,9 @@ class MapSpriteModule(EbModule.EbModule):
                     updateProgress(pct)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._ptrTbl.clear(32 * 40)
         writeLoc = 0xf61e7
         writeRangeEnd = 0xf8984
@@ -122,8 +128,8 @@ class MapSpriteModule(EbModule.EbModule):
             updateProgress(pct)
             i += 1
         loc = self._ptrTbl.writeToFree(rom)
-        rom.writeMulti(self._PTR_LOC, EbModule.toSnesAddr(loc), 3)
+        rom.write_multi(self._PTR_LOC, EbModule.toSnesAddr(loc), 3)
         # Mark any remaining space as free
         if writeLoc < writeRangeEnd:
-            rom.addFreeRanges([(writeLoc, writeRangeEnd)])
+            rom.deallocate((writeLoc, writeRangeEnd))
         updateProgress(5)

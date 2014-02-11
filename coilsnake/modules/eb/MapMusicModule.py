@@ -16,15 +16,17 @@ class MapMusicModule(EbModule.EbModule):
         self._entries = []
 
     def read_from_rom(self, rom):
-        self._ptrTbl.readFromRom(rom,
-                                 EbModule.toRegAddr(rom.readMulti(self._ASMPTR, 3)))
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
+        self._ptrTbl.readFromRom(rom, EbModule.toRegAddr(rom.read_multi(self._ASMPTR, 3)))
         updateProgress(25)
         for i in range(self._ptrTbl.height()):
             loc = 0xf0000 | self._ptrTbl[i, 0].val()
             entry = []
             flag = 1
             while flag != 0:
-                flag = rom.readMulti(loc, 2)
+                flag = rom.read_multi(loc, 2)
                 music = rom[loc + 2]
                 entry.append((flag, music))
                 loc += 4
@@ -32,6 +34,9 @@ class MapMusicModule(EbModule.EbModule):
         updateProgress(25)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._ptrTbl.clear(165)
         writeLoc = 0xf58ef
         writeRangeEnd = 0xf61e5  # TODO Can re-use bank space from doors
@@ -44,15 +49,14 @@ class MapMusicModule(EbModule.EbModule):
             i += 1
 
             for (flag, music) in entry:
-                rom.writeMulti(writeLoc, flag, 2)
+                rom.write_multi(writeLoc, flag, 2)
                 rom[writeLoc + 2] = music
                 rom[writeLoc + 3] = 0
                 writeLoc += 4
         updateProgress(25)
-        rom.writeMulti(self._ASMPTR,
-                       EbModule.toSnesAddr(self._ptrTbl.writeToFree(rom)), 3)
+        rom.write_multi(self._ASMPTR, EbModule.toSnesAddr(self._ptrTbl.writeToFree(rom)), 3)
         if writeLoc < writeRangeEnd:
-            rom.addFreeRanges([(writeLoc, writeRangeEnd)])
+            rom.deallocate((writeLoc, writeRangeEnd))
         updateProgress(25)
 
     def write_to_project(self, resourceOpener):

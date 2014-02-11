@@ -45,9 +45,15 @@ class GenericModule:
         pass
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         updateProgress(50)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         updateProgress(50)
 
     def read_from_project(self, resource_open):

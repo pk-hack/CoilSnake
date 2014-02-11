@@ -28,10 +28,11 @@ class TownMapIconModule(EbModule.EbModule):
                                                "North", "South", "West", "East"])
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._ptrTbl.readFromRom(rom,
-                                 EbModule.toRegAddr(
-                                     EbModule.readAsmPointer(rom,
-                                                             self._ASMPTR_PTR_TBL)))
+                                 EbModule.toRegAddr(EbModule.readAsmPointer(rom, self._ASMPTR_PTR_TBL)))
         updateProgress(5)
         for i in range(self._ptrTbl.height()):
             loc = EbModule.toRegAddr(self._ptrTbl[i, 0].val())
@@ -42,7 +43,7 @@ class TownMapIconModule(EbModule.EbModule):
                     break
                 y = rom[loc + 1]
                 icon = rom[loc + 2]
-                flag = rom.readMulti(loc + 3, 2)
+                flag = rom.read_multi(loc + 3, 2)
                 entry.append((x, y, icon, flag))
                 loc += 5
             self._entries.append(entry)
@@ -50,24 +51,25 @@ class TownMapIconModule(EbModule.EbModule):
         updateProgress(45)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._ptrTbl.clear(6)
         i = 0
         for entry in self._entries:
-            writeLoc = rom.getFreeLoc(len(entry) * 5 + 1)
+            writeLoc = rom.allocate(size=(len(entry) * 5 + 1))
             self._ptrTbl[i, 0].setVal(
                 EbModule.toSnesAddr(writeLoc))
             for (x, y, icon, flag) in entry:
                 rom[writeLoc] = x
                 rom[writeLoc + 1] = y
                 rom[writeLoc + 2] = icon
-                rom.writeMulti(writeLoc + 3, flag, 2)
+                rom.write_multi(writeLoc + 3, flag, 2)
                 writeLoc += 5
             rom[writeLoc] = 0xff
             i += 1
         updateProgress(45)
-        EbModule.writeAsmPointer(rom, self._ASMPTR_PTR_TBL,
-                                 EbModule.toSnesAddr(
-                                     self._ptrTbl.writeToFree(rom)))
+        EbModule.writeAsmPointer(rom, self._ASMPTR_PTR_TBL, EbModule.toSnesAddr(self._ptrTbl.writeToFree(rom)))
         updateProgress(5)
 
     def read_from_project(self, resourceOpener):
@@ -113,6 +115,9 @@ class TownMapIconModule(EbModule.EbModule):
 
     def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                         resourceOpenerW, resourceDeleter):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         global updateProgress
         if oldVersion == newVersion:
             updateProgress(100)

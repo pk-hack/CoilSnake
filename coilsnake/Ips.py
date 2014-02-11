@@ -46,7 +46,7 @@ class Ips:
             raise RuntimeError("Not a valid IPS file: " + fname)
 
     def apply(self, rom):
-        if self._lastOffsetUsed >= len(rom):
+        if self._lastOffsetUsed >= rom.size:
             raise RuntimeError("Your ROM must be expanded such that it is at" +
                                " least " + str(self._lastOffsetUsed + 1) + " (" +
                                hex(self._lastOffsetUsed + 1) + ") bytes long.")
@@ -59,10 +59,10 @@ class Ips:
             elif instr == 'RECORD':
                 offset, size, data = args
                 #print (instr, hex(offset), hex(offset+size-1), map(hex, data))
-                rom.write(offset, data)
+                rom[offset] = data
 
     def isApplied(self, rom):
-        if self._lastOffsetUsed >= len(rom):
+        if self._lastOffsetUsed >= rom.size:
             return False
         for (instr, args) in self._instructions:
             if instr == 'RLE':

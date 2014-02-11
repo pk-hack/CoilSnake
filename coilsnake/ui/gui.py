@@ -12,7 +12,8 @@ import tkFileDialog
 import tkMessageBox
 from ttk import Progressbar
 
-from coilsnake import Progress, Rom
+from coilsnake import Progress
+from coilsnake.data_blocks import Rom
 from coilsnake.ui import cli, information
 from coilsnake.ui.Fun import getTitle
 
@@ -288,29 +289,27 @@ Please specify it in the Preferences menu.""")
         self.expandRom(ex=True)
 
     def addHeaderRom(self):
-        r = Rom.Rom()
         fname = tkFileDialog.askopenfilename(
             parent=self._root, title="Select a ROM to which to add a header",
             filetypes=[('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')])
         if len(fname) > 0:
-            r.load(fname)
-            r.addHeader()
-            r.save(fname)
-            del r
+            with Rom() as rom:
+                rom.from_file(fname)
+                rom.add_header()
+                rom.to_file(fname)
             tkMessageBox.showinfo(
                 parent=self._root,
                 title="Header Addition Successful",
                 message="Your ROM was given a header.")
 
     def stripHeaderRom(self):
-        r = Rom.Rom()
         fname = tkFileDialog.askopenfilename(
             parent=self._root, title="Select a ROM from which to remove a header",
             filetypes=[('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')])
         if len(fname) > 0:
-            r.load(fname)
-            r.save(fname)
-            del r
+            with Rom() as rom:
+                rom.from_file(fname)
+                rom.to_file(fname)
             tkMessageBox.showinfo(
                 parent=self._root,
                 title="Header Remove Successful",
@@ -328,8 +327,8 @@ Please specify it in the Preferences menu.""")
             filetypes=[('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')])
         if not romName:
             return
-        r = Rom.Rom()
-        r.load(romName)
+        r = Rom()
+        r.from_file(romName)
         if r.type() != "Earthbound":
             tkMessageBox.showerror(
                 "Invalid EarthBound ROM",

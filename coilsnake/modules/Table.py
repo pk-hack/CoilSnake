@@ -11,11 +11,11 @@ class IntTableEntry:
         return self._size
 
     def readFromRom(self, rom, addr):
-        self._data = rom.readMulti(addr, self._size)
+        self._data = rom.read_multi(addr, self._size)
         pass
 
     def writeToRom(self, rom, addr):
-        rom.writeMulti(addr, self._data, self._size)
+        rom.write_multi(addr, self._data, self._size)
 
     def load(self, data):
         if isinstance(data, str):
@@ -124,16 +124,16 @@ class ByteArrayTableEntry:
         return self._size
 
     def readFromRom(self, rom, addr):
-        self._data = rom.readList(addr, self._size)
+        self._data = rom[addr:addr+self._size].to_list()
 
     def writeToRom(self, rom, addr):
-        rom.write(addr, self._data)
+        rom[addr:addr+self._size] = self._data
 
     def load(self, data):
         self._data = data
 
     def dump(self):
-        return self._data.tolist()
+        return self._data
 
     def setVal(self, val):
         self._data = val
@@ -259,7 +259,7 @@ class Table:
     def writeToFree(self, rom):
         dataSize = sum(map(lambda y: sum(map(lambda x: x.size(), y)),
                            self._data))
-        addr = rom.getFreeLoc(dataSize)
+        addr = rom.allocate(size=dataSize)
         self.writeToRom(rom, addr=addr, limitSize=False)
         return addr
 

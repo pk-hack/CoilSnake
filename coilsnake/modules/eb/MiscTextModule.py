@@ -142,6 +142,9 @@ class MiscTextModule(EbModule.EbModule):
         self._pct = 50.0 / len(self.ENTRY_LOCS)
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         for (cat, items) in self.ENTRY_LOCS:
             catDict = {}
             for (desc, loc, size) in items:
@@ -150,13 +153,16 @@ class MiscTextModule(EbModule.EbModule):
             updateProgress(self._pct)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         for (cat, items) in self.ENTRY_LOCS:
             catDict = self._data[cat]
             for (desc, loc, size) in items:
                 EbModule.writeStandardText(rom, loc, catDict[desc], size)
                 if (cat == "Status Window") and (len(catDict[desc]) < size):
-                    rom.write(loc + len(catDict[desc]),
-                              [00] * (size - len(catDict[desc])))
+                    data_size = size - len(catDict[desc])
+                    rom[loc + len(catDict[desc]):loc+len(catDict[desc])+data_size] = [00] * data_size
             updateProgress(self._pct)
 
     def write_to_project(self, resourceOpener):
@@ -172,6 +178,9 @@ class MiscTextModule(EbModule.EbModule):
 
     def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                         resourceOpenerW, resourceDeleter):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         global updateProgress
         if oldVersion == newVersion:
             updateProgress(100)

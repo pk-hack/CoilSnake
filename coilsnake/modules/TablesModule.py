@@ -23,11 +23,17 @@ class TablesModule(GenericModule.GenericModule):
             del t
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         for t in self._tables:
             t.readFromRom(rom)
             updateProgress(self._pct)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         for t in self._tables:
             t.writeToRom(rom)
             updateProgress(self._pct)

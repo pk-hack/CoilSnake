@@ -440,7 +440,7 @@ class EbTownMap:
     def readFromRom(self, rom):
         with EbCompressedData() as block:
             block.readFromRom(rom, EbModule.toRegAddr(
-                rom.readMulti(self._ptrLoc, 4)))
+                rom.read_multi(self._ptrLoc, 4)))
             self._arr.readFromBlock(block, 64)
             self._pals.readFromBlock(block, 0)
             self._gfx.readFromBlock(block, 2048 + 64)
@@ -453,7 +453,7 @@ class EbTownMap:
             self._arr.writeToBlock(block, 64)
             self._gfx.writeToBlock(block, 2048 + 64)
             newAddr = block.writeToFree(rom)
-            rom.writeMulti(self._ptrLoc, EbModule.toSnesAddr(newAddr), 4)
+            rom.write_multi(self._ptrLoc, EbModule.toSnesAddr(newAddr), 4)
 
     def writeToProject(self, resourceOpener):
         img = self._arr.toImage(self._gfx, self._pals)
@@ -487,6 +487,9 @@ class EbLogo:
         self._palPtrLoc = palPtrLoc
 
     def readFromRom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         with EbCompressedData() as gb:
             gb.readFromRom(rom, EbModule.toRegAddr(
                 EbModule.readAsmPointer(rom, self._gfxPtrLoc)))
@@ -513,6 +516,9 @@ class EbLogo:
         imgFile.close()
 
     def writeToRom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         with EbCompressedData(self._gfx.sizeBlock()) as gb:
             self._gfx.writeToBlock(gb)
             EbModule.writeAsmPointer(rom, self._gfxPtrLoc,
@@ -618,6 +624,9 @@ class CompressedGraphicsModule(EbModule.EbModule):
         del self._townmaps
 
     def readTownMapIconsFromRom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._townmap_icons_pal.readFromBlock(rom,
                                               loc=EbModule.toRegAddr(
                                                   EbModule.readAsmPointer(rom,
@@ -630,6 +639,9 @@ class CompressedGraphicsModule(EbModule.EbModule):
             self._townmap_icons.readFromBlock(cb)
 
     def readProducedPresentedFromRom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         with EbCompressedData() as cb:
             cb.readFromRom(rom,
                            EbModule.toRegAddr(
@@ -668,6 +680,9 @@ class CompressedGraphicsModule(EbModule.EbModule):
             self._presented_arr.readFromBlock(cb)
 
     def readGasFromRom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         with EbCompressedData() as cb:
             cb.readFromRom(rom,
                            EbModule.toRegAddr(
@@ -700,6 +715,9 @@ class CompressedGraphicsModule(EbModule.EbModule):
             self._gas_pal3.readFromBlock(cb)
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         for logo in self._logos:
             logo.readFromRom(rom)
             updateProgress(self._pct)
@@ -715,6 +733,9 @@ class CompressedGraphicsModule(EbModule.EbModule):
         updateProgress(self._pct)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         for logo in self._logos:
             logo.writeToRom(rom)
             updateProgress(self._pct)

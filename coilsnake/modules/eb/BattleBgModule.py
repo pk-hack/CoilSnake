@@ -34,6 +34,9 @@ class BattleBgModule(EbModule.EbModule):
         del self._bbgPals
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._bbgTbl.readFromRom(rom)
         pct = 50.0 / (6 + self._bbgTbl.height())
         self._bbgGfxPtrTbl.readFromRom(rom,
@@ -148,6 +151,9 @@ class BattleBgModule(EbModule.EbModule):
             updateProgress(pct)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._bbgGfxPtrTbl.clear(len(self._bbgGfxArrs))
         self._bbgArrPtrTbl.clear(len(self._bbgGfxArrs))
         self._bbgPalPtrTbl.clear(len(self._bbgPals))

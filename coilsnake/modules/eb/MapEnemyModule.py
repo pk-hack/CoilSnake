@@ -16,6 +16,9 @@ class MapEnemyModule(EbModule.EbModule):
         self._mapEnemyTbl = EbTable(0xD01880)
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._mapEnemyTbl.readFromRom(rom)
         updateProgress(2.5)
         self._mapGroupPtrTbl.readFromRom(rom)
@@ -26,7 +29,7 @@ class MapEnemyModule(EbModule.EbModule):
         self._mapGroups = []
         for i in range(self._mapGroupPtrTbl.height()):
             loc = EbModule.toRegAddr(self._mapGroupPtrTbl[i, 0].val())
-            flag = rom.readMulti(loc, 2)
+            flag = rom.read_multi(loc, 2)
             rate1 = rom[loc + 2]
             rate2 = rom[loc + 3]
             loc += 4
@@ -37,7 +40,7 @@ class MapEnemyModule(EbModule.EbModule):
                 rateSum = 0
                 while rateSum < 8:
                     prob = rom[loc]
-                    enemy = rom.readMulti(loc + 1, 2)
+                    enemy = rom.read_multi(loc + 1, 2)
                     rateSum += prob
                     loc += 3
                     group1.append((prob, enemy))
@@ -46,7 +49,7 @@ class MapEnemyModule(EbModule.EbModule):
                 rateSum = 0
                 while rateSum < 8:
                     prob = rom[loc]
-                    enemy = rom.readMulti(loc + 1, 2)
+                    enemy = rom.read_multi(loc + 1, 2)
                     rateSum += prob
                     loc += 3
                     group2.append((prob, enemy))
@@ -56,6 +59,9 @@ class MapEnemyModule(EbModule.EbModule):
             updateProgress(pct)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._mapEnemyTbl.writeToRom(rom)
         updateProgress(2.5)
         self._mapGroupPtrTbl.clear(len(self._mapGroups))
@@ -69,20 +75,20 @@ class MapEnemyModule(EbModule.EbModule):
                 size += len(subg1) * 3
             if rate2 > 0:
                 size += len(subg2) * 3
-            loc = rom.getFreeLoc(size)
+            loc = rom.allocate(size=size)
             self._mapGroupPtrTbl[i, 0].setVal(EbModule.toSnesAddr(loc))
 
-            rom.writeMulti(loc, flag, 2)
+            rom.write_multi(loc, flag, 2)
             rom[loc + 2] = rate1
             rom[loc + 3] = rate2
             loc += 4
             for prob, egroup in subg1:
                 rom[loc] = prob
-                rom.writeMulti(loc + 1, egroup, 2)
+                rom.write_multi(loc + 1, egroup, 2)
                 loc += 3
             for prob, egroup in subg2:
                 rom[loc] = prob
-                rom.writeMulti(loc + 1, egroup, 2)
+                rom.write_multi(loc + 1, egroup, 2)
                 loc += 3
             i += 1
             updateProgress(pct)

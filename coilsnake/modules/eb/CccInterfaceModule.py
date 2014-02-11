@@ -63,7 +63,10 @@ class CccInterfaceModule(EbModule.EbModule):
         updateProgress(50)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         if self.used_range:
-            log.info("Marking %d ranges as non-free", len(self.used_range))
-            rom.markRangeAsNotFree(self.used_range)
+            log.info("Marking (%06x,%06x) as non-free" % (self.used_range[0], self.used_range[1]))
+            rom.mark_allocated(self.used_range)
         updateProgress(50)

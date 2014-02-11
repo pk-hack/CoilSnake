@@ -36,17 +36,20 @@ class MapModule(EbModule.EbModule):
                                                  ["None", "Up", "Down", "Right", "Left"])
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         # Read map tiles
         map_ptrs_addr = \
-            EbModule.toRegAddr(rom.readMulti(self._MAP_PTRS_PTR_ADDR, 3))
+            EbModule.toRegAddr(rom.read_multi(self._MAP_PTRS_PTR_ADDR, 3))
         map_addrs = map(lambda x:
                         EbModule.toRegAddr(
-                            rom.readMulti(map_ptrs_addr + x * 4, 4)),
+                            rom.read_multi(map_ptrs_addr + x * 4, 4)),
                         range(8))
-        self._tiles = map(
-            lambda y: rom.readList(map_addrs[y % 8] + ((y >> 3) << 8),
-                                   self._MAP_WIDTH).tolist(),
-            range(self._MAP_HEIGHT))
+        def read_row_data(row_number):
+            offset = map_addrs[row_number % 8] + ((row_number >> 3) << 8)
+            return rom[offset:offset+self._MAP_WIDTH].to_list()
+        self._tiles = map(read_row_data, range(self._MAP_HEIGHT))
         k = self._LOCAL_TSET_ADDR
         for i in range(self._MAP_HEIGHT >> 3):
             for j in range(self._MAP_WIDTH):
@@ -55,12 +58,9 @@ class MapModule(EbModule.EbModule):
                 self._tiles[(i << 3) | 2][j] |= ((rom[k] >> 4) & 3) << 8
                 self._tiles[(i << 3) | 3][j] |= ((rom[k] >> 6) & 3) << 8
                 self._tiles[(i << 3) | 4][j] |= (rom[k + 0x3000] & 3) << 8
-                self._tiles[(i << 3) | 5][j] |= (
-                                                    (rom[k + 0x3000] >> 2) & 3) << 8
-                self._tiles[(i << 3) | 6][j] |= (
-                                                    (rom[k + 0x3000] >> 4) & 3) << 8
-                self._tiles[(i << 3) | 7][j] |= (
-                                                    (rom[k + 0x3000] >> 6) & 3) << 8
+                self._tiles[(i << 3) | 5][j] |= ((rom[k + 0x3000] >> 2) & 3) << 8
+                self._tiles[(i << 3) | 6][j] |= ((rom[k + 0x3000] >> 4) & 3) << 8
+                self._tiles[(i << 3) | 7][j] |= ((rom[k + 0x3000] >> 6) & 3) << 8
                 k += 1
         updateProgress(25)
         # Read sector data
@@ -74,16 +74,18 @@ class MapModule(EbModule.EbModule):
         updateProgress(25.0 / 4)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         map_ptrs_addr = \
-            EbModule.toRegAddr(rom.readMulti(self._MAP_PTRS_PTR_ADDR, 3))
+            EbModule.toRegAddr(rom.read_multi(self._MAP_PTRS_PTR_ADDR, 3))
         map_addrs = map(lambda x:
                         EbModule.toRegAddr(
-                            rom.readMulti(map_ptrs_addr + x * 4, 4)),
+                            rom.read_multi(map_ptrs_addr + x * 4, 4)),
                         range(8))
         for i in range(self._MAP_HEIGHT):
-            rom.write(
-                map_addrs[i % 8] + ((i >> 3) << 8), map(lambda x: x & 0xff,
-                                                        self._tiles[i]))
+            offset = map_addrs[i % 8] + ((i >> 3) << 8)
+            rom[offset:offset+self._MAP_WIDTH] = map(lambda x: x & 0xff, self._tiles[i])
         k = self._LOCAL_TSET_ADDR
         for i in range(self._MAP_HEIGHT >> 3):
             for j in range(self._MAP_WIDTH):
@@ -91,12 +93,12 @@ class MapModule(EbModule.EbModule):
                      | ((self._tiles[(i << 3) | 1][j] >> 8) << 2)
                      | ((self._tiles[(i << 3) | 2][j] >> 8) << 4)
                      | ((self._tiles[(i << 3) | 3][j] >> 8) << 6))
-                rom.write(k, c)
+                rom[k] = c
                 c = ((self._tiles[(i << 3) | 4][j] >> 8)
                      | ((self._tiles[(i << 3) | 5][j] >> 8) << 2)
                      | ((self._tiles[(i << 3) | 6][j] >> 8) << 4)
                      | ((self._tiles[(i << 3) | 7][j] >> 8) << 6))
-                rom.write(k + 0x3000, c)
+                rom[k+0x3000] = c
                 k += 1
         updateProgress(25)
         # Write sector data
@@ -185,6 +187,9 @@ class MapModule(EbModule.EbModule):
 
     def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                         resourceOpenerW, resourceDeleter):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         global updateProgress
 
         def replaceField(fname, oldField, newField, valueMap):

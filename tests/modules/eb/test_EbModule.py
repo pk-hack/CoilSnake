@@ -4,7 +4,7 @@ import os
 from nose.tools import assert_equal
 
 from coilsnake.modules.eb import EbModule, NativeComp
-from coilsnake import Rom
+from coilsnake.data_blocks import Rom
 import coilsnake_test
 
 
@@ -14,14 +14,14 @@ class TestEbModule(coilsnake_test.CoilSnakeTestCase):
     """
 
     def setup(self):
-        self.rom = Rom.Rom()
-        self.rom.load(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_24mbit.smc"))
+        self.rom = Rom()
+        self.rom.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_24mbit.smc"))
 
     @nottest
     def test_decomp(self, decomp):
         onett_map = array.array('B')
-        with Rom.Rom() as eb_rom:
-            eb_rom.load(os.path.join(self.TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
+        with Rom() as eb_rom:
+            eb_rom.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
             onett_map.fromlist(decomp(eb_rom, 0x2021a8))
 
         onett_map_expect = array.array('B')
@@ -41,9 +41,9 @@ class TestEbModule(coilsnake_test.CoilSnakeTestCase):
         compressed_data = comp(uncompressed_data)
         assert_equal(len(compressed_data), 10877)
 
-        with Rom.Rom() as fake_eb_rom:
-            fake_eb_rom.load(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_32mbit.smc"))
-            fake_eb_rom.write(0x300000, compressed_data)
+        with Rom() as fake_eb_rom:
+            fake_eb_rom.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_32mbit.smc"))
+            fake_eb_rom[0x300000:0x300000+len(compressed_data)] = compressed_data
             reuncompressed_data = decomp(fake_eb_rom, 0x300000)
 
         assert_equal(len(reuncompressed_data), len(uncompressed_data))
@@ -58,7 +58,7 @@ class TestEbModule(coilsnake_test.CoilSnakeTestCase):
         self.test_decomp(EbModule._decomp)
 
     def test_native_comp(self):
-        self.test_comp(NativeComp.comp, EbModule._decomp)
+        self.test_comp(NativeComp.comp, NativeComp.decomp)
 
     def test_native_decomp(self):
         self.test_decomp(NativeComp.decomp)
@@ -88,8 +88,7 @@ class TestEbModule(coilsnake_test.CoilSnakeTestCase):
         assert_equal(ptr, 0xe14f2a)
 
         EbModule.writeAsmPointer(self.rom, 0, 0xabcdef01)
-        assert_equal(self.rom.readList(0, 8).tolist(),
-                     [ 0x0, 0x01, 0xef, 0x0, 0x0, 0x0, 0xcd, 0xab ])
+        assert_equal(self.rom[0:8].to_list(), [ 0x0, 0x01, 0xef, 0x0, 0x0, 0x0, 0xcd, 0xab ])
 
         ptr2 = EbModule.readAsmPointer(self.rom, 0)
         assert_equal(0xabcdef01, ptr2)

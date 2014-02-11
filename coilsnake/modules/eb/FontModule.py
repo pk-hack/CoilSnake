@@ -18,6 +18,9 @@ class Font:
         self._charWidths = None
 
     def readFromRom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._chars = []
         addr = self._gfxAddr
         for i in range(96):
@@ -30,12 +33,15 @@ class Font:
         self._charWidths = rom[self._widthsAddr:self._widthsAddr + 96]
 
     def writeToRom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         addr = self._gfxAddr
         for char in self._chars:
             for j in range(0, self._charW, 8):
                 addr += EbModule.write1BPPArea(char, rom, addr,
                                                self._charH, j, 0)
-        rom.write(self._widthsAddr, self._charWidths)
+        rom[self._widthsAddr:self._widthsAddr+96] = self._charWidths
 
     def toImage(self):
         img = Image.new("P", (self._charW * 16, self._charH * 6), 1)
@@ -109,15 +115,18 @@ class FontModule(EbModule.EbModule):
         self._pct = 50.0 / (len(self._fonts) + 1)
 
     def readCreditsFontFromRom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._cpal.readFromBlock(rom, loc=self._ADDR_CREDITS_PAL)
         with EbCompressedData() as cb:
-            cb.readFromRom(rom,
-                           EbModule.toRegAddr(
-                               EbModule.readAsmPointer(
-                                   rom, self._ASMPTR_CREDITS_GFX)))
+            cb.readFromRom(rom, EbModule.toRegAddr(EbModule.readAsmPointer(rom, self._ASMPTR_CREDITS_GFX)))
             self._cfont.readFromBlock(cb)
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         for f in self._fonts:
             f.readFromRom(rom)
             updateProgress(self._pct)
@@ -126,6 +135,9 @@ class FontModule(EbModule.EbModule):
         updateProgress(self._pct)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         for f in self._fonts:
             f.writeToRom(rom)
             updateProgress(self._pct)

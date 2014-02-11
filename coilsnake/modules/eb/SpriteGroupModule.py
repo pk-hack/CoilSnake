@@ -85,18 +85,21 @@ class SpriteGroup:
         self._pal = palNum
 
     def readFromRom(self, rom, loc):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._sprites = [
             [EbRegSprite(), False] for i in range(self._numSprites)]
         self._h = rom[loc]
         self._w = rom[loc + 1] >> 4
         self._unknownA = rom[loc + 2]
         self._pal = (rom[loc + 3] >> 1) & 0x7
-        self._unknownB = rom[loc + 4:loc + 8]
+        self._unknownB = rom[loc + 4:loc + 8].to_list()
 
         bank = rom[loc + 8] << 16
         i = loc + 9
         for spff in self._sprites:
-            ptr = bank | rom.readMulti(i, 2)
+            ptr = bank | rom.read_multi(i, 2)
             spff[1] = (ptr & 2) != 0
             spff[0].readFromBlock(rom, self._w * 8, self._h * 8,
                                   EbModule.toRegAddr(ptr & 0xfffffc))
@@ -116,6 +119,9 @@ class SpriteGroup:
             block[loc + 9 + 2 * i + 1] = self._spritePtrs[i] >> 8
 
     def writeSpritesToFree(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         if self._numSprites == 0:
             self._spritePtrs = []
             return
@@ -136,8 +142,7 @@ class SpriteGroup:
                     uniqueSprites.append(sp)
                     spritePtrs.append((uniqueSprites.index(sp), True))
         # Find a free block
-        loc = rom.getFreeLoc(
-            sum(map(lambda x: x.blockSize(), uniqueSprites)), 15)
+        loc = rom.allocate(size=sum(map(lambda x: x.blockSize(), uniqueSprites)), mask=15)
         self._bank = EbModule.toSnesAddr(loc) >> 16
         locStart = loc & 0xffff
         # Write each sprite
@@ -204,7 +209,7 @@ class SpriteGroup:
 
     def dump(self):
         return {'Size': self._SIZES[self._unknownA],
-                'Collision Settings': self._unknownB.tolist(),
+                'Collision Settings': self._unknownB,
                 'Swim Flags': map(lambda a_x: a_x[1], self._sprites),
                 'Length': self._numSprites
         }
@@ -257,6 +262,9 @@ class SpriteGroupModule(EbModule.EbModule):
         del self._grPalTbl
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._grPtrTbl.readFromRom(rom)
         updateProgress(5)
         self._grPalTbl.readFromRom(rom)
@@ -346,6 +354,9 @@ class SpriteGroupModule(EbModule.EbModule):
             updateProgress(pct)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         numGroups = len(self._groups)
         self._grPtrTbl.clear(numGroups)
         with DataBlock(sum(map(

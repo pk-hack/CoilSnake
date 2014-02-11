@@ -8,7 +8,8 @@ import sys
 import time
 import logging
 
-from coilsnake import Project, Rom
+from coilsnake import Project
+from coilsnake.data_blocks import Rom
 from coilsnake.Progress import setProgress
 from coilsnake.ui import information
 
@@ -58,15 +59,14 @@ class CoilSnake:
             # Perform the upgrade:
 
             # Open rom
-            rom = Rom.Rom()
-            rom.load(baseRomFname)
+            rom = Rom()
+            rom.from_file(baseRomFname)
             # Make sure project type matches romtype
-            if rom.type() != proj.type():
-                print "Rom type '" + rom.type() + "' does not match" \
-                                                  " Project type '" + proj.type() + "'"
+            if rom.type != proj.type():
+                print "Rom type %s does not match Project type %s" % (rom.type, proj.type())
                 return False
 
-            compatible_modules = (x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type()))
+            compatible_modules = (x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type))
             for (module_name, module_class) in compatible_modules:
                 setProgress(0)
                 start_time = time.time()
@@ -121,21 +121,21 @@ class CoilSnake:
                 raise RuntimeError("There is an error in your CCScript code."
                                    + " Scroll up to see the error message.")
         # Open rom
-        rom = Rom.Rom()
-        rom.load(outRomFname)
-        # Make sure project type matches romtype
-        if rom.type() != proj.type():
-            print "Rom type '" + rom.type() + "' does not match" \
-                                              " Project type '" + proj.type() + "'"
+        rom = Rom()
+        rom.from_file(outRomFname)
+      # Make sure project type matches romtype
+        if rom.type != proj.type():
+            print "Rom type %s does not match Project type %s" % (rom.type, proj.type())
             return False
 
-        compatible_modules = list(x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type()))
-        new_free_ranges = []
+        compatible_modules = list(x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type))
         for (module_name, module_class) in compatible_modules:
-            new_free_ranges += module_class.FREE_RANGES
-        rom.addFreeRanges(new_free_ranges)
+            for free_range in module_class.FREE_RANGES:
+                rom.deallocate(free_range)
+
         print "From Project : ", inputFname, "(", proj.type(), ")"
-        print "To       ROM : ", outRomFname, "(", rom.type(), ")"
+        print "To       ROM : ", outRomFname, "(", rom.type, ")"
+
         for (module_name, module_class) in compatible_modules:
             setProgress(0)
             start_time = time.time()
@@ -148,20 +148,21 @@ class CoilSnake:
                 module.write_to_rom(rom)
                 logger.info("Finished module[%s]", module_name)
             print "(%0.2fs)" % (time.time() - start_time)
-        rom.save(outRomFname)
+        rom.to_file(outRomFname)
         return True
 
     def romToProj(self, inputRomFname, outputFname):
         # Load the ROM
-        rom = Rom.Rom()
-        rom.load(inputRomFname)
+        rom = Rom()
+        rom.from_file(inputRomFname)
         # Load the Project
         proj = Project.Project()
-        proj.load(os.path.join(outputFname, Project.PROJECT_FILENAME), rom.type())
+        proj.load(os.path.join(outputFname, Project.PROJECT_FILENAME), rom.type)
 
-        print "From   ROM :", inputRomFname, "(", rom.type(), ")"
+        print "From   ROM :", inputRomFname, "(", rom.type, ")"
         print "To Project :", outputFname, "(", proj.type(), ")"
-        compatible_modules = (x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type()))
+
+        compatible_modules = (x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type))
         for (module_name, module_class) in compatible_modules:
             setProgress(0)
             start_time = time.time()

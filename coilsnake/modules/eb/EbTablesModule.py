@@ -64,7 +64,7 @@ class TextTableEntry:
         EbModule.writeStandardText(rom, addr, self._data, self._size)
 
     def writeToFree(self, rom):
-        loc = rom.getFreeLoc(self._size)
+        loc = rom.allocate(size=self._size)
         self.writeToRom(rom, loc)
         return loc
 
@@ -134,9 +134,15 @@ class EbTablesModule(EbModule.EbModule):
         self._tm.__exit__(type, value, traceback)
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._tm.read_from_rom(rom)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._tm.write_to_rom(rom)
 
     def write_to_project(self, resourceOpener):

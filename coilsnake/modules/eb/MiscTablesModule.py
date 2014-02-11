@@ -41,6 +41,9 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
 
     def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                         resourceOpenerW, resourceDeleter):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         # Helper function
         def lowerIfStr(s):
             if isinstance(s, str):

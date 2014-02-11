@@ -44,6 +44,9 @@ class WindowGraphicsModule(EbModule.EbModule):
                            for i in self._ASMPTRS_NAMES]
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         with EbCompressedData() as tgb1:
             tgb1.readFromRom(rom, EbModule.toRegAddr(
                 EbModule.readAsmPointer(rom, self._ASMPTR_1)))
@@ -67,6 +70,9 @@ class WindowGraphicsModule(EbModule.EbModule):
         updateProgress(5)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         with EbCompressedData(self._gfx1.sizeBlock()) as gb:
             self._gfx1.writeToBlock(gb)
             EbModule.writeAsmPointer(rom, self._ASMPTR_1,

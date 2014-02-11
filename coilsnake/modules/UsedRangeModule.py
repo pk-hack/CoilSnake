@@ -48,10 +48,16 @@ class UsedRangeModule(GenericModule):
         updateProgress(50)
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._ranges = {"Ranges": []}
         updateProgress(50)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         for r in self._ranges:
-            rom.markRangeAsNotFree(r)
+            rom.mark_allocated(r)
         updateProgress(50)

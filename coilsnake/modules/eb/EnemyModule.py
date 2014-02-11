@@ -160,6 +160,9 @@ class EnemyModule(EbModule.EbModule):
         self._enemyGroups = []
 
     def read_from_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         self._bsPtrTbl.readFromRom(rom,
                                    EbModule.toRegAddr(
                                        EbModule.readAsmPointer(rom,
@@ -197,12 +200,15 @@ class EnemyModule(EbModule.EbModule):
             group = []
             ptr = EbModule.toRegAddr(self._enemyGroupTbl[i, 0].val())
             while rom[ptr] != 0xff:
-                group.append((rom.readMulti(ptr + 1, 2), rom[ptr]))
+                group.append((rom.read_multi(ptr + 1, 2), rom[ptr]))
                 ptr += 3
             self._enemyGroups.append(group)
             updateProgress(pct)
 
     def write_to_rom(self, rom):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         pct = 40.0 / (len(self._bsprites) + len(self._bsPals) + 3)
         # Write the main table
         self._enemyCfgTable.writeToRom(rom)
@@ -222,7 +228,7 @@ class EnemyModule(EbModule.EbModule):
         EbModule.writeAsmPointer(rom, self._ASMPTR_GFX, gfxAddr)
         updateProgress(pct)
         for p in self._REGPTR_GFX:
-            rom.writeMulti(p, gfxAddr, 3)
+            rom.write_multi(p, gfxAddr, 3)
         # Write the pal table
         self._bsPalsTable.clear(len(self._bsPals))
         i = 0
@@ -238,7 +244,7 @@ class EnemyModule(EbModule.EbModule):
         updateProgress(5)
         i = 0
         for group in self._enemyGroups:
-            loc = rom.getFreeLoc(len(group) * 3 + 1)
+            loc = rom.allocate(size=(len(group) * 3 + 1))
             self._enemyGroupTbl[i, 0].setVal(EbModule.toSnesAddr(loc))
             i += 1
             for enemyID, amount in group:
@@ -354,6 +360,9 @@ class EnemyModule(EbModule.EbModule):
 
     def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                         resourceOpenerW, resourceDeleter):
+        """
+        @type rom: coilsnake.data_blocks.Rom
+        """
         if oldVersion == newVersion:
             updateProgress(100)
             return
