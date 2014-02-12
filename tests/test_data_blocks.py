@@ -160,7 +160,7 @@ class TestAllocatableBlock(TestBlock):
 
     def test_getitem_slice_type(self):
         self.block.from_list([0] * 10)
-        assert_is_instance(self.block[0:1], AllocatableBlock)
+        assert_is_instance(self.block[0:1], Block)
 
     def test_deallocate(self):
         self.block.from_list([0] * 10)

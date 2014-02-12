@@ -68,6 +68,9 @@ class TestCccInterfaceModule(coilsnake_test.CoilSnakeTestCase):
         assert_false(EbModule.address_labels)
 
     def test_write_to_rom(self):
+        self.module.write_to_rom(self.mock)
+        assert_false(self.mock.mark_allocated.called)
+
         self.module.used_range = (0x312345, 0x345678)
         self.module.write_to_rom(self.mock)
 

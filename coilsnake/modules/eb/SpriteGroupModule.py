@@ -142,7 +142,8 @@ class SpriteGroup:
                     uniqueSprites.append(sp)
                     spritePtrs.append((uniqueSprites.index(sp), True))
         # Find a free block
-        loc = rom.allocate(size=sum(map(lambda x: x.blockSize(), uniqueSprites)), mask=15)
+        loc = rom.allocate(size=sum(map(lambda x: x.blockSize(), uniqueSprites)),
+                           can_write_to=(lambda offset: (offset & 15) == 0))
         self._bank = EbModule.toSnesAddr(loc) >> 16
         locStart = loc & 0xffff
         # Write each sprite

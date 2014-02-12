@@ -3,11 +3,13 @@ import copy
 import logging
 import os
 import yaml
+from zlib import crc32
 from coilsnake.exceptions import OutOfBoundsError, InvalidArgumentError, NotEnoughUnallocatedSpaceError, \
     FileAccessError, ValueNotUnsignedByteError, CouldNotAllocateError
 
 
 log = logging.getLogger(__name__)
+
 
 def check_range_validity(range, size):
     begin, end = range
@@ -15,6 +17,7 @@ def check_range_validity(range, size):
         raise InvalidArgumentError("Invalid range[(%#x,%#x)] provided" % (begin, end))
     elif (begin < 0) or (end >= size):
         raise OutOfBoundsError("Invalid range[(%#x,%#x)] provided" % (begin, end))
+
 
 class Block(object):
     def __init__(self):
@@ -40,7 +43,6 @@ class Block(object):
             with open(filename, 'rb') as f:
                 self.data.fromfile(f, self.size)
         except (IOError, OSError) as e:
-            log.exception(e)
             raise FileAccessError("Could not access file[%s]" % filename)
 
     def from_list(self, data_list):
@@ -94,7 +96,7 @@ class Block(object):
                 raise OutOfBoundsError("Attempted to read from range (%d,%d) which is out of bounds" % (key.start,
                                        key.stop-1))
             else:
-                out = self.__class__()
+                out = Block()
                 out.from_array(self.data[key])
                 return out
         elif isinstance(key, int):
@@ -140,6 +142,9 @@ class Block(object):
 
     def __ne__(self, other):
         return not (self == other)
+
+    def __hash__(self):
+        return crc32(self.data)
 
 
 class AllocatableBlock(Block):
@@ -197,7 +202,7 @@ class AllocatableBlock(Block):
         self.unallocated_ranges.append(range)
         self.unallocated_ranges.sort()
 
-    def allocate(self, data=None, size=None, mask=0):
+    def allocate(self, data=None, size=None, can_write_to=None):
         if data is None and size is None:
             raise InvalidArgumentError("Insufficient parameters provided")
 
@@ -210,29 +215,29 @@ class AllocatableBlock(Block):
             raise InvalidArgumentError("Cannot allocate a range of size[%d]" % size)
 
         # First find a free range
-        unallocated_range = None
+        allocated_range = None
         for i in xrange(0, len(self.unallocated_ranges)):
             begin, end = self.unallocated_ranges[i]
-            if begin & mask != 0:
-                continue
             if size <= end - begin + 1:
+                if (can_write_to is not None) and (not can_write_to(begin)):
+                    continue
+
                 if begin + size - 1 == end:
                     # Used up the entire free range
                     del(self.unallocated_ranges[i])
                 else:
                     self.unallocated_ranges[i] = (begin + size, end)
-                unallocated_range = (begin, end)
+
+                allocated_range = (begin, begin + size - 1)
                 break
 
-        # TODO what if there is enough free space available, but not starting with the mask?
-
-        if unallocated_range is None:
+        if allocated_range is None:
             raise NotEnoughUnallocatedSpaceError("Not enough free space left")
 
         if data is not None:
-            self[unallocated_range[0]:unallocated_range[0]+size] = data
+            self[allocated_range[0]:allocated_range[1]+1] = data
 
-        return unallocated_range[0]
+        return allocated_range[0]
 
 
 with open(os.path.join(os.path.dirname(__file__), "resources", "romtypes.yml"), 'r') as f:
@@ -249,6 +254,12 @@ class Rom(AllocatableBlock):
     def from_file(self, filename):
         super(Rom, self).from_file(filename)
         self._setup_rom_post_load()
+
+    def from_array(self, data_array):
+        super(Rom, self).from_array(data_array)
+
+    def from_list(self, data_list):
+        super(Rom, self).from_list(data_list)
 
     def _setup_rom_post_load(self):
         self.type = self._detect_type()

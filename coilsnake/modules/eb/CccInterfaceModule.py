@@ -58,7 +58,7 @@ class CccInterfaceModule(EbModule.EbModule):
                         in_module_section = True
                     elif line.startswith("Labels in module "):
                         module_name = line[17:]
-                        log.debug("Found CCScript module[%s]" % module_name)
+                        log.debug("Found CCScript module[%s]", module_name)
         log.info("Found %d CCScript labels", len(EbModule.address_labels))
         updateProgress(50)
 
@@ -67,6 +67,6 @@ class CccInterfaceModule(EbModule.EbModule):
         @type rom: coilsnake.data_blocks.Rom
         """
         if self.used_range:
-            log.info("Marking (%06x,%06x) as non-free" % (self.used_range[0], self.used_range[1]))
+            log.info("Marking (%#x,%#x) as non-free", self.used_range[0], self.used_range[1])
             rom.mark_allocated(self.used_range)
         updateProgress(50)
