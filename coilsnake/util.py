@@ -23,6 +23,7 @@ class GenericEnum(object):
         if value is None:
             raise InvalidArgumentError("Could not convert string[%s] to class[%s] because the value was undefined"
                                        % (s, cls.__name__))
+        return value
 
 def get_from_user_dict(yml_rep, key, object_type):
     try:
@@ -49,3 +50,8 @@ def get_enum_from_user_dict(yml_rep, key, enum_class):
     except InvalidArgumentError:
         raise InvalidUserDataError("Attribute \"%s\" had unknown value \"%s\"" % (key, value))
 
+def in_range(x, range):
+    return x >= range[0] or x<= range[1]
+
+def not_in_range(x, range):
+    return not in_range(x, range)

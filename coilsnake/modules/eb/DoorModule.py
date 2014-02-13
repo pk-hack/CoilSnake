@@ -39,7 +39,7 @@ class EbPointer(object):
         self.address = block.read_multi(offset, self.size)
 
     def to_block(self, block, offset):
-        self.address = block.write_multi(offset, self.address, self.size)
+        block.write_multi(offset, self.address, self.size)
 
     def from_yml_rep(self, yml_rep):
         self.address = None
@@ -79,13 +79,18 @@ class EbTextPointer(EbPointer):
             raise InvalidEbTextPointerError("Pointer had invalid address %#x" % self.address)
 
 
+
+def in_destination_bank(offset):
+    return (offset >> 16) == 0x0f
+
+def not_in_destination_bank(offset):
+    return not in_destination_bank(offset)
+
+
 class GenericDoor(object):
     def from_block(self, block, offset):
         self.y = block[offset]
         self.x = block[offset + 1]
-
-    def _can_write_destination_to(self, offset):
-        return (offset >> 16) == 0xf
 
     def write_to_block(self, block, offset, destination_locations):
         block[offset] = self.y
@@ -98,8 +103,8 @@ class GenericDoor(object):
         if destination_hash in destination_locations:
             block.write_multi(offset + 3, destination_locations[destination_hash], 2)
         else:
-            destination_offset = block.allocate(data=destination_block, can_write_to=self._can_write_destination_to)
-            destination_locations[hash(block)] = destination_offset & 0xffff
+            destination_offset = block.allocate(data=destination_block, can_write_to=in_destination_bank)
+            destination_locations[destination_hash] = destination_offset & 0xffff
             block.write_multi(offset+3, destination_offset, 2)
 
     def yml_rep(self):
@@ -128,7 +133,7 @@ class SwitchDoor(GenericDoor):
             destination_block.from_list([0] * 6)
             destination_block.write_multi(0, self.flag, 2)
             self.text_pointer.to_block(destination_block, 2)
-            self.write_destination_to_block(block, offset+3, destination_block, destination_locations)
+            self.write_destination_to_block(block, offset, destination_block, destination_locations)
 
         return 5
 
@@ -167,7 +172,7 @@ class RopeOrLadderDoor(GenericDoor):
         return out
 
     def from_yml_rep(self, yml_rep):
-        super(SwitchDoor, self).from_yml_rep(yml_rep)
+        super(RopeOrLadderDoor, self).from_yml_rep(yml_rep)
         self.climbable_type = get_enum_from_user_dict(yml_rep, "Type", ClimbableType)
 
 class Door(GenericDoor):
@@ -199,7 +204,7 @@ class Door(GenericDoor):
             destination_block[7] = (self.destination_y >> 8) | (self.destination_direction << 6)
             destination_block.write_multi(8, self.destination_x, 2)
             destination_block[10] = self.destination_style
-            self.write_destination_to_block(block, offset+3, destination_block, destination_locations)
+            self.write_destination_to_block(block, offset, destination_block, destination_locations)
 
         return 5
 
@@ -240,7 +245,7 @@ class EscalatorOrStairwayDoor(GenericDoor):
     def write_to_block(self, block, offset, destination_locations):
         super(EscalatorOrStairwayDoor, self).write_to_block(block, offset, destination_locations)
         block[offset+2] = self.type
-        block.write_multi(offset+3, self.climbable_type, 2)
+        block.write_multi(offset+3, self.direction, 2)
         return 5
 
     def yml_rep(self):
@@ -278,8 +283,8 @@ class NpcDoor(GenericDoor):
 
         with Block() as destination_block:
             destination_block.from_list([0] * 4)
-            destination_block.write_multi(0, self.text_pointer, 4)
-            self.write_destination_to_block(block, offset+3, destination_block, destination_locations)
+            self.text_pointer.to_block(destination_block, 0)
+            self.write_destination_to_block(block, offset, destination_block, destination_locations)
 
         return 5
 
@@ -299,7 +304,7 @@ class NpcDoor(GenericDoor):
 
 
 # Mapping from type number to class
-DOOR_TYPE_CLASSES = [
+DOOR_TYPE_ID_TO_CLASS_MAP = [
     SwitchDoor,
     RopeOrLadderDoor,
     Door,
@@ -311,7 +316,7 @@ DOOR_TYPE_CLASSES = [
 
 def door_from_block(block, offset):
     try:
-        door = DOOR_TYPE_CLASSES[block[offset+2]]()
+        door = DOOR_TYPE_ID_TO_CLASS_MAP[block[offset+2]]()
         door.from_block(block, offset)
         return door
     except IndexError:
@@ -320,6 +325,35 @@ def door_from_block(block, offset):
     except InvalidUserDataError as e:
         log.warning("Ignoring a door at %#x that contained invalid data: %s", offset, e.message)
         return None
+
+DOOR_TYPE_NAME_TO_CLASS_MAP = {
+    DoorType.tostring(DoorType.SWITCH): SwitchDoor,
+    ClimbableType.tostring(ClimbableType.ROPE): RopeOrLadderDoor,
+    ClimbableType.tostring(ClimbableType.LADDER): RopeOrLadderDoor,
+    DoorType.tostring(DoorType.DOOR): Door,
+    DoorType.tostring(DoorType.ESCALATOR): EscalatorOrStairwayDoor,
+    DoorType.tostring(DoorType.STAIRWAY): EscalatorOrStairwayDoor,
+    DoorType.tostring(DoorType.PERSON): NpcDoor,
+    DoorType.tostring(DoorType.OBJECT): NpcDoor
+}
+
+def door_from_yml_rep(yml_rep):
+    try:
+        door_type_yml_rep = yml_rep["Type"]
+    except KeyError:
+        message = "Door was missing \"Type\" attribute"
+        log.error(message)
+        raise MissingUserDataError(message)
+
+    try:
+        door = DOOR_TYPE_NAME_TO_CLASS_MAP[door_type_yml_rep]()
+    except KeyError:
+        message = "Door had unknown \"Type\" of \"%s\"" % door_type_yml_rep
+        log.error(message)
+        raise InvalidUserDataError(message)
+
+    door.from_yml_rep(yml_rep)
+    return door
 
 
 class DoorModule(EbModule.EbModule):
@@ -396,8 +430,7 @@ class DoorModule(EbModule.EbModule):
                     else:
                         entry = []
                         for door in row[x]:
-                            d = Door()
-                            d.from_yml_rep(door) # TODO
+                            d = door_from_yml_rep(door)
                             entry.append(d)
                         self._entries.append(entry)
                     updateProgress(pct)
@@ -407,31 +440,28 @@ class DoorModule(EbModule.EbModule):
         @type rom: coilsnake.data_blocks.Rom
         """
         self._ptrTbl.clear(32 * 40)
-        destWriteLoc = 0xF0000
-        destRangeEnd = 0xF58EE  # TODO Is this correct? Can we go more?
-        destLocs = dict()
-        emptyEntryPtr = EbModule.toSnesAddr(rom.allocate(data=[0, 0]))
+        # Deallocate the range of the ROM in which we will write the door destinations.
+        # We deallocate it here instead of specifying it in FREE_RANGES because we want to be sure that this module
+        # get first dibs at writing to this range. This is because door destinations needs to be written to the 0x0F
+        # bank of the EB ROM, and this is one of the few ranges available in that bank.
+        rom.deallocate((0x0F0000, 0x0F58EE))
+        destination_offsets = dict()
+        empty_area_offset = EbModule.toSnesAddr(rom.allocate(data=[0, 0], can_write_to=not_in_destination_bank))
         pct = 45.0 / (40 * 32)
         i = 0
-        for entry in self._entries:
-            if (entry is None) or (not entry):
-                self._ptrTbl[i, 0].setVal(emptyEntryPtr)
+        for door_area in self._entries:
+            if (door_area is None) or (not door_area):
+                self._ptrTbl[i, 0].setVal(empty_area_offset)
             else:
-                entryLen = len(entry)
-                writeLoc = rom.allocate(size=(2 + entryLen * 5))
-                self._ptrTbl[i, 0].setVal(EbModule.toSnesAddr(writeLoc))
-                rom[writeLoc] = entryLen & 0xff
-                rom[writeLoc + 1] = entryLen >> 8
-                writeLoc += 2
-                for door in entry:
-                    destWriteLoc += door.writeToRom(
-                        rom, writeLoc, destWriteLoc,
-                        destRangeEnd, destLocs)
-                    writeLoc += 5
+                num_doors = len(door_area)
+                area_offset = rom.allocate(size=(2 + num_doors * 5), can_write_to=not_in_destination_bank)
+                self._ptrTbl[i, 0].setVal(EbModule.toSnesAddr(area_offset))
+                rom.write_multi(area_offset, num_doors, 2)
+                area_offset += 2
+                for door in door_area:
+                    door.write_to_block(rom, area_offset, destination_offsets)
+                    area_offset += 5
             i += 1
             updateProgress(pct)
         self._ptrTbl.writeToRom(rom)
-        # Mark any remaining space as free
-        if destWriteLoc < destRangeEnd:
-            rom.deallocate((destWriteLoc, destRangeEnd))
         updateProgress(5)

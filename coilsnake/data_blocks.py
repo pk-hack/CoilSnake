@@ -105,10 +105,11 @@ class Block(object):
             else:
                 return self.data[key]
         else:
-            raise TypeError("Invalid argument type")
+            raise TypeError("Argument \"key\" had invalid type of %s" % type(key).__name__)
 
     def __setitem__(self, key, item):
-        if isinstance(key, slice) and (isinstance(item, list) or isinstance(item, array.array)):
+        if isinstance(key, slice) and \
+                (isinstance(item, list) or isinstance(item, array.array) or isinstance(item, Block)):
             if key.start > key.stop:
                 raise InvalidArgumentError("Second argument of slice %s must be greater than  the first" % key)
             elif (key.start < 0) or (key.stop-1 >= self.size):
@@ -122,8 +123,10 @@ class Block(object):
             else:
                 if isinstance(item, list):
                     self.data[key] = array.array('B', item)
-                else:
+                elif isinstance(item, array.array):
                     self.data[key] = item
+                else:
+                    self.data[key] = item.data
         elif isinstance(key, int) and isinstance(item, int):
             if item < 0 or item > 0xff:
                 raise ValueNotUnsignedByteError("Attempting to write value[%d] into a single byte" % item)
@@ -132,7 +135,8 @@ class Block(object):
             else:
                 self.data[key] = item
         else:
-            raise TypeError("Invalid argument type")
+            raise TypeError("Arguments \"key\" and \"item\" had invalid types of %s and %s" % (type(key).__name__,
+                            type(item).__name__))
 
     def __len__(self):
         return self.size
