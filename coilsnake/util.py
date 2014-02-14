@@ -1,6 +1,22 @@
 from coilsnake.exceptions import MissingUserDataError, InvalidUserDataError
 from exceptions import InvalidArgumentError
 
+class EqualityMixin(object):
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__)
+            and self.__dict__ == other.__dict__)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+class StringRepresentationMixin(object):
+    def __repr__(self):
+        return "<{}({})>".format(
+                self.__class__.__name__,
+                ', '.join(["{}={}".format(k, repr(self.__dict__[k]))  for k in self.__dict__ if k[0] != '_'])
+                )
+
+    __str__ = __repr__
 
 class GenericEnum(object):
     @classmethod

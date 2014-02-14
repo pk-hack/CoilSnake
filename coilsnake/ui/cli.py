@@ -29,11 +29,9 @@ class CoilSnake:
                 line = line.rstrip('\n')
                 if line[0] == '#':
                     continue
-                mod = __import__("modules." + line)
                 components = line.split('.')
-                for comp in components:
-                    mod = getattr(mod, comp)
-                all_modules.append((line, getattr(mod, components[-1])))
+                mod = __import__("coilsnake.modules." + line, globals(), locals(), [components[-1]])
+                all_modules.append((line, mod.__dict__[components[-1]] ))
         return all_modules
 
     def upgradeProject(self, baseRomFname, inputFname):
@@ -213,6 +211,8 @@ def main():
         cs.upgradeProject(args.upgradeInfo[0],
                           args.upgradeInfo[1])
 
-
+#import cProfile
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
+#    cProfile.run('main()', '/home/max/cs.prof')
+#    sys.exit(0)

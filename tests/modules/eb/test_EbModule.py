@@ -5,10 +5,10 @@ from nose.tools import assert_equal
 
 from coilsnake.modules.eb import EbModule, NativeComp
 from coilsnake.data_blocks import Rom
-import coilsnake_test
+from tests.coilsnake_test import CoilSnakeTestCase
 
 
-class TestEbModule(coilsnake_test.CoilSnakeTestCase):
+class TestEbModule(CoilSnakeTestCase):
     """
     A test class for the EbModule module
     """

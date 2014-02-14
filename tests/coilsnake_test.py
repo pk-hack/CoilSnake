@@ -4,8 +4,8 @@ import tempfile
 import mock
 
 
-class CoilSnakeTestCase:
-    TEST_DATA_DIR = os.environ['TEST_DATA_DIR']
+class CoilSnakeTestCase(object):
+    TEST_DATA_DIR = os.environ['COILSNAKE_TEST_DATA_DIR']
 
     def setup_mock(self):
         self.mock = mock.Mock()

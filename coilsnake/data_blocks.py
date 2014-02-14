@@ -69,7 +69,8 @@ class Block(object):
         elif size == 0:
             return 0
         elif (key < 0) or (key >= self.size) or (key + size > self.size):
-            raise OutOfBoundsError("Attempted to read from out of bounds offset[%#x]" % key)
+            raise OutOfBoundsError("Attempted to read size[%d] bytes from offset[%#x], which is out of bounds in this "
+                                   "block of size[%#x]" % (size, key, self.size))
         else:
             bytes_list = self[key:key + size].to_list()
             return reduce(lambda x, y: (x << 8) | y, reversed(bytes_list))
@@ -78,7 +79,8 @@ class Block(object):
         if size < 0:
             raise InvalidArgumentError("Attempted to write data of negative length[%d]" % size)
         elif (key < 0) or (key >= self.size) or (key + size > self.size):
-            raise OutOfBoundsError("Attempted to write to out of bounds offset[%#x]" % key)
+            raise OutOfBoundsError("Attempted to write size[%d] bytes to offset[%#x], which is out of bounds in this "
+                                   "block of size[%#x]" % (size, key, self.size))
         elif size == 0:
             return
         else:
@@ -93,7 +95,7 @@ class Block(object):
             if key.start > key.stop:
                 raise InvalidArgumentError("Second argument of slice %s must be greater than the first" % key)
             elif (key.start < 0) or (key.stop-1 >= self.size):
-                raise OutOfBoundsError("Attempted to read from range (%d,%d) which is out of bounds" % (key.start,
+                raise OutOfBoundsError("Attempted to read from range (%#x,%#x) which is out of bounds" % (key.start,
                                        key.stop-1))
             else:
                 out = Block()
@@ -101,7 +103,7 @@ class Block(object):
                 return out
         elif isinstance(key, int):
             if key >= self.size:
-                raise OutOfBoundsError("Attempted to read at offset[%d] which is out of bounds" % key)
+                raise OutOfBoundsError("Attempted to read at offset[%#x] which is out of bounds" % key)
             else:
                 return self.data[key]
         else:
@@ -113,7 +115,7 @@ class Block(object):
             if key.start > key.stop:
                 raise InvalidArgumentError("Second argument of slice %s must be greater than  the first" % key)
             elif (key.start < 0) or (key.stop-1 >= self.size):
-                raise OutOfBoundsError("Attempted to write to range (%d,%d) which is out of bounds" % (key.start,
+                raise OutOfBoundsError("Attempted to write to range (%#x,%#x) which is out of bounds" % (key.start,
                                        key.stop-1))
             elif len(item) != (key.stop - key.start):
                 raise InvalidArgumentError("Attempted to write data of size %d to range of length %d" % (len(item),

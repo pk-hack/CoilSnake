@@ -4,12 +4,12 @@ from nose.tools.nontrivial import raises
 import os
 
 from coilsnake.data_blocks import Block, AllocatableBlock, Rom, ROM_TYPE_NAME_UNKNOWN
-import coilsnake_test
+from tests.coilsnake_test import CoilSnakeTestCase
 from coilsnake.exceptions import FileAccessError, OutOfBoundsError, InvalidArgumentError, ValueNotUnsignedByteError, \
     CouldNotAllocateError, NotEnoughUnallocatedSpaceError
 
 
-class TestBlock(coilsnake_test.CoilSnakeTestCase):
+class TestBlock(CoilSnakeTestCase):
     def setup(self):
         self.block = Block()
 
@@ -117,6 +117,7 @@ class TestBlock(coilsnake_test.CoilSnakeTestCase):
         assert_equal(self.block.read_multi(1, 1), 0xa1)
         assert_equal(self.block.read_multi(1, 2), 0x44a1)
         assert_equal(self.block.read_multi(2, 3), 0x921544)
+        assert_equal(self.block.read_multi(3, 3), 0x659215)
         assert_equal(self.block.read_multi(5, 1), 0x65)
         assert_equal(self.block.read_multi(0, 0), 0)
         assert_equal(self.block.read_multi(5, 0), 0)

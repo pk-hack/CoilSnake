@@ -10,11 +10,13 @@ from coilsnake.modules.eb import EbModule
 from coilsnake.modules.eb.exceptions import InvalidEbTextPointerError
 from coilsnake.exceptions import InvalidArgumentError, InvalidUserDataError, MissingUserDataError
 from coilsnake.data_blocks import Block
-from coilsnake.util import get_from_user_dict, get_enum_from_user_dict, GenericEnum
+from coilsnake.util import get_from_user_dict, get_enum_from_user_dict, GenericEnum, EqualityMixin, \
+    StringRepresentationMixin
 
-# Enumeration types for door attributes:
 
 log = logging.getLogger(__name__)
+
+# Enumeration types for door attributes:
 
 class DoorType(GenericEnum):
     SWITCH, ROPE_OR_LADDER, DOOR, ESCALATOR, STAIRWAY, OBJECT, PERSON = range(7)
@@ -31,9 +33,13 @@ class DestinationDirection(GenericEnum):
     DOWN, UP, RIGHT, LEFT = range(4)
 
 # Classes to represent doors
-class EbPointer(object):
-    def __init__(self, size=3):
+class EbPointer(EqualityMixin, StringRepresentationMixin):
+    def __init__(self, address=None, size=3):
+        if size is None or size <= 0:
+            raise InvalidArgumentError("Cannot create pointer with non-positive size[%d]" % size)
         self.size = 3
+        if address is not None:
+            self.address = address
 
     def from_block(self, block, offset):
         self.address = block.read_multi(offset, self.size)
@@ -50,7 +56,7 @@ class EbPointer(object):
             try:
                 if yml_rep[0] == '$':
                     self.address = int(yml_rep[1:], 16)
-            except IndexError:
+            except (IndexError, ValueError):
                 raise InvalidUserDataError("Pointer \"%s\" was invalid" % yml_rep)
 
             if self.address is None:
@@ -87,7 +93,11 @@ def not_in_destination_bank(offset):
     return not in_destination_bank(offset)
 
 
-class GenericDoor(object):
+class GenericDoor(EqualityMixin, StringRepresentationMixin):
+    def __init__(self, x=None, y=None):
+        self.x = x
+        self.y = y
+
     def from_block(self, block, offset):
         self.y = block[offset]
         self.x = block[offset + 1]
@@ -116,8 +126,13 @@ class GenericDoor(object):
 
 
 class SwitchDoor(GenericDoor):
-    def __init__(self):
-        self.text_pointer = EbTextPointer(size=4)
+    def __init__(self, x=None, y=None, flag=None, text_address=None):
+        super(SwitchDoor, self).__init__(x, y)
+        self.flag = flag
+        if text_address is not None:
+            self.text_pointer = EbTextPointer(address=text_address, size=4)
+        else:
+            self.text_pointer = EbTextPointer(size=4)
 
     def from_block(self, block, offset):
         super(SwitchDoor, self).from_block(block, offset)
@@ -151,6 +166,10 @@ class SwitchDoor(GenericDoor):
 
 
 class RopeOrLadderDoor(GenericDoor):
+    def __init__(self, x=None, y=None, climbable_type=ClimbableType.ROPE):
+        super(RopeOrLadderDoor, self).__init__(x, y)
+        self.climbable_type = climbable_type
+
     def from_block(self, block, offset):
         super(RopeOrLadderDoor, self).from_block(block, offset)
         self.climbable_type = block.read_multi(offset + 3, 2)
@@ -176,8 +195,18 @@ class RopeOrLadderDoor(GenericDoor):
         self.climbable_type = get_enum_from_user_dict(yml_rep, "Type", ClimbableType)
 
 class Door(GenericDoor):
-    def __init__(self):
-        self.text_pointer = EbTextPointer(size=4)
+    def __init__(self, x=None, y=None, text_address=None, flag=None, destination_x=None, destination_y=None,
+                 destination_direction=DestinationDirection.DOWN, destination_style=None):
+        super(Door, self).__init__(x, y)
+        if text_address is not None:
+            self.text_pointer = EbTextPointer(address=text_address, size=4)
+        else:
+            self.text_pointer = EbTextPointer(size=4)
+        self.flag = flag
+        self.destination_x = destination_x
+        self.destination_y = destination_y
+        self.destination_direction = destination_direction
+        self.destination_style = destination_style
 
     def from_block(self, block, offset):
         super(Door, self).from_block(block, offset)
@@ -233,6 +262,11 @@ class Door(GenericDoor):
 
 
 class EscalatorOrStairwayDoor(GenericDoor):
+    def __init__(self, x=None, y=None, type=DoorType.ESCALATOR, direction=StairDirection.NOWHERE):
+        super(EscalatorOrStairwayDoor, self).__init__(x, y)
+        self.type = type
+        self.direction = direction
+
     def from_block(self, block, offset):
         super(EscalatorOrStairwayDoor, self).from_block(block, offset)
         self.type = block[offset+2]
@@ -266,8 +300,13 @@ class EscalatorOrStairwayDoor(GenericDoor):
         self.direction = get_enum_from_user_dict(yml_rep, "Direction", StairDirection)
 
 class NpcDoor(GenericDoor):
-    def __init__(self):
-        self.text_pointer = EbTextPointer(size=4)
+    def __init__(self, x=None, y=None, type=DoorType.PERSON, text_address=None):
+        super(NpcDoor, self).__init__(x, y)
+        self.type = type
+        if text_address is None:
+            self.text_pointer = EbTextPointer(size=4)
+        else:
+            self.text_pointer = EbTextPointer(size=4, address=text_address)
 
     def from_block(self, block, offset):
         super(NpcDoor, self).from_block(block, offset)
@@ -361,30 +400,31 @@ class DoorModule(EbModule.EbModule):
 
     def __init__(self):
         EbModule.EbModule.__init__(self)
-        self._ptrTbl = EbTable(0xD00000)
-        self._entries = []
+        self.pointer_table = EbTable(0xD00000)
+        self.door_areas = []
 
     def read_from_rom(self, rom):
         """
         @type rom: coilsnake.data_blocks.Rom
         """
-        self._ptrTbl.readFromRom(rom)
+        self.pointer_table.readFromRom(rom)
         updateProgress(5)
         pct = 45.0 / (40 * 32)
-        for i in range(self._ptrTbl.height()):
-            offset = EbModule.toRegAddr(self._ptrTbl[i, 0].val())
-            entry = []
-            numDoors = rom.read_multi(offset, 2)
+        self.door_areas = []
+        for i in range(self.pointer_table.height()):
+            offset = EbModule.toRegAddr(self.pointer_table[i, 0].val())
+            door_area = []
+            num_doors = rom.read_multi(offset, 2)
             offset += 2
-            for j in range(numDoors):
+            for j in range(num_doors):
                 door = door_from_block(rom, offset)
                 if door is None:
                     # If we've found an invalid door, stop reading from this door group.
                     # This is expected, since a clean ROM contains some invalid doors.
                     break
-                entry.append(door)
+                door_area.append(door)
                 offset += 5
-            self._entries.append(entry)
+            self.door_areas.append(door_area)
             i += 1
             updateProgress(pct)
 
@@ -393,7 +433,7 @@ class DoorModule(EbModule.EbModule):
         x = y = 0
         rowOut = dict()
         pct = 45.0 / (40 * 32)
-        for entry in self._entries:
+        for entry in self.door_areas:
             if not entry:
                 rowOut[x % 32] = None
             else:
@@ -417,8 +457,9 @@ class DoorModule(EbModule.EbModule):
         updateProgress(5)
 
     def read_from_project(self, resourceOpener):
-        self._entries = []
+        self.door_areas = []
         pct = 45.0 / (40 * 32)
+        self.door_areas = []
         with resourceOpener("map_doors", "yml") as f:
             updateProgress(5)
             input = yaml.load(f, Loader=yaml.CSafeLoader)
@@ -426,20 +467,20 @@ class DoorModule(EbModule.EbModule):
                 row = input[y]
                 for x in row:
                     if row[x] is None:
-                        self._entries.append(None)
+                        self.door_areas.append(None)
                     else:
                         entry = []
                         for door in row[x]:
                             d = door_from_yml_rep(door)
                             entry.append(d)
-                        self._entries.append(entry)
+                        self.door_areas.append(entry)
                     updateProgress(pct)
 
     def write_to_rom(self, rom):
         """
         @type rom: coilsnake.data_blocks.Rom
         """
-        self._ptrTbl.clear(32 * 40)
+        self.pointer_table.clear(32 * 40)
         # Deallocate the range of the ROM in which we will write the door destinations.
         # We deallocate it here instead of specifying it in FREE_RANGES because we want to be sure that this module
         # get first dibs at writing to this range. This is because door destinations needs to be written to the 0x0F
@@ -449,13 +490,13 @@ class DoorModule(EbModule.EbModule):
         empty_area_offset = EbModule.toSnesAddr(rom.allocate(data=[0, 0], can_write_to=not_in_destination_bank))
         pct = 45.0 / (40 * 32)
         i = 0
-        for door_area in self._entries:
+        for door_area in self.door_areas:
             if (door_area is None) or (not door_area):
-                self._ptrTbl[i, 0].setVal(empty_area_offset)
+                self.pointer_table[i, 0].setVal(empty_area_offset)
             else:
                 num_doors = len(door_area)
                 area_offset = rom.allocate(size=(2 + num_doors * 5), can_write_to=not_in_destination_bank)
-                self._ptrTbl[i, 0].setVal(EbModule.toSnesAddr(area_offset))
+                self.pointer_table[i, 0].setVal(EbModule.toSnesAddr(area_offset))
                 rom.write_multi(area_offset, num_doors, 2)
                 area_offset += 2
                 for door in door_area:
@@ -463,5 +504,5 @@ class DoorModule(EbModule.EbModule):
                     area_offset += 5
             i += 1
             updateProgress(pct)
-        self._ptrTbl.writeToRom(rom)
+        self.pointer_table.writeToRom(rom)
         updateProgress(5)

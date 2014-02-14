@@ -9,5 +9,6 @@ cover/
 *.zo
 *.pyc
 prefs.yml
-tests/data/roms/true_EarthBound.smc
+tests/data/true_*
+tests/data/roms/true_*
 tests/data/binaries/onett_map_graphics.smc

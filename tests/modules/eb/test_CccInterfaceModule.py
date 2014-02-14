@@ -3,10 +3,10 @@ import os.path
 from nose.tools import assert_equal, assert_true, assert_dict_equal, assert_false, assert_is_none
 
 from coilsnake.modules.eb import CccInterfaceModule, EbModule
-import coilsnake_test
+from tests.coilsnake_test import CoilSnakeTestCase
 
 
-class TestCccInterfaceModule(coilsnake_test.CoilSnakeTestCase):
+class TestCccInterfaceModule(CoilSnakeTestCase):
     def setup(self):
         self.setup_mock()
         self.setup_temporary_wo_file()

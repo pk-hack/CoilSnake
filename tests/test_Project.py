@@ -2,10 +2,10 @@ import os
 from nose.tools import assert_equal, assert_not_equal, assert_raises
 
 from coilsnake import Project
-import coilsnake_test
+from tests.coilsnake_test import CoilSnakeTestCase
 
 
-class testProject(coilsnake_test.CoilSnakeTestCase):
+class testProject(CoilSnakeTestCase):
     """
     A test class for the Project module
     """
