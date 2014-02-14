@@ -25,8 +25,8 @@ support-section: |
   [EB Hacking 101](http://www.lyros.net/files/EBHack101.pdf) document, created by
   [Lyrositor](https://github.com/Lyrositor).
 
-  Having trouble with CoilSnake? Create an issue on [GitHub](https://github.com/kiij/CoilSnake/issues) or consult the
-  [PK Hack forum](forum.starmen.net/forum/Community/PKHack) and someone will help you sort it out.
+  Having trouble with CoilSnake? [Create an issue](https://github.com/kiij/CoilSnake/issues/new) on GitHub or consult the
+  [PK Hack forum](http://forum.starmen.net/forum/Community/PKHack) and someone will help you sort it out.
 
 ---
 
