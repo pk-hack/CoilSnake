@@ -11,4 +11,4 @@ cover/
 prefs.yml
 tests/data/true_*
 tests/data/roms/true_*
-tests/data/binaries/onett_map_graphics.smc
+tests/data/binaries/true_*

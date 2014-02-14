@@ -1,6 +1,7 @@
 import array
-from nose.tools import nottest
 import os
+
+from nose.tools import nottest
 from nose.tools import assert_equal
 
 from coilsnake.modules.eb import EbModule, NativeComp
@@ -25,7 +26,7 @@ class TestEbModule(CoilSnakeTestCase):
             onett_map.fromlist(decomp(eb_rom, 0x2021a8))
 
         onett_map_expect = array.array('B')
-        with open(os.path.join(self.TEST_DATA_DIR, "binaries", "onett_map_graphics.smc"), 'rb') as f:
+        with open(os.path.join(self.TEST_DATA_DIR, "binaries", "true_onett_map_graphics.smc"), 'rb') as f:
             onett_map_expect.fromstring(f.read())
 
         assert_equal(len(onett_map), len(onett_map_expect))
@@ -34,7 +35,7 @@ class TestEbModule(CoilSnakeTestCase):
     @nottest
     def test_comp(self, comp, decomp):
         a = array.array('B')
-        with open(os.path.join(self.TEST_DATA_DIR, "binaries", "onett_map_graphics.smc"), 'rb') as f:
+        with open(os.path.join(self.TEST_DATA_DIR, "binaries", "true_onett_map_graphics.smc"), 'rb') as f:
             a.fromstring(f.read())
         uncompressed_data = a.tolist()
 
