@@ -1,3 +1,9 @@
+img.screenshot {
+  float: right;
+  border: 5px #b7b7b7 solid;
+  border-radius: 5px;
+}
+
 #project_grid a {
   width: 100%;
 }
@@ -7,15 +13,16 @@
   position: relative;
   width: 256px;
   height: 224px;
-  border: 2px black solid;
+  border: 5px #b7b7b7 solid;
+  border-radius: 5px;
   background-position: center;
 }
 
 #project_grid .project span {
   padding: 10px;
   position: absolute;
-  right: 0;
-  top: 10px;
+  left: 0;
+  bottom: 10px;
   background: rgb(0, 0, 0); /* fallback color */
   background: rgba(0, 0, 0, 0.7);
   color: white;

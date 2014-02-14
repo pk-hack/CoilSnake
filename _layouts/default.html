@@ -26,15 +26,16 @@
         </header>
 
         <section id="downloads" class="clearfix">
-            <a href="http://goo.gl/RX7Wn" id="download-exe" class="button"><span>Download .exe</span></a>
-            <a href="http://goo.gl/UYkgo" id="download-zip" class="button"><span>Download .zip</span></a>
-            <a href="https://github.com/kiij/CoilSnake" id="view-on-github"
-               class="button"><span>View on GitHub</span></a>
+            <a href="http://goo.gl/RX7Wn" id="download-windows" class="button"><span>Download</span></a>
+            <a href="#" id="download-mac" class="button"><span class="disabled">Download</span></a>
+            <a href="http://goo.gl/UYkgo" id="download-linux" class="button"><span>Download</span></a>
+            <a href="https://github.com/kiij/CoilSnake" id="view-on-github" class="button"><span>GitHub</span></a>
         </section>
 
         <hr>
 
         <section id="main_content">
+          <img src="{{ page.featured-screenshot }}" class="screenshot">
             {{content}}
 
             {{page.projects-section | markdownify}}

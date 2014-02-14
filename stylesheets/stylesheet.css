@@ -117,7 +117,7 @@ a.button {
   padding: 12px 8px 12px 8px;
   display: block;
   float: left;
-  width: 179px;
+  width: 126px;
   margin-right: 14px;  
   background: #fdfdfd; /* Old browsers */
   background: -moz-linear-gradient(top,  #fdfdfd 0%, #f2f2f2 100%); /* FF3.6+ */
@@ -147,22 +147,33 @@ a.button:hover {
 }
 
 a.button span {
-  padding-left: 50px;
+  padding-left: 45px;
   display: block;
-  height: 27px;
+  height: 26px;
 }
 
-#download-exe span {
-  background: transparent url(../images/exe-icon.png) 12px 50% no-repeat;
+a.button span.disabled {
+  text-decoration: line-through;
+  color: grey;
+}
+
+#download-windows span {
+  background: transparent url(../images/windows-icon.png) 7px 50% no-repeat;
+}
+#download-mac span {
+  background: transparent url(../images/mac-icon.png) 7px 50% no-repeat;
+}
+#download-linux span {
+  background: transparent url(../images/linux-icon.png) 7px 50% no-repeat;
 }
 #download-zip span {
-  background: transparent url(../images/zip-icon.png) 12px 50% no-repeat;
+  background: transparent url(../images/zip-icon.png) 7px 50% no-repeat;
 }
 #download-tar-gz span {
-  background: transparent url(../images/tar-gz-icon.png) 12px 50% no-repeat;
+  background: transparent url(../images/tar-gz-icon.png) 7px 50% no-repeat;
 }
 #view-on-github span {
-  background: transparent url(../images/octocat-icon.png) 12px 50% no-repeat;
+  background: transparent url(../images/octocat-icon.png) 7px 50% no-repeat;
 }
 #view-on-github {
   margin-right: 0;
