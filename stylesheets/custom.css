@@ -1,7 +1,8 @@
 img.screenshot {
   float: right;
   border: 5px #b7b7b7 solid;
-  border-radius: 5px;
+  border-radius: 30px;
+  margin: 0 1em 0 1em;
 }
 
 #project_grid .project {

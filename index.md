@@ -38,14 +38,14 @@ support-section: |
 
 ---
 
-**CoilSnake** is a program for modifying the ROM image of the 1995 Super Nintendo game *EarthBound*. It allows users to
-extract data from the ROM image, modify the extracted data, and then re-compile the data into a new ROM image.
-CoilSnake supports modification of most of the data in the game, such as:
+**CoilSnake** is a program for modifying the ROM image of the 1995 game *EarthBound* for the Super Nintendo Entertainment System.
+It reads gameplay-related data from individual, easily modifiable files and compiles that data into the ROM image.
 
-* sprites
+
+CoilSnake supports modification of most of the data in the game, including:
 * maps
+* sprites
 * the script and text
+* enemies and items
 * battle backgrounds
-* items
-* enemies
 * and more!
