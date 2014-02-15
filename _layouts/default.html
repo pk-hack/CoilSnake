@@ -35,7 +35,7 @@
         <hr>
 
         <section id="main_content">
-          <img src="{{ page.featured-screenshot }}" class="screenshot">
+          <img src="{{ page.featured-screenshot }}" class="screenshot" />
             {{content}}
 
             {{page.projects-section | markdownify}}
@@ -43,11 +43,14 @@
                 <div class="pure-g-r">
                     {% for project in page.projects %}
                     <div class="pure-u-1-2">
-                        <a href="{{ project.url }}">
-                            <div class="project" style="background-image: url('{{ project.image }}');">
-                                <span>{{project.name}}</span>
+                        <div class="project">
+                            <div class="project_button"
+                                 style="background-image: url('{{ project.image }}'); background-position: {{ project.image-position-x}} {{project.image-position-y}};">
+                                <a href="{{ project.url }}">
+                                    <span>{{project.name}}</span>
+                                </a>
                             </div>
-                        </a>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>

@@ -9,15 +9,23 @@ projects-section: |
 projects:
 - name: MOTHER Remake
   image: images/screenshots/mother-remake.png
+  image-position-x: 0
+  image-position-y: 20%
   url: http://forum.starmen.net/forum/Community/PKHack/Mother-Remake/page/1/
 - name: Unearthed
   image: images/screenshots/unearthed.png
+  image-position-x: 0
+  image-position-y: 40%
   url: http://theworldissquare.com/unearthed/
-- name: Hallow's End
+- name: "Hallow's End"
   image: images/screenshots/hallows-end.png
+  image-position-x: 0
+  image-position-y: 20%
   url: http://hacks.lyros.net/portfolio/hallows-end/
 - name: Holiday Hex
   image: images/screenshots/holiday-hex.png
+  image-position-x: 0
+  image-position-y: 35%
   url: http://hacks.lyros.net/portfolio/holiday-hex/
 support-section: |
   ### Support or Contact
