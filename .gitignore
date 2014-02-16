@@ -9,6 +9,5 @@ cover/
 *.zo
 *.pyc
 prefs.yml
-tests/data/true_*
-tests/data/roms/true_*
-tests/data/binaries/true_*
+tests/test_data/true_*
+tests/test_data/*/true_*

@@ -6,7 +6,7 @@ import mock
 
 
 class CoilSnakeTestCase(object):
-    TEST_DATA_DIR = os.environ['COILSNAKE_TEST_DATA_DIR']
+    TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test_data")
 
     def setup_mock(self):
         self.mock = mock.Mock()

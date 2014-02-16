@@ -10,6 +10,21 @@ CoilSnake supports modification of most of the data in the game, such as:
 * enemies
 * and more!
 
+### Getting Started
+Start CoilSnake:
+```
+python coilsnake.py
+```
+
+Use the CoilSnake command-line client:
+```
+python coilsnake-cmd.py
+```
+
+Run the tests:
+```
+python setup.py nosetests
+```
 
 ### Support or Contact
 For information about getting started with CoilSnake, please see the
