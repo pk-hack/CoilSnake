@@ -4,6 +4,7 @@ import logging
 import os
 import yaml
 from zlib import crc32
+
 from coilsnake.exceptions import OutOfBoundsError, InvalidArgumentError, NotEnoughUnallocatedSpaceError, \
     FileAccessError, ValueNotUnsignedByteError, CouldNotAllocateError
 
@@ -20,8 +21,8 @@ def check_range_validity(range, size):
 
 
 class Block(object):
-    def __init__(self):
-        self.reset()
+    def __init__(self, size=0):
+        self.reset(size)
 
     def __enter__(self):
         return self
@@ -29,9 +30,9 @@ class Block(object):
     def __exit__(self, type, value, traceback):
         del self.data
 
-    def reset(self):
-        self.data = array.array('B')
-        self.size = 0
+    def reset(self, size=0):
+        self.data = array.array('B', [0] * size)
+        self.size = size
 
     def from_file(self, filename):
         self.reset()
@@ -56,12 +57,25 @@ class Block(object):
         del(self.data)
         self.data = copy.copy(data_array)
 
+    def from_block(self, block, offset=0, size=None):
+        if size is None:
+            size = block.size - offset
+        with block[offset:offset+size] as sub_block:
+            self.size = sub_block.size
+            self.data = sub_block.data
+
     def to_file(self, filename):
         with open(filename, 'wb') as f:
             self.data.tofile(f)
 
     def to_list(self):
         return self.data.tolist()
+
+    def to_array(self):
+        return self.data
+
+    def to_block(self, block, offset=0):
+        self[offset:offset + block.size] = block
 
     def read_multi(self, key, size):
         if size < 0:
@@ -72,8 +86,12 @@ class Block(object):
             raise OutOfBoundsError("Attempted to read size[%d] bytes from offset[%#x], which is out of bounds in this "
                                    "block of size[%#x]" % (size, key, self.size))
         else:
-            bytes_list = self[key:key + size].to_list()
-            return reduce(lambda x, y: (x << 8) | y, reversed(bytes_list))
+            out = 0
+            bit_offset = 0
+            for byte in self.data[key:key + size]:
+                out |= byte << bit_offset
+                bit_offset += 8
+            return out
 
     def write_multi(self, key, item, size):
         if size < 0:
@@ -127,8 +145,10 @@ class Block(object):
                     self.data[key] = array.array('B', item)
                 elif isinstance(item, array.array):
                     self.data[key] = item
-                else:
+                elif isinstance(item, Block):
                     self.data[key] = item.data
+                else:
+                    raise InvalidArgumentError("Can not write value of type[{}]".format(type(item)))
         elif isinstance(key, int) and isinstance(item, int):
             if item < 0 or item > 0xff:
                 raise ValueNotUnsignedByteError("Attempting to write value[%d] into a single byte" % item)
@@ -154,8 +174,8 @@ class Block(object):
 
 
 class AllocatableBlock(Block):
-    def reset(self):
-        super(AllocatableBlock, self).reset()
+    def reset(self, size=0):
+        super(AllocatableBlock, self).reset(size)
         self.unallocated_ranges = []
 
     def mark_allocated(self, used_range):
@@ -253,8 +273,8 @@ ROM_TYPE_NAME_UNKNOWN = "Unknown"
 
 
 class Rom(AllocatableBlock):
-    def reset(self):
-        super(Rom, self).reset()
+    def reset(self, size=0):
+        super(Rom, self).reset(size)
         self.type = ROM_TYPE_NAME_UNKNOWN
 
     def from_file(self, filename):

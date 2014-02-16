@@ -1,5 +1,5 @@
-from coilsnake.exceptions import MissingUserDataError, InvalidUserDataError
-from exceptions import InvalidArgumentError
+from coilsnake.exceptions import MissingUserDataError, InvalidUserDataError, InvalidArgumentError
+
 
 class EqualityMixin(object):
     def __eq__(self, other):
@@ -9,6 +9,7 @@ class EqualityMixin(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
 class StringRepresentationMixin(object):
     def __repr__(self):
         return "<{}({})>".format(
@@ -17,6 +18,7 @@ class StringRepresentationMixin(object):
                 )
 
     __str__ = __repr__
+
 
 class GenericEnum(object):
     @classmethod

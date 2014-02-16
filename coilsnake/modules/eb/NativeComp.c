@@ -161,7 +161,6 @@ int decomp_(uchar *romBuffer, uint addr, uchar *buffer, int maxlen) {
                                 if(bpos2 + len > &buffer[maxlen]) return -1;
                                 while(len--) {
                                         tmp = *bpos2++;
-                                        /* reverse the bits */
                                         tmp = ((tmp >> 1) & 0x55) | ((tmp << 1) & 0xAA);
                                         tmp = ((tmp >> 2) & 0x33) | ((tmp << 2) & 0xCC);
                                         tmp = ((tmp >> 4) & 0x0F) | ((tmp << 4) & 0xF0);

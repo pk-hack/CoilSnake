@@ -9,7 +9,7 @@ import time
 import logging
 
 from coilsnake import Project
-from coilsnake.data_blocks import Rom
+from coilsnake.model.common.data_blocks import Rom
 from coilsnake.Progress import setProgress
 from coilsnake.ui import information
 

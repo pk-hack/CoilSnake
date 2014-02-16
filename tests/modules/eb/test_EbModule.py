@@ -5,7 +5,7 @@ from nose.tools import nottest
 from nose.tools import assert_equal
 
 from coilsnake.modules.eb import EbModule, NativeComp
-from coilsnake.data_blocks import Rom
+from coilsnake.model.common.data_blocks import Rom
 from tests.coilsnake_test import CoilSnakeTestCase
 
 

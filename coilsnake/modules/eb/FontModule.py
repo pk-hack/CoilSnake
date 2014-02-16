@@ -1,218 +1,105 @@
-from array import array
-from PIL import Image
-import yaml
+import logging
 
 from coilsnake.Progress import updateProgress
-from coilsnake.modules.eb.EbDataBlocks import EbCompressedData
-from coilsnake.modules.eb.CompressedGraphicsModule import EbTileGraphics, EbPalettes, EbArrangement
+from coilsnake.model.eb.fonts import EbFont, EbCreditsFont
 from coilsnake.modules.eb import EbModule
 
 
-class Font:
-    def __init__(self, gfxAddr, widthsAddr, charW, charH):
-        self._gfxAddr = gfxAddr
-        self._widthsAddr = widthsAddr
-        self._charW = charW
-        self._charH = charH
-        self._chars = None
-        self._charWidths = None
+log = logging.getLogger(__name__)
 
-    def readFromRom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._chars = []
-        addr = self._gfxAddr
-        for i in range(96):
-            charGfx = [array('B', [0] * self._charH)
-                       for k in range(self._charW)]
-            for j in range(0, self._charW, 8):
-                addr += EbModule.read1BPPArea(charGfx, rom, addr,
-                                              self._charH, j, 0)
-            self._chars.append(charGfx)
-        self._charWidths = rom[self._widthsAddr:self._widthsAddr + 96]
-
-    def writeToRom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        addr = self._gfxAddr
-        for char in self._chars:
-            for j in range(0, self._charW, 8):
-                addr += EbModule.write1BPPArea(char, rom, addr,
-                                               self._charH, j, 0)
-        rom[self._widthsAddr:self._widthsAddr+96] = self._charWidths
-
-    def toImage(self):
-        img = Image.new("P", (self._charW * 16, self._charH * 6), 1)
-        # We only need two colors: white and black
-        img.putpalette([255, 255, 255, 0, 0, 0])
-        # Draw the characters
-        imgData = img.load()
-        for i in range(16):
-            for j in range(6):
-                for y in range(self._charH):
-                    for x in range(self._charW):
-                        imgData[i * self._charW + x, j * self._charH + y] = \
-                            self._chars[i + j * 16][x][y]
-        return img
-
-    def fromImage(self, img):
-        self._chars = [[array('B', [0] * self._charH) for k in
-                        range(self._charW)] for j in range(0, 96)]
-        imgData = img.load()
-        for i in range(16):
-            for j in range(6):
-                for y in range(self._charH):
-                    for x in range(self._charW):
-                        self._chars[i + j * 16][x][y] = imgData[
-                                                            i * self._charW + x,
-                                                            j * self._charH + y] & 1
-
-    def dumpWidths(self):
-        out = dict()
-        for i in range(96):
-            out[i] = self._charWidths[i]
-        return out
-
-    def loadWidths(self, input):
-        self._charWidths = [0] * 96
-        for i in range(96):
-            self._charWidths[i] = input[i]
+FONT_GRAPHICS_ADDRESSES = [0x210cda, 0x2013b9, 0x2122fa, 0x21193a, 0x211f9a]
+FONT_CHARACTER_WIDTHS_ADDRESSES = [0x210c7a, 0x201359, 0x21229a, 0x2118da, 0x2118da, 0x211f3a]
+CREDITS_GRAPHICS_ASM_POINTER = 0x4f1a7
+CREDITS_PALETTES_ADDRESS = 0x21e914
 
 
 class FontModule(EbModule.EbModule):
     NAME = "Fonts"
     FREE_RANGES = [(0x21e528, 0x21e913)]  # Credits font graphics
 
-    _CREDITS_PREVIEW_SUBPALS = [
-        1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1,
-        1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    _ASMPTR_CREDITS_GFX = 0x4f1a7
-    _ADDR_CREDITS_PAL = 0x21e914
-
     def __init__(self):
         EbModule.EbModule.__init__(self)
-        self._fonts = [
-            Font(0x210cda, 0x210c7a, 16, 16),
-            Font(0x2013b9, 0x201359, 16, 16),
-            Font(0x2122fa, 0x21229a, 16, 16),
-            Font(0x21193a, 0x2118da, 8, 16),
-            Font(0x211f9a, 0x211f3a, 8, 8)
+        self.fonts = [
+            EbFont(num_characters=96, tile_width=16, tile_height=16),
+            EbFont(num_characters=96, tile_width=16, tile_height=16),
+            EbFont(num_characters=96, tile_width=16, tile_height=16),
+            EbFont(num_characters=96, tile_width=8, tile_height=16),
+            EbFont(num_characters=96, tile_width=8,  tile_height=8)
         ]
-        self._cfont = EbTileGraphics(192, 8, 2)
-        self._cpal = EbPalettes(2, 4)
-        self._pct = 50.0 / (len(self._fonts) + 1)
+        self.credits_font = EbCreditsFont()
+        self._percent = 50.0 / (len(self.fonts) + 1)
 
-    def readCreditsFontFromRom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._cpal.readFromBlock(rom, loc=self._ADDR_CREDITS_PAL)
-        with EbCompressedData() as cb:
-            cb.readFromRom(rom, EbModule.toRegAddr(EbModule.readAsmPointer(rom, self._ASMPTR_CREDITS_GFX)))
-            self._cfont.readFromBlock(cb)
+    def read_credits_font_from_rom(self, rom):
+        log.info("Reading the credits font from the ROM")
+        self.credits_font.from_block(block=rom,
+                                     tileset_asm_pointer_offset=CREDITS_GRAPHICS_ASM_POINTER,
+                                     palette_offset=CREDITS_PALETTES_ADDRESS)
 
     def read_from_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        for f in self._fonts:
-            f.readFromRom(rom)
-            updateProgress(self._pct)
+        for i, (font, graphics_address, widths_address) in enumerate(zip(self.fonts, FONT_GRAPHICS_ADDRESSES,
+                                                                    FONT_CHARACTER_WIDTHS_ADDRESSES)):
+            log.info("Reading font #{} from the ROM".format(i))
+            font.from_block(block=rom, tileset_offset=graphics_address, character_widths_offset=widths_address)
+            updateProgress(self._percent)
 
-        self.readCreditsFontFromRom(rom)
-        updateProgress(self._pct)
+        self.read_credits_font_from_rom(rom)
+        updateProgress(self._percent)
+
+    def write_credits_font_to_rom(self, rom):
+        log.info("Writing the credits font to the ROM")
+        self.credits_font.to_block(block=rom,
+                                   tileset_asm_pointer_offset=CREDITS_GRAPHICS_ASM_POINTER,
+                                   palette_offset=CREDITS_PALETTES_ADDRESS)
 
     def write_to_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        for f in self._fonts:
-            f.writeToRom(rom)
-            updateProgress(self._pct)
+        for i, (font, graphics_address, widths_address) in enumerate(zip(self.fonts, FONT_GRAPHICS_ADDRESSES,
+                                                                         FONT_CHARACTER_WIDTHS_ADDRESSES)):
+            log.info("Writing font #{} to the ROM".format(i))
+            font.to_block(block=rom, tileset_offset=graphics_address, character_widths_offset=widths_address)
+            updateProgress(self._percent)
 
-        self._cpal.writeToBlock(rom, loc=self._ADDR_CREDITS_PAL)
-        with EbCompressedData(self._cfont.sizeBlock()) as cb:
-            self._cfont.writeToBlock(cb)
-            EbModule.writeAsmPointer(rom, self._ASMPTR_CREDITS_GFX,
-                                     EbModule.toSnesAddr(cb.writeToFree(rom)))
-        updateProgress(self._pct)
+        self.write_credits_font_to_rom(rom)
+        updateProgress(self._percent)
 
-    def writeCreditsFontToProject(self, resourceOpener):
-        arr = EbArrangement(16, 12)
-        for i in range(192):
-            arr[i % 16, i / 16] = (False, False, False,
-                                   self._CREDITS_PREVIEW_SUBPALS[i], i)
-        img = arr.toImage(self._cfont, self._cpal)
-        with resourceOpener("Fonts/credits", "png") as imgFile:
-            img.save(imgFile, "png")
-            imgFile.close()
+    def write_credits_font_to_project(self, resource_open):
+        with resource_open("Fonts/credits", "png") as image_file:
+            self.credits_font.to_files(image_file, "png")
 
-    def write_to_project(self, resourceOpener):
-        out = dict()
-        i = 0
-        for font in self._fonts:
+    def write_to_project(self, resource_open):
+        for i, font in enumerate(self.fonts):
             # Write the PNG
-            img = font.toImage()
-            with resourceOpener("Fonts/" + str(i), 'png') as imgFile:
-                img.save(imgFile, 'png')
+            with resource_open("Fonts/" + str(i), 'png') as image_file:
+                with resource_open("Fonts/" + str(i) + "_widths", "yml") as widths_file:
+                    font.to_files(image_file, widths_file, image_format="png", widths_format="yml")
+            updateProgress(self._percent)
 
-            # Write the widths
-            out = font.dumpWidths()
-            with resourceOpener("Fonts/" + str(i) + "_widths", "yml") as f:
-                yaml.dump(out, f, default_flow_style=False,
-                          Dumper=yaml.CSafeDumper)
-            i += 1
-            updateProgress(self._pct)
+        self.write_credits_font_to_project(resource_open)
+        updateProgress(self._percent)
 
-        self.writeCreditsFontToProject(resourceOpener)
-        updateProgress(self._pct)
+    def read_credits_font_from_project(self, resource_open):
+        with resource_open("Fonts/credits", "png") as image_file:
+            self.credits_font.from_files(image_file, "png")
 
-    def read_from_project(self, resourceOpener):
-        i = 0
-        for font in self._fonts:
-            with resourceOpener("Fonts/" + str(i), "png") as imgFile:
-                img = Image.open(imgFile)
-                if img.mode != 'P':
-                    raise RuntimeError(
-                        "Fonts/" + str(i) + " is not an indexed PNG.")
-                font.fromImage(img)
-            with resourceOpener("Fonts/" + str(i) + "_widths", "yml") as f:
-                input = yaml.load(f, Loader=yaml.CSafeLoader)
-                font.loadWidths(input)
-            i += 1
-            updateProgress(self._pct)
+    def read_from_project(self, resource_open):
+        for i, font in enumerate(self.fonts):
+            with resource_open("Fonts/" + str(i), 'png') as image_file:
+                with resource_open("Fonts/" + str(i) + "_widths", "yml") as widths_file:
+                    font.from_files(image_file, widths_file, image_format="png", widths_format="yml")
+            updateProgress(self._percent)
 
-        with resourceOpener("Fonts/credits", "png") as imgFile:
-            img = Image.open(imgFile)
-            if img.mode != 'P':
-                raise RuntimeError("Fonts/credits is not an indexed PNG.")
-            self._cfont.loadFromImage(img)
-            self._cpal.loadFromImage(img)
-        updateProgress(self._pct)
+        self.read_credits_font_from_project(resource_open)
+        updateProgress(self._percent)
 
-    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
-                        resourceOpenerW, resourceDeleter):
-        if oldVersion == newVersion:
+    def upgrade_project(self, old_version, new_version, rom, resource_open_r,
+                        resource_open_w, resource_delete):
+        if old_version == new_version:
             updateProgress(100)
             return
-        elif oldVersion <= 2:
-            self.readCreditsFontFromRom(rom)
-            self.writeCreditsFontToProject(resourceOpenerW)
-            self.upgrade_project(3, newVersion, rom, resourceOpenerR,
-                                 resourceOpenerW, resourceDeleter)
+        elif old_version <= 2:
+            # The credits font was a new feature in version 3
+
+            self.read_credits_font_from_rom(rom)
+            self.write_credits_font_to_project(resource_open_w)
+            self.upgrade_project(3, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         else:
-            self.upgrade_project(
-                oldVersion + 1, newVersion, rom, resourceOpenerR,
-                resourceOpenerW, resourceDeleter)
+            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)

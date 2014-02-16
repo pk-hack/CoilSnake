@@ -2,15 +2,13 @@ import yaml
 from re import sub
 import logging
 
-from coilsnake.modules.eb.EbTablesModule import EbTable, PointerTableEntry
-from coilsnake.modules.eb.EbDataBlocks import DataBlock
-from coilsnake.modules.Table import ValuedIntTableEntry
+from coilsnake.modules.eb.EbTablesModule import EbTable
 from coilsnake.Progress import updateProgress
 from coilsnake.modules.eb import EbModule
-from coilsnake.modules.eb.exceptions import InvalidEbTextPointerError
+from coilsnake.model.eb.data_structures import EbTextPointer
 from coilsnake.exceptions import InvalidArgumentError, InvalidUserDataError, MissingUserDataError
-from coilsnake.data_blocks import Block
-from coilsnake.util import get_from_user_dict, get_enum_from_user_dict, GenericEnum, EqualityMixin, \
+from coilsnake.model.common.data_blocks import Block
+from coilsnake.util.common.type import get_from_user_dict, get_enum_from_user_dict, GenericEnum, EqualityMixin, \
     StringRepresentationMixin
 
 
@@ -21,69 +19,19 @@ log = logging.getLogger(__name__)
 class DoorType(GenericEnum):
     SWITCH, ROPE_OR_LADDER, DOOR, ESCALATOR, STAIRWAY, OBJECT, PERSON = range(7)
 
+
 class StairDirection(GenericEnum):
     NW, NE, SW, SE = range(0, 0x400, 0x100)
     NOWHERE = 0x8000
+
 
 class ClimbableType(GenericEnum):
     LADDER = 0
     ROPE = 0x8000
 
+
 class DestinationDirection(GenericEnum):
     DOWN, UP, RIGHT, LEFT = range(4)
-
-# Classes to represent doors
-class EbPointer(EqualityMixin, StringRepresentationMixin):
-    def __init__(self, address=None, size=3):
-        if size is None or size <= 0:
-            raise InvalidArgumentError("Cannot create pointer with non-positive size[%d]" % size)
-        self.size = 3
-        if address is not None:
-            self.address = address
-
-    def from_block(self, block, offset):
-        self.address = block.read_multi(offset, self.size)
-
-    def to_block(self, block, offset):
-        block.write_multi(offset, self.address, self.size)
-
-    def from_yml_rep(self, yml_rep):
-        self.address = None
-
-        if yml_rep is None:
-            raise MissingUserDataError("Pointer was not specified")
-        elif isinstance(yml_rep, str):
-            try:
-                if yml_rep[0] == '$':
-                    self.address = int(yml_rep[1:], 16)
-            except (IndexError, ValueError):
-                raise InvalidUserDataError("Pointer \"%s\" was invalid" % yml_rep)
-
-            if self.address is None:
-                try:
-                    self.address = EbModule.address_labels[yml_rep]
-                except KeyError:
-                    raise InvalidUserDataError("Invalid label \"%s\" provided for pointer" % yml_rep)
-        else:
-            raise InvalidUserDataError("Pointer \"%s\" was invalid" % yml_rep)
-
-    def __str__(self):
-        return "$%x" % self.address
-
-
-class EbTextPointer(EbPointer):
-    def from_block(self, block, offset):
-        super(EbTextPointer, self).from_block(block, offset)
-
-        if (self.address != 0) and ((self.address < 0xc00000) or (self.address > 0xffffff)):
-            raise InvalidEbTextPointerError("Pointer had invalid address %#x" % self.address)
-
-    def from_yml_rep(self, yml_rep):
-        super(EbTextPointer, self).from_yml_rep(yml_rep)
-
-        if (self.address != 0) and ((self.address < 0xc00000) or (self.address > 0xffffff)):
-            raise InvalidEbTextPointerError("Pointer had invalid address %#x" % self.address)
-
 
 
 def in_destination_bank(offset):
@@ -156,7 +104,7 @@ class SwitchDoor(GenericDoor):
         out = super(SwitchDoor, self).yml_rep()
         out["Type"] = DoorType.tostring(DoorType.SWITCH)
         out["Event Flag"] = self.flag
-        out["Text Pointer"] = str(self.text_pointer)
+        out["Text Pointer"] = self.text_pointer.yml_rep()
         return out
 
     def from_yml_rep(self, yml_rep):
@@ -240,7 +188,7 @@ class Door(GenericDoor):
     def yml_rep(self):
         out = super(Door, self).yml_rep()
         out["Type"] = DoorType.tostring(DoorType.DOOR)
-        out["Text Pointer"] = str(self.text_pointer)
+        out["Text Pointer"] = self.text_pointer.yml_rep()
         out["Event Flag"] = self.flag
         out["Destination X"] = self.destination_x
         out["Destination Y"] = self.destination_y
@@ -333,7 +281,7 @@ class NpcDoor(GenericDoor):
             out["Type"] = DoorType.tostring(self.type)
         except InvalidArgumentError as e:
             raise InvalidUserDataError("Door had invalid type of %#x" % self.type)
-        out["Text Pointer"] = str(self.text_pointer)
+        out["Text Pointer"] = self.text_pointer.yml_rep()
         return out
 
     def from_yml_rep(self, yml_rep):
@@ -352,6 +300,7 @@ DOOR_TYPE_ID_TO_CLASS_MAP = [
     NpcDoor,
     NpcDoor
 ]
+
 
 def door_from_block(block, offset):
     try:

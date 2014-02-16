@@ -1,9 +1,10 @@
+import os
+
 from nose.tools import assert_equal, assert_not_equal, assert_raises, assert_list_equal, assert_false, assert_true, \
     assert_is_instance
 from nose.tools.nontrivial import raises
-import os
 
-from coilsnake.data_blocks import Block, AllocatableBlock, Rom, ROM_TYPE_NAME_UNKNOWN
+from coilsnake.model.common.data_blocks import Block, AllocatableBlock, Rom, ROM_TYPE_NAME_UNKNOWN
 from tests.coilsnake_test import CoilSnakeTestCase
 from coilsnake.exceptions import FileAccessError, OutOfBoundsError, InvalidArgumentError, ValueNotUnsignedByteError, \
     CouldNotAllocateError, NotEnoughUnallocatedSpaceError
