@@ -1,9 +1,11 @@
-from PIL import Image
 import yaml
+
+from PIL import Image
 
 from coilsnake.exceptions import InvalidArgumentError
 from coilsnake.model.eb.blocks import EbCompressibleBlock
-from coilsnake.model.eb.graphics import EbTileArrangement, EbGraphicTileset, EbPalette
+from coilsnake.model.eb.graphics import EbTileArrangement, EbGraphicTileset
+from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, write_asm_pointer, to_snes_address
 
 

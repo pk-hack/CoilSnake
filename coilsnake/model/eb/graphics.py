@@ -1,4 +1,5 @@
 import logging
+
 from PIL import Image
 
 from coilsnake.exceptions import InvalidArgumentError, OutOfBoundsError
@@ -14,7 +15,10 @@ _EB_GRAPHIC_TILESET_SUPPORTED_BPP_FORMATS = frozenset([1, 2, 4, 8])
 
 
 class EbGraphicTileset(EqualityMixin):
-    """A class representing a set of graphical tiles which adhere to the common EarthBound format."""
+    """A class representing a set of graphical tiles which adhere to the common EarthBound format.
+    A graphic tileset is an ordered collection of graphical tiles. A graphical tile can be thought of as a
+    two-dimensional array of numerical values. These numerical values each represent a color as an index in a palette.
+    Palettes themselves are stored separately from graphical tilesets."""
 
     def __init__(self, num_tiles, tile_width=8, tile_height=8):
         """Creates a new EbGraphicTileset.
@@ -133,107 +137,6 @@ class EbGraphicTileset(EqualityMixin):
 
     def __getitem__(self, key):
         return self.tiles[key]
-
-
-class EbColor(EqualityMixin, StringRepresentationMixin):
-    def __init__(self, r=0, g=0, b=0):
-        self.r = r
-        self.g = g
-        self.b = b
-
-    def from_block(self, block, offset=0):
-        bgr = block.read_multi(offset, 2) & 0x7FFF
-        self.r = (bgr & 0x001f) * 8
-        self.g = ((bgr & 0x03e0) >> 5) * 8
-        self.b = (bgr >> 10) * 8
-
-    def to_block(self, block, offset=0):
-        block.write_multi(offset,
-                          ((self.r >> 3) & 0x1f)
-                          | (((self.g >> 3) & 0x1f) << 5)
-                          | (((self.b >> 3) & 0x1f) << 10),
-                          2)
-
-    def from_tuple(self, rgb):
-        self.r, self.b, self.g = rgb
-
-    def tuple(self):
-        return self.r, self.b, self.g
-
-    __tuple__ = tuple
-
-    def from_list(self, rgb_list, offset=0):
-        self.r = rgb_list[offset]
-        self.g = rgb_list[offset + 1]
-        self.b = rgb_list[offset + 2]
-
-    def to_list(self, rgb_list, offset=0):
-        rgb_list[offset] = self.r
-        rgb_list[offset + 1] = self.g
-        rgb_list[offset + 2] = self.b
-
-    def list(self):
-        return [self.r, self.g, self.b]
-
-
-class EbPalette(EqualityMixin):
-    """A class representing a palette which adheres to the common EarthBound format."""
-
-    def __init__(self, num_subpalettes, subpalette_length):
-        """Creates a new EbPalette.
-        :param num_subpalettes: the number of subpalettes within the palette.
-        :param subpalette_length: the number of colors within each subpalette."""
-        if num_subpalettes <= 0:
-            raise InvalidArgumentError("Couldn't create EbPalette with invalid number of subpalettes: {}".format(
-                num_subpalettes))
-        self.num_subpalettes = num_subpalettes
-        if subpalette_length <= 0:
-            raise InvalidArgumentError("Couldn't create EbPalette with invalid colors per subpalette: {}".format(
-                subpalette_length))
-        self.subpalette_length = subpalette_length
-
-        self.subpalettes = [[EbColor() for j in range(self.subpalette_length)] for i in range(self.num_subpalettes)]
-
-    def num_colors(self):
-        return self.num_subpalettes * self.subpalette_length
-
-    def from_block(self, block, offset=0):
-        for subpalette in self.subpalettes:
-            for color in subpalette:
-                color.from_block(block, offset)
-                offset += 2
-
-    def to_block(self, block, offset=0):
-        for subpalette in self.subpalettes:
-            for color in subpalette:
-                color.to_block(block, offset)
-                offset += 2
-
-    def from_list(self, rgb_list):
-        i = 0
-        for j in range(self.num_subpalettes):
-            for k in range(self.subpalette_length):
-                self[j, k].from_list(rgb_list=rgb_list, offset=i)
-                i += 3
-
-    def list(self):
-        return reduce(lambda x, y: x.__add__(y.list()), reduce(lambda x, y: x.__add__(y), self.subpalettes, []), [])
-
-    def from_image(self, image):
-        log.debug("Reading palette of len[{}] from image for pal of size [{},{}]".format(
-            len(image.getpalette()), self.num_subpalettes, self.subpalette_length))
-        self.from_list(image.getpalette()[0:(self.num_colors() * 3)])
-
-    def to_image(self, image):
-        color_list = self.list()
-        # Some programs do not know how to interpret an image with a two-color palette, so pad the palette
-        if self.num_colors() == 2:
-            color_list += (255, 0, 0) * 2
-        image.putpalette(color_list)
-
-    def __getitem__(self, key):
-        subpalette_number, color_number = key
-        return self.subpalettes[subpalette_number][color_number]
 
 
 class EbTileArrangementItem(EqualityMixin, StringRepresentationMixin):

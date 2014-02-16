@@ -1,5 +1,4 @@
-from nose.tools import assert_equal, raises, \
-    assert_list_equal, assert_raises
+from nose.tools import assert_equal, raises, assert_list_equal, assert_raises
 
 from coilsnake.model.common.blocks import Block
 from coilsnake.exceptions import InvalidArgumentError, MissingUserDataError, InvalidUserDataError
