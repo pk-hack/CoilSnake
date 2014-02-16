@@ -1,10 +1,11 @@
 from coilsnake.exceptions import InvalidArgumentError, MissingUserDataError, InvalidUserDataError
 from coilsnake.modules.eb.exceptions import InvalidEbTextPointerError
-from coilsnake.modules.eb.EbModule import address_labels
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
 
 
 class EbPointer(EqualityMixin, StringRepresentationMixin):
+    label_address_map = dict()
+
     def __init__(self, address=None, size=3):
         if size is None or size <= 0:
             raise InvalidArgumentError("Cannot create pointer with non-positive size[%d]" % size)
@@ -32,9 +33,9 @@ class EbPointer(EqualityMixin, StringRepresentationMixin):
 
             if self.address is None:
                 try:
-                    self.address = address_labels[yml_rep]
+                    self.address = EbPointer.label_address_map[yml_rep]
                 except KeyError:
-                    raise InvalidUserDataError("Invalid label \"%s\" provided for pointer" % yml_rep)
+                    raise InvalidUserDataError("Unknown label \"%s\" provided for pointer" % yml_rep)
         else:
             raise InvalidUserDataError("Pointer \"%s\" was invalid" % yml_rep)
 

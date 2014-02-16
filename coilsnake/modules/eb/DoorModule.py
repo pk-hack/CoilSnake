@@ -5,17 +5,18 @@ import logging
 from coilsnake.model.eb.doors import door_from_block, door_from_yml_rep, not_in_destination_bank
 from coilsnake.modules.eb.EbTablesModule import EbTable
 from coilsnake.Progress import updateProgress
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
+from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
 
 log = logging.getLogger(__name__)
 
 
-class DoorModule(EbModule.EbModule):
+class DoorModule(EbModule):
     NAME = "Doors"
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(EbModule, self).__init__()
         self.pointer_table = EbTable(0xD00000)
         self.door_areas = []
 
@@ -25,7 +26,7 @@ class DoorModule(EbModule.EbModule):
         pct = 45.0 / (40 * 32)
         self.door_areas = []
         for i in range(self.pointer_table.height()):
-            offset = EbModule.toRegAddr(self.pointer_table[i, 0].val())
+            offset = from_snes_address(self.pointer_table[i, 0].val())
             door_area = []
             num_doors = rom.read_multi(offset, 2)
             offset += 2
@@ -97,7 +98,7 @@ class DoorModule(EbModule.EbModule):
         # bank of the EB ROM, and this is one of the few ranges available in that bank.
         rom.deallocate((0x0F0000, 0x0F58EE))
         destination_offsets = dict()
-        empty_area_offset = EbModule.toSnesAddr(rom.allocate(data=[0, 0], can_write_to=not_in_destination_bank))
+        empty_area_offset = from_snes_address(rom.allocate(data=[0, 0], can_write_to=not_in_destination_bank))
         pct = 45.0 / (40 * 32)
         i = 0
         for door_area in self.door_areas:
@@ -106,7 +107,7 @@ class DoorModule(EbModule.EbModule):
             else:
                 num_doors = len(door_area)
                 area_offset = rom.allocate(size=(2 + num_doors * 5), can_write_to=not_in_destination_bank)
-                self.pointer_table[i, 0].setVal(EbModule.toSnesAddr(area_offset))
+                self.pointer_table[i, 0].setVal(to_snes_address(area_offset))
                 rom.write_multi(area_offset, num_doors, 2)
                 area_offset += 2
                 for door in door_area:

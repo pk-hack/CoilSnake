@@ -220,7 +220,7 @@ class EbPalette(EqualityMixin):
         return reduce(lambda x, y: x.__add__(y.list()), reduce(lambda x, y: x.__add__(y), self.subpalettes, []), [])
 
     def from_image(self, image):
-        log.debug("Reading palette of len[{}] from image for pal of size {},{}".format(
+        log.debug("Reading palette of len[{}] from image for pal of size [{},{}]".format(
             len(image.getpalette()), self.num_subpalettes, self.subpalette_length))
         self.from_list(image.getpalette()[0:(self.num_colors() * 3)])
 

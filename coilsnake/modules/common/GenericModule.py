@@ -1,7 +1,7 @@
 from coilsnake.Progress import updateProgress
 
 
-class GenericModule:
+class GenericModule(object):
     NAME = "Abstract Generic Module"
     FREE_RANGES = []
 
