@@ -1,6 +1,6 @@
 import logging
 
-from coilsnake.model.common.data_blocks import Block
+from coilsnake.model.common.blocks import Block
 from coilsnake.modules.eb import EbModule
 from coilsnake.modules.eb.exceptions import InvalidEbCompressedDataError
 

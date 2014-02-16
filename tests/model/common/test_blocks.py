@@ -4,7 +4,7 @@ from nose.tools import assert_equal, assert_not_equal, assert_raises, assert_lis
     assert_is_instance
 from nose.tools.nontrivial import raises
 
-from coilsnake.model.common.data_blocks import Block, AllocatableBlock, Rom, ROM_TYPE_NAME_UNKNOWN
+from coilsnake.model.common.blocks import Block, AllocatableBlock, Rom, ROM_TYPE_NAME_UNKNOWN
 from tests.coilsnake_test import CoilSnakeTestCase
 from coilsnake.exceptions import FileAccessError, OutOfBoundsError, InvalidArgumentError, ValueNotUnsignedByteError, \
     CouldNotAllocateError, NotEnoughUnallocatedSpaceError
@@ -27,7 +27,7 @@ class TestBlock(CoilSnakeTestCase):
     def test_from_file(self):
         self.block.from_file(os.path.join(self.TEST_DATA_DIR, 'roms', '1kb_null.bin'))
         assert_equal(len(self.block), 1024)
-        assert_list_equal(self.block.to_list(), [0]*1024)
+        assert_list_equal(self.block.to_list(), [0] * 1024)
 
     def test_from_file_unhappy(self):
         # Attempt to load a directory
@@ -49,7 +49,7 @@ class TestBlock(CoilSnakeTestCase):
         self.block.from_list([69])
         assert_equal(len(self.block), 1)
         assert_list_equal(self.block.to_list(), [69])
-    
+
     def test_getitem(self):
         self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "1kb_rand.bin"))
 
@@ -69,8 +69,8 @@ class TestBlock(CoilSnakeTestCase):
         assert_list_equal(self.block[0:0].to_list(), [])
         assert_list_equal(self.block[0x25c:0x25c].to_list(), [])
         assert_list_equal(self.block[0x25c:0x25d].to_list(), [0xa0])
-        assert_list_equal(self.block[0x25c:0x25c+5].to_list(), [0xa0, 0x0b, 0x71, 0x5d, 0x91])
-        assert_list_equal(self.block[0x25c:0x25c+5].to_list(), [0xa0, 0x0b, 0x71, 0x5d, 0x91])
+        assert_list_equal(self.block[0x25c:0x25c + 5].to_list(), [0xa0, 0x0b, 0x71, 0x5d, 0x91])
+        assert_list_equal(self.block[0x25c:0x25c + 5].to_list(), [0xa0, 0x0b, 0x71, 0x5d, 0x91])
         assert_list_equal(self.block[1022:1024].to_list(), [0x10, 0x20])
 
         assert_raises(InvalidArgumentError, self.block.__getitem__, slice(0, -1))
@@ -225,7 +225,7 @@ class TestAllocatableBlock(TestBlock):
         assert_raises(CouldNotAllocateError, self.block.mark_allocated, (0x31, 0x32))
         assert_raises(CouldNotAllocateError, self.block.mark_allocated, (0x3f, 0x40))
         assert_raises(CouldNotAllocateError, self.block.mark_allocated, (0x31, 0x40))
-        
+
     def test_is_unallocated(self):
         self.block.from_list([0] * 10)
         assert_raises(InvalidArgumentError, self.block.is_unallocated, (1, 0))
@@ -240,19 +240,19 @@ class TestAllocatableBlock(TestBlock):
         assert_false(self.block.is_unallocated((0, 0)))
         assert_true(self.block.is_allocated((0, 0)))
 
-        self.block.deallocate((1,3))
-        self.block.deallocate((4,5))
-        self.block.deallocate((9,9))
+        self.block.deallocate((1, 3))
+        self.block.deallocate((4, 5))
+        self.block.deallocate((9, 9))
 
-        assert_true(self.block.is_unallocated((1,3)))
-        assert_true(self.block.is_unallocated((4,5)))
-        assert_true(self.block.is_unallocated((9,9)))
-        assert_true(self.block.is_unallocated((1,1)))
-        assert_false(self.block.is_unallocated((0,1)))
-        assert_false(self.block.is_unallocated((1,4)))
-        assert_false(self.block.is_unallocated((0,4)))
-        assert_false(self.block.is_unallocated((0,9)))
-        assert_false(self.block.is_unallocated((1,9)))
+        assert_true(self.block.is_unallocated((1, 3)))
+        assert_true(self.block.is_unallocated((4, 5)))
+        assert_true(self.block.is_unallocated((9, 9)))
+        assert_true(self.block.is_unallocated((1, 1)))
+        assert_false(self.block.is_unallocated((0, 1)))
+        assert_false(self.block.is_unallocated((1, 4)))
+        assert_false(self.block.is_unallocated((0, 4)))
+        assert_false(self.block.is_unallocated((0, 9)))
+        assert_false(self.block.is_unallocated((1, 9)))
 
     def test_allocate(self):
         self.block.from_list([0] * 100)
@@ -274,22 +274,23 @@ class TestAllocatableBlock(TestBlock):
         self.block.deallocate((10, 39))
         offset = self.block.allocate(data=[0x12, 0x34, 0xef])
         assert_equal(offset, 10)
-        assert_equal(self.block.unallocated_ranges, [(13,39)])
-        assert_equal(self.block[offset:offset+3].to_list(), [0x12, 0x34, 0xef])
+        assert_equal(self.block.unallocated_ranges, [(13, 39)])
+        assert_equal(self.block[offset:offset + 3].to_list(), [0x12, 0x34, 0xef])
         assert_not_equal(self.block.to_list(), [0] * 100)
-        self.block[offset:offset+3] = [0] * 3
+        self.block[offset:offset + 3] = [0] * 3
         assert_equal(self.block.to_list(), [0] * 100)
 
     def test_allocate_across_ranges(self):
         self.block.from_list([0] * 100)
-        self.block.deallocate((0,5))
-        self.block.deallocate((6,9))
+        self.block.deallocate((0, 5))
+        self.block.deallocate((6, 9))
         assert_raises(NotEnoughUnallocatedSpaceError, self.block.allocate, None, 10)
+
 
 class TestRom(TestAllocatableBlock):
     def setup(self):
         self.block = Rom()
-    
+
     def test_detect_romtype(self):
         self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_noheader.smc"))
         assert_equal(self.block.type, "Earthbound")

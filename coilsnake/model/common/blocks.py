@@ -54,13 +54,13 @@ class Block(object):
 
     def from_array(self, data_array):
         self.size = len(data_array)
-        del(self.data)
+        del (self.data)
         self.data = copy.copy(data_array)
 
     def from_block(self, block, offset=0, size=None):
         if size is None:
             size = block.size - offset
-        with block[offset:offset+size] as sub_block:
+        with block[offset:offset + size] as sub_block:
             self.size = sub_block.size
             self.data = sub_block.data
 
@@ -112,9 +112,9 @@ class Block(object):
         if isinstance(key, slice):
             if key.start > key.stop:
                 raise InvalidArgumentError("Second argument of slice %s must be greater than the first" % key)
-            elif (key.start < 0) or (key.stop-1 >= self.size):
+            elif (key.start < 0) or (key.stop - 1 >= self.size):
                 raise OutOfBoundsError("Attempted to read from range (%#x,%#x) which is out of bounds" % (key.start,
-                                       key.stop-1))
+                                                                                                          key.stop - 1))
             else:
                 out = Block()
                 out.from_array(self.data[key])
@@ -132,12 +132,12 @@ class Block(object):
                 (isinstance(item, list) or isinstance(item, array.array) or isinstance(item, Block)):
             if key.start > key.stop:
                 raise InvalidArgumentError("Second argument of slice %s must be greater than  the first" % key)
-            elif (key.start < 0) or (key.stop-1 >= self.size):
+            elif (key.start < 0) or (key.stop - 1 >= self.size):
                 raise OutOfBoundsError("Attempted to write to range (%#x,%#x) which is out of bounds" % (key.start,
-                                       key.stop-1))
+                                                                                                         key.stop - 1))
             elif len(item) != (key.stop - key.start):
                 raise InvalidArgumentError("Attempted to write data of size %d to range of length %d" % (len(item),
-                                           key.stop - key.start))
+                                                                                                         key.stop - key.start))
             elif (key.stop - key.start) == 0:
                 raise InvalidArgumentError("Attempted to write data of size 0")
             else:
@@ -158,7 +158,7 @@ class Block(object):
                 self.data[key] = item
         else:
             raise TypeError("Arguments \"key\" and \"item\" had invalid types of %s and %s" % (type(key).__name__,
-                            type(item).__name__))
+                                                                                               type(item).__name__))
 
     def __len__(self):
         return self.size
@@ -189,9 +189,9 @@ class AllocatableBlock(Block):
                 if allocated_end < end:
                     self.unallocated_ranges[i] = (allocated_end + 1, end)
                 elif allocated_end == end:
-                    del(self.unallocated_ranges[i])
+                    del (self.unallocated_ranges[i])
                 else:  # allocated_end > end
-                    del(self.unallocated_ranges[i])
+                    del (self.unallocated_ranges[i])
                     self.mark_allocated((end + 1, allocated_end))
                 return
             elif (allocated_begin > begin) and (allocated_end <= end):
@@ -205,7 +205,7 @@ class AllocatableBlock(Block):
                 self.mark_allocated((end + 1, allocated_end))
                 return
         raise CouldNotAllocateError("Couldn't mark range (%#x,%#x) as allocated because it is at least "
-                                   "partially already allocated" % (allocated_begin, allocated_end))
+                                    "partially already allocated" % (allocated_begin, allocated_end))
 
     def is_unallocated(self, range):
         check_range_validity(range, self.size)
@@ -250,7 +250,7 @@ class AllocatableBlock(Block):
 
                 if begin + size - 1 == end:
                     # Used up the entire free range
-                    del(self.unallocated_ranges[i])
+                    del (self.unallocated_ranges[i])
                 else:
                     self.unallocated_ranges[i] = (begin + size, end)
 
@@ -261,7 +261,7 @@ class AllocatableBlock(Block):
             raise NotEnoughUnallocatedSpaceError("Not enough free space left")
 
         if data is not None:
-            self[allocated_range[0]:allocated_range[1]+1] = data
+            self[allocated_range[0]:allocated_range[1] + 1] = data
 
         return allocated_range[0]
 

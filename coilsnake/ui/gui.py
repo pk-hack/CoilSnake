@@ -13,9 +13,10 @@ import tkMessageBox
 from ttk import Progressbar
 
 from coilsnake import Progress
-from coilsnake.model.common.data_blocks import Rom
+from coilsnake.model.common.blocks import Rom
 from coilsnake.ui import cli, information
 from coilsnake.ui.Fun import getTitle
+
 
 
 

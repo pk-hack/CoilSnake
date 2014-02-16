@@ -1,10 +1,10 @@
-from nose.tools import assert_equal, raises,\
+from nose.tools import assert_equal, raises, \
     assert_list_equal, assert_raises
 
 from coilsnake.modules.eb.EbModule import address_labels
-from coilsnake.model.common.data_blocks import Block
+from coilsnake.model.common.blocks import Block
 from coilsnake.exceptions import InvalidArgumentError, MissingUserDataError, InvalidUserDataError
-from coilsnake.model.eb.data_structures import EbPointer, EbTextPointer
+from coilsnake.model.eb.pointers import EbPointer, EbTextPointer
 from coilsnake.modules.eb.exceptions import InvalidEbTextPointerError
 from tests.coilsnake_test import CoilSnakeTestCase
 

@@ -9,7 +9,7 @@ import time
 import logging
 
 from coilsnake import Project
-from coilsnake.model.common.data_blocks import Rom
+from coilsnake.model.common.blocks import Rom
 from coilsnake.Progress import setProgress
 from coilsnake.ui import information
 
@@ -121,7 +121,7 @@ class CoilSnake:
         # Open rom
         rom = Rom()
         rom.from_file(outRomFname)
-      # Make sure project type matches romtype
+        # Make sure project type matches romtype
         if rom.type != proj.type():
             print "Rom type %s does not match Project type %s" % (rom.type, proj.type())
             return False
@@ -214,5 +214,5 @@ def main():
 #import cProfile
 if __name__ == '__main__':
     sys.exit(main())
-#    cProfile.run('main()', '/home/max/cs.prof')
-#    sys.exit(0)
+    #    cProfile.run('main()', '/home/max/cs.prof')
+    #    sys.exit(0)

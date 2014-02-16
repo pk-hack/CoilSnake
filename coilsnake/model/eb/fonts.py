@@ -2,7 +2,7 @@ from PIL import Image
 import yaml
 
 from coilsnake.exceptions import InvalidArgumentError
-from coilsnake.model.eb.data_blocks import EbCompressibleBlock
+from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbTileArrangement, EbGraphicTileset, EbPalette
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, write_asm_pointer, to_snes_address
 
@@ -13,7 +13,7 @@ _FONT_IMAGE_PALETTE[0, 1].from_tuple((0, 0, 0))
 _FONT_IMAGE_ARRANGEMENT = EbTileArrangement(width=16, height=6)
 for y in range(_FONT_IMAGE_ARRANGEMENT.height):
     for x in range(_FONT_IMAGE_ARRANGEMENT.width):
-        _FONT_IMAGE_ARRANGEMENT[x, y].tile = y*_FONT_IMAGE_ARRANGEMENT.width + x
+        _FONT_IMAGE_ARRANGEMENT[x, y].tile = y * _FONT_IMAGE_ARRANGEMENT.width + x
 
 
 class EbFont(object):
@@ -24,11 +24,11 @@ class EbFont(object):
 
     def from_block(self, block, tileset_offset, character_widths_offset):
         self.tileset.from_block(block=block, offset=tileset_offset, bpp=1)
-        self.character_widths = block[character_widths_offset:character_widths_offset+self.num_characters].to_list()
+        self.character_widths = block[character_widths_offset:character_widths_offset + self.num_characters].to_list()
 
     def to_block(self, block, tileset_offset, character_widths_offset):
         self.tileset.to_block(block=block, offset=tileset_offset, bpp=1)
-        block[character_widths_offset:character_widths_offset+self.num_characters] = self.character_widths
+        block[character_widths_offset:character_widths_offset + self.num_characters] = self.character_widths
 
     def to_files(self, image_file, widths_file, image_format="png", widths_format="yml"):
         image = _FONT_IMAGE_ARRANGEMENT.image(self.tileset, _FONT_IMAGE_PALETTE)
@@ -68,7 +68,7 @@ _CREDITS_PREVIEW_SUBPALETTES = [
 _CREDITS_PREVIEW_ARRANGEMENT = EbTileArrangement(width=16, height=12)
 for y in range(_CREDITS_PREVIEW_ARRANGEMENT.height):
     for x in range(_CREDITS_PREVIEW_ARRANGEMENT.width):
-        _CREDITS_PREVIEW_ARRANGEMENT[x, y].tile = y*_CREDITS_PREVIEW_ARRANGEMENT.width + x
+        _CREDITS_PREVIEW_ARRANGEMENT[x, y].tile = y * _CREDITS_PREVIEW_ARRANGEMENT.width + x
         _CREDITS_PREVIEW_ARRANGEMENT[x, y].subpalette = _CREDITS_PREVIEW_SUBPALETTES[y][x]
 
 

@@ -5,7 +5,7 @@ from nose.tools import nottest
 from nose.tools import assert_equal
 
 from coilsnake.modules.eb import EbModule, NativeComp
-from coilsnake.model.common.data_blocks import Rom
+from coilsnake.model.common.blocks import Rom
 from tests.coilsnake_test import CoilSnakeTestCase
 
 
@@ -44,7 +44,7 @@ class TestEbModule(CoilSnakeTestCase):
 
         with Rom() as fake_eb_rom:
             fake_eb_rom.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_32mbit.smc"))
-            fake_eb_rom[0x300000:0x300000+len(compressed_data)] = compressed_data
+            fake_eb_rom[0x300000:0x300000 + len(compressed_data)] = compressed_data
             reuncompressed_data = decomp(fake_eb_rom, 0x300000)
 
         assert_equal(len(reuncompressed_data), len(uncompressed_data))
@@ -77,9 +77,10 @@ class TestEbModule(CoilSnakeTestCase):
         assert_equal(c, c2)
 
         pal = [(176, 232, 24), (40, 152, 88), (216, 208, 136), (160, 0, 88),
-                (56, 40, 96), (112, 16, 240), (112, 64, 88), (48, 88, 0), (56,
-                    136, 64), (176, 104, 144), (0, 48, 224), (224, 224, 136),
-                (56, 248, 168), (56, 216, 80), (184, 48, 248), (200, 112, 32)]
+               (56, 40, 96), (112, 16, 240), (112, 64, 88), (48, 88, 0), (56,
+                                                                          136, 64), (176, 104, 144), (0, 48, 224),
+               (224, 224, 136),
+               (56, 248, 168), (56, 216, 80), (184, 48, 248), (200, 112, 32)]
         EbModule.writePalette(self.rom, 0, pal)
         pal2 = EbModule.readPalette(self.rom, 0, 16)
         assert_equal(pal, pal2)
@@ -89,7 +90,7 @@ class TestEbModule(CoilSnakeTestCase):
         assert_equal(ptr, 0xe14f2a)
 
         EbModule.writeAsmPointer(self.rom, 0, 0xabcdef01)
-        assert_equal(self.rom[0:8].to_list(), [ 0x0, 0x01, 0xef, 0x0, 0x0, 0x0, 0xcd, 0xab ])
+        assert_equal(self.rom[0:8].to_list(), [0x0, 0x01, 0xef, 0x0, 0x0, 0x0, 0xcd, 0xab])
 
         ptr2 = EbModule.readAsmPointer(self.rom, 0)
         assert_equal(0xabcdef01, ptr2)
