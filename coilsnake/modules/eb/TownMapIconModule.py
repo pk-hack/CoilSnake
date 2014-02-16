@@ -3,7 +3,7 @@ from re import sub
 
 from coilsnake.modules.eb import EbModule
 from coilsnake.modules.eb.EbTablesModule import EbTable
-from coilsnake.modules.Table import ValuedIntTableEntry
+from coilsnake.model.common.table import ValuedIntTableEntry
 from coilsnake.Progress import updateProgress
 
 

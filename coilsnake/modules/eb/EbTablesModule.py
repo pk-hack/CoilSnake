@@ -1,9 +1,9 @@
 import os
 import yaml
 
+from coilsnake.modules.common.TablesModule import TablesModule
 from coilsnake.modules.eb import EbModule
-from coilsnake.modules.Table import IntTableEntry, genericEntryGenerator, Table
-from coilsnake.modules.TablesModule import TablesModule
+from coilsnake.model.common.table import IntTableEntry, Table, genericEntryGenerator
 
 
 class PointerTableEntry(IntTableEntry):

@@ -1,4 +1,3 @@
-from coilsnake.modules import GenericModule
 from coilsnake.Progress import updateProgress
 
 # For encoding/decoding text entries
@@ -8,13 +7,14 @@ from coilsnake.Progress import updateProgress
 #        self._decDict = decDict
 #        self._encDict = dict((v,k) for k, v in decDict.iteritems())
 #    def decode(self, rom, addr, terminator=None):
+from coilsnake.modules.common.GenericModule import GenericModule
 
 
-class TablesModule(GenericModule.GenericModule):
+class TablesModule(GenericModule):
     NAME = "Generic Tables"
 
     def __init__(self, TableClass, tableIDs):
-        GenericModule.GenericModule.__init__(self)
+        GenericModule.__init__(self)
         self._tables = map(lambda x: TableClass(x), tableIDs)
         self._pct = 50.0 / len(self._tables)
 

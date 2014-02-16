@@ -1,8 +1,9 @@
 import yaml
 
+from coilsnake.model.common import table
+from coilsnake.modules.common import TablesModule
 from coilsnake.modules.eb0 import Eb0Module
-from coilsnake.modules.Table import genericEntryGenerator, Table
-from coilsnake.modules.TablesModule import TablesModule
+from coilsnake.model.common.table import genericEntryGenerator
 
 
 def eb0EntryGenerator(spec, table_map):
@@ -12,7 +13,7 @@ def eb0EntryGenerator(spec, table_map):
         return genericEntryGenerator(spec, table_map)
 
 
-class Eb0Table(Table):
+class Eb0Table(table):
     tableEntryGenerator = staticmethod(eb0EntryGenerator)
     eb_table_map = None
 
@@ -26,7 +27,7 @@ class Eb0Table(Table):
                     elif i == 2:
                         Eb0Table.eb_table_map = doc
                         break
-        Table.__init__(self, addr, Eb0Table.eb_table_map)
+        table.__init__(self, addr, Eb0Table.eb_table_map)
         self._addr = Eb0Module.toRegAddr(self._addr)
 
 

@@ -1,9 +1,9 @@
 import os
 import yaml
 
-from coilsnake.modules.GenericModule import GenericModule
 from coilsnake.Progress import updateProgress
 from coilsnake.Ips import Ips
+from coilsnake.modules.common.GenericModule import GenericModule
 
 
 IPS_DIRECTORY = os.path.join(os.path.dirname(__file__), "resources", "ips")

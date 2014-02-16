@@ -2,7 +2,7 @@ import yaml
 
 from coilsnake.modules.eb import EbModule
 from coilsnake.modules.eb.EbTablesModule import EbTable
-from coilsnake.modules.Table import ValuedIntTableEntry
+from coilsnake.model.common.table import ValuedIntTableEntry
 from coilsnake.Progress import updateProgress
 
 
@@ -46,9 +46,11 @@ class MapModule(EbModule.EbModule):
                         EbModule.toRegAddr(
                             rom.read_multi(map_ptrs_addr + x * 4, 4)),
                         range(8))
+
         def read_row_data(row_number):
             offset = map_addrs[row_number % 8] + ((row_number >> 3) << 8)
-            return rom[offset:offset+self._MAP_WIDTH].to_list()
+            return rom[offset:offset + self._MAP_WIDTH].to_list()
+
         self._tiles = map(read_row_data, range(self._MAP_HEIGHT))
         k = self._LOCAL_TSET_ADDR
         for i in range(self._MAP_HEIGHT >> 3):
@@ -85,7 +87,7 @@ class MapModule(EbModule.EbModule):
                         range(8))
         for i in range(self._MAP_HEIGHT):
             offset = map_addrs[i % 8] + ((i >> 3) << 8)
-            rom[offset:offset+self._MAP_WIDTH] = map(lambda x: x & 0xff, self._tiles[i])
+            rom[offset:offset + self._MAP_WIDTH] = map(lambda x: x & 0xff, self._tiles[i])
         k = self._LOCAL_TSET_ADDR
         for i in range(self._MAP_HEIGHT >> 3):
             for j in range(self._MAP_WIDTH):
@@ -98,7 +100,7 @@ class MapModule(EbModule.EbModule):
                      | ((self._tiles[(i << 3) | 5][j] >> 8) << 2)
                      | ((self._tiles[(i << 3) | 6][j] >> 8) << 4)
                      | ((self._tiles[(i << 3) | 7][j] >> 8) << 6))
-                rom[k+0x3000] = c
+                rom[k + 0x3000] = c
                 k += 1
         updateProgress(25)
         # Write sector data

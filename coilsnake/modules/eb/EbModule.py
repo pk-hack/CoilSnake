@@ -2,7 +2,8 @@ import logging
 from zlib import crc32
 import sys
 
-from coilsnake.modules.GenericModule import GenericModule
+from coilsnake.modules.common.GenericModule import GenericModule
+
 
 log = logging.getLogger(__name__)
 

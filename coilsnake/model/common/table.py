@@ -124,10 +124,10 @@ class ByteArrayTableEntry:
         return self._size
 
     def readFromRom(self, rom, addr):
-        self._data = rom[addr:addr+self._size].to_list()
+        self._data = rom[addr:addr + self._size].to_list()
 
     def writeToRom(self, rom, addr):
-        rom[addr:addr+self._size] = self._data
+        rom[addr:addr + self._size] = self._data
 
     def load(self, data):
         self._data = data

@@ -1,4 +1,4 @@
-from coilsnake.modules.GenericModule import GenericModule
+from coilsnake.modules.common.GenericModule import GenericModule
 
 
 def charToByte(c):

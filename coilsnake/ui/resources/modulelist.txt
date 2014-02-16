@@ -1,5 +1,5 @@
-UsedRangeModule
-PatchModule
+common.UsedRangeModule
+common.PatchModule
 eb.CccInterfaceModule
 eb.SkipNamingModule
 eb.MiscTextModule

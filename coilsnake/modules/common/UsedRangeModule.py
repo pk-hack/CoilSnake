@@ -1,7 +1,7 @@
 import yaml
 
 from coilsnake.Progress import updateProgress
-from coilsnake.modules.GenericModule import GenericModule
+from coilsnake.modules.common.GenericModule import GenericModule
 
 
 class UsedRangeModule(GenericModule):
