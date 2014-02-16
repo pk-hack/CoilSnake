@@ -5,7 +5,7 @@ version: 1.3
 tagline: A program for modifying the EarthBound ROM.
 featured-screenshot: images/screenshots/octocat-battle.png
 projects-section: |
-  ### Projects Made With CoilSnake
+  ### Projects Made with CoilSnake
 projects:
 - name: MOTHER Remake
   image: images/screenshots/mother-remake.png
