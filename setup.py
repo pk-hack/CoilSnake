@@ -31,6 +31,8 @@ setup(name='CoilSnake',
               'coilsnake = coilsnake.ui.gui:main',
           ]
       },
+      requires=['PIL'],
+      tests_require=['nose'],
 
       #windows=['CoilSnake.py'],
       #data_files=dataFiles,

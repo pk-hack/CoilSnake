@@ -20,7 +20,7 @@ def read_1bpp_graphic_from_block(source, target, offset, x=0, y=0, width=8, heig
         b = source[offset]
         offset += 1
         for j in xrange(8):
-            target[i+y][7 - j + x] = (b & (1 << j)) >> j
+            target[i + y][7 - j + x] = (b & (1 << j)) >> j
     return height
 
 
@@ -28,7 +28,7 @@ def write_1bpp_graphic_to_block(source, target, offset, x=0, y=0, width=8, heigh
     for i in xrange(height):
         b = 0
         for j in xrange(8):
-            b |= (source[i+y][7 - j + x] & 1) << j
+            b |= (source[i + y][7 - j + x] & 1) << j
         target[offset] = b
         offset += 1
     return height
@@ -102,7 +102,7 @@ def write_4bpp_graphic_to_block(source, target, offset, x=0, y=0, bit_offset=0):
     return 32
 
 
-def read_8bpp_graphic_from_block(target, source, offset, x, y):
+def read_8bpp_graphic_from_block(target, source, offset, x=0, y=0):
     """Reads an 8x8 graphic stored in the 8 bits-per-pixel format from a block to a 2D array of pixels.
     :param target: 2D pixel array to write to
     :param source: block to read from

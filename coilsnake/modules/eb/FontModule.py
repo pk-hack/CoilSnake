@@ -24,7 +24,7 @@ class FontModule(EbModule.EbModule):
             EbFont(num_characters=96, tile_width=16, tile_height=16),
             EbFont(num_characters=96, tile_width=16, tile_height=16),
             EbFont(num_characters=96, tile_width=8, tile_height=16),
-            EbFont(num_characters=96, tile_width=8,  tile_height=8)
+            EbFont(num_characters=96, tile_width=8, tile_height=8)
         ]
         self.credits_font = EbCreditsFont()
         self._percent = 50.0 / (len(self.fonts) + 1)
@@ -37,7 +37,7 @@ class FontModule(EbModule.EbModule):
 
     def read_from_rom(self, rom):
         for i, (font, graphics_address, widths_address) in enumerate(zip(self.fonts, FONT_GRAPHICS_ADDRESSES,
-                                                                    FONT_CHARACTER_WIDTHS_ADDRESSES)):
+                                                                         FONT_CHARACTER_WIDTHS_ADDRESSES)):
             log.info("Reading font #{} from the ROM".format(i))
             font.from_block(block=rom, tileset_offset=graphics_address, character_widths_offset=widths_address)
             updateProgress(self._percent)

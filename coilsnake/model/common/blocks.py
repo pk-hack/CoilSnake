@@ -41,9 +41,9 @@ class Block(object):
             self.size = int(os.path.getsize(filename))
             del self.data
             self.data = array.array('B')
-            with open(filename, 'rb') as f:
-                self.data.fromfile(f, self.size)
-        except (IOError, OSError) as e:
+            with open(filename, 'rb') as file:
+                self.data.fromfile(file, self.size)
+        except (IOError, OSError):
             raise FileAccessError("Could not access file[%s]" % filename)
 
     def from_list(self, data_list):
@@ -54,7 +54,7 @@ class Block(object):
 
     def from_array(self, data_array):
         self.size = len(data_array)
-        del (self.data)
+        del self.data
         self.data = copy.copy(data_array)
 
     def from_block(self, block, offset=0, size=None):
@@ -136,8 +136,8 @@ class Block(object):
                 raise OutOfBoundsError("Attempted to write to range (%#x,%#x) which is out of bounds" % (key.start,
                                                                                                          key.stop - 1))
             elif len(item) != (key.stop - key.start):
-                raise InvalidArgumentError("Attempted to write data of size %d to range of length %d" % (len(item),
-                                                                                                         key.stop - key.start))
+                raise InvalidArgumentError("Attempted to write data of size %d to range of length %d" % (
+                    len(item), key.stop - key.start))
             elif (key.stop - key.start) == 0:
                 raise InvalidArgumentError("Attempted to write data of size 0")
             else:

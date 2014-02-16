@@ -129,7 +129,7 @@ class RopeOrLadderDoor(GenericDoor):
         out = super(RopeOrLadderDoor, self).yml_rep()
         try:
             out["Type"] = ClimbableType.tostring(self.climbable_type)
-        except InvalidArgumentError as e:
+        except InvalidArgumentError:
             raise InvalidUserDataError("Door had invalid climbability setting of %#x" % self.climbable_type)
         return out
 
@@ -196,7 +196,7 @@ class Door(GenericDoor):
         return out
 
     def from_yml_rep(self, yml_rep):
-        out = super(Door, self).from_yml_rep(yml_rep)
+        super(Door, self).from_yml_rep(yml_rep)
         self.text_pointer.from_yml_rep(get_from_user_dict(yml_rep, "Text Pointer", str))
         self.flag = get_from_user_dict(yml_rep, "Event Flag", int)
         self.destination_x = get_from_user_dict(yml_rep, "Destination X", int)
@@ -230,16 +230,16 @@ class EscalatorOrStairwayDoor(GenericDoor):
         out = super(EscalatorOrStairwayDoor, self).yml_rep()
         try:
             out["Type"] = DoorType.tostring(self.type)
-        except InvalidArgumentError as e:
+        except InvalidArgumentError:
             raise InvalidUserDataError("Door had invalid type of %#x" % self.type)
         try:
             out["Direction"] = StairDirection.tostring(self.direction)
-        except InvalidArgumentError as e:
+        except InvalidArgumentError:
             raise InvalidUserDataError("Door had invalid escalator/stairs direction of %#x" % self.direction)
         return out
 
     def from_yml_rep(self, yml_rep):
-        out = super(EscalatorOrStairwayDoor, self).from_yml_rep(yml_rep)
+        super(EscalatorOrStairwayDoor, self).from_yml_rep(yml_rep)
         self.type = get_enum_from_user_dict(yml_rep, "Type", DoorType)
         self.direction = get_enum_from_user_dict(yml_rep, "Direction", StairDirection)
 
@@ -276,13 +276,13 @@ class NpcDoor(GenericDoor):
         out = super(NpcDoor, self).yml_rep()
         try:
             out["Type"] = DoorType.tostring(self.type)
-        except InvalidArgumentError as e:
+        except InvalidArgumentError:
             raise InvalidUserDataError("Door had invalid type of %#x" % self.type)
         out["Text Pointer"] = self.text_pointer.yml_rep()
         return out
 
     def from_yml_rep(self, yml_rep):
-        out = super(NpcDoor, self).from_yml_rep(yml_rep)
+        super(NpcDoor, self).from_yml_rep(yml_rep)
         self.type = get_enum_from_user_dict(yml_rep, "Type", DoorType)
         self.text_pointer.from_yml_rep(get_from_user_dict(yml_rep, "Text Pointer", str))
 

@@ -70,7 +70,7 @@ class TestEbModule(CoilSnakeTestCase):
     def test_default_decomp(self):
         self.test_decomp(EbModule.decomp)
 
-    def test_palette_IO(self):
+    def test_palette_io(self):
         c = (48, 32, 16)
         EbModule.writePaletteColor(self.rom, 0, c)
         c2 = EbModule.readPaletteColor(self.rom, 0)
@@ -85,7 +85,7 @@ class TestEbModule(CoilSnakeTestCase):
         pal2 = EbModule.readPalette(self.rom, 0, 16)
         assert_equal(pal, pal2)
 
-    def test_asm_pointer_IO(self):
+    def test_asm_pointer_io(self):
         ptr = EbModule.readAsmPointer(self.rom, 0xeefb)
         assert_equal(ptr, 0xe14f2a)
 

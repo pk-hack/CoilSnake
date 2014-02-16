@@ -291,7 +291,7 @@ class TestRom(TestAllocatableBlock):
     def setup(self):
         self.block = Rom()
 
-    def test_detect_romtype(self):
+    def test_detect_rom_type(self):
         self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_noheader.smc"))
         assert_equal(self.block.type, "Earthbound")
         self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_header.smc"))

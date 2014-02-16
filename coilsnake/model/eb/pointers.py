@@ -46,11 +46,11 @@ class EbTextPointer(EbPointer):
     def from_block(self, block, offset):
         super(EbTextPointer, self).from_block(block, offset)
 
-        if (self.address != 0) and ((self.address < 0xc00000) or (self.address > 0xffffff)):
+        if (self.address != 0) and (self.address < 0xc00000 or self.address > 0xffffff):
             raise InvalidEbTextPointerError("Pointer had invalid address %#x" % self.address)
 
     def from_yml_rep(self, yml_rep):
         super(EbTextPointer, self).from_yml_rep(yml_rep)
 
-        if (self.address != 0) and ((self.address < 0xc00000) or (self.address > 0xffffff)):
+        if (self.address != 0) and (self.address < 0xc00000 or self.address > 0xffffff):
             raise InvalidEbTextPointerError("Pointer had invalid address %#x" % self.address)

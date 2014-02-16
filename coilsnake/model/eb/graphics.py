@@ -4,8 +4,8 @@ from PIL import Image
 from coilsnake.exceptions import InvalidArgumentError, OutOfBoundsError
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
 from coilsnake.util.eb.graphics import read_2bpp_graphic_from_block, read_4bpp_graphic_from_block, \
-    read_8bpp_graphic_from_block, read_1bpp_graphic_from_block, write_2bpp_graphic_to_block, write_4bpp_graphic_to_block, \
-    write_8bpp_graphic_to_block, write_1bpp_graphic_to_block
+    read_8bpp_graphic_from_block, read_1bpp_graphic_from_block, write_2bpp_graphic_to_block, \
+    write_4bpp_graphic_to_block, write_8bpp_graphic_to_block, write_1bpp_graphic_to_block
 
 
 log = logging.getLogger(__name__)
@@ -15,6 +15,7 @@ _EB_GRAPHIC_TILESET_SUPPORTED_BPP_FORMATS = frozenset([1, 2, 4, 8])
 
 class EbGraphicTileset(EqualityMixin):
     """A class representing a set of graphical tiles which adhere to the common EarthBound format."""
+
     def __init__(self, num_tiles, tile_width=8, tile_height=8):
         """Creates a new EbGraphicTileset.
         :param num_tiles: the number of tiles in this tileset
@@ -26,7 +27,8 @@ class EbGraphicTileset(EqualityMixin):
         self.num_tiles_maximum = num_tiles
 
         if tile_width <= 0:
-            raise InvalidArgumentError("Couldn't create EbGraphicTileset with invalid tile width[{}]".format(tile_width))
+            raise InvalidArgumentError("Couldn't create EbGraphicTileset with invalid tile width[{}]".format(
+                tile_width))
         elif (tile_width % 8) != 0:
             raise NotImplementedError("Don't know how to create an EbGraphicTileset with a tile height[{}] which is "
                                       "not a multiple of 8".format(tile_height))
@@ -61,7 +63,7 @@ class EbGraphicTileset(EqualityMixin):
                     offset += read_4bpp_graphic_from_block(source=block, target=tile, offset=offset)
                 elif bpp == 8:
                     offset += read_8bpp_graphic_from_block(source=block, target=tile, offset=offset)
-                else: # bpp == 1
+                else:  # bpp == 1
                     for x in range(0, self.tile_width, 8):
                         offset += read_1bpp_graphic_from_block(source=block, target=tile, offset=offset,
                                                                x=x, height=self.tile_height)
@@ -85,7 +87,7 @@ class EbGraphicTileset(EqualityMixin):
                 offset += write_4bpp_graphic_to_block(source=tile, target=block, offset=offset)
             elif bpp == 8:
                 offset += write_8bpp_graphic_to_block(source=tile, target=block, offset=offset)
-            else: # bpp == 1
+            else:  # bpp == 1
                 for x in range(0, self.tile_width, 8):
                     offset += write_1bpp_graphic_to_block(source=tile, target=block, offset=offset,
                                                           x=x, height=self.tile_height)
@@ -114,7 +116,7 @@ class EbGraphicTileset(EqualityMixin):
                 arrangement_item = arrangement[x, y]
                 if arrangement_item.tile not in already_read_tiles:
                     tile = self.tiles[arrangement_item.tile]
-                    image_x = x*self.tile_width
+                    image_x = x * self.tile_width
                     image_y = y * self.tile_height
                     for tile_y, tile_row in enumerate(tile):
                         for tile_x in range(self.tile_width):
@@ -125,8 +127,8 @@ class EbGraphicTileset(EqualityMixin):
     def __eq__(self, other):
         return (isinstance(other, self.__class__)
                 and (self.num_tiles_maximum == other.num_tiles_maximum)
-                and (self.tile_size == other.tile_size)
-                and (self.bpp == other.bpp)
+                and (self.tile_width == other.tile_width)
+                and (self.tile_height == other.tile_height)
                 and (self.tiles == other.tiles))
 
     def __getitem__(self, key):
@@ -162,13 +164,13 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
 
     def from_list(self, rgb_list, offset=0):
         self.r = rgb_list[offset]
-        self.g = rgb_list[offset+1]
-        self.b = rgb_list[offset+2]
+        self.g = rgb_list[offset + 1]
+        self.b = rgb_list[offset + 2]
 
     def to_list(self, rgb_list, offset=0):
         rgb_list[offset] = self.r
-        rgb_list[offset+1] = self.g
-        rgb_list[offset+2] = self.b
+        rgb_list[offset + 1] = self.g
+        rgb_list[offset + 2] = self.b
 
     def list(self):
         return [self.r, self.g, self.b]
@@ -176,6 +178,7 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
 
 class EbPalette(EqualityMixin):
     """A class representing a palette which adheres to the common EarthBound format."""
+
     def __init__(self, num_subpalettes, subpalette_length):
         """Creates a new EbPalette.
         :param num_subpalettes: the number of subpalettes within the palette.
@@ -270,6 +273,7 @@ class EbTileArrangementItem(EqualityMixin, StringRepresentationMixin):
 
 class EbTileArrangement(EqualityMixin):
     """A class representing an image formed by an arrangement of tile-based graphics with a certain palette."""
+
     def __init__(self, width, height):
         """Creates a new EbTileArrangement.
         :param width: the width of the arrangement in tiles

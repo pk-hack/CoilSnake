@@ -129,7 +129,7 @@ class GenericTestDestinationDoor(GenericTestDoor):
                           self.block[self.NEW_DOOR_OFFSET + 5:self.NEW_DOOR_OFFSET + 10].to_list())
         assert_equal(len(tmp_address_labels), 1)
 
-    def test_to_block_dont_reuse_destination(self):
+    def test_to_block_do_not_reuse_destination(self):
         tmp_address_labels = dict()
         self.door.write_to_block(self.block, self.NEW_DOOR_OFFSET, tmp_address_labels)
         # This works because every door with a destination has a text_pointer
