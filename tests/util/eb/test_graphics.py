@@ -1,7 +1,8 @@
 from nose.tools import assert_list_equal, assert_equal
 
 from coilsnake.model.common.blocks import Block
-from coilsnake.util.eb.graphics import read_1bpp_graphic_from_block, write_1bpp_graphic_to_block
+from coilsnake.util.eb.graphics import read_1bpp_graphic_from_block, write_1bpp_graphic_to_block, \
+    read_2bpp_graphic_from_block, write_2bpp_graphic_to_block
 
 
 def test_read_1bpp_graphic_from_block():
@@ -224,3 +225,134 @@ def test_read_1bpp_graphic_from_block_rectangular_tall():
                                          0b11000000,
                                          0b00000001,
                                          12, 21])
+
+
+def test_read_2bpp_graphic_from_block():
+    source = Block()
+    source.from_list([1, 2, 3,
+                      0b01010101,
+                      0b10111010,
+                      0b01100100,
+                      0b11001111,
+                      0b10100000,
+                      0b10111101,
+                      0b11100001,
+                      0b01101011,
+                      0b10110111,
+                      0b00000111,
+                      0b11111010,
+                      0b01111101,
+                      0b00110010,
+                      0b11101100,
+                      0b00110110,
+                      0b10111100])
+    target = [[0 for x in range(8)] for y in range(8)]
+    assert_equal(16, read_2bpp_graphic_from_block(target=target, source=source, offset=3, x=0, y=0, bit_offset=0))
+    assert_list_equal(target,
+                      [[2, 1, 2, 3, 2, 1, 2, 1],
+                       [2, 3, 1, 0, 2, 3, 2, 2],
+                       [3, 0, 3, 2, 2, 2, 0, 2],
+                       [1, 3, 3, 0, 2, 0, 2, 3],
+                       [1, 0, 1, 1, 0, 3, 3, 3],
+                       [1, 3, 3, 3, 3, 2, 1, 2],
+                       [2, 2, 3, 1, 2, 2, 1, 0],
+                       [2, 0, 3, 3, 2, 3, 1, 0]])
+
+
+def test_read_2bpp_graphic_from_block_offset_xy():
+    source = Block()
+    source.from_list([0b01010101,
+                      0b10111010,
+                      0b01100100,
+                      0b11001111,
+                      0b10100000,
+                      0b10111101,
+                      0b11100001,
+                      0b01101011,
+                      0b10110111,
+                      0b00000111,
+                      0b11111010,
+                      0b01111101,
+                      0b00110010,
+                      0b11101100,
+                      0b00110110,
+                      0b10111100, 5])
+    target = [[0 for x in range(10)] for y in range(10)]
+    assert_equal(16, read_2bpp_graphic_from_block(target=target, source=source, offset=0, x=2, y=1, bit_offset=0))
+    assert_list_equal(target,
+                      [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       [0, 0, 2, 1, 2, 3, 2, 1, 2, 1],
+                       [0, 0, 2, 3, 1, 0, 2, 3, 2, 2],
+                       [0, 0, 3, 0, 3, 2, 2, 2, 0, 2],
+                       [0, 0, 1, 3, 3, 0, 2, 0, 2, 3],
+                       [0, 0, 1, 0, 1, 1, 0, 3, 3, 3],
+                       [0, 0, 1, 3, 3, 3, 3, 2, 1, 2],
+                       [0, 0, 2, 2, 3, 1, 2, 2, 1, 0],
+                       [0, 0, 2, 0, 3, 3, 2, 3, 1, 0],
+                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+
+
+def test_write_2bpp_graphic_to_block():
+    source = [[2, 1, 2, 3, 2, 1, 2, 1],
+              [2, 3, 1, 0, 2, 3, 2, 2],
+              [3, 0, 3, 2, 2, 2, 0, 2],
+              [1, 3, 3, 0, 2, 0, 2, 3],
+              [1, 0, 1, 1, 0, 3, 3, 3],
+              [1, 3, 3, 3, 3, 2, 1, 2],
+              [2, 2, 3, 1, 2, 2, 1, 0],
+              [2, 0, 3, 3, 2, 3, 1, 0]]
+    target = Block()
+    target.from_list([0] * 16)
+    assert_equal(16, write_2bpp_graphic_to_block(source=source, target=target, offset=0, x=0, y=0, bit_offset=0))
+    assert_list_equal(target.to_list(),
+                      [0b01010101,
+                       0b10111010,
+                       0b01100100,
+                       0b11001111,
+                       0b10100000,
+                       0b10111101,
+                       0b11100001,
+                       0b01101011,
+                       0b10110111,
+                       0b00000111,
+                       0b11111010,
+                       0b01111101,
+                       0b00110010,
+                       0b11101100,
+                       0b00110110,
+                       0b10111100])
+
+
+def test_write_2bpp_graphic_to_block_offset_xy():
+    source = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 2, 1, 2, 3, 2, 1, 2, 1],
+              [0, 0, 2, 3, 1, 0, 2, 3, 2, 2],
+              [0, 0, 3, 0, 3, 2, 2, 2, 0, 2],
+              [0, 0, 1, 3, 3, 0, 2, 0, 2, 3],
+              [0, 0, 1, 0, 1, 1, 0, 3, 3, 3],
+              [0, 0, 1, 3, 3, 3, 3, 2, 1, 2],
+              [0, 0, 2, 2, 3, 1, 2, 2, 1, 0],
+              [0, 0, 2, 0, 3, 3, 2, 3, 1, 0],
+              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    target = Block()
+    target.from_list([0xff] * 18)
+    assert_equal(16, write_2bpp_graphic_to_block(source=source, target=target, offset=1, x=2, y=1, bit_offset=0))
+    assert_list_equal(target.to_list(),
+                      [0xff,
+                       0b01010101,
+                       0b10111010,
+                       0b01100100,
+                       0b11001111,
+                       0b10100000,
+                       0b10111101,
+                       0b11100001,
+                       0b01101011,
+                       0b10110111,
+                       0b00000111,
+                       0b11111010,
+                       0b01111101,
+                       0b00110010,
+                       0b11101100,
+                       0b00110110,
+                       0b10111100,
+                       0xff])

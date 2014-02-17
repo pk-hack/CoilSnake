@@ -67,8 +67,8 @@ def write_2bpp_graphic_to_block(source, target, offset, x=0, y=0, bit_offset=0):
     :param source: 2D pixel array to read from
     :param target: block to write to
     :param offset: offset in the block from where to read the graphical data
-    :param x: x offset on the target image to write to
-    :param y: y offset on the target image to write to
+    :param x: x offset on the source image to read from
+    :param y: y offset on the source image to read from
     :param bit_offset: number of bits to shift the color data before writing it to the target"""
     if bit_offset < 0:
         bit_offset = 0
