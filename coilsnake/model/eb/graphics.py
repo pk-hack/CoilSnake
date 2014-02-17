@@ -33,8 +33,8 @@ class EbGraphicTileset(EqualityMixin):
             raise InvalidArgumentError("Couldn't create EbGraphicTileset with invalid tile_width[{}]".format(
                 tile_width))
         elif (tile_width % 8) != 0:
-            raise NotImplementedError("Don't know how to create an EbGraphicTileset with a tile_height[{}] that is "
-                                      "not a multiple of 8".format(tile_height))
+            raise InvalidArgumentError("Couldn't create EbGraphicTileset with a tile_height[{}] that is not a multiple"
+                                       "of 8".format(tile_height))
         self.tile_width = tile_width
 
         if tile_height <= 0:
@@ -98,16 +98,12 @@ class EbGraphicTileset(EqualityMixin):
     def block_size(self, bpp=2):
         """Returns the size required to represent this tileset in a block.
         :param bpp: The number of bits used to represent each pixel by the block representation."""
-        if bpp != 1:
-            return 8 * bpp * self.num_tiles_maximum
-        else:
-            return self.tile_height * (self.tile_width / 2)
+        return self.tile_height * bpp * (self.tile_width / 8) * self.num_tiles_maximum
 
     def from_image(self, image, arrangement, palette):
         """Reads in a tileset from an image, given a known arrangement and palette which were used to construct the
-        image.
-
-        TODO support the arrangement flip flags in this function
+        image. This function assumes that the arrangement is simple and does not make use of the horizontal or
+        vertical flip flags.
 
         :param image: the image representation of the tileset to be read rendered using the arrangement and palette
         :param arrangement: the known arrangement which describes how the image is rendered

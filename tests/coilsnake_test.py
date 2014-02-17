@@ -2,26 +2,33 @@ import os
 import tempfile
 
 from PIL import Image
-import mock
 
 
-class CoilSnakeTestCase(object):
-    TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test_data")
+TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test_data")
+TEST_IMAGE_DIR = os.path.join(TEST_DATA_DIR, "images")
 
-    def setup_mock(self):
-        self.mock = mock.Mock()
 
-    def setup_temporary_wo_file(self):
+class BaseTestCase(object):
+    def test_baseline(self):
+        pass
+
+
+class TemporaryWritableFileTestCase(object):
+    def setup(self):
         self.temporary_wo_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
         self.temporary_wo_file_name = self.temporary_wo_file.name
 
-    def teardown_temporary_wo_file(self):
+    def teardown(self):
         if not self.temporary_wo_file.closed:
             self.temporary_wo_file.close()
         os.remove(self.temporary_wo_file_name)
 
-    def setup_image(self):
-        self.image = Image.open(os.path.join(self.TEST_DATA_DIR, "images", "tile_image_01.png"))
 
-    def teardown_image(self):
-        del self.image
+class TilesetImageTestCase(object):
+    def setup(self):
+        self.tile_image_01_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_image_01.png"), 'r')
+        self.tile_image_01 = Image.open(self.tile_image_01_fp)
+
+    def teardown(self):
+        self.tile_image_01_fp.close()
+        del self.tile_image_01

@@ -70,8 +70,7 @@ def write_2bpp_graphic_to_block(source, target, offset, x=0, y=0, bit_offset=0):
     :param x: x offset on the source image to read from
     :param y: y offset on the source image to read from
     :param bit_offset: number of bits to shift the color data before writing it to the target"""
-    if bit_offset < 0:
-        bit_offset = 0
+    bit_offset = min(0, bit_offset)
     tmp1 = tmp2 = tmp3 = 0
     for i in xrange(0, 8):
         for k in xrange(0, 2):

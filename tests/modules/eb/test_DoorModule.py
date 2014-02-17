@@ -5,16 +5,16 @@ from nose.tools.nontrivial import nottest
 
 from coilsnake.modules.eb.DoorModule import DoorModule
 from coilsnake.model.common.blocks import Rom
-from tests.coilsnake_test import CoilSnakeTestCase
+from tests.coilsnake_test import BaseTestCase, TemporaryWritableFileTestCase, TEST_DATA_DIR
 
 
-class TestDoorModule(CoilSnakeTestCase):
+class TestDoorModule(BaseTestCase, TemporaryWritableFileTestCase):
     def setup(self):
-        self.setup_temporary_wo_file()
+        super(TestDoorModule, self).setup()
         self.module = DoorModule()
 
     def teardown(self):
-        self.teardown_temporary_wo_file()
+        super(TestDoorModule, self).teardown()
         del self.module
 
     @nottest
@@ -22,7 +22,7 @@ class TestDoorModule(CoilSnakeTestCase):
         self.module.read_from_rom(rom)
 
         # Very simple verification by checking the amount of different types of doors that were read
-        assert_equal(len(self.module.door_areas), 40*32)
+        assert_equal(len(self.module.door_areas), 40 * 32)
         num_door_types = dict()
         num_empty_areas = 0
         for area in self.module.door_areas:
@@ -45,7 +45,7 @@ class TestDoorModule(CoilSnakeTestCase):
 
     def test_read_from_rom(self):
         with Rom() as rom:
-            rom.from_file(os.path.join(self.TEST_DATA_DIR, 'roms', 'true_EarthBound.smc'))
+            rom.from_file(os.path.join(TEST_DATA_DIR, 'roms', 'true_EarthBound.smc'))
             self.test_read_from_rom_using_rom(rom)
 
     @nottest
@@ -57,7 +57,7 @@ class TestDoorModule(CoilSnakeTestCase):
             self.module.read_from_project(resource_open)
 
         # Very simple verification by checking the amount of different types of doors that were read
-        assert_equal(len(self.module.door_areas), 40*32)
+        assert_equal(len(self.module.door_areas), 40 * 32)
         num_door_types = dict()
         num_empty_areas = 0
         for area in self.module.door_areas:
@@ -79,15 +79,16 @@ class TestDoorModule(CoilSnakeTestCase):
         })
 
     def test_read_from_project(self):
-        self.test_read_from_project_using_filename(os.path.join(self.TEST_DATA_DIR, 'true_map_doors.yml'))
+        self.test_read_from_project_using_filename(os.path.join(TEST_DATA_DIR, 'true_map_doors.yml'))
 
     def test_write_to_project(self):
         with Rom() as rom:
-            rom.from_file(os.path.join(self.TEST_DATA_DIR, 'roms', 'true_EarthBound.smc'))
+            rom.from_file(os.path.join(TEST_DATA_DIR, 'roms', 'true_EarthBound.smc'))
             self.module.read_from_rom(rom)
 
         def resource_open(a, b):
             return self.temporary_wo_file
+
         self.module.write_to_project(resource_open)
 
         assert_true(os.path.isfile(self.temporary_wo_file_name))
@@ -95,13 +96,13 @@ class TestDoorModule(CoilSnakeTestCase):
         self.test_read_from_project_using_filename(self.temporary_wo_file_name)
 
     def test_write_to_rom(self):
-        with open(os.path.join(self.TEST_DATA_DIR, 'true_map_doors.yml'), 'r') as doors_file:
+        with open(os.path.join(TEST_DATA_DIR, 'true_map_doors.yml'), 'r') as doors_file:
             def resource_open(a, b):
                 return doors_file
 
             self.module.read_from_project(resource_open)
 
         with Rom() as rom:
-            rom.from_file(os.path.join(self.TEST_DATA_DIR, 'roms', 'true_EarthBound.smc'))
+            rom.from_file(os.path.join(TEST_DATA_DIR, 'roms', 'true_EarthBound.smc'))
             self.module.write_to_rom(rom)
             self.test_read_from_rom_using_rom(rom)

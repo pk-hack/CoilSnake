@@ -5,12 +5,12 @@ from nose.tools import assert_equal, assert_not_equal, assert_raises, assert_lis
 from nose.tools.nontrivial import raises
 
 from coilsnake.model.common.blocks import Block, AllocatableBlock, Rom, ROM_TYPE_NAME_UNKNOWN
-from tests.coilsnake_test import CoilSnakeTestCase
+from tests.coilsnake_test import BaseTestCase, TEST_DATA_DIR
 from coilsnake.exceptions import FileAccessError, OutOfBoundsError, InvalidArgumentError, ValueNotUnsignedByteError, \
     CouldNotAllocateError, NotEnoughUnallocatedSpaceError
 
 
-class TestBlock(CoilSnakeTestCase):
+class TestBlock(BaseTestCase):
     def setup(self):
         self.block = Block()
 
@@ -25,17 +25,17 @@ class TestBlock(CoilSnakeTestCase):
         assert_equal(len(self.block.data), 0)
 
     def test_from_file(self):
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, 'roms', '1kb_null.bin'))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, 'roms', '1kb_null.bin'))
         assert_equal(len(self.block), 1024)
         assert_list_equal(self.block.to_list(), [0] * 1024)
 
     def test_from_file_unhappy(self):
         # Attempt to load a directory
-        assert_raises(FileAccessError, self.block.from_file, self.TEST_DATA_DIR)
+        assert_raises(FileAccessError, self.block.from_file, TEST_DATA_DIR)
         # Attempt to load a nonexistent file
-        assert_raises(FileAccessError, self.block.from_file, os.path.join(self.TEST_DATA_DIR, "doesnotexist.bin"))
+        assert_raises(FileAccessError, self.block.from_file, os.path.join(TEST_DATA_DIR, "doesnotexist.bin"))
         # Attempt to load a file in a nonexistent directory
-        assert_raises(FileAccessError, self.block.from_file, os.path.join(self.TEST_DATA_DIR, "dne", "dne.bin"))
+        assert_raises(FileAccessError, self.block.from_file, os.path.join(TEST_DATA_DIR, "dne", "dne.bin"))
 
     def test_from_list(self):
         self.block.from_list([0, 1, 2, 3, 4, 5])
@@ -51,7 +51,7 @@ class TestBlock(CoilSnakeTestCase):
         assert_list_equal(self.block.to_list(), [69])
 
     def test_getitem(self):
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "1kb_rand.bin"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "1kb_rand.bin"))
 
         assert_equal(self.block[0], 0x25)
         assert_equal(self.block[1023], 0x20)
@@ -62,7 +62,7 @@ class TestBlock(CoilSnakeTestCase):
         assert_raises(OutOfBoundsError, self.block.__getitem__, 9999)
 
     def test_getitem_slice(self):
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "1kb_rand.bin"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "1kb_rand.bin"))
 
         assert_is_instance(self.block[0:1], Block)
 
@@ -80,7 +80,7 @@ class TestBlock(CoilSnakeTestCase):
         assert_raises(InvalidArgumentError, self.block.__getitem__, slice(1022, 3))
 
     def test_setitem(self):
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "1kb_rand.bin"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "1kb_rand.bin"))
 
         self.block[1] = 0xaa
         assert_equal(self.block[0], 0x25)
@@ -93,7 +93,7 @@ class TestBlock(CoilSnakeTestCase):
         assert_raises(ValueNotUnsignedByteError, self.block.__setitem__, 1, -1)
 
     def test_setitem_slice(self):
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "1kb_rand.bin"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "1kb_rand.bin"))
 
         assert_list_equal(self.block[0:3].to_list(), [0x25, 0x20, 0x38])
         self.block[0:3] = [0xeb, 0x15, 0x66]
@@ -292,17 +292,17 @@ class TestRom(TestAllocatableBlock):
         self.block = Rom()
 
     def test_detect_rom_type(self):
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_noheader.smc"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "EB_fake_noheader.smc"))
         assert_equal(self.block.type, "Earthbound")
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_header.smc"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "EB_fake_header.smc"))
         assert_equal(self.block.type, "Earthbound")
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "empty.smc"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "empty.smc"))
         assert_equal(self.block.type, ROM_TYPE_NAME_UNKNOWN)
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "1kb_null.bin"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "1kb_null.bin"))
         assert_equal(self.block.type, ROM_TYPE_NAME_UNKNOWN)
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_header.smc"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "EB_fake_header.smc"))
         assert_equal(self.block.type, "Earthbound")
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
         assert_equal(self.block.type, "Earthbound")
 
     @raises(NotImplementedError)
@@ -311,7 +311,7 @@ class TestRom(TestAllocatableBlock):
         self.block.add_header()
 
     def test_add_header_eb(self):
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
         assert_equal(self.block.size, 0x300000)
         self.block.add_header()
         assert_equal(self.block.size, 0x300200)
@@ -324,7 +324,7 @@ class TestRom(TestAllocatableBlock):
         self.block.expand(0x123456)
 
     def test_expand_eb(self):
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
         assert_raises(InvalidArgumentError, self.block.expand, 0x400200)
         assert_raises(InvalidArgumentError, self.block.expand, 0x300000)
         self.block.expand(0x400000)
@@ -337,7 +337,7 @@ class TestRom(TestAllocatableBlock):
         assert_equal(self.block[0xffd5], 0x25)
         assert_equal(self.block[0xffd7], 0x0d)
 
-        self.block.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
         self.block.expand(0x600000)
         assert_equal(self.block.size, 0x600000)
         assert_equal(len(self.block.data), 0x600000)

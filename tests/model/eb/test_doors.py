@@ -3,10 +3,10 @@ from nose.tools import assert_equal, assert_list_equal, assert_dict_equal, asser
 from coilsnake.model.common.blocks import AllocatableBlock
 from coilsnake.model.eb.doors import Door, DoorType, NpcDoor, DestinationDirection, EscalatorOrStairwayDoor, \
     StairDirection, RopeOrLadderDoor, ClimbableType, SwitchDoor
-from tests.coilsnake_test import CoilSnakeTestCase
+from tests.coilsnake_test import BaseTestCase
 
 
-class GenericTestDoor(CoilSnakeTestCase):
+class GenericTestDoor(BaseTestCase):
     DOOR_TYPE = None
     DOOR_CLASS = None
     DOOR = None

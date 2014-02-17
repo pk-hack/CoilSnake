@@ -281,12 +281,6 @@ class Rom(AllocatableBlock):
         super(Rom, self).from_file(filename)
         self._setup_rom_post_load()
 
-    def from_array(self, data_array):
-        super(Rom, self).from_array(data_array)
-
-    def from_list(self, data_list):
-        super(Rom, self).from_list(data_list)
-
     def _setup_rom_post_load(self):
         self.type = self._detect_type()
         if self.type != ROM_TYPE_NAME_UNKNOWN and 'free ranges' in ROM_TYPE_MAP[self.type]:

@@ -6,27 +6,27 @@ from nose.tools import assert_equal
 
 from coilsnake.modules.eb import EbModule, NativeComp
 from coilsnake.model.common.blocks import Rom
-from tests.coilsnake_test import CoilSnakeTestCase
+from tests.coilsnake_test import BaseTestCase, TEST_DATA_DIR
 
 
-class TestEbModule(CoilSnakeTestCase):
+class TestEbModule(BaseTestCase):
     """
     A test class for the EbModule module
     """
 
     def setup(self):
         self.rom = Rom()
-        self.rom.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_24mbit.smc"))
+        self.rom.from_file(os.path.join(TEST_DATA_DIR, "roms", "EB_fake_24mbit.smc"))
 
     @nottest
     def test_decomp(self, decomp):
         onett_map = array.array('B')
         with Rom() as eb_rom:
-            eb_rom.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
+            eb_rom.from_file(os.path.join(TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
             onett_map.fromlist(decomp(eb_rom, 0x2021a8))
 
         onett_map_expect = array.array('B')
-        with open(os.path.join(self.TEST_DATA_DIR, "binaries", "true_onett_map_graphics.smc"), 'rb') as f:
+        with open(os.path.join(TEST_DATA_DIR, "binaries", "true_onett_map_graphics.smc"), 'rb') as f:
             onett_map_expect.fromstring(f.read())
 
         assert_equal(len(onett_map), len(onett_map_expect))
@@ -35,7 +35,7 @@ class TestEbModule(CoilSnakeTestCase):
     @nottest
     def test_comp(self, comp, decomp):
         a = array.array('B')
-        with open(os.path.join(self.TEST_DATA_DIR, "binaries", "true_onett_map_graphics.smc"), 'rb') as f:
+        with open(os.path.join(TEST_DATA_DIR, "binaries", "true_onett_map_graphics.smc"), 'rb') as f:
             a.fromstring(f.read())
         uncompressed_data = a.tolist()
 
@@ -43,7 +43,7 @@ class TestEbModule(CoilSnakeTestCase):
         assert_equal(len(compressed_data), 10877)
 
         with Rom() as fake_eb_rom:
-            fake_eb_rom.from_file(os.path.join(self.TEST_DATA_DIR, "roms", "EB_fake_32mbit.smc"))
+            fake_eb_rom.from_file(os.path.join(TEST_DATA_DIR, "roms", "EB_fake_32mbit.smc"))
             fake_eb_rom[0x300000:0x300000 + len(compressed_data)] = compressed_data
             reuncompressed_data = decomp(fake_eb_rom, 0x300000)
 

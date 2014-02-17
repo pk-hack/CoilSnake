@@ -4,10 +4,10 @@ from coilsnake.model.common.blocks import Block
 from coilsnake.exceptions import InvalidArgumentError, MissingUserDataError, InvalidUserDataError
 from coilsnake.model.eb.pointers import EbPointer, EbTextPointer
 from coilsnake.modules.eb.exceptions import InvalidEbTextPointerError
-from tests.coilsnake_test import CoilSnakeTestCase
+from tests.coilsnake_test import BaseTestCase
 
 
-class TestEbPointer(CoilSnakeTestCase):
+class TestEbPointer(BaseTestCase):
     def setup(self):
         self.pointer = EbPointer()
         EbPointer.label_address_map["a.b"] = 0x1314ab
@@ -56,7 +56,7 @@ class TestEbPointer(CoilSnakeTestCase):
         assert_equal(self.pointer.yml_rep(), "$fe4392")
 
 
-class TestEbTextPointer(CoilSnakeTestCase):
+class TestEbTextPointer(BaseTestCase):
     def setup(self):
         self.pointer = EbTextPointer(size=4)
 

@@ -1,22 +1,24 @@
 import os
 import os.path
 
+import mock
 from nose.tools import assert_equal, assert_true, assert_dict_equal, assert_false, assert_is_none
 
 from coilsnake.model.eb.pointers import EbPointer
 from coilsnake.modules.eb import CccInterfaceModule
 from coilsnake.util.eb.pointer import from_snes_address
-from tests.coilsnake_test import CoilSnakeTestCase
+from tests.coilsnake_test import BaseTestCase, TemporaryWritableFileTestCase, TEST_DATA_DIR
 
 
-class TestCccInterfaceModule(CoilSnakeTestCase):
+class TestCccInterfaceModule(BaseTestCase, TemporaryWritableFileTestCase):
     def setup(self):
-        self.setup_mock()
-        self.setup_temporary_wo_file()
+        super(TestCccInterfaceModule, self).setup()
+        self.mock = mock.Mock()
         self.module = CccInterfaceModule.CccInterfaceModule()
 
     def teardown(self):
-        self.teardown_temporary_wo_file()
+        super(TestCccInterfaceModule, self).teardown()
+        del self.mock
         del self.module
 
     def test_write_to_project(self):
@@ -29,7 +31,7 @@ class TestCccInterfaceModule(CoilSnakeTestCase):
         assert_equal(0, os.path.getsize(self.temporary_wo_file_name))
 
     def test_read_from_project(self):
-        with open(os.path.join(self.TEST_DATA_DIR, 'summary.txt'), 'r') as summary_file:
+        with open(os.path.join(TEST_DATA_DIR, 'summary.txt'), 'r') as summary_file:
             def resource_open(a, b):
                 return summary_file
 
@@ -61,7 +63,7 @@ class TestCccInterfaceModule(CoilSnakeTestCase):
         assert_false(EbPointer.label_address_map)
 
     def test_read_from_project_blank_summary(self):
-        with open(os.path.join(self.TEST_DATA_DIR, 'summary_blank.txt'), 'r') as summary_file:
+        with open(os.path.join(TEST_DATA_DIR, 'summary_blank.txt'), 'r') as summary_file:
             def resource_open(a, b):
                 return summary_file
 
