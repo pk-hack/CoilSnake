@@ -6,16 +6,16 @@ log = logging.getLogger(__name__)
 ##### in JHack, written by AnyoneEB.
 
 
-def read_1bpp_graphic_from_block(source, target, offset, x=0, y=0, width=8, height=8):
+def read_1bpp_graphic_from_block(source, target, offset, x=0, y=0, height=8):
     """Reads an graphic stored in the 1 bit-per-pixel format from a block to a 2D array of pixels.
     :param source: block to read from
     :param target: 2D pixel array to write to
     :param offset: offset in the block from where to read the graphical data
     :param x: x offset on the target image to write to
     :param y: y offset on the target image to write to
-    :param height: the height of this """
-    log.debug("read_1bpp_graphic_from_block called with offset[{:#x}], x[{}], y[{}], width[{}], height[{}]".format(
-        offset, x, y, width, height))
+    :param height: the height in pixels of the graphic to read"""
+    log.debug("read_1bpp_graphic_from_block called with offset[{:#x}], x[{}], y[{}], height[{}]".format(
+        offset, x, y, height))
     for i in xrange(height):
         b = source[offset]
         offset += 1
@@ -24,7 +24,16 @@ def read_1bpp_graphic_from_block(source, target, offset, x=0, y=0, width=8, heig
     return height
 
 
-def write_1bpp_graphic_to_block(source, target, offset, x=0, y=0, width=8, height=8):
+def write_1bpp_graphic_to_block(source, target, offset, x=0, y=0, height=8):
+    """Writes an 8x8 graphic stored in the 1 bits-per-pixel format to a block from the specified area in the image.
+    :param source: 2D pixel array to read from
+    :param target: block to write to
+    :param offset: offset in the block where to write the graphical data
+    :param x: x offset on the source image to read from
+    :param y: y offset on the source image to read from
+    :param height: the height in pixels of the graphic to write"""
+    log.debug("write_1bpp_graphic_to_block called with offset[{:#x}], x[{}], y[{}], height[{}]".format(
+        offset, x, y, height))
     for i in xrange(height):
         b = 0
         for j in xrange(8):

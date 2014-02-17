@@ -26,15 +26,14 @@ class EbGraphicTileset(EqualityMixin):
         :param tile_width: width in pixels of each of the tileset's individual tiles
         :param tile_height: height in pixels of each of the tileset's individual tiles"""
         if num_tiles <= 0:
-            raise InvalidArgumentError("Couldn't create EbGraphicTileset with invalid number of tiles: {}".format(
-                num_tiles))
+            raise InvalidArgumentError("Couldn't create EbGraphicTileset with invalid num_tiles[{}]".format(num_tiles))
         self.num_tiles_maximum = num_tiles
 
         if tile_width <= 0:
-            raise InvalidArgumentError("Couldn't create EbGraphicTileset with invalid tile width[{}]".format(
+            raise InvalidArgumentError("Couldn't create EbGraphicTileset with invalid tile_width[{}]".format(
                 tile_width))
         elif (tile_width % 8) != 0:
-            raise NotImplementedError("Don't know how to create an EbGraphicTileset with a tile height[{}] which is "
+            raise NotImplementedError("Don't know how to create an EbGraphicTileset with a tile_height[{}] that is "
                                       "not a multiple of 8".format(tile_height))
         self.tile_width = tile_width
 
