@@ -1,8 +1,10 @@
-from coilsnake.exceptions import OutOfBoundsError
+from coilsnake.exceptions import InvalidArgumentError
 
 
 def from_snes_address(address):
-    if address >= 0xc00000:
+    if address < 0:
+        raise InvalidArgumentError("Invalid snes address[{:#x}]".format(address))
+    elif address >= 0xc00000:
         return address - 0xc00000
     else:
         return address
