@@ -177,10 +177,10 @@ class EbTileArrangement(EqualityMixin):
         :param width: the width of the arrangement in tiles
         :param height: the height of the arrangement in tiles"""
         if width <= 0:
-            raise InvalidArgumentError("Couldn't create EbTileImage with invalid width[{}]".format(width))
+            raise InvalidArgumentError("Couldn't create EbTileArrangement with invalid width[{}]".format(width))
         self.width = width
         if height <= 0:
-            raise InvalidArgumentError("Couldn't create EbTileImage with invalid height[{}]".format(height))
+            raise InvalidArgumentError("Couldn't create EbTileArrangement with invalid height[{}]".format(height))
         self.height = height
         self.arrangement = [[EbTileArrangementItem() for x in range(self.width)] for y in range(self.height)]
 
@@ -219,4 +219,7 @@ class EbTileArrangement(EqualityMixin):
 
     def __getitem__(self, key):
         x, y = key
+        if x < 0 or y < 0 or x >= self.width or y >= self.height:
+            raise InvalidArgumentError("Couldn't get arrangement item[{},{}] from arrangement of size[{}x{}]".format(
+                x, y, self.width, self.height))
         return self.arrangement[y][x]

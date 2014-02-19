@@ -27,8 +27,16 @@ class TemporaryWritableFileTestCase(object):
 class TilesetImageTestCase(object):
     def setup(self):
         self.tile_image_01_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_image_01.png"), 'r')
-        self.tile_image_01 = Image.open(self.tile_image_01_fp)
+        self.tile_image_01_img = Image.open(self.tile_image_01_fp)
+        self.tile_8x8_2bpp_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x8_2bpp.png"), 'r')
+        self.tile_8x8_2bpp_img = Image.open(self.tile_8x8_2bpp_fp)
+        self.tile_8x16_4bpp_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x16_4bpp.png"), 'r')
+        self.tile_8x16_4bpp_img = Image.open(self.tile_8x16_4bpp_fp)
 
     def teardown(self):
         self.tile_image_01_fp.close()
-        del self.tile_image_01
+        del self.tile_image_01_img
+        self.tile_8x8_2bpp_fp.close()
+        del self.tile_8x8_2bpp_img
+        self.tile_8x16_4bpp_fp.close()
+        del self.tile_8x16_4bpp_img

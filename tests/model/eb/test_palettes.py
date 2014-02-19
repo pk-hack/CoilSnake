@@ -148,7 +148,7 @@ class TestEbPalette(BaseTestCase, TilesetImageTestCase):
                                                   31, 0, 234, 20, 34, 70, 0xff])
 
     def test_from_image(self):
-        self.palette.from_image(self.tile_image_01)
+        self.palette.from_image(self.tile_image_01_img)
         assert_list_equal(self.palette.list(),
                           [0x00, 0x00, 0x00, 0x0c, 0x00, 0xff, 0xff, 0x00, 0x00,
                            0x00, 0xff, 0x18, 0xc6, 0xff, 0x00, 0xff, 0xff, 0xff])
