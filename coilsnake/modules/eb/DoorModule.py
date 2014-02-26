@@ -3,8 +3,8 @@ from re import sub
 import logging
 
 from coilsnake.model.eb.doors import door_from_block, door_from_yml_rep, not_in_destination_bank
-from coilsnake.modules.eb.EbTablesModule import EbTable
 from coilsnake.Progress import updateProgress
+from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
@@ -17,16 +17,16 @@ class DoorModule(EbModule):
 
     def __init__(self):
         super(EbModule, self).__init__()
-        self.pointer_table = EbTable(0xD00000)
+        self.pointer_table = eb_table_from_offset(0xD00000)
         self.door_areas = []
 
     def read_from_rom(self, rom):
-        self.pointer_table.readFromRom(rom)
+        self.pointer_table.from_block(rom, from_snes_address(0xD00000))
         updateProgress(5)
         pct = 45.0 / (40 * 32)
         self.door_areas = []
-        for i in range(self.pointer_table.height()):
-            offset = from_snes_address(self.pointer_table[i, 0].val())
+        for i in range(self.pointer_table.num_rows):
+            offset = from_snes_address(self.pointer_table[i, 0])
             door_area = []
             num_doors = rom.read_multi(offset, 2)
             offset += 2
@@ -91,7 +91,6 @@ class DoorModule(EbModule):
                     updateProgress(pct)
 
     def write_to_rom(self, rom):
-        self.pointer_table.clear(32 * 40)
         # Deallocate the range of the ROM in which we will write the door destinations.
         # We deallocate it here instead of specifying it in FREE_RANGES because we want to be sure that this module
         # get first dibs at writing to this range. This is because door destinations needs to be written to the 0x0F
@@ -103,11 +102,11 @@ class DoorModule(EbModule):
         i = 0
         for door_area in self.door_areas:
             if (door_area is None) or (not door_area):
-                self.pointer_table[i, 0].setVal(empty_area_offset)
+                self.pointer_table[i, 0] = empty_area_offset
             else:
                 num_doors = len(door_area)
                 area_offset = rom.allocate(size=(2 + num_doors * 5), can_write_to=not_in_destination_bank)
-                self.pointer_table[i, 0].setVal(to_snes_address(area_offset))
+                self.pointer_table[i, 0] = to_snes_address(area_offset)
                 rom.write_multi(area_offset, num_doors, 2)
                 area_offset += 2
                 for door in door_area:
@@ -115,5 +114,5 @@ class DoorModule(EbModule):
                     area_offset += 5
             i += 1
             updateProgress(pct)
-        self.pointer_table.writeToRom(rom)
+        self.pointer_table.to_block(rom, from_snes_address(0xD00000))
         updateProgress(5)

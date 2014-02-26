@@ -2,12 +2,14 @@ import yaml
 from re import sub
 
 from coilsnake.Progress import updateProgress
-from coilsnake.modules.eb import EbTablesModule
+from coilsnake.model.eb.table import eb_table_from_offset
+from coilsnake.modules.eb.EbModule import EbModule
+from coilsnake.util.eb.pointer import from_snes_address
 
 
-class MiscTablesModule(EbTablesModule.EbTablesModule):
+class MiscTablesModule(EbModule):
     NAME = "Misc Tables"
-    _tableIDs = [
+    TABLE_OFFSETS = [
         0xC3FD8D,  # Attract mode text
         0xD5F645,  # Timed Item Delivery
         0xE12F8A,  # Photographer
@@ -30,20 +32,32 @@ class MiscTablesModule(EbTablesModule.EbTablesModule):
         0xD55000,  # Item Data
         0xC23109,  # Consolation Item
         0xC3E250,  # Windows
-        # 0xC4C05E, # File select text # TODO need to fix this
-        # 0xC8CDED, # Compressed text ptr tbl
-        # 0xCCF47F, # PSI Anim Pals
-        # 0xCCF58F, # PSI Anim Ptrs
-        # 0xCF58EF, # Music Event Ptr Tbl
-        # 0xD01598, # Map Event Tile Ptr Tbl
-
     ]
+
+    def __init__(self):
+        super(MiscTablesModule, self).__init__()
+        self.tables = map(lambda x: (from_snes_address(x), eb_table_from_offset(x)), self.TABLE_OFFSETS)
+
+    def read_from_rom(self, rom):
+        for offset, table in self.tables:
+            table.from_block(rom, offset)
+
+    def write_to_rom(self, rom):
+        for offset, table in self.tables:
+            table.to_block(rom, offset)
+
+    def read_from_project(self, resource_open):
+        for _, table in self.tables:
+            with resource_open(table.name.lower(), "yml") as f:
+                table.from_yml_file(f)
+
+    def write_to_project(self, resource_open):
+        for _, table in self.tables:
+            with resource_open(table.name.lower(), "yml") as f:
+                table.to_yml_file(f)
 
     def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                         resourceOpenerW, resourceDeleter):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
         # Helper function
         def lowerIfStr(s):
             if isinstance(s, str):

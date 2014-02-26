@@ -1,8 +1,15 @@
+import logging
+import yaml
+
 from coilsnake.exceptions import InvalidArgumentError
 from coilsnake.model.common.table_new import GenericLittleEndianTable, LittleEndianIntegerTableEntry
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.pointers import EbPointer
+from coilsnake.util.common.assets import open_asset
 from coilsnake.util.eb.text import standard_text_from_block, standard_text_to_block
+
+
+log = logging.getLogger(__name__)
 
 
 class EbPointerTableEntry(LittleEndianIntegerTableEntry):
@@ -103,3 +110,25 @@ class EbTable(GenericLittleEndianTable):
            "palette": (EbPaletteTableEntry, ["name", "size"]),
            "standardtext": (EbStandardTextTableEntry, ["name", "size"]),
            "standardtext null-terminated": (EbStandardNullTerminatedTextTableEntry, ["name", "size"])})
+
+
+_EB_SCHEMA_MAP = None
+
+with open_asset("structures", "eb.yml") as f:
+    i = 1
+    for doc in yaml.load_all(f, Loader=yaml.CSafeLoader):
+        if i == 1:
+            i += 1
+        elif i == 2:
+            _EB_SCHEMA_MAP = doc
+            break
+
+
+def eb_table_from_offset(offset):
+    log.debug("Creating EbTable object for offset[{:#x}]".format(offset))
+    try:
+        schema = _EB_SCHEMA_MAP[offset]
+    except KeyError:
+        raise InvalidArgumentError("Could not setup EbTable from unknown offset[{:#x}]".format(offset))
+
+    return EbTable(name=schema["name"], size=schema["size"], schema_specification=schema["entries"])

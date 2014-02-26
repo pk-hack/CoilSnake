@@ -66,7 +66,10 @@ class TestGenericLittleEndianTable(GenericTestTable):
          "size": 2},
         {"name": "Enumerated Integer",
          "type": "int",
-         "values": ["Zeroth", "First", "Second", "Third", "Fourth", "Fifth"]}
+         "values": ["Zeroth", "First", "Second", "Third", "Fourth", "Fifth"]},
+        {"name": "Bitfield",
+         "type": "bitfield",
+         "bitvalues": ["bit0", "bit1", "bit2", "bit3", "bit4", "bit5", "bit6"]}
     ]
     BLOCK_DATA = [72,  # First row
                   0xde, 0xbc, 0x1a,
@@ -78,6 +81,7 @@ class TestGenericLittleEndianTable(GenericTestTable):
                   0,
                   1, 0,
                   3,
+                  0b00001011,
                   255,  # Second row
                   0, 0, 0,
                   0xcd, 0xab,
@@ -87,7 +91,8 @@ class TestGenericLittleEndianTable(GenericTestTable):
                   0xff, 0x00, 0x9f, 0xf1, 0xaa,
                   1,
                   0, 0,
-                  6]
+                  6,
+                  0b11100100]
     TABLE_VALUES = [[72,  # First row
                      0x1abcde,
                      0xf235,
@@ -97,7 +102,8 @@ class TestGenericLittleEndianTable(GenericTestTable):
                      [0x00, 0x11, 0x22, 0x33, 0x44],
                      False,
                      True,
-                     3],
+                     3,
+                     set([0, 1, 3])],
                     [255,
                      0,
                      0xabcd,
@@ -107,7 +113,8 @@ class TestGenericLittleEndianTable(GenericTestTable):
                      [0xff, 0x00, 0x9f, 0xf1, 0xaa],
                      True,
                      False,
-                     6]]
+                     6,
+                     set([2, 5, 6, 7])]]
     YML_REP = {0: {"Default Integer": 72,
                    "Sized Integer": 0x1abcde,
                    "Sized Typed Integer": 0xf235,
@@ -117,7 +124,8 @@ class TestGenericLittleEndianTable(GenericTestTable):
                    "Byte Array": [0x00, 0x11, 0x22, 0x33, 0x44],
                    "Default Boolean": False,
                    "Sized Boolean": True,
-                   "Enumerated Integer": "third"},
+                   "Enumerated Integer": "third",
+                   "Bitfield": ["bit0", "bit1", "bit3"]},
                1: {"Default Integer": 255,
                    "Sized Integer": 0,
                    "Sized Typed Integer": 0xabcd,
@@ -127,5 +135,6 @@ class TestGenericLittleEndianTable(GenericTestTable):
                    "Byte Array": [0xff, 0x00, 0x9f, 0xf1, 0xaa],
                    "Default Boolean": True,
                    "Sized Boolean": False,
-                   "Enumerated Integer": 6}
+                   "Enumerated Integer": 6,
+                   "Bitfield": [7, "bit2", "bit5", "bit6"]}
     }

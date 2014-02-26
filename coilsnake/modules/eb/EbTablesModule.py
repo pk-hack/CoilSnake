@@ -1,9 +1,9 @@
-import os
 import yaml
 
 from coilsnake.modules.common.TablesModule import TablesModule
 from coilsnake.modules.eb import EbModule
 from coilsnake.model.common.table import IntTableEntry, Table, genericEntryGenerator
+from coilsnake.util.common.assets import open_asset
 
 
 class PointerTableEntry(IntTableEntry):
@@ -109,7 +109,7 @@ class EbTable(Table):
     def __init__(self, addr):
         if EbTable.eb_table_map is None:
             # print "Loading eb.yml"
-            with open(os.path.join(os.path.dirname(__file__), "resources", "eb.yml")) as f:
+            with open_asset("structures", "eb.yml") as f:
                 i = 1
                 for doc in yaml.load_all(f, Loader=yaml.CSafeLoader):
                     if i == 1:
