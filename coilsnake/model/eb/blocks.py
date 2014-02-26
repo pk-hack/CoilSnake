@@ -2,7 +2,7 @@ import logging
 
 from coilsnake.model.common.blocks import Block
 from coilsnake.modules.eb import EbModule
-from coilsnake.modules.eb.exceptions import InvalidEbCompressedDataError
+from coilsnake.exceptions.eb.exceptions import InvalidEbCompressedDataError
 
 
 log = logging.getLogger(__name__)

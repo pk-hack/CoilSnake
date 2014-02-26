@@ -1,6 +1,6 @@
 import logging
 
-from coilsnake.exceptions import InvalidArgumentError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
 
 log = logging.getLogger(__name__)

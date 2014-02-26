@@ -1,7 +1,7 @@
 from nose.tools import assert_equal, assert_list_equal
 from nose.tools.nontrivial import raises
 
-from coilsnake.exceptions import InvalidArgumentError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
 from coilsnake.util.eb.pointer import from_snes_address, write_asm_pointer, read_asm_pointer, to_snes_address
 

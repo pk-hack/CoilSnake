@@ -1,8 +1,7 @@
 import logging
-
 from PIL import Image
 
-from coilsnake.exceptions import InvalidArgumentError, OutOfBoundsError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError, OutOfBoundsError
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
 from coilsnake.util.eb.graphics import read_2bpp_graphic_from_block, read_4bpp_graphic_from_block, \
     read_8bpp_graphic_from_block, read_1bpp_graphic_from_block, write_2bpp_graphic_to_block, \

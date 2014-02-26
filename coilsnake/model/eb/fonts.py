@@ -1,8 +1,7 @@
 import yaml
-
 from PIL import Image
 
-from coilsnake.exceptions import InvalidArgumentError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbTileArrangement, EbGraphicTileset
 from coilsnake.model.eb.palettes import EbPalette

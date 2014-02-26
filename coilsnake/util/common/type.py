@@ -1,4 +1,4 @@
-from coilsnake.exceptions import MissingUserDataError, InvalidUserDataError, InvalidArgumentError
+from coilsnake.exceptions.common.exceptions import MissingUserDataError, InvalidUserDataError, InvalidArgumentError
 
 
 class EqualityMixin(object):

@@ -6,7 +6,8 @@ from nose.tools.nontrivial import raises
 
 from coilsnake.model.common.blocks import Block, AllocatableBlock, Rom, ROM_TYPE_NAME_UNKNOWN
 from tests.coilsnake_test import BaseTestCase, TEST_DATA_DIR
-from coilsnake.exceptions import FileAccessError, OutOfBoundsError, InvalidArgumentError, ValueNotUnsignedByteError, \
+from coilsnake.exceptions.common.exceptions import FileAccessError, OutOfBoundsError, InvalidArgumentError, \
+    ValueNotUnsignedByteError, \
     CouldNotAllocateError, NotEnoughUnallocatedSpaceError
 
 

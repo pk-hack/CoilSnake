@@ -1,7 +1,8 @@
 from PIL import Image
+
 from nose.tools import assert_equal, assert_list_equal, assert_raises
 
-from coilsnake.exceptions import InvalidArgumentError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.palettes import EbColor, EbPalette
 from tests.coilsnake_test import BaseTestCase, TilesetImageTestCase

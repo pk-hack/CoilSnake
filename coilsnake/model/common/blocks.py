@@ -5,7 +5,8 @@ import os
 import yaml
 from zlib import crc32
 
-from coilsnake.exceptions import OutOfBoundsError, InvalidArgumentError, NotEnoughUnallocatedSpaceError, \
+from coilsnake.exceptions.common.exceptions import OutOfBoundsError, InvalidArgumentError, \
+    NotEnoughUnallocatedSpaceError, \
     FileAccessError, ValueNotUnsignedByteError, CouldNotAllocateError
 
 

@@ -1,9 +1,9 @@
 from nose.tools import assert_equal, raises, assert_list_equal, assert_raises
 
 from coilsnake.model.common.blocks import Block
-from coilsnake.exceptions import InvalidArgumentError, MissingUserDataError, InvalidUserDataError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError, MissingUserDataError, InvalidUserDataError
 from coilsnake.model.eb.pointers import EbPointer, EbTextPointer
-from coilsnake.modules.eb.exceptions import InvalidEbTextPointerError
+from coilsnake.exceptions.eb.exceptions import InvalidEbTextPointerError
 from tests.coilsnake_test import BaseTestCase
 
 

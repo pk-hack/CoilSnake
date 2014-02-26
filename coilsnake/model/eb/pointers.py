@@ -1,5 +1,5 @@
-from coilsnake.exceptions import InvalidArgumentError, MissingUserDataError, InvalidUserDataError
-from coilsnake.modules.eb.exceptions import InvalidEbTextPointerError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError, MissingUserDataError, InvalidUserDataError
+from coilsnake.exceptions.eb.exceptions import InvalidEbTextPointerError
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
 
 

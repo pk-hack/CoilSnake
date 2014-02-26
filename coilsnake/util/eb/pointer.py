@@ -1,4 +1,4 @@
-from coilsnake.exceptions import InvalidArgumentError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 
 
 def from_snes_address(address):

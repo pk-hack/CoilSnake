@@ -1,6 +1,6 @@
 from nose.tools import assert_equal, assert_raises, assert_list_equal, assert_false, assert_true, assert_is_instance
 
-from coilsnake.exceptions import InvalidArgumentError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangementItem, EbTileArrangement
 from coilsnake.model.eb.palettes import EbPalette

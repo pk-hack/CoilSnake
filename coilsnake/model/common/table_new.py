@@ -2,7 +2,7 @@ import logging
 import re
 import yaml
 
-from coilsnake.exceptions import InvalidArgumentError, IndexOutOfRangeError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError, IndexOutOfRangeError
 from coilsnake.util.common.helper import getitem_with_default
 from coilsnake.util.common.type import GenericEnum, in_range
 

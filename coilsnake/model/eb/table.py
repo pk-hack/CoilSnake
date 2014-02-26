@@ -1,7 +1,7 @@
 import logging
 import yaml
 
-from coilsnake.exceptions import InvalidArgumentError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.table_new import GenericLittleEndianTable, LittleEndianIntegerTableEntry
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.pointers import EbPointer
