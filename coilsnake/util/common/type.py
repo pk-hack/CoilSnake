@@ -4,7 +4,7 @@ from coilsnake.exceptions import MissingUserDataError, InvalidUserDataError, Inv
 class EqualityMixin(object):
     def __eq__(self, other):
         return (isinstance(other, self.__class__)
-            and self.__dict__ == other.__dict__)
+                and self.__dict__ == other.__dict__)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -13,9 +13,9 @@ class EqualityMixin(object):
 class StringRepresentationMixin(object):
     def __repr__(self):
         return "<{}({})>".format(
-                self.__class__.__name__,
-                ', '.join(["{}={}".format(k, repr(self.__dict__[k]))  for k in self.__dict__ if k[0] != '_'])
-                )
+            self.__class__.__name__,
+            ', '.join(["{}={}".format(k, repr(self.__dict__[k])) for k in self.__dict__ if k[0] != '_'])
+        )
 
     __str__ = __repr__
 
@@ -43,6 +43,7 @@ class GenericEnum(object):
                                        % (s, cls.__name__))
         return value
 
+
 def get_from_user_dict(yml_rep, key, object_type):
     try:
         value = yml_rep[key]
@@ -53,6 +54,7 @@ def get_from_user_dict(yml_rep, key, object_type):
         raise InvalidUserDataError("Attribute \"%s\" was not of type %s" % (key, object_type.__name__))
 
     return value
+
 
 def get_enum_from_user_dict(yml_rep, key, enum_class):
     try:
@@ -68,8 +70,10 @@ def get_enum_from_user_dict(yml_rep, key, enum_class):
     except InvalidArgumentError:
         raise InvalidUserDataError("Attribute \"%s\" had unknown value \"%s\"" % (key, value))
 
-def in_range(x, range):
-    return x >= range[0] or x<= range[1]
 
-def not_in_range(x, range):
-    return not in_range(x, range)
+def in_range(x, rang):
+    return x >= rang[0] or x <= rang[1]
+
+
+def not_in_range(x, rang):
+    return not in_range(x, rang)

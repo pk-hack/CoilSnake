@@ -51,13 +51,19 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
     def list(self):
         return [self.r, self.g, self.b]
 
+    def yml_rep(self):
+        return "({:d}, {:d}, {:d})".format(self.r, self.g, self.b)
+
+    def from_yml_rep(self, yml_rep):
+        self.r, self.g, self.b = map(int, yml_rep[1:-1].split(','))
+
 
 class EbPalette(EqualityMixin):
     """A class representing a palette which adheres to the common EarthBound format.
     An EarthBound palette is composed of one or more subpalettes.
     Each subpalette is composed of one or more EbColors."""
 
-    def __init__(self, num_subpalettes, subpalette_length):
+    def __init__(self, num_subpalettes, subpalette_length, rgb_list=None):
         """Creates a new EbPalette.
         :param num_subpalettes: the number of subpalettes within the palette.
         :param subpalette_length: the number of colors within each subpalette."""
@@ -71,6 +77,9 @@ class EbPalette(EqualityMixin):
         self.subpalette_length = subpalette_length
 
         self.subpalettes = [[EbColor() for j in range(self.subpalette_length)] for i in range(self.num_subpalettes)]
+
+        if rgb_list is not None:
+            self.from_list(rgb_list)
 
     def num_colors(self):
         return self.num_subpalettes * self.subpalette_length
@@ -114,6 +123,18 @@ class EbPalette(EqualityMixin):
         if self.num_colors() == 2:
             color_list += (0, 248, 248) * 2
         image.putpalette(color_list)
+
+    def yml_rep(self):
+        return [inner.yml_rep()
+                for outer in self.subpalettes
+                for inner in outer]
+
+    def from_yml_rep(self, yml_rep):
+        i = 0
+        for subpalette in self.subpalettes:
+            for color in subpalette:
+                color.from_yml_rep(yml_rep[i])
+                i += 1
 
     def __getitem__(self, key):
         subpalette_number, color_number = key
