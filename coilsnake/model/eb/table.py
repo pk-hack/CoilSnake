@@ -1,7 +1,7 @@
 import logging
 import yaml
 
-from coilsnake.exceptions.common.exceptions import InvalidArgumentError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError, InvalidYmlRepresentationError
 from coilsnake.model.common.table_new import GenericLittleEndianTable, LittleEndianIntegerTableEntry
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.pointers import EbPointer
@@ -16,7 +16,7 @@ class EbPointerTableEntry(LittleEndianIntegerTableEntry):
     @classmethod
     def from_yml_rep(cls, yml_rep):
         if not isinstance(yml_rep, str):
-            raise InvalidArgumentError("Could not parse value[{}] of type[{}] as string".format(
+            raise InvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as string".format(
                 yml_rep, type(yml_rep).__name__))
         elif yml_rep[0] == "$":
             return int(yml_rep[1:], 16)
@@ -24,7 +24,7 @@ class EbPointerTableEntry(LittleEndianIntegerTableEntry):
             try:
                 return EbPointer.label_address_map[yml_rep]
             except KeyError:
-                raise InvalidArgumentError("Unknown label provided: {}".format(yml_rep))
+                raise InvalidYmlRepresentationError("Unknown label provided: {}".format(yml_rep))
 
     @classmethod
     def to_yml_rep(cls, value):
@@ -68,11 +68,11 @@ class EbStandardTextTableEntry(object):
         if isinstance(yml_rep, int):
             yml_rep = str(yml_rep)
         elif not isinstance(yml_rep, str):
-            raise InvalidArgumentError("Could not parse value[{}] of type[{}] as string".format(
+            raise InvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as string".format(
                 yml_rep, type(yml_rep).__name__))
 
         if len(yml_rep) > cls.size:
-            raise InvalidArgumentError("Text string[{}] exceeds size limit of {} characters".format(
+            raise InvalidYmlRepresentationError("Text string[{}] exceeds size limit of {} characters".format(
                 yml_rep, cls.size))
 
         return yml_rep
@@ -93,11 +93,11 @@ class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
         if isinstance(yml_rep, int):
             yml_rep = str(yml_rep)
         elif not isinstance(yml_rep, str):
-            raise InvalidArgumentError("Could not parse value[{}] of type[{}] as string".format(
+            raise InvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as string".format(
                 yml_rep, type(yml_rep).__name__))
 
         if len(yml_rep) > cls.size - 1:
-            raise InvalidArgumentError("Text string[{}] exceeds size limit of {} characters".format(
+            raise InvalidYmlRepresentationError("Text string[{}] exceeds size limit of {} characters".format(
                 yml_rep, cls.size - 1))
 
         return yml_rep

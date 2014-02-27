@@ -6,8 +6,7 @@ import yaml
 from zlib import crc32
 
 from coilsnake.exceptions.common.exceptions import OutOfBoundsError, InvalidArgumentError, \
-    NotEnoughUnallocatedSpaceError, \
-    FileAccessError, ValueNotUnsignedByteError, CouldNotAllocateError
+    NotEnoughUnallocatedSpaceError, FileAccessError, CouldNotAllocateError
 
 
 log = logging.getLogger(__name__)
@@ -152,7 +151,7 @@ class Block(object):
                     raise InvalidArgumentError("Can not write value of type[{}]".format(type(item)))
         elif isinstance(key, int) and isinstance(item, int):
             if item < 0 or item > 0xff:
-                raise ValueNotUnsignedByteError("Attempting to write value[%d] into a single byte" % item)
+                raise InvalidArgumentError("Attempting to write value[%d] into a single byte" % item)
             if key >= self.size:
                 raise OutOfBoundsError("Attempted to write to offset[%#x] which is out of bounds" % key)
             else:

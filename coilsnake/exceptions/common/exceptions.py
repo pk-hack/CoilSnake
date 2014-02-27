@@ -24,10 +24,6 @@ class IndexOutOfRangeError(CoilSnakeInternalError):
     pass
 
 
-class NotImplementedError(CoilSnakeInternalError):
-    pass
-
-
 class CouldNotAllocateError(CoilSnakeInternalError):
     pass
 
@@ -40,10 +36,6 @@ class FileAccessError(CoilSnakeInternalError):
     pass
 
 
-class ValueNotUnsignedByteError(CoilSnakeInternalError):
-    pass
-
-
 # For when the data is of the expected type or form, but the content of the data itself is invalid or unexpected.
 # This should generally be caused by some error or inconsistency in the user's input.
 class InvalidUserDataError(CoilSnakeUserError):
@@ -51,4 +43,8 @@ class InvalidUserDataError(CoilSnakeUserError):
 
 
 class MissingUserDataError(InvalidUserDataError):
+    pass
+
+
+class InvalidYmlRepresentationError(CoilSnakeError):
     pass

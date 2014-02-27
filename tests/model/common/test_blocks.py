@@ -7,7 +7,6 @@ from nose.tools.nontrivial import raises
 from coilsnake.model.common.blocks import Block, AllocatableBlock, Rom, ROM_TYPE_NAME_UNKNOWN
 from tests.coilsnake_test import BaseTestCase, TEST_DATA_DIR
 from coilsnake.exceptions.common.exceptions import FileAccessError, OutOfBoundsError, InvalidArgumentError, \
-    ValueNotUnsignedByteError, \
     CouldNotAllocateError, NotEnoughUnallocatedSpaceError
 
 
@@ -89,9 +88,9 @@ class TestBlock(BaseTestCase):
         assert_equal(self.block[2], 0x38)
         assert_raises(OutOfBoundsError, self.block.__setitem__, 1024, 0xbb)
 
-        assert_raises(ValueNotUnsignedByteError, self.block.__setitem__, 5, 0x1234)
-        assert_raises(ValueNotUnsignedByteError, self.block.__setitem__, 0, 0x100)
-        assert_raises(ValueNotUnsignedByteError, self.block.__setitem__, 1, -1)
+        assert_raises(InvalidArgumentError, self.block.__setitem__, 5, 0x1234)
+        assert_raises(InvalidArgumentError, self.block.__setitem__, 0, 0x100)
+        assert_raises(InvalidArgumentError, self.block.__setitem__, 1, -1)
 
     def test_setitem_slice(self):
         self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "1kb_rand.bin"))

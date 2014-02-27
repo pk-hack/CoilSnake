@@ -2,7 +2,8 @@ import logging
 import re
 import yaml
 
-from coilsnake.exceptions.common.exceptions import InvalidArgumentError, IndexOutOfRangeError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError, IndexOutOfRangeError, \
+    InvalidYmlRepresentationError
 from coilsnake.util.common.helper import getitem_with_default
 from coilsnake.util.common.type import GenericEnum, in_range
 
@@ -27,7 +28,7 @@ class BooleanTableEntry(object):
         if isinstance(yml_rep, bool):
             return yml_rep
         else:
-            raise InvalidArgumentError("Could not parse value[{}] as a boolean".format(yml_rep))
+            raise InvalidYmlRepresentationError("Could not parse value[{}] as a boolean".format(yml_rep))
 
     @classmethod
     def to_yml_rep(cls, value):
@@ -48,7 +49,7 @@ class LittleEndianIntegerTableEntry(object):
         if isinstance(yml_rep, int):
             return yml_rep
         else:
-            raise InvalidArgumentError("Could not parse value[{}] of type[{}] as int".format(
+            raise InvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as int".format(
                 yml_rep, type(yml_rep).__name__))
 
     @classmethod
@@ -77,12 +78,12 @@ class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):
             try:
                 return cls.enumeration_class.fromstring(yml_rep)
             except InvalidArgumentError:
-                raise InvalidArgumentError("Could not parse string[{}] to type[{}]".format(
+                raise InvalidYmlRepresentationError("Could not parse string[{}] to type[{}]".format(
                     yml_rep, cls.enumeration_class.__name__))
         elif isinstance(yml_rep, int):
             return super(EnumeratedLittleEndianIntegerTableEntry, cls).from_yml_rep(yml_rep)
         else:
-            raise InvalidArgumentError("Could not parse value[{}] to type[{}]".format(
+            raise InvalidYmlRepresentationError("Could not parse value[{}] to type[{}]".format(
                 yml_rep, cls.enumeration_class.__name__))
 
     @classmethod
@@ -107,7 +108,7 @@ class ByteListTableEntry(object):
         if isinstance(yml_rep, list) and all(isinstance(x, int) for x in yml_rep):
             return yml_rep
         else:
-            raise InvalidArgumentError("Could not parse value[{}] of type[{}] to a list of ints".format(
+            raise InvalidYmlRepresentationError("Could not parse value[{}] of type[{}] to a list of ints".format(
                 yml_rep, type(yml_rep).__name__))
 
     @classmethod
@@ -141,18 +142,19 @@ class BitfieldTableEntry(object):
                     try:
                         entry = cls.enumeration_class.fromstring(entry)
                     except InvalidArgumentError:
-                        raise InvalidArgumentError("Could not parse string[{}] to type[{}]".format(
+                        raise InvalidYmlRepresentationError("Could not parse string[{}] to type[{}]".format(
                             entry, cls.enumeration_class.__name__))
 
                 if entry >= cls.size * 8:
-                    raise InvalidArgumentError("Bitvalue value[{}] is too large to fit in a bitfield of size[{}]"
-                                               .format(entry, cls.size))
+                    raise InvalidYmlRepresentationError(
+                        "Bitvalue value[{}] is too large to fit in a bitfield of size[{}]".format(entry, cls.size))
 
                 value.add(entry)
             return value
         else:
-            raise InvalidArgumentError("Expected list of bitvalues but instead got value[{}] of type[{}]".format(
-                yml_rep, type(yml_rep).__name__))
+            raise InvalidYmlRepresentationError(
+                "Expected list of bitvalues but instead got value[{}] of type[{}]".format(yml_rep,
+                                                                                          type(yml_rep).__name__))
 
     @classmethod
     def to_yml_rep(cls, value):
@@ -203,7 +205,10 @@ class Table(object):
         for i, row in enumerate(self.values):
             yml_rep_row = yml_rep[i]
             for j, column in enumerate(self.schema):
-                row[j] = column.from_yml_rep(yml_rep_row[column.name])
+                try:
+                    row[j] = column.from_yml_rep(yml_rep_row[column.name])
+                except InvalidYmlRepresentationError:
+                    raise
 
     def to_yml_rep(self):
         yml_rep = {}
