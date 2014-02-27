@@ -1,6 +1,3 @@
-from coilsnake.exceptions.common.exceptions import MissingUserDataError, InvalidUserDataError, InvalidArgumentError
-
-
 class EqualityMixin(object):
     def __eq__(self, other):
         return (isinstance(other, self.__class__)
@@ -33,47 +30,18 @@ class GenericEnum(object):
         for k, v in vars(cls).iteritems():
             if v == val:
                 return k.lower()
-        raise InvalidArgumentError("Could not convert value[%s] to string because the value was undefined" % val)
+        from coilsnake.exceptions.common.exceptions import InvalidArgumentError
+
+        raise InvalidArgumentError("Could not convert value[%s] to string because the value was undefined"
+                                   % val)
 
     @classmethod
     def fromstring(cls, s):
         value = getattr(cls, s.upper(), None)
         if value is None:
-            raise InvalidArgumentError("Could not convert string[%s] to class[%s] because the value was undefined"
+            from coilsnake.exceptions.common.exceptions import InvalidArgumentError
+
+            raise InvalidArgumentError("Could not convert string[%s] to class[%s] because the value was "
+                                       "undefined"
                                        % (s, cls.__name__))
         return value
-
-
-def get_from_user_dict(yml_rep, key, object_type):
-    try:
-        value = yml_rep[key]
-    except KeyError:
-        raise MissingUserDataError("Attribute \"%s\" was not provided" % key)
-
-    if not isinstance(value, object_type):
-        raise InvalidUserDataError("Attribute \"%s\" was not of type %s" % (key, object_type.__name__))
-
-    return value
-
-
-def get_enum_from_user_dict(yml_rep, key, enum_class):
-    try:
-        value = yml_rep[key]
-    except KeyError:
-        raise MissingUserDataError("Attribute \"%s\" was not provided" % key)
-
-    if not isinstance(value, str):
-        raise InvalidUserDataError("Attribute \"%s\" was not a string" % key)
-
-    try:
-        return enum_class.fromstring(value)
-    except InvalidArgumentError:
-        raise InvalidUserDataError("Attribute \"%s\" had unknown value \"%s\"" % (key, value))
-
-
-def in_range(x, rang):
-    return x >= rang[0] or x <= rang[1]
-
-
-def not_in_range(x, rang):
-    return not in_range(x, rang)

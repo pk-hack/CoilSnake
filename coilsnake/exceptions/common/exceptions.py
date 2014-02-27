@@ -1,4 +1,7 @@
-class CoilSnakeError(Exception):
+from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
+
+
+class CoilSnakeError(Exception, EqualityMixin, StringRepresentationMixin):
     pass
 
 
@@ -48,3 +51,22 @@ class MissingUserDataError(InvalidUserDataError):
 
 class InvalidYmlRepresentationError(CoilSnakeError):
     pass
+
+
+class TableEntryError(CoilSnakeError):
+    pass
+
+
+class TableEntryInvalidYmlRepresentationError(TableEntryError):
+    pass
+
+
+class TableEntryMissingDataError(TableEntryError):
+    pass
+
+
+class TableError(CoilSnakeError):
+    def __init__(self, entry, field, cause):
+        self.entry = entry
+        self.field = field
+        self.cause = cause

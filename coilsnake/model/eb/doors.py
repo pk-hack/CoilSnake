@@ -3,8 +3,8 @@ import logging
 from coilsnake.exceptions.common.exceptions import InvalidUserDataError, InvalidArgumentError, MissingUserDataError
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.pointers import EbTextPointer
-from coilsnake.util.common.type import GenericEnum, StringRepresentationMixin, EqualityMixin, get_from_user_dict, \
-    get_enum_from_user_dict
+from coilsnake.util.common.helper import get_from_user_dict, get_enum_from_user_dict
+from coilsnake.util.common.type import GenericEnum, StringRepresentationMixin, EqualityMixin
 
 
 log = logging.getLogger(__name__)

@@ -1,6 +1,6 @@
 import logging
 
-from coilsnake.exceptions.common.exceptions import InvalidArgumentError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError, InvalidYmlRepresentationError
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
 
 log = logging.getLogger(__name__)
@@ -55,7 +55,10 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
         return "({:d}, {:d}, {:d})".format(self.r, self.g, self.b)
 
     def from_yml_rep(self, yml_rep):
-        self.r, self.g, self.b = map(int, yml_rep[1:-1].split(','))
+        try:
+            self.r, self.g, self.b = map(int, yml_rep[1:-1].split(','))
+        except:
+            raise InvalidYmlRepresentationError("Could not parse value[{}] as an (R, G, B) color".format(yml_rep))
 
 
 class EbPalette(EqualityMixin):
@@ -130,6 +133,13 @@ class EbPalette(EqualityMixin):
                 for inner in outer]
 
     def from_yml_rep(self, yml_rep):
+        if not (isinstance(yml_rep, list) and all(isinstance(x, str) for x in yml_rep)):
+            raise InvalidYmlRepresentationError("Could not parse value[{}] as a list of (R, G, B) colors"
+                                                .format(yml_rep))
+        elif len(yml_rep) != self.num_subpalettes * self.subpalette_length:
+            raise InvalidYmlRepresentationError("Expected a list of {} colors, but got only {} colors"
+                                                .format(len(yml_rep), self.num_subpalettes * self.subpalette_length))
+
         i = 0
         for subpalette in self.subpalettes:
             for color in subpalette:

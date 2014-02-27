@@ -3,9 +3,9 @@ import re
 import yaml
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, IndexOutOfRangeError, \
-    InvalidYmlRepresentationError
-from coilsnake.util.common.helper import getitem_with_default
-from coilsnake.util.common.type import GenericEnum, in_range
+    TableEntryInvalidYmlRepresentationError, TableError, TableEntryMissingDataError, TableEntryError
+from coilsnake.util.common.helper import getitem_with_default, in_range, not_in_range
+from coilsnake.util.common.type import GenericEnum
 
 
 log = logging.getLogger(__name__)
@@ -28,7 +28,8 @@ class BooleanTableEntry(object):
         if isinstance(yml_rep, bool):
             return yml_rep
         else:
-            raise InvalidYmlRepresentationError("Could not parse value[{}] as a boolean".format(yml_rep))
+            raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] as a boolean. Value values are "
+                                                          "\"True\" or \"False\".".format(yml_rep))
 
     @classmethod
     def to_yml_rep(cls, value):
@@ -46,11 +47,14 @@ class LittleEndianIntegerTableEntry(object):
 
     @classmethod
     def from_yml_rep(cls, yml_rep):
-        if isinstance(yml_rep, int):
-            return yml_rep
-        else:
-            raise InvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as int".format(
+        if not isinstance(yml_rep, int):
+            raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as integer".format(
                 yml_rep, type(yml_rep).__name__))
+        elif not_in_range(yml_rep, (0, (1 << (8 * cls.size)) - 1)):
+            raise TableEntryInvalidYmlRepresentationError("Value[{}] is not valid, must be between {} "
+                                                          "and {}".format(yml_rep, 0, cls.size * 8 - 1))
+        else:
+            return yml_rep
 
     @classmethod
     def to_yml_rep(cls, value):
@@ -78,12 +82,12 @@ class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):
             try:
                 return cls.enumeration_class.fromstring(yml_rep)
             except InvalidArgumentError:
-                raise InvalidYmlRepresentationError("Could not parse string[{}] to type[{}]".format(
+                raise TableEntryInvalidYmlRepresentationError("Could not parse string[{}] to type[{}]".format(
                     yml_rep, cls.enumeration_class.__name__))
         elif isinstance(yml_rep, int):
             return super(EnumeratedLittleEndianIntegerTableEntry, cls).from_yml_rep(yml_rep)
         else:
-            raise InvalidYmlRepresentationError("Could not parse value[{}] to type[{}]".format(
+            raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] to type[{}]".format(
                 yml_rep, cls.enumeration_class.__name__))
 
     @classmethod
@@ -105,11 +109,14 @@ class ByteListTableEntry(object):
 
     @classmethod
     def from_yml_rep(cls, yml_rep):
-        if isinstance(yml_rep, list) and all(isinstance(x, int) for x in yml_rep):
-            return yml_rep
-        else:
-            raise InvalidYmlRepresentationError("Could not parse value[{}] of type[{}] to a list of ints".format(
-                yml_rep, type(yml_rep).__name__))
+        if not (isinstance(yml_rep, list) and all(isinstance(x, int) for x in yml_rep)):
+            raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] to a list of integers"
+                                                          .format(yml_rep))
+        elif any(not_in_range(x, (0, 0xff)) for x in yml_rep):
+            raise TableEntryInvalidYmlRepresentationError("Byte list[{}] contains a value less than 0 or greater "
+                                                          "than 255 (0xff)".format(yml_rep))
+
+        return yml_rep
 
     @classmethod
     def to_yml_rep(cls, value):
@@ -142,17 +149,17 @@ class BitfieldTableEntry(object):
                     try:
                         entry = cls.enumeration_class.fromstring(entry)
                     except InvalidArgumentError:
-                        raise InvalidYmlRepresentationError("Could not parse string[{}] to type[{}]".format(
+                        raise TableEntryInvalidYmlRepresentationError("Could not parse string[{}] to type[{}]".format(
                             entry, cls.enumeration_class.__name__))
 
                 if entry >= cls.size * 8:
-                    raise InvalidYmlRepresentationError(
+                    raise TableEntryInvalidYmlRepresentationError(
                         "Bitvalue value[{}] is too large to fit in a bitfield of size[{}]".format(entry, cls.size))
 
                 value.add(entry)
             return value
         else:
-            raise InvalidYmlRepresentationError(
+            raise TableEntryInvalidYmlRepresentationError(
                 "Expected list of bitvalues but instead got value[{}] of type[{}]".format(yml_rep,
                                                                                           type(yml_rep).__name__))
 
@@ -188,34 +195,63 @@ class Table(object):
         self.values = [[None] * len(self.schema) for i in range(self.num_rows)]
 
     def from_block(self, block, offset):
-        for row in self.values:
+        for i, row in enumerate(self.values):
             for j, column in enumerate(self.schema):
-                row[j] = column.from_block(block, offset)
+                try:
+                    row[j] = column.from_block(block, offset)
+                except Exception as e:
+                    log.exception("Error while reading column[{}] of entry[{}]".format(column.name, i))
+                    raise TableError(entry=i, field=column.name, cause=e)
                 offset += column.size
 
     def to_block(self, block, offset):
         original_offset = offset
-        for row in self.values:
+        for i, row in enumerate(self.values):
             for value, column in zip(row, self.schema):
-                column.to_block(block, offset, value)
+                try:
+                    column.to_block(block, offset, value)
+                except Exception as e:
+                    log.exception("Error while writing column[{}] of entry[{}]".format(column.name, i))
+                    raise TableError(entry=i, field=column.name, cause=e)
                 offset += column.size
         return original_offset
 
     def from_yml_rep(self, yml_rep):
         for i, row in enumerate(self.values):
-            yml_rep_row = yml_rep[i]
+            try:
+                yml_rep_row = yml_rep[i]
+            except KeyError as e:
+                log.exception("Entry[{}] not found in yml representation".format(i))
+                raise TableError(entry=i, field=None, cause=TableEntryMissingDataError())
+
             for j, column in enumerate(self.schema):
                 try:
-                    row[j] = column.from_yml_rep(yml_rep_row[column.name])
-                except InvalidYmlRepresentationError:
-                    raise
+                    column_yml_rep = yml_rep_row[column.name]
+                except KeyError:
+                    log.exception("Column[{}] of entry[{}] not found in yml representation".format(column.name, i))
+                    raise TableError(entry=i, field=None, cause=TableEntryMissingDataError())
+
+                try:
+                    row[j] = column.from_yml_rep(column_yml_rep)
+                except TableEntryError as e:
+                    log.exception("Error while parsing yml representation for column[{}] of entry[{}]".format(
+                        column.name, i))
+                    raise TableError(entry=i, field=column.name, cause=e)
+                except Exception as e:
+                    log.exception("Unexpected error while  parsing yml representation for column[{}] of entry[{}]"
+                                  .format(column.name, i))
+                    raise TableError(entry=i, field=column.name, cause=e)
 
     def to_yml_rep(self):
         yml_rep = {}
         for i, row in enumerate(self.values):
             yml_rep_entry = {}
             for value, column in zip(row, self.schema):
-                yml_rep_entry[column.name] = column.to_yml_rep(value)
+                try:
+                    yml_rep_entry[column.name] = column.to_yml_rep(value)
+                except Exception as e:
+                    log.exception("Error while serializing column[{}] of entry[{}]".format(column.name, i))
+                    raise TableError(entry=i, field=column.name, cause=e)
             yml_rep[i] = yml_rep_entry
         return yml_rep
 

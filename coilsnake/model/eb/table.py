@@ -1,7 +1,8 @@
 import logging
 import yaml
 
-from coilsnake.exceptions.common.exceptions import InvalidArgumentError, InvalidYmlRepresentationError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError, TableEntryInvalidYmlRepresentationError, \
+    InvalidYmlRepresentationError
 from coilsnake.model.common.table_new import GenericLittleEndianTable, LittleEndianIntegerTableEntry
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.pointers import EbPointer
@@ -16,15 +17,23 @@ class EbPointerTableEntry(LittleEndianIntegerTableEntry):
     @classmethod
     def from_yml_rep(cls, yml_rep):
         if not isinstance(yml_rep, str):
-            raise InvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as string".format(
-                yml_rep, type(yml_rep).__name__))
+            raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] as pointer".format(yml_rep))
+        elif not yml_rep:
+            raise TableEntryInvalidYmlRepresentationError("Could not parse empty string as pointer")
         elif yml_rep[0] == "$":
-            return int(yml_rep[1:], 16)
+            try:
+                value = int(yml_rep[1:], 16)
+            except ValueError:
+                raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] as pointer".format(yml_rep))
+
+            return super(EbPointerTableEntry, cls).from_yml_rep(value)
         else:
             try:
-                return EbPointer.label_address_map[yml_rep]
+                value = EbPointer.label_address_map[yml_rep]
             except KeyError:
-                raise InvalidYmlRepresentationError("Unknown label provided: {}".format(yml_rep))
+                raise TableEntryInvalidYmlRepresentationError("Unknown pointer label[{}]".format(yml_rep))
+
+            return super(EbPointerTableEntry, cls).from_yml_rep(value)
 
     @classmethod
     def to_yml_rep(cls, value):
@@ -46,7 +55,10 @@ class EbPaletteTableEntry(object):
     @classmethod
     def from_yml_rep(cls, yml_rep):
         palette = EbPalette(num_subpalettes=1, subpalette_length=(cls.size / 2))
-        palette.from_yml_rep(yml_rep)
+        try:
+            palette.from_yml_rep(yml_rep)
+        except InvalidYmlRepresentationError as e:
+            raise TableEntryInvalidYmlRepresentationError(e.message)
         return palette
 
     @classmethod
@@ -68,11 +80,11 @@ class EbStandardTextTableEntry(object):
         if isinstance(yml_rep, int):
             yml_rep = str(yml_rep)
         elif not isinstance(yml_rep, str):
-            raise InvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as string".format(
+            raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as string".format(
                 yml_rep, type(yml_rep).__name__))
 
         if len(yml_rep) > cls.size:
-            raise InvalidYmlRepresentationError("Text string[{}] exceeds size limit of {} characters".format(
+            raise TableEntryInvalidYmlRepresentationError("Text string[{}] exceeds size limit of {} characters".format(
                 yml_rep, cls.size))
 
         return yml_rep
@@ -93,11 +105,11 @@ class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
         if isinstance(yml_rep, int):
             yml_rep = str(yml_rep)
         elif not isinstance(yml_rep, str):
-            raise InvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as string".format(
+            raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as string".format(
                 yml_rep, type(yml_rep).__name__))
 
         if len(yml_rep) > cls.size - 1:
-            raise InvalidYmlRepresentationError("Text string[{}] exceeds size limit of {} characters".format(
+            raise TableEntryInvalidYmlRepresentationError("Text string[{}] exceeds size limit of {} characters".format(
                 yml_rep, cls.size - 1))
 
         return yml_rep

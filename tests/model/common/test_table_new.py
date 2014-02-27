@@ -1,5 +1,7 @@
-from nose.tools import assert_dict_equal, assert_list_equal
+from nose.tools import assert_dict_equal, assert_list_equal, assert_raises, assert_equal, assert_is_instance
 
+from coilsnake.exceptions.common.exceptions import TableError, \
+    TableEntryInvalidYmlRepresentationError, TableEntryMissingDataError
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.common.table_new import GenericLittleEndianTable
 from tests.coilsnake_test import BaseTestCase
@@ -37,6 +39,18 @@ class GenericTestTable(BaseTestCase):
                                  schema_specification=self.TABLE_SCHEMA)
         table.values = self.TABLE_VALUES
         assert_dict_equal(table.to_yml_rep(), self.YML_REP)
+
+    def test_from_yml_rep_errors(self):
+        table = self.TABLE_CLASS(num_rows=1,
+                                 schema_specification=self.TABLE_SCHEMA)
+        for row, column_name, expected_error, yml_rep in self.BAD_YML_REPS:
+            print row, column_name, expected_error
+            with assert_raises(TableError) as cm:
+                table.from_yml_rep(yml_rep)
+            e = cm.exception
+            assert_equal(e.entry, 0)
+            assert_equal(e.field, column_name)
+            assert_is_instance(e.cause, expected_error)
 
 
 class TestGenericLittleEndianTable(GenericTestTable):
@@ -138,3 +152,50 @@ class TestGenericLittleEndianTable(GenericTestTable):
                    "Enumerated Integer": 6,
                    "Bitfield": [7, "bit2", "bit5", "bit6"]}
     }
+    BAD_YML_REPS = [(0, None, TableEntryMissingDataError, {}),
+                    (0, None, TableEntryMissingDataError,
+                     {0: {"Sized Integer": 0x1abcde,
+                          "Sized Typed Integer": 0xf235,
+                          "Hex Integer": 0x10,
+                          "Sized Hex Integer": 0x1110,
+                          "One-Based Integer": 0x252423,
+                          "Byte Array": [0x00, 0x11, 0x22, 0x33, 0x44],
+                          "Default Boolean": False,
+                          "Sized Boolean": True,
+                          "Enumerated Integer": "third",
+                          "Bitfield": ["bit0", "bit1", "bit3"]}}),
+                    (0, "Default Boolean", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Default Boolean": None})}),
+                    (0, "Default Boolean", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Default Boolean": "invalid string"})}),
+                    (0, "Default Integer", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Default Integer": None})}),
+                    (0, "Default Integer", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Default Integer": "invalid string"})}),
+                    (0, "Default Integer", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Default Integer": -1})}),
+                    (0, "Default Integer", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Default Integer": 0x100})}),
+                    (0, "Enumerated Integer", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Enumerated Integer": "invalid string"})}),
+                    (0, "Enumerated Integer", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Enumerated Integer": None})}),
+                    (0, "Enumerated Integer", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Enumerated Integer": -1})}),
+                    (0, "Enumerated Integer", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Enumerated Integer": 0x100})}),
+                    (0, "Byte Array", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Byte Array": 0})}),
+                    (0, "Byte Array", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Byte Array": ["invalid string"]})}),
+                    (0, "Byte Array", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Byte Array": [5, 4, -1]})}),
+                    (0, "Byte Array", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Byte Array": [5, 256]})}),
+                    (0, "Bitfield", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Bitfield": "invalid string"})}),
+                    (0, "Bitfield", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Bitfield": ["invalid string"]})}),
+                    (0, "Bitfield", TableEntryInvalidYmlRepresentationError,
+                     {0: dict(YML_REP[0], **{"Bitfield": [8]})}),
+    ]
