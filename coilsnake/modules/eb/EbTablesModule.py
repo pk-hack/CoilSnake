@@ -1,6 +1,5 @@
 import yaml
 
-from coilsnake.modules.common.TablesModule import TablesModule
 from coilsnake.modules.eb import EbModule
 from coilsnake.model.common.table import IntTableEntry, Table, genericEntryGenerator
 from coilsnake.util.common.assets import open_asset
@@ -120,33 +119,3 @@ class EbTable(Table):
                         # print "Done"
         Table.__init__(self, addr, EbTable.eb_table_map)
         self._addr = EbModule.toRegAddr(self._addr)
-
-
-class EbTablesModule(EbModule.EbModule):
-    NAME = "EarthBound Tables"
-    _tableIDs = []
-
-    def __init__(self):
-        EbModule.EbModule.__init__(self)
-        self._tm = TablesModule(EbTable, self._tableIDs)
-
-    def __exit__(self, type, value, traceback):
-        self._tm.__exit__(type, value, traceback)
-
-    def read_from_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._tm.read_from_rom(rom)
-
-    def write_to_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._tm.write_to_rom(rom)
-
-    def write_to_project(self, resourceOpener):
-        self._tm.write_to_project(resourceOpener)
-
-    def read_from_project(self, resourceOpener):
-        self._tm.read_from_project(resourceOpener)
