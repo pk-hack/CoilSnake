@@ -201,7 +201,7 @@ class Table(object):
                     row[j] = column.from_block(block, offset)
                 except Exception as e:
                     log.exception("Error while reading column[{}] of entry[{}]".format(column.name, i))
-                    raise TableError(entry=i, field=column.name, cause=e)
+                    raise TableError(table_name=self.name, entry=i, field=column.name, cause=e)
                 offset += column.size
 
     def to_block(self, block, offset):
@@ -212,7 +212,7 @@ class Table(object):
                     column.to_block(block, offset, value)
                 except Exception as e:
                     log.exception("Error while writing column[{}] of entry[{}]".format(column.name, i))
-                    raise TableError(entry=i, field=column.name, cause=e)
+                    raise TableError(table_name=self.name, entry=i, field=column.name, cause=e)
                 offset += column.size
         return original_offset
 
@@ -222,25 +222,25 @@ class Table(object):
                 yml_rep_row = yml_rep[i]
             except KeyError as e:
                 log.exception("Entry[{}] not found in yml representation".format(i))
-                raise TableError(entry=i, field=None, cause=TableEntryMissingDataError())
+                raise TableError(table_name=self.name, entry=i, field=None, cause=TableEntryMissingDataError())
 
             for j, column in enumerate(self.schema):
                 try:
                     column_yml_rep = yml_rep_row[column.name]
                 except KeyError:
                     log.exception("Column[{}] of entry[{}] not found in yml representation".format(column.name, i))
-                    raise TableError(entry=i, field=None, cause=TableEntryMissingDataError())
+                    raise TableError(table_name=self.name, entry=i, field=None, cause=TableEntryMissingDataError())
 
                 try:
                     row[j] = column.from_yml_rep(column_yml_rep)
                 except TableEntryError as e:
                     log.exception("Error while parsing yml representation for column[{}] of entry[{}]".format(
                         column.name, i))
-                    raise TableError(entry=i, field=column.name, cause=e)
+                    raise TableError(table_name=self.name, entry=i, field=column.name, cause=e)
                 except Exception as e:
                     log.exception("Unexpected error while  parsing yml representation for column[{}] of entry[{}]"
                                   .format(column.name, i))
-                    raise TableError(entry=i, field=column.name, cause=e)
+                    raise TableError(table_name=self.name, entry=i, field=column.name, cause=e)
 
     def to_yml_rep(self):
         yml_rep = {}
@@ -251,7 +251,7 @@ class Table(object):
                     yml_rep_entry[column.name] = column.to_yml_rep(value)
                 except Exception as e:
                     log.exception("Error while serializing column[{}] of entry[{}]".format(column.name, i))
-                    raise TableError(entry=i, field=column.name, cause=e)
+                    raise TableError(table_name=self.name, entry=i, field=column.name, cause=e)
             yml_rep[i] = yml_rep_entry
         return yml_rep
 

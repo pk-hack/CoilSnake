@@ -66,7 +66,8 @@ class TableEntryMissingDataError(TableEntryError):
 
 
 class TableError(CoilSnakeError):
-    def __init__(self, entry, field, cause):
+    def __init__(self, table_name, entry, field, cause):
+        self.table_name = table_name
         self.entry = entry
         self.field = field
         self.cause = cause
