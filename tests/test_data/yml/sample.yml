@@ -1,0 +1,28 @@
+0:
+  Action type: nothing
+  Code Address: $c22232
+  Direction: enemy
+  PP Cost: 0
+  Target: none
+  Text Address: $c77eff
+1:
+  Action type: item
+  Code Address: $c61234
+  Direction: party
+  PP Cost: 44
+  Target: all
+  Text Address: $cfd21e
+2:
+  Action type: physical (unaffected by shields and defending)
+  Code Address: $c55412
+  Direction: party
+  PP Cost: 1
+  Target: none
+  Text Address: $c92205
+3:
+  Action type: other
+  Code Address: $c34399
+  Direction: enemy
+  PP Cost: 3
+  Target: one
+  Text Address: $c1110c

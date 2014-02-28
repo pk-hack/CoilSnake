@@ -8,7 +8,7 @@ from coilsnake.modules.eb.EbDataBlocks import EbCompressedData
 from coilsnake.modules.eb.CompressedGraphicsModule import EbPalettes
 from coilsnake.Progress import updateProgress
 from coilsnake.modules.eb import EbModule
-from coilsnake.util.common.project import replace_field
+from coilsnake.util.common.project import replace_field_in_yml
 
 
 class EbSprite:
@@ -367,33 +367,37 @@ class EnemyModule(EbModule.EbModule):
             updateProgress(100)
             return
         elif oldVersion == 3:
-            replace_field("enemy_configuration_table",
-                          '"The" Flag', None,
-                          {0: "False",
-                           1: "True"},
-                          resourceOpenerR, resourceOpenerW)
-            replace_field("enemy_configuration_table",
-                          "Boss Flag", None,
-                          {0: "False",
-                           1: "True"},
-                          resourceOpenerR, resourceOpenerW)
-            replace_field("enemy_configuration_table",
-                          "Run Flag", None,
-                          {6: "Unknown",
-                           7: "True",
-                           8: "False"},
-                          resourceOpenerR, resourceOpenerW)
-            replace_field("enemy_configuration_table",
-                          "Item Rarity", None,
-                          {0: "1/128",
-                           1: "2/128",
-                           2: "4/128",
-                           3: "8/128",
-                           4: "16/128",
-                           5: "32/128",
-                           6: "64/128",
-                           7: "128/128"},
-                          resourceOpenerR, resourceOpenerW)
+            replace_field_in_yml(resource_name="enemy_configuration_table",
+                                 resource_open_r=resourceOpenerR,
+                                 resource_open_w=resourceOpenerW,
+                                 key='"The" Flag',
+                                 value_map={0: "False",
+                                            1: "True"}),
+            replace_field_in_yml(resource_name="enemy_configuration_table",
+                                 resource_open_r=resourceOpenerR,
+                                 resource_open_w=resourceOpenerW,
+                                 key="Boss Flag",
+                                 value_map={0: "False",
+                                            1: "True"}),
+            replace_field_in_yml(resource_name="enemy_configuration_table",
+                                 resource_open_r=resourceOpenerR,
+                                 resource_open_w=resourceOpenerW,
+                                 key="Run Flag",
+                                 value_map={6: "Unknown",
+                                            7: "True",
+                                            8: "False"}),
+            replace_field_in_yml(resource_name="enemy_configuration_table",
+                                 resource_open_r=resourceOpenerR,
+                                 resource_open_w=resourceOpenerW,
+                                 key="Item Rarity",
+                                 value_map={0: "1/128",
+                                            1: "2/128",
+                                            2: "4/128",
+                                            3: "8/128",
+                                            4: "16/128",
+                                            5: "32/128",
+                                            6: "64/128",
+                                            7: "128/128"})
             self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)

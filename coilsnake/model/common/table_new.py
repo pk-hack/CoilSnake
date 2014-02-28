@@ -1,11 +1,11 @@
 import logging
-import re
 import yaml
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, IndexOutOfRangeError, \
     TableEntryInvalidYmlRepresentationError, TableError, TableEntryMissingDataError, TableEntryError
 from coilsnake.util.common.helper import getitem_with_default, in_range, not_in_range
 from coilsnake.util.common.type import GenericEnum
+from coilsnake.util.common.yml import convert_values_to_hex_repr
 
 
 log = logging.getLogger(__name__)
@@ -265,10 +265,7 @@ class Table(object):
         # Rewrite hexints in hexidecimal
         # The YAML parser does not offer this option, so this has to be done with a regex
         for column in [x for x in self.schema if isinstance(x, LittleEndianHexIntegerTableEntry)]:
-            yml_str_rep = re.sub("{}: (\d+)".format(re.escape(column["name"])),
-                                 lambda i: "{}: {:#x}".format(column["name"],
-                                                              int(i.group(0)[i.group(0).find(": ") + 2:])),
-                                 yml_str_rep)
+            yml_str_rep = convert_values_to_hex_repr(yml_str_rep, column["name"])
 
         f.write(yml_str_rep)
 

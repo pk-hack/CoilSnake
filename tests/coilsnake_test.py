@@ -1,11 +1,18 @@
+from itertools import izip_longest
 import os
 import tempfile
-
 from PIL import Image
+
+from nose.tools.trivial import eq_
 
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test_data")
 TEST_IMAGE_DIR = os.path.join(TEST_DATA_DIR, "images")
+
+
+def assert_files_equal(expected, result):
+    for i in izip_longest(iter(expected), iter(result)):
+        eq_(i[0], i[1])
 
 
 class BaseTestCase(object):

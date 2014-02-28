@@ -1,0 +1,28 @@
+0:
+  Code Address: $c22232
+  Cool fish type: nothing
+  PP Cost: 0
+  Target: nobody
+  Text Address: $c77eff
+  Where At: at them
+1:
+  Code Address: $c61234
+  Cool fish type: item
+  PP Cost: 44
+  Target: all
+  Text Address: $cfd21e
+  Where At: back at ya
+2:
+  Code Address: $c55412
+  Cool fish type: physical (unaffected by shields and defending)
+  PP Cost: 1
+  Target: nobody
+  Text Address: $c92205
+  Where At: back at ya
+3:
+  Code Address: $c34399
+  Cool fish type: other
+  PP Cost: 3
+  Target: just one guy
+  Text Address: $c1110c
+  Where At: at them

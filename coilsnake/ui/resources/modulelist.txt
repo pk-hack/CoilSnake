@@ -18,5 +18,4 @@ eb.BattleBgModule
 eb.CompressedGraphicsModule
 eb.EnemyModule
 eb.TilesetModule
-#eb0.MiscTablesModule
 smb.TextModule

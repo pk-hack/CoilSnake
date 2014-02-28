@@ -41,3 +41,11 @@ def get_enum_from_user_dict(yml_rep, key, enum_class):
         return enum_class.fromstring(value)
     except InvalidArgumentError:
         raise InvalidUserDataError("Attribute \"%s\" had unknown value \"%s\"" % (key, value))
+
+
+def lower_if_str(x):
+    if isinstance(x, str):
+        return x.lower()
+    else:
+        return x
+
