@@ -7,7 +7,7 @@ from coilsnake.ui import information
 
 
 setup(
-    name="CoilSnake",
+    name="coilsnake",
     version=information.VERSION,
     description="A program for modifying the EarthBound ROM.",
     url="http://kiij.github.io/CoilSnake",
