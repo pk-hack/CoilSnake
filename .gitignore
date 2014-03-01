@@ -11,3 +11,4 @@ cover/
 prefs.yml
 tests/test_data/true_*
 tests/test_data/*/true_*
+TODO.txt

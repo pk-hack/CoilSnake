@@ -96,7 +96,7 @@ class TestDoorModule(BaseTestCase, TemporaryWritableFileTestCase):
         self.test_read_from_project_using_filename(self.temporary_wo_file_name)
 
     def test_write_to_rom(self):
-        with open(os.path.join(TEST_DATA_DIR, 'true_map_doors.yml'), 'r') as doors_file:
+        with open(os.path.join(TEST_DATA_DIR, 'yml', 'true_map_doors.yml'), 'r') as doors_file:
             def resource_open(a, b):
                 return doors_file
 
