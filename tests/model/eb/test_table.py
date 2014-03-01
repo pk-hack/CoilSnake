@@ -1,16 +1,15 @@
-from coilsnake.exceptions.common.exceptions import TableEntryInvalidYmlRepresentationError
+from coilsnake.exceptions.common.exceptions import TableEntryInvalidYmlRepresentationError, TableSchemaError
 from coilsnake.model.eb.palettes import EbPalette
-from coilsnake.model.eb.table import EbTable
+from coilsnake.model.eb.table import EbColumnTableSchema
 from tests.model.common.test_table_new import TestGenericLittleEndianTable, GenericTestTable
 
 
 class TestEbTableGenericRegression(TestGenericLittleEndianTable):
-    TABLE_CLASS = EbTable
+    TABLE_SCHEMA = EbColumnTableSchema(schema_specification=TestGenericLittleEndianTable.TABLE_SCHEMA_SPECIFICATION)
 
 
 class TestEbTable(GenericTestTable):
-    TABLE_CLASS = EbTable
-    TABLE_SCHEMA = [
+    TABLE_SCHEMA_SPECIFICATION = [
         {"name": "EB Pointer",
          "type": "pointer",
          "size": 3},
@@ -24,6 +23,8 @@ class TestEbTable(GenericTestTable):
          "type": "standardtext null-terminated",
          "size": 5}
     ]
+    TABLE_SCHEMA = EbColumnTableSchema(schema_specification=TABLE_SCHEMA_SPECIFICATION)
+
     BLOCK_DATA = [0x45, 0x23, 0xf1,
                   0, 0, 37, 36, 106, 25, 31, 0, 234, 20, 34, 70,
                   132, 149, 131, 164, 97,  # "TeSt1"
@@ -60,55 +61,55 @@ class TestEbTable(GenericTestTable):
                                   "(16, 136, 136)"],
                    "EB Text": "5HRT",
                    "EB Null-Terminated Text": "G!"}}
-    BAD_YML_REPS = [(0, "EB Pointer", TableEntryInvalidYmlRepresentationError,
+    BAD_YML_REPS = [(0, "EB Pointer", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Pointer": None})}),
-                    (0, "EB Pointer", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Pointer", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Pointer": 1})}),
-                    (0, "EB Pointer", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Pointer", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Pointer": ''})}),
-                    (0, "EB Pointer", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Pointer", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Pointer": '$'})}),
-                    (0, "EB Pointer", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Pointer", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Pointer": '$invalid'})}),
-                    (0, "EB Pointer", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Pointer", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Pointer": '$-1'})}),
-                    (0, "EB Pointer", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Pointer", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Pointer": '$1000000'})}),
-                    (0, "EB Pointer", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Pointer", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Pointer": 'unknown.label'})}),
-                    (0, "EB Palette", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Palette", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Palette": None})}),
-                    (0, "EB Palette", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Palette", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Palette": 25})}),
-                    (0, "EB Palette", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Palette", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Palette": ["(0, 0, 0)"]})}),
-                    (0, "EB Palette", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Palette", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Palette": [None,
                                                             "(40, 8, 72)",
                                                             "(80, 88, 48)",
                                                             "(248, 0, 0)",
                                                             "(80, 56, 40)",
                                                             "(16, 136, 136)"]})}),
-                    (0, "EB Palette", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Palette", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Palette": [1,
                                                             "(40, 8, 72)",
                                                             "(80, 88, 48)",
                                                             "(248, 0, 0)",
                                                             "(80, 56, 40)",
                                                             "(16, 136, 136)"]})}),
-                    (0, "EB Palette", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Palette", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Palette": ["invalid",
                                                             "(40, 8, 72)",
                                                             "(80, 88, 48)",
                                                             "(248, 0, 0)",
                                                             "(80, 56, 40)",
                                                             "(16, 136, 136)"]})}),
-                    (0, "EB Text", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Text", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Text": None})}),
-                    (0, "EB Text", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Text", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Text": "2 long"})}),
-                    (0, "EB Null-Terminated Text", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Null-Terminated Text", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Null-Terminated Text": None})}),
-                    (0, "EB Null-Terminated Text", TableEntryInvalidYmlRepresentationError,
+                    (0, "EB Null-Terminated Text", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"EB Null-Terminated Text": "2long"})}),
     ]

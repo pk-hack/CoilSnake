@@ -3,7 +3,8 @@ import yaml
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, TableEntryInvalidYmlRepresentationError, \
     InvalidYmlRepresentationError
-from coilsnake.model.common.table_new import GenericLittleEndianTable, LittleEndianIntegerTableEntry
+from coilsnake.model.common.table_new import LittleEndianIntegerTableEntry, GenericLittleEndianColumnTableSchema, Table, \
+    SingleColumnTableSchema, MatrixTable
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.pointers import EbPointer
 from coilsnake.util.common.assets import open_asset
@@ -115,9 +116,9 @@ class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
         return yml_rep
 
 
-class EbTable(GenericLittleEndianTable):
+class EbColumnTableSchema(GenericLittleEndianColumnTableSchema):
     TABLE_ENTRY_CLASS_MAP = dict(
-        GenericLittleEndianTable.TABLE_ENTRY_CLASS_MAP,
+        GenericLittleEndianColumnTableSchema.TABLE_ENTRY_CLASS_MAP,
         **{"pointer": (EbPointerTableEntry, ["name", "size"]),
            "palette": (EbPaletteTableEntry, ["name", "size"]),
            "standardtext": (EbStandardTextTableEntry, ["name", "size"]),
@@ -136,11 +137,27 @@ with open_asset("structures", "eb.yml") as f:
             break
 
 
-def eb_table_from_offset(offset):
+def eb_table_from_offset(offset, single_column=None, matrix_dimensions=None):
     log.debug("Creating EbTable object for offset[{:#x}]".format(offset))
     try:
-        schema = _EB_SCHEMA_MAP[offset]
+        schema_specification = _EB_SCHEMA_MAP[offset]
     except KeyError:
         raise InvalidArgumentError("Could not setup EbTable from unknown offset[{:#x}]".format(offset))
 
-    return EbTable(name=schema["name"], size=schema["size"], schema_specification=schema["entries"])
+    if single_column:
+        schema = SingleColumnTableSchema(column=single_column)
+    else:
+        schema = EbColumnTableSchema(schema_specification["entries"])
+
+    if matrix_dimensions:
+        matrix_width, matrix_height = matrix_dimensions
+        return MatrixTable(
+            schema=schema,
+            matrix_height=matrix_height,
+            name=schema_specification["name"],
+            size=schema_specification["size"])
+    else:
+        return Table(
+            schema=schema,
+            name=schema_specification["name"],
+            size=schema_specification["size"])

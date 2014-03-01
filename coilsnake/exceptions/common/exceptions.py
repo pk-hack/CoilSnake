@@ -1,7 +1,7 @@
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
 
 
-class CoilSnakeError(Exception, EqualityMixin, StringRepresentationMixin):
+class CoilSnakeError(Exception):
     pass
 
 
@@ -65,7 +65,13 @@ class TableEntryMissingDataError(TableEntryError):
     pass
 
 
-class TableError(CoilSnakeError):
+class TableSchemaError(EqualityMixin, StringRepresentationMixin, CoilSnakeError):
+    def __init__(self, field, cause):
+        self.field = field
+        self.cause = cause
+
+
+class TableError(EqualityMixin, StringRepresentationMixin, CoilSnakeError):
     def __init__(self, table_name, entry, field, cause):
         self.table_name = table_name
         self.entry = entry
