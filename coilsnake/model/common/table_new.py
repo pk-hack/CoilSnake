@@ -184,6 +184,48 @@ class ColumnTableSchema(object):
         else:
             raise InvalidArgumentError("Cannot create table schema with no arguments provided")
 
+    def row_from_yml_rep(self, yml_rep_row, row):
+        for i, column in enumerate(self.columns):
+            try:
+                column_yml_rep = yml_rep_row[column.name]
+            except KeyError:
+                log.exception("Column[{}] not found in yml representation".format(column.name))
+                raise TableSchemaError(field=column.name, cause=TableEntryMissingDataError())
+
+            try:
+                row[i] = column.from_yml_rep(column_yml_rep)
+            except TableEntryError as e:
+                log.exception("Error while parsing yml representation for column[{}]".format(column.name))
+                raise TableSchemaError(field=column.name, cause=e)
+            except Exception as e:
+                log.exception("Unexpected error while parsing yml representation for column[{}]".format(column.name))
+                raise TableSchemaError(field=column.name, cause=e)
+
+    def row_to_yml_rep(self, row):
+        yml_rep_row = dict()
+        for value, column in zip(row, self.columns):
+            try:
+                yml_rep_row[column.name] = column.to_yml_rep(value)
+            except Exception as e:
+                log.exception("Error while serializing column[{}]".format(column.name))
+                raise TableSchemaError(field=column.name, cause=e)
+        return yml_rep_row
+
+    def __len__(self):
+        return len(self.columns)
+
+    def size(self):
+        return sum(map(lambda x: x.size, self.columns))
+
+
+class GenericLittleEndianColumnTableSchema(ColumnTableSchema):
+    DEFAULT_TABLE_ENTRY_TYPE = "int"
+    TABLE_ENTRY_CLASS_MAP = {"int": (LittleEndianIntegerTableEntry, ["name", "size"]),
+                             "hexint": (LittleEndianHexIntegerTableEntry, ["name", "size"]),
+                             "one-based int": (LittleEndianOneBasedIntegerTableEntry, ["name", "size"]),
+                             "bytearray": (ByteListTableEntry, ["name", "size"]),
+                             "boolean": (BooleanTableEntry, ["name", "size"])}
+
     @classmethod
     def to_table_entry_class(cls, column_specification):
         class_name = "GeneratedTableEntry_{}".format(column_specification["name"])
@@ -223,45 +265,6 @@ class ColumnTableSchema(object):
 
             return type(class_name, (entry_class,), parameters)
 
-    def row_from_yml_rep(self, yml_rep_row, row):
-        for i, column in enumerate(self.columns):
-            try:
-                column_yml_rep = yml_rep_row[column.name]
-            except KeyError:
-                log.exception("Column[{}] not found in yml representation".format(column.name))
-                raise TableSchemaError(field=column.name, cause=TableEntryMissingDataError())
-
-            try:
-                row[i] = column.from_yml_rep(column_yml_rep)
-            except TableEntryError as e:
-                log.exception("Error while parsing yml representation for column[{}]".format(column.name))
-                raise TableSchemaError(field=column.name, cause=e)
-            except Exception as e:
-                log.exception("Unexpected error while parsing yml representation for column[{}]".format(column.name))
-                raise TableSchemaError(field=column.name, cause=e)
-
-    def row_to_yml_rep(self, row):
-        yml_rep_row = dict()
-        for value, column in zip(row, self.columns):
-            try:
-                yml_rep_row[column.name] = column.to_yml_rep(value)
-            except Exception as e:
-                log.exception("Error while serializing column[{}]".format(column.name))
-                raise TableSchemaError(field=column.name, cause=e)
-        return yml_rep_row
-
-    def __len__(self):
-        return len(self.columns)
-
-
-class GenericLittleEndianColumnTableSchema(ColumnTableSchema):
-    DEFAULT_TABLE_ENTRY_TYPE = "int"
-    TABLE_ENTRY_CLASS_MAP = {"int": (LittleEndianIntegerTableEntry, ["name", "size"]),
-                             "hexint": (LittleEndianHexIntegerTableEntry, ["name", "size"]),
-                             "one-based int": (LittleEndianOneBasedIntegerTableEntry, ["name", "size"]),
-                             "bytearray": (ByteListTableEntry, ["name", "size"]),
-                             "boolean": (BooleanTableEntry, ["name", "size"])}
-
 
 class SingleColumnTableSchema(object):
     def __init__(self, column):
@@ -288,6 +291,9 @@ class SingleColumnTableSchema(object):
     def __len__(self):
         return 1
 
+    def size(self):
+        return self.column.size
+
 
 class Table(object):
     def __init__(self, schema, name="Anonymous Table", size=None, num_rows=None):
@@ -298,7 +304,7 @@ class Table(object):
 
         self.schema = schema
 
-        self.row_size = sum(map(lambda x: x.size, self.schema.columns))
+        self.row_size = self.schema.size()
         self.row_length = len(self.schema)
         if num_rows is not None:
             self.num_rows = num_rows
