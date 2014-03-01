@@ -9,6 +9,5 @@ cover/
 *.zo
 *.pyc
 prefs.yml
-tests/test_data/true_*
-tests/test_data/*/true_*
+tests/test_data/roms/real_EarthBound.smc
 TODO.txt

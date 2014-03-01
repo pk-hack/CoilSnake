@@ -302,7 +302,7 @@ class TestRom(TestAllocatableBlock):
         assert_equal(self.block.type, ROM_TYPE_NAME_UNKNOWN)
         self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "EB_fake_header.smc"))
         assert_equal(self.block.type, "Earthbound")
-        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "real_EarthBound.smc"))
         assert_equal(self.block.type, "Earthbound")
 
     @raises(NotImplementedError)
@@ -311,7 +311,7 @@ class TestRom(TestAllocatableBlock):
         self.block.add_header()
 
     def test_add_header_eb(self):
-        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "real_EarthBound.smc"))
         assert_equal(self.block.size, 0x300000)
         self.block.add_header()
         assert_equal(self.block.size, 0x300200)
@@ -324,7 +324,7 @@ class TestRom(TestAllocatableBlock):
         self.block.expand(0x123456)
 
     def test_expand_eb(self):
-        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "real_EarthBound.smc"))
         assert_raises(InvalidArgumentError, self.block.expand, 0x400200)
         assert_raises(InvalidArgumentError, self.block.expand, 0x300000)
         self.block.expand(0x400000)
@@ -337,7 +337,7 @@ class TestRom(TestAllocatableBlock):
         assert_equal(self.block[0xffd5], 0x25)
         assert_equal(self.block[0xffd7], 0x0d)
 
-        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
+        self.block.from_file(os.path.join(TEST_DATA_DIR, "roms", "real_EarthBound.smc"))
         self.block.expand(0x600000)
         assert_equal(self.block.size, 0x600000)
         assert_equal(len(self.block.data), 0x600000)

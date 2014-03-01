@@ -45,7 +45,7 @@ class TestDoorModule(BaseTestCase, TemporaryWritableFileTestCase):
 
     def test_read_from_rom(self):
         with Rom() as rom:
-            rom.from_file(os.path.join(TEST_DATA_DIR, 'roms', 'true_EarthBound.smc'))
+            rom.from_file(os.path.join(TEST_DATA_DIR, 'roms', 'real_EarthBound.smc'))
             self.test_read_from_rom_using_rom(rom)
 
     @nottest
@@ -78,12 +78,9 @@ class TestDoorModule(BaseTestCase, TemporaryWritableFileTestCase):
             "RopeOrLadderDoor": 641,
         })
 
-    def test_read_from_project(self):
-        self.test_read_from_project_using_filename(os.path.join(TEST_DATA_DIR, 'true_map_doors.yml'))
-
     def test_write_to_project(self):
         with Rom() as rom:
-            rom.from_file(os.path.join(TEST_DATA_DIR, 'roms', 'true_EarthBound.smc'))
+            rom.from_file(os.path.join(TEST_DATA_DIR, 'roms', 'real_EarthBound.smc'))
             self.module.read_from_rom(rom)
 
         def resource_open(a, b):
@@ -96,13 +93,19 @@ class TestDoorModule(BaseTestCase, TemporaryWritableFileTestCase):
         self.test_read_from_project_using_filename(self.temporary_wo_file_name)
 
     def test_write_to_rom(self):
-        with open(os.path.join(TEST_DATA_DIR, 'yml', 'true_map_doors.yml'), 'r') as doors_file:
-            def resource_open(a, b):
-                return doors_file
+        with Rom() as rom:
+            rom.from_file(os.path.join(TEST_DATA_DIR, 'roms', 'real_EarthBound.smc'))
+            self.module.read_from_rom(rom)
 
-            self.module.read_from_project(resource_open)
+        def resource_open(a, b):
+            return self.temporary_wo_file
+
+        self.module.write_to_project(resource_open)
+
+        self.temporary_wo_file = open(self.temporary_wo_file_name)
+        self.module.read_from_project(resource_open)
 
         with Rom() as rom:
-            rom.from_file(os.path.join(TEST_DATA_DIR, 'roms', 'true_EarthBound.smc'))
+            rom.from_file(os.path.join(TEST_DATA_DIR, 'roms', 'real_EarthBound.smc'))
             self.module.write_to_rom(rom)
             self.test_read_from_rom_using_rom(rom)

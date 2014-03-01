@@ -73,7 +73,6 @@ class DoorModule(EbModule):
     def read_from_project(self, resourceOpener):
         self.door_areas = []
         pct = 45.0 / (40 * 32)
-        self.door_areas = []
         with resourceOpener("map_doors", "yml") as f:
             updateProgress(5)
             input = yaml.load(f, Loader=yaml.CSafeLoader)

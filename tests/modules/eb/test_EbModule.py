@@ -1,5 +1,6 @@
 import array
 import os
+from zlib import crc32
 
 from nose.tools import nottest
 from nose.tools import assert_equal
@@ -22,25 +23,22 @@ class TestEbModule(BaseTestCase):
     def test_decomp(self, decomp):
         onett_map = array.array('B')
         with Rom() as eb_rom:
-            eb_rom.from_file(os.path.join(TEST_DATA_DIR, "roms", "true_EarthBound.smc"))
+            eb_rom.from_file(os.path.join(TEST_DATA_DIR, "roms", "real_EarthBound.smc"))
             onett_map.fromlist(decomp(eb_rom, 0x2021a8))
 
-        onett_map_expect = array.array('B')
-        with open(os.path.join(TEST_DATA_DIR, "binaries", "true_onett_map_graphics.smc"), 'rb') as f:
-            onett_map_expect.fromstring(f.read())
-
-        assert_equal(len(onett_map), len(onett_map_expect))
-        assert_equal(onett_map, onett_map_expect)
+        assert_equal(len(onett_map), 18496)
+        assert_equal(crc32(onett_map), 739047015)
 
     @nottest
     def test_comp(self, comp, decomp):
         a = array.array('B')
-        with open(os.path.join(TEST_DATA_DIR, "binaries", "true_onett_map_graphics.smc"), 'rb') as f:
+        with open(os.path.join(TEST_DATA_DIR, "binaries", "compressible.smc"), 'rb') as f:
             a.fromstring(f.read())
-        uncompressed_data = a.tolist()
+        assert_equal(len(a), 18496)
 
+        uncompressed_data = a.tolist()
         compressed_data = comp(uncompressed_data)
-        assert_equal(len(compressed_data), 10877)
+        assert_equal(len(compressed_data), 58)
 
         with Rom() as fake_eb_rom:
             fake_eb_rom.from_file(os.path.join(TEST_DATA_DIR, "roms", "EB_fake_32mbit.smc"))
