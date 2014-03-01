@@ -4,9 +4,10 @@ import yaml
 from coilsnake.Progress import updateProgress
 from coilsnake.Ips import Ips
 from coilsnake.modules.common.GenericModule import GenericModule
+from coilsnake.util.common.assets import ASSET_PATH
 
 
-IPS_DIRECTORY = os.path.join(os.path.dirname(__file__), "resources", "ips")
+IPS_DIRECTORY = os.path.join(ASSET_PATH, "ips")
 
 
 def get_ips_directory(romtype):

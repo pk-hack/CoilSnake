@@ -16,6 +16,7 @@ from coilsnake import Progress
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui import cli, information
 from coilsnake.ui.Fun import getTitle
+from coilsnake.util.common.assets import ASSET_PATH
 
 
 
@@ -57,7 +58,7 @@ class CoilSnakeFrontend:
         am = Toplevel(self._root)
         # Label(am, text="CoilSnake " + CoilSnake._VERSION,
         #        font=("Helvetica", 16)).pack(fill=X)
-        photo = PhotoImage(file=os.path.join(os.path.dirname(__file__), "resources", "logo.gif"))
+        photo = PhotoImage(file=os.path.join(ASSET_PATH, "images", "logo.gif"))
         photoLabel = Label(am, image=photo)
         photoLabel.photo = photo
         photoLabel.pack(fill='both', expand=1)

@@ -7,6 +7,7 @@ from zlib import crc32
 
 from coilsnake.exceptions.common.exceptions import OutOfBoundsError, InvalidArgumentError, \
     NotEnoughUnallocatedSpaceError, FileAccessError, CouldNotAllocateError
+from coilsnake.util.common.assets import open_asset
 
 
 log = logging.getLogger(__name__)
@@ -149,7 +150,7 @@ class Block(object):
                     self.data[key] = item.data
                 else:
                     raise InvalidArgumentError("Can not write value of type[{}]".format(type(item)))
-        elif isinstance(key, int) and isinstance(item, int):
+        elif isinstance(key, int) and isinstance(item, (int, long)):
             if item < 0 or item > 0xff:
                 raise InvalidArgumentError("Attempting to write value[%d] into a single byte" % item)
             if key >= self.size:
@@ -266,7 +267,7 @@ class AllocatableBlock(Block):
         return allocated_range[0]
 
 
-with open(os.path.join(os.path.dirname(__file__), "resources", "romtypes.yml"), 'r') as f:
+with open_asset("romtypes.yml") as f:
     ROM_TYPE_MAP = yaml.load(f, Loader=yaml.CSafeLoader)
 
 ROM_TYPE_NAME_UNKNOWN = "Unknown"

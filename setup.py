@@ -1,22 +1,30 @@
 #! /usr/bin/env python
 
-from setuptools import setup
+from setuptools import setup, find_packages
+from setuptools.extension import Extension
 
 from coilsnake.ui import information
 
 
-setup(name='CoilSnake',
-      version=information.VERSION,
-      description="A program for modifying the EarthBound ROM.",
-      long_description=open("README.md").read(),
-      url="http://kiij.github.io/CoilSnake",
-      requires=['Pillow'],
+setup(
+    name="CoilSnake",
+    version=information.VERSION,
+    description="A program for modifying the EarthBound ROM.",
+    url="http://kiij.github.io/CoilSnake",
+    packages=find_packages(),
+    include_package_data=True,
 
-      tests_require=['nose'],
-      test_suite="nose.main"
+    install_requires=["Pillow", "PyYAML"],
+    ext_modules=[
+        Extension("coilsnake.modules.eb.NativeComp", ["coilsnake/modules/eb/NativeComp.c"])
+    ],
+    entry_points={
+        "console_scripts": [
+            "coilsnake = coilsnake.ui.gui:main",
+            "coilsnake-cmd = coilsnake.ui.cli:main"
+        ]
+    },
 
-      #windows=['CoilSnake.py'],
-      #data_files=dataFiles,
-      #zipfile=None,
-      #options={"py2exe": {"includes": includeModuleList}}
+    test_suite="nose.collector",
+    tests_require=["nose>=1.0", "mock"],
 )

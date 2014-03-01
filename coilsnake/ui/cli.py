@@ -12,6 +12,7 @@ from coilsnake import Project
 from coilsnake.model.common.blocks import Rom
 from coilsnake.Progress import setProgress
 from coilsnake.ui import information
+from coilsnake.util.common.assets import open_asset
 
 
 logging.basicConfig(format="%(name)s:%(levelname)s:\t%(message)s", level=logging.DEBUG)
@@ -24,7 +25,7 @@ class CoilSnake:
 
     def load_modules(self):
         all_modules = []
-        with open(os.path.join(os.path.dirname(__file__), 'resources', 'modulelist.txt'), 'r') as f:
+        with open_asset("modulelist.txt") as f:
             for line in f:
                 line = line.rstrip('\n')
                 if line[0] == '#':
