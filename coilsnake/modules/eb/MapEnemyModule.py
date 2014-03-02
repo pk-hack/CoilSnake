@@ -1,4 +1,4 @@
-from coilsnake.model.eb.map_enemy_groups import MapEnemyGroupPointerTableEntry
+from coilsnake.model.eb.enemy_groups import MapEnemyGroupPointerTableEntry
 from coilsnake.model.eb.table import eb_table_from_offset
 
 from coilsnake.modules.eb import EbModule
