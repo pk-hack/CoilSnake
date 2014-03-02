@@ -33,7 +33,7 @@ class TestEbModule(BaseTestCase):
     @nottest
     def test_comp(self, comp, decomp):
         a = array.array('B')
-        with open(os.path.join(TEST_DATA_DIR, "binaries", "compressible.smc"), 'rb') as f:
+        with open(os.path.join(TEST_DATA_DIR, "binaries", "compressible.bin"), 'rb') as f:
             a.fromstring(f.read())
         assert_equal(len(a), 18496)
 
