@@ -1,12 +1,12 @@
-from coilsnake.model.common.table_new import LittleEndianHexIntegerTableEntry, LittleEndianIntegerTableEntry, \
+from coilsnake.model.common.table_new import LittleEndianIntegerTableEntry, \
     RowTableEntry
-from coilsnake.model.eb.table import EbPointerTableEntry
+from coilsnake.model.eb.table import EbPointerTableEntry, EbEventFlagTableEntry
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
 
 MapEnemyGroupTableEntry = RowTableEntry.from_schema(
     name="Map Enemy Group Table Entry",
-    schema=[type("EventFlag", (LittleEndianHexIntegerTableEntry,), {"name": "Event Flag", "size": 2}),
+    schema=[EbEventFlagTableEntry,
             type("Rate1", (LittleEndianIntegerTableEntry,), {"name": "Sub-Group 1 Rate", "size": 1}),
             type("Rate2", (LittleEndianIntegerTableEntry,), {"name": "Sub-Group 2 Rate", "size": 1})]
 )

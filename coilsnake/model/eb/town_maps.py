@@ -1,6 +1,6 @@
 from coilsnake.model.common.table_new import RowTableEntry, LittleEndianIntegerTableEntry, \
-    EnumeratedLittleEndianIntegerTableEntry, LittleEndianHexIntegerTableEntry
-from coilsnake.model.eb.table import EbPointerTableEntry
+    EnumeratedLittleEndianIntegerTableEntry
+from coilsnake.model.eb.table import EbPointerTableEntry, EbEventFlagTableEntry
 from coilsnake.util.common.type import enum_class_from_name_list
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
@@ -22,7 +22,7 @@ TownMapIconPlacementTableEntry = RowTableEntry.from_schema(
             type("TownMapIconY", (LittleEndianIntegerTableEntry,), {"name": "Y", "size": 1}),
             type("TownMapIconIcon", (EnumeratedLittleEndianIntegerTableEntry,), {
                 "name": "Icon", "size": 1, "enumeration_class": TownMapIconEnum}),
-            type("TownMapIconFlag", (LittleEndianHexIntegerTableEntry,), {"name": "Event Flag", "size": 2})]
+            EbEventFlagTableEntry]
 )
 
 
