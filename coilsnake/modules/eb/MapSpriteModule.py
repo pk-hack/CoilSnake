@@ -1,7 +1,7 @@
 from functools import partial
 import logging
 
-from coilsnake.model.eb.map_sprites import SpritePlacementTableEntry
+from coilsnake.model.eb.map_sprites import SpritePlacementPointerTableEntry
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb import EbModule
 from coilsnake.util.eb.helper import not_in_bank
@@ -21,7 +21,7 @@ class MapSpriteModule(EbModule.EbModule):
         EbModule.EbModule.__init__(self)
         self.table = eb_table_from_offset(
             offset=self.POINTER_TABLE_DEFAULT_OFFSET,
-            single_column=SpritePlacementTableEntry,
+            single_column=SpritePlacementPointerTableEntry,
             matrix_dimensions=(32, 40))
 
     def read_from_rom(self, rom):
