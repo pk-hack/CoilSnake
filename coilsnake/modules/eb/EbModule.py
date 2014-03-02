@@ -9,28 +9,11 @@ log = logging.getLogger(__name__)
 
 
 try:
-    from coilsnake.modules.eb import NativeComp
+    from coilsnake.util.eb import native_comp
 
     hasNativeComp = True
 except ImportError:
-    try:
-        import os
-
-        old_dir = os.getcwd()
-        os.chdir(os.path.join("source", "modules", "eb"))
-
-        from distutils.core import run_setup
-
-        options = "build_ext --inplace clean"
-        run_setup('build_NativeComp.py', options.split())
-
-        os.chdir(old_dir)
-
-        from coilsnake.modules.eb import NativeComp
-
-        hasNativeComp = True
-    except:
-        hasNativeComp = False
+    hasNativeComp = False
 
 if not hasNativeComp:
     print "WARNING: Could not load native EarthBound compression library"
@@ -263,7 +246,7 @@ def _comp(udata):
 def decomp(rom, cdata):
     try:
         if hasNativeComp:
-            return NativeComp.decomp(rom, cdata)
+            return native_comp.decomp(rom, cdata)
         else:
             return _decomp(rom, cdata)
     except SystemError:
@@ -273,6 +256,6 @@ def decomp(rom, cdata):
 
 def comp(udata):
     if hasNativeComp:
-        return NativeComp.comp(udata)
+        return native_comp.comp(udata)
     else:
         return _comp(udata)

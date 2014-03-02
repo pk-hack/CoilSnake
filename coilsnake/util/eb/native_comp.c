@@ -260,14 +260,14 @@ static PyObject* decomp(PyObject* self, PyObject* args) {
         return ulist;
 }
 
-static PyMethodDef NativeCompMethods[] = {
+static PyMethodDef native_compMethods[] = {
 	{"comp", comp, METH_VARARGS, "C implementation of EB's comp()"},
 	{"decomp", decomp, METH_VARARGS, "C implementation of EB's decomp()"},
 	{NULL, NULL, 0, NULL}
 };
 
 PyMODINIT_FUNC
-initNativeComp(void)
+initnative_comp(void)
 {
-	(void) Py_InitModule("NativeComp", NativeCompMethods);
+	(void) Py_InitModule("native_comp", native_compMethods);
 }

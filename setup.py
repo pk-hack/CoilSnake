@@ -16,7 +16,7 @@ setup(
 
     install_requires=["Pillow", "PyYAML"],
     ext_modules=[
-        Extension("coilsnake.modules.eb.NativeComp", ["coilsnake/modules/eb/NativeComp.c"])
+        Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c"])
     ],
     entry_points={
         "console_scripts": [

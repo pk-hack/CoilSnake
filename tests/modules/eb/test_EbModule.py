@@ -5,8 +5,9 @@ from zlib import crc32
 from nose.tools import nottest
 from nose.tools import assert_equal
 
-from coilsnake.modules.eb import EbModule, NativeComp
+from coilsnake.modules.eb import EbModule
 from coilsnake.model.common.blocks import Rom
+from coilsnake.util.eb import native_comp
 from tests.coilsnake_test import BaseTestCase, TEST_DATA_DIR
 
 
@@ -57,10 +58,10 @@ class TestEbModule(BaseTestCase):
         self.test_decomp(EbModule._decomp)
 
     def test_native_comp(self):
-        self.test_comp(NativeComp.comp, NativeComp.decomp)
+        self.test_comp(native_comp.comp, native_comp.decomp)
 
     def test_native_decomp(self):
-        self.test_decomp(NativeComp.decomp)
+        self.test_decomp(native_comp.decomp)
 
     def test_default_comp(self):
         self.test_comp(EbModule.comp, EbModule.decomp)

@@ -30,8 +30,18 @@ To use the command line client:
 coilsnake-cmd
 ```
 
-### Developing CoilSnake
-To run the CoilSnake unit tests:
+### Development
+To run CoilSnake from source without installing:
+```
+sudo apt-get install python-dev libyaml-dev
+sudo pip install Pillow PyYAML
+make
+python coilsnake.py
+# or...
+python coilsnake-cmd.py
+```
+
+To run the unit tests:
 ```
 python setup.py test
 ```
