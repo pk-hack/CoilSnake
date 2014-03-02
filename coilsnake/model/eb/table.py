@@ -3,8 +3,8 @@ import yaml
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, TableEntryInvalidYmlRepresentationError, \
     InvalidYmlRepresentationError
-from coilsnake.model.common.table_new import LittleEndianIntegerTableEntry, GenericLittleEndianColumnTableSchema, Table, \
-    SingleColumnTableSchema, MatrixTable
+from coilsnake.model.common.table_new import LittleEndianIntegerTableEntry, Table, MatrixTable, \
+    GenericLittleEndianRowTableEntry, TableEntry
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.pointers import EbPointer
 from coilsnake.util.common.assets import open_asset
@@ -41,7 +41,7 @@ class EbPointerTableEntry(LittleEndianIntegerTableEntry):
         return "${:x}".format(value)
 
 
-class EbPaletteTableEntry(object):
+class EbPaletteTableEntry(TableEntry):
     @classmethod
     def from_block(cls, block, offset):
         palette = EbPalette(num_subpalettes=1, subpalette_length=(cls.size / 2))
@@ -67,7 +67,7 @@ class EbPaletteTableEntry(object):
         return value.yml_rep()
 
 
-class EbStandardTextTableEntry(object):
+class EbStandardTextTableEntry(TableEntry):
     @classmethod
     def from_block(cls, block, offset):
         return standard_text_from_block(block, offset, cls.size)
@@ -116,9 +116,9 @@ class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
         return yml_rep
 
 
-class EbColumnTableSchema(GenericLittleEndianColumnTableSchema):
+class EbRowTableEntry(GenericLittleEndianRowTableEntry):
     TABLE_ENTRY_CLASS_MAP = dict(
-        GenericLittleEndianColumnTableSchema.TABLE_ENTRY_CLASS_MAP,
+        GenericLittleEndianRowTableEntry.TABLE_ENTRY_CLASS_MAP,
         **{"pointer": (EbPointerTableEntry, ["name", "size"]),
            "palette": (EbPaletteTableEntry, ["name", "size"]),
            "standardtext": (EbStandardTextTableEntry, ["name", "size"]),
@@ -145,9 +145,9 @@ def eb_table_from_offset(offset, single_column=None, matrix_dimensions=None):
         raise InvalidArgumentError("Could not setup EbTable from unknown offset[{:#x}]".format(offset))
 
     if single_column:
-        schema = SingleColumnTableSchema(column=single_column)
+        schema = single_column
     else:
-        schema = EbColumnTableSchema(schema_specification["entries"])
+        schema = EbRowTableEntry.from_schema_specification(schema_specification["entries"])
 
     if matrix_dimensions:
         matrix_width, matrix_height = matrix_dimensions

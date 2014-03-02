@@ -90,8 +90,7 @@ class FontModule(EbModule.EbModule):
         self.read_credits_font_from_project(resource_open)
         updateProgress(self._percent)
 
-    def upgrade_project(self, old_version, new_version, rom, resource_open_r,
-                        resource_open_w, resource_delete):
+    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             updateProgress(100)
             return

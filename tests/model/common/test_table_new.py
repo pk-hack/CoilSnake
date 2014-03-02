@@ -3,7 +3,7 @@ from nose.tools import assert_dict_equal, assert_list_equal, assert_raises, asse
 from coilsnake.exceptions.common.exceptions import TableError, \
     TableEntryInvalidYmlRepresentationError, TableEntryMissingDataError, TableSchemaError
 from coilsnake.model.common.blocks import Block
-from coilsnake.model.common.table_new import GenericLittleEndianColumnTableSchema, Table
+from coilsnake.model.common.table_new import Table, GenericLittleEndianRowTableEntry
 from tests.coilsnake_test import BaseTestCase
 
 
@@ -86,7 +86,7 @@ class TestGenericLittleEndianTable(GenericTestTable):
          "type": "bitfield",
          "bitvalues": ["bit0", "bit1", "bit2", "bit3", "bit4", "bit5", "bit6"]}
     ]
-    TABLE_SCHEMA = GenericLittleEndianColumnTableSchema(schema_specification=TABLE_SCHEMA_SPECIFICATION)
+    TABLE_SCHEMA = GenericLittleEndianRowTableEntry.from_schema_specification(TABLE_SCHEMA_SPECIFICATION)
 
     BLOCK_DATA = [72,  # First row
                   0xde, 0xbc, 0x1a,

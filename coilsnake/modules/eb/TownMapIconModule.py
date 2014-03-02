@@ -1,136 +1,68 @@
 import yaml
-from re import sub
 
+from coilsnake.model.eb.table import eb_table_from_offset
+from coilsnake.model.eb.town_maps import TownMapIconPlacementPointerTableEntry, TownMapEnum
 from coilsnake.modules.eb import EbModule
-from coilsnake.modules.eb.EbTablesModule import EbTable
-from coilsnake.model.common.table import ValuedIntTableEntry
-from coilsnake.Progress import updateProgress
+from coilsnake.util.common.project import convert_values_to_hex_repr_in_yml_file
+from coilsnake.util.eb.pointer import read_asm_pointer, write_asm_pointer, from_snes_address, to_snes_address
 
 
 class TownMapIconModule(EbModule.EbModule):
     NAME = "Town Map Icon Positions"
     FREE_RANGES = [(0x21f491, 0x21f580)]  # Pointer Table and Data
 
-    _ASMPTR_PTR_TBL = 0x4d464
+    POINTER_TABLE_DEFAULT_OFFSET = 0xE1F491
+    POINTER_TABLE_ASM_POINTER_OFFSET = 0x4D464
 
     def __init__(self):
         EbModule.EbModule.__init__(self)
-        self._ptrTbl = EbTable(0xE1F491)
-        self._entries = []
-        self._entryIdField = ValuedIntTableEntry(None, None,
-                                                 ["Onett", "Twoson", "Threed", "Fourside", "Scaraba", "Summers"])
-        self._iconField = ValuedIntTableEntry(None, None,
-                                              ["0", "Hamburger Shop", "Bakery", "Hotel",
-                                               "Restaurant", "Hospital", "Shop", "Dept Store", "Bus Stop",
-                                               "South to Twoson", "North to Onett", "South to Threed",
-                                               "West to Twoson", "East to Desert", "West to Desert",
-                                               "East to Toto", "Hint", "Ness", "Small Ness",
-                                               "North", "South", "West", "East"])
+        self.table = eb_table_from_offset(
+            offset=self.POINTER_TABLE_DEFAULT_OFFSET,
+            single_column=TownMapIconPlacementPointerTableEntry)
 
     def read_from_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._ptrTbl.readFromRom(rom,
-                                 EbModule.toRegAddr(EbModule.readAsmPointer(rom, self._ASMPTR_PTR_TBL)))
-        updateProgress(5)
-        for i in range(self._ptrTbl.height()):
-            loc = EbModule.toRegAddr(self._ptrTbl[i, 0].val())
-            entry = []
-            while True:
-                x = rom[loc]
-                if x == 0xff:
-                    break
-                y = rom[loc + 1]
-                icon = rom[loc + 2]
-                flag = rom.read_multi(loc + 3, 2)
-                entry.append((x, y, icon, flag))
-                loc += 5
-            self._entries.append(entry)
-            i += 1
-        updateProgress(45)
+        pointer_table_offset = from_snes_address(read_asm_pointer(rom, self.POINTER_TABLE_ASM_POINTER_OFFSET))
+        self.table.from_block(rom, pointer_table_offset)
 
     def write_to_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._ptrTbl.clear(6)
-        i = 0
-        for entry in self._entries:
-            writeLoc = rom.allocate(size=(len(entry) * 5 + 1))
-            self._ptrTbl[i, 0].setVal(
-                EbModule.toSnesAddr(writeLoc))
-            for (x, y, icon, flag) in entry:
-                rom[writeLoc] = x
-                rom[writeLoc + 1] = y
-                rom[writeLoc + 2] = icon
-                rom.write_multi(writeLoc + 3, flag, 2)
-                writeLoc += 5
-            rom[writeLoc] = 0xff
-            i += 1
-        updateProgress(45)
-        EbModule.writeAsmPointer(rom, self._ASMPTR_PTR_TBL, EbModule.toSnesAddr(self._ptrTbl.writeToFree(rom)))
-        updateProgress(5)
+        pointer_table_offset = rom.allocate(size=self.table.size)
+        self.table.to_block(rom, pointer_table_offset)
+        write_asm_pointer(rom, self.POINTER_TABLE_ASM_POINTER_OFFSET, to_snes_address(pointer_table_offset))
 
-    def read_from_project(self, resourceOpener):
-        self._entries = [None] * 6
-        with resourceOpener("TownMaps/icon_positions", "yml") as f:
-            data = yaml.load(f, Loader=yaml.CSafeLoader)
-            for name in data:
-                entry = []
-                for subEntry in data[name]:
-                    self._iconField.load(subEntry["Icon"])
-                    entry.append((
-                        subEntry["X"],
-                        subEntry["Y"],
-                        self._iconField.val(),
-                        subEntry["Event Flag"]))
-                self._entryIdField.load(name)
-                self._entries[self._entryIdField.val()] = entry
-        updateProgress(50)
+    def read_from_project(self, resource_open):
+        with resource_open("TownMaps/icon_positions", "yml") as f:
+            self.table.from_yml_file(f)
 
-    def write_to_project(self, resourceOpener):
-        out = dict()
-        i = 0
-        for entry in self._entries:
-            outEntry = []
-            for (x, y, icon, flag) in entry:
-                self._iconField.setVal(icon)
-                outEntry.append({
-                    "X": x,
-                    "Y": y,
-                    "Icon": self._iconField.dump(),
-                    "Event Flag": flag})
-            self._entryIdField.setVal(i)
-            out[self._entryIdField.dump()] = outEntry
-            i += 1
-        updateProgress(25)
-        with resourceOpener("TownMaps/icon_positions", "yml") as f:
-            s = yaml.dump(out, default_flow_style=False,
-                          Dumper=yaml.CSafeDumper)
-            s = sub("Event Flag: (\d+)",
-                    lambda i: "Event Flag: " + hex(int(i.group(0)[12:])), s)
-            f.write(s)
-        updateProgress(25)
+    def write_to_project(self, resource_open):
+        with resource_open("TownMaps/icon_positions", "yml") as f:
+            self.table.to_yml_file(f)
 
-    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
-                        resourceOpenerW, resourceDeleter):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
+    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         global updateProgress
-        if oldVersion == newVersion:
+        if old_version == new_version:
             updateProgress(100)
             return
-        elif oldVersion <= 2:
+        elif old_version == 3:
+            with resource_open_r("TownMaps/icon_positions", "yml") as f:
+                data = yaml.load(f, Loader=yaml.CSafeLoader)
+
+                for i in range(6):
+                    old_key = TownMapEnum.tostring(i).lower()
+                    data[i] = data[old_key]
+                    del data[old_key]
+            with resource_open_w("TownMaps/icon_positions", "yml") as f:
+                yaml.dump(data, f, default_flow_style=False, Dumper=yaml.CSafeDumper)
+
+            convert_values_to_hex_repr_in_yml_file("TownMaps/icon_positions", resource_open_r, resource_open_w,
+                                                   ["Event Flag"])
+
+            self.upgrade_project(4, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+        elif old_version <= 2:
             tmp = updateProgress
             updateProgress = lambda x: None
             self.read_from_rom(rom)
-            self.write_to_project(resourceOpenerW)
+            self.write_to_project(resource_open_w)
             updateProgress = tmp
-            self.upgrade_project(3, newVersion, rom, resourceOpenerR,
-                                 resourceOpenerW, resourceDeleter)
+            self.upgrade_project(4, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         else:
-            self.upgrade_project(
-                oldVersion + 1, newVersion, rom, resourceOpenerR,
-                resourceOpenerW, resourceDeleter)
+            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)

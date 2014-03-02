@@ -11,7 +11,13 @@ from coilsnake.util.common.yml import convert_values_to_hex_repr
 log = logging.getLogger(__name__)
 
 
-class BooleanTableEntry(object):
+class TableEntry(object):
+    @classmethod
+    def hex_labels(cls):
+        return []
+
+
+class BooleanTableEntry(TableEntry):
     @classmethod
     def from_block(cls, block, offset):
         return block.read_multi(offset, cls.size) != 0
@@ -36,7 +42,7 @@ class BooleanTableEntry(object):
         return value
 
 
-class LittleEndianIntegerTableEntry(object):
+class LittleEndianIntegerTableEntry(TableEntry):
     @classmethod
     def from_block(cls, block, offset):
         return block.read_multi(offset, cls.size)
@@ -62,7 +68,9 @@ class LittleEndianIntegerTableEntry(object):
 
 
 class LittleEndianHexIntegerTableEntry(LittleEndianIntegerTableEntry):
-    pass
+    @classmethod
+    def hex_labels(cls):
+        return [cls.name]
 
 
 class LittleEndianOneBasedIntegerTableEntry(LittleEndianIntegerTableEntry):
@@ -98,7 +106,7 @@ class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):
             return value
 
 
-class ByteListTableEntry(object):
+class ByteListTableEntry(TableEntry):
     @classmethod
     def from_block(cls, block, offset):
         return block[offset:offset + cls.size].to_list()
@@ -123,7 +131,7 @@ class ByteListTableEntry(object):
         return cls.from_yml_rep(value)
 
 
-class BitfieldTableEntry(object):
+class BitfieldTableEntry(TableEntry):
     @classmethod
     def from_block(cls, block, offset):
         value = set()
@@ -175,19 +183,24 @@ class BitfieldTableEntry(object):
         return yml_rep
 
 
-class ColumnTableSchema(object):
-    def __init__(self, schema_specification=None, schema=None):
-        if schema:
-            self.columns = schema
-        elif schema_specification:
-            self.columns = map(self.to_table_entry_class, schema_specification)
-        else:
-            raise InvalidArgumentError("Cannot create table schema with no arguments provided")
+class RowTableEntry(TableEntry):
+    @classmethod
+    def from_schema(cls, schema, name="CustomRowTableEntry"):
+        return type(name, (cls,), {"name": name,
+                                   "size": sum([x.size for x in schema]),
+                                   "schema": schema})
 
-    def row_from_yml_rep(self, yml_rep_row, row):
-        for i, column in enumerate(self.columns):
+    @classmethod
+    def from_schema_specification(cls, schema_specification, name="CustomRowTableEntry"):
+        schema = map(cls.to_table_entry_class, schema_specification)
+        return cls.from_schema(schema, name)
+
+    @classmethod
+    def from_yml_rep(cls, yml_rep):
+        row = [None] * len(cls.schema)
+        for i, column in enumerate(cls.schema):
             try:
-                column_yml_rep = yml_rep_row[column.name]
+                column_yml_rep = yml_rep[column.name]
             except KeyError:
                 log.exception("Column[{}] not found in yml representation".format(column.name))
                 raise TableSchemaError(field=column.name, cause=TableEntryMissingDataError())
@@ -200,10 +213,12 @@ class ColumnTableSchema(object):
             except Exception as e:
                 log.exception("Unexpected error while parsing yml representation for column[{}]".format(column.name))
                 raise TableSchemaError(field=column.name, cause=e)
+        return row
 
-    def row_to_yml_rep(self, row):
+    @classmethod
+    def to_yml_rep(cls, value):
         yml_rep_row = dict()
-        for value, column in zip(row, self.columns):
+        for value, column in zip(value, cls.schema):
             try:
                 yml_rep_row[column.name] = column.to_yml_rep(value)
             except Exception as e:
@@ -211,14 +226,36 @@ class ColumnTableSchema(object):
                 raise TableSchemaError(field=column.name, cause=e)
         return yml_rep_row
 
-    def __len__(self):
-        return len(self.columns)
+    @classmethod
+    def from_block(cls, block, offset):
+        row = [None] * len(cls.schema)
+        for i, column in enumerate(cls.schema):
+            try:
+                row[i] = column.from_block(block, offset)
+            except Exception as e:
+                log.exception("Error while reading column[{}]]".format(column.name))
+                raise TableSchemaError(field=column.name, cause=e)
+            offset += column.size
+        return row
 
-    def size(self):
-        return sum(map(lambda x: x.size, self.columns))
+    @classmethod
+    def to_block(cls, block, offset, value):
+        for value, column in zip(value, cls.schema):
+            try:
+                column.to_block(block, offset, value)
+            except Exception as e:
+                log.exception("Error while writing column[{}]".format(column.name))
+                raise TableError(field=column.name, cause=e)
+            offset += column.size
+
+    @classmethod
+    def hex_labels(cls):
+        return [inner
+                for outer in [x.hex_labels() for x in cls.schema]
+                for inner in outer]
 
 
-class GenericLittleEndianColumnTableSchema(ColumnTableSchema):
+class GenericLittleEndianRowTableEntry(RowTableEntry):
     DEFAULT_TABLE_ENTRY_TYPE = "int"
     TABLE_ENTRY_CLASS_MAP = {"int": (LittleEndianIntegerTableEntry, ["name", "size"]),
                              "hexint": (LittleEndianHexIntegerTableEntry, ["name", "size"]),
@@ -266,35 +303,6 @@ class GenericLittleEndianColumnTableSchema(ColumnTableSchema):
             return type(class_name, (entry_class,), parameters)
 
 
-class SingleColumnTableSchema(object):
-    def __init__(self, column):
-        self.column = column
-        self.columns = [column]
-
-    def row_from_yml_rep(self, yml_rep_row, row):
-        try:
-            row[0] = self.column.from_yml_rep(yml_rep_row)
-        except TableEntryError as e:
-            log.exception("Error while parsing yml representation for column[{}]".format(self.column.name))
-            raise TableSchemaError(field=self.column.name, cause=e)
-        except Exception as e:
-            log.exception("Unexpected error while parsing yml representation for column[{}]".format(self.column.name))
-            raise TableSchemaError(field=self.column.name, cause=e)
-
-    def row_to_yml_rep(self, row):
-        try:
-            return self.column.to_yml_rep(row[0])
-        except Exception as e:
-            log.exception("Error while serializing column[{}]".format(self.column.name))
-            raise TableSchemaError(field=self.column.name, cause=e)
-
-    def __len__(self):
-        return 1
-
-    def size(self):
-        return self.column.size
-
-
 class Table(object):
     def __init__(self, schema, name="Anonymous Table", size=None, num_rows=None):
         self.name = name
@@ -304,41 +312,39 @@ class Table(object):
 
         self.schema = schema
 
-        self.row_size = self.schema.size()
-        self.row_length = len(self.schema)
         if num_rows is not None:
             self.num_rows = num_rows
         else:
-            if size % self.row_size != 0:
+            if size % self.schema.size != 0:
                 raise InvalidArgumentError("Cannot create table[{}] with rows of size[{}] and total size[{}]".format(
-                    self.name, self.row_size, size))
-            self.num_rows = size / self.row_size
-        self.values = [[None] * len(self.schema) for i in range(self.num_rows)]
+                    self.name, self.schema.size, size))
+            self.num_rows = size / self.schema.size
+
+        self.size = self.schema.size * self.num_rows
+        self.values = [None for i in range(self.num_rows)]
 
     def from_block(self, block, offset):
-        for i, row in enumerate(self.values):
-            for j, column in enumerate(self.schema.columns):
-                try:
-                    row[j] = column.from_block(block, offset)
-                except Exception as e:
-                    log.exception("Error while reading column[{}] of row[{}]".format(column.name, i))
-                    raise TableError(table_name=self.name, entry=i, field=column.name, cause=e)
-                offset += column.size
+        for i in range(self.num_rows):
+            try:
+                self.values[i] = self.schema.from_block(block, offset)
+            except TableSchemaError as e:
+                raise TableError(table_name=self.name, entry=i, field=e.field, cause=e)
+
+            offset += self.schema.size
 
     def to_block(self, block, offset):
         original_offset = offset
         for i, row in enumerate(self.values):
-            for value, column in zip(row, self.schema.columns):
-                try:
-                    column.to_block(block, offset, value)
-                except Exception as e:
-                    log.exception("Error while writing column[{}] of row[{}]".format(column.name, i))
-                    raise TableError(table_name=self.name, entry=i, field=column.name, cause=e)
-                offset += column.size
+            try:
+                self.schema.to_block(block, offset, row)
+            except TableSchemaError as e:
+                raise TableError(table_name=self.name, entry=i, field=e.field, cause=e)
+
+            offset += self.schema.size
         return original_offset
 
     def from_yml_rep(self, yml_rep):
-        for i, row in enumerate(self.values):
+        for i in range(self.num_rows):
             try:
                 yml_rep_row = yml_rep[i]
             except KeyError as e:
@@ -346,7 +352,7 @@ class Table(object):
                 raise TableError(table_name=self.name, entry=i, field=None, cause=TableEntryMissingDataError())
 
             try:
-                self.schema.row_from_yml_rep(yml_rep_row, row)
+                self.values[i] = self.schema.from_yml_rep(yml_rep_row)
             except TableSchemaError as e:
                 raise TableError(table_name=self.name, entry=i, field=e.field, cause=e)
 
@@ -354,7 +360,7 @@ class Table(object):
         yml_rep = {}
         for i, row in enumerate(self.values):
             try:
-                yml_rep[i] = self.schema.row_to_yml_rep(row)
+                yml_rep[i] = self.schema.to_yml_rep(row)
             except TableSchemaError as e:
                 raise TableError(table_name=self.name, entry=i, field=e.field, cause=e)
         return yml_rep
@@ -368,29 +374,24 @@ class Table(object):
 
         # Rewrite hexints in hexidecimal
         # The YAML parser does not offer this option, so this has to be done with a regex
-        for column in [x for x in self.schema.columns if isinstance(x, LittleEndianHexIntegerTableEntry)]:
-            yml_str_rep = convert_values_to_hex_repr(yml_str_rep, column["name"])
+        for hex_label in self.schema.hex_labels():
+            yml_str_rep = convert_values_to_hex_repr(yml_str_rep, hex_label)
 
         f.write(yml_str_rep)
 
-    def size(self):
-        return self.row_size * self.num_rows
-
     def __getitem__(self, index):
-        row, col = index
-        if in_range(row, (0, self.num_rows)) and in_range(col, (0, self.row_length)):
-            return self.values[row][col]
+        row = index
+        if in_range(row, (0, self.num_rows)):
+            return self.values[row]
         else:
-            raise IndexOutOfRangeError("Cannot get value at index[{},{}] from table of size[{},{}]".format(
-                col, row, self.row_length, self.num_rows))
+            raise IndexOutOfRangeError("Cannot get row[{}] from table of size[{}]".format(row, self.num_rows))
 
     def __setitem__(self, index, value):
-        row, col = index
-        if in_range(row, (0, self.num_rows)) and in_range(col, (0, self.row_length)):
-            self.values[row][col] = value
+        row = index
+        if in_range(row, (0, self.num_rows)):
+            self.values[row] = value
         else:
-            raise IndexOutOfRangeError("Cannot get value at index[{},{}] from table of size[{},{}]".format(
-                col, row, self.row_length, self.num_rows))
+            raise IndexOutOfRangeError("Cannot set row[{}] in table of size[{}]".format(row, self.num_rows))
 
 
 class MatrixTable(Table):

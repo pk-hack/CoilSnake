@@ -26,7 +26,7 @@ class DoorModule(EbModule):
         pct = 45.0 / (40 * 32)
         self.door_areas = []
         for i in range(self.pointer_table.num_rows):
-            offset = from_snes_address(self.pointer_table[i, 0])
+            offset = from_snes_address(self.pointer_table[i][0])
             door_area = []
             num_doors = rom.read_multi(offset, 2)
             offset += 2
@@ -101,11 +101,11 @@ class DoorModule(EbModule):
         i = 0
         for door_area in self.door_areas:
             if (door_area is None) or (not door_area):
-                self.pointer_table[i, 0] = empty_area_offset
+                self.pointer_table[i] = [empty_area_offset]
             else:
                 num_doors = len(door_area)
                 area_offset = rom.allocate(size=(2 + num_doors * 5), can_write_to=not_in_destination_bank)
-                self.pointer_table[i, 0] = to_snes_address(area_offset)
+                self.pointer_table[i] = [to_snes_address(area_offset)]
                 rom.write_multi(area_offset, num_doors, 2)
                 area_offset += 2
                 for door in door_area:

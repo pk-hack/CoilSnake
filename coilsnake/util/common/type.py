@@ -45,3 +45,9 @@ class GenericEnum(object):
                                        "undefined"
                                        % (s, cls.__name__))
         return value
+
+
+def enum_class_from_name_list(names):
+    return type("CustomEnum",
+                (GenericEnum,),
+                dict(zip([str(x).upper() for x in names], range(len(names)))))

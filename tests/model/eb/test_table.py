@@ -1,11 +1,11 @@
 from coilsnake.exceptions.common.exceptions import TableEntryInvalidYmlRepresentationError, TableSchemaError
 from coilsnake.model.eb.palettes import EbPalette
-from coilsnake.model.eb.table import EbColumnTableSchema
+from coilsnake.model.eb.table import EbRowTableEntry
 from tests.model.common.test_table_new import TestGenericLittleEndianTable, GenericTestTable
 
 
 class TestEbTableGenericRegression(TestGenericLittleEndianTable):
-    TABLE_SCHEMA = EbColumnTableSchema(schema_specification=TestGenericLittleEndianTable.TABLE_SCHEMA_SPECIFICATION)
+    TABLE_SCHEMA = EbRowTableEntry.from_schema_specification(TestGenericLittleEndianTable.TABLE_SCHEMA_SPECIFICATION)
 
 
 class TestEbTable(GenericTestTable):
@@ -23,7 +23,7 @@ class TestEbTable(GenericTestTable):
          "type": "standardtext null-terminated",
          "size": 5}
     ]
-    TABLE_SCHEMA = EbColumnTableSchema(schema_specification=TABLE_SCHEMA_SPECIFICATION)
+    TABLE_SCHEMA = EbRowTableEntry.from_schema_specification(TABLE_SCHEMA_SPECIFICATION)
 
     BLOCK_DATA = [0x45, 0x23, 0xf1,
                   0, 0, 37, 36, 106, 25, 31, 0, 234, 20, 34, 70,

@@ -27,7 +27,7 @@ class SpritePlacement(object):
 
 
 class SpritePlacementTableEntry(EbPointerTableEntry):
-    name = "Pointer"
+    name = "Sprite Placement Table Entry"
     size = 2
 
     @classmethod
@@ -54,7 +54,7 @@ class SpritePlacementTableEntry(EbPointerTableEntry):
         else:
             pointer = block.allocate(size=(2 + 4 * len(value)),
                                      can_write_to=partial(is_in_bank, 0x0f))
-            block.write_multi(offset, pointer & 0xffff, 2)
+            super(SpritePlacementTableEntry, cls).to_block(block, offset, pointer & 0xffff)
 
             block.write_multi(pointer, len(value), 2)
             pointer += 2
