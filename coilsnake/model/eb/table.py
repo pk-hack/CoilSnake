@@ -4,7 +4,7 @@ import yaml
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, TableEntryInvalidYmlRepresentationError, \
     InvalidYmlRepresentationError
 from coilsnake.model.common.table_new import LittleEndianIntegerTableEntry, Table, MatrixTable, \
-    GenericLittleEndianRowTableEntry, TableEntry
+    GenericLittleEndianRowTableEntry, TableEntry, LittleEndianHexIntegerTableEntry
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.pointers import EbPointer
 from coilsnake.util.common.assets import open_asset
@@ -114,6 +114,11 @@ class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
                 yml_rep, cls.size - 1))
 
         return yml_rep
+
+
+class EbEventFlagTableEntry(LittleEndianHexIntegerTableEntry):
+    name = "Event Flag"
+    size = 2
 
 
 class EbRowTableEntry(GenericLittleEndianRowTableEntry):

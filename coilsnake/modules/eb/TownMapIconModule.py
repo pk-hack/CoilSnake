@@ -42,7 +42,7 @@ class TownMapIconModule(EbModule.EbModule):
         if old_version == new_version:
             updateProgress(100)
             return
-        elif old_version == 3:
+        elif old_version == 4:
             with resource_open_r("TownMaps/icon_positions", "yml") as f:
                 data = yaml.load(f, Loader=yaml.CSafeLoader)
 
@@ -56,7 +56,7 @@ class TownMapIconModule(EbModule.EbModule):
             convert_values_to_hex_repr_in_yml_file("TownMaps/icon_positions", resource_open_r, resource_open_w,
                                                    ["Event Flag"])
 
-            self.upgrade_project(4, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(5, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         elif old_version <= 2:
             tmp = updateProgress
             updateProgress = lambda x: None

@@ -30,10 +30,11 @@ def replace_field_in_yml(resource_name, resource_open_r, resource_open_w, key, n
         yaml.dump(data, f, default_flow_style=False, Dumper=yaml.CSafeDumper)
 
 
-def convert_values_to_hex_repr_in_yml_file(resource_name, resource_open_r, resource_open_w, keys):
+def convert_values_to_hex_repr_in_yml_file(resource_name, resource_open_r, resource_open_w, keys,
+                                           default_flow_style=False):
     with resource_open_r(resource_name, "yml") as f:
         out = yaml.load(f, Loader=yaml.CSafeLoader)
-        yml_str_rep = yaml.dump(out, default_flow_style=False, Dumper=yaml.CSafeDumper)
+        yml_str_rep = yaml.dump(out, default_flow_style=default_flow_style, Dumper=yaml.CSafeDumper)
 
     for key in keys:
         yml_str_rep = convert_values_to_hex_repr(yml_str_rep, key)

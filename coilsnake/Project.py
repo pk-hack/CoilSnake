@@ -5,14 +5,15 @@ import yaml
 # This is a number which tells you the latest version number for the project
 # format. Version numbers are necessary because the format of data files may
 # change between versions of CoilSnake.
-FORMAT_VERSION = 4
+FORMAT_VERSION = 5
 
 # Names for each version, corresponding the the CS version
 VERSION_NAMES = {
     1: "1.0",
     2: "1.1",
     3: "1.2",
-    4: "1.3"
+    4: "1.3",
+    5: "2.0"
 }
 
 # The default project filename

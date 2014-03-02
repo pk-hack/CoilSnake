@@ -1,113 +1,86 @@
+import logging
 import yaml
-from re import sub
 
-from coilsnake.modules.eb.EbTablesModule import EbTable
-from coilsnake.Progress import updateProgress
+from coilsnake.model.eb.map_events import MapEventPointerTableEntry, MapEventSubTableEntry
+from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb import EbModule
+from coilsnake.util.common.project import convert_values_to_hex_repr_in_yml_file
+from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
+
+
+log = logging.getLogger(__name__)
+
+POINTER_TABLE_POINTER_OFFSET = 0x70d
+POINTER_TABLE_DEFAULT_OFFSET = 0xD01598
+POINTER_TABLE_BANK_OFFSET = 0x704
 
 
 class MapEventModule(EbModule.EbModule):
-    NAME = "Map Events"
+    NAME = "Map Event Tile Changes"
     FREE_RANGES = [(0x101598, 0x10187f)]
-
-    _PTR_LOC = 0x70d
-    _PTR_BANK_LOC = 0x704
 
     def __init__(self):
         EbModule.EbModule.__init__(self)
-        self._ptrTbl = EbTable(0xD01598)
-        self._entries = []
+        self.pointer_table_entry_class = type("MapEventPointerTableEntrySubclass", (MapEventPointerTableEntry,), {})
+        self.pointer_table = eb_table_from_offset(
+            offset=POINTER_TABLE_DEFAULT_OFFSET,
+            single_column=self.pointer_table_entry_class)
 
     def read_from_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._ptrTbl.readFromRom(rom,
-                                 EbModule.toRegAddr(rom.read_multi(self._PTR_LOC, 3)))
-        updateProgress(5)
-        bank = (rom[self._PTR_BANK_LOC] - 0xc0) << 16
-        pct = 45.0 / 20
-        for i in range(20):
-            addr = bank | self._ptrTbl[i, 0].val()
-            tsetEntry = []
-            while rom.read_multi(addr, 2) != 0:
-                flag = rom.read_multi(addr, 2)
-                num = rom.read_multi(addr + 2, 2)
-                addr += 4
-                changes = []
-                for j in range(num):
-                    changes.append((rom.read_multi(addr, 2),
-                                    rom.read_multi(addr + 2, 2)))
-                    addr += 4
-                tsetEntry.append((flag, changes))
-            self._entries.append(tsetEntry)
-            updateProgress(pct)
+        bank = rom[POINTER_TABLE_BANK_OFFSET] - 0xc0
+        log.debug("Reading data from {:#x} bank".format(bank))
+        self.pointer_table_entry_class.bank = bank
 
-    def write_to_project(self, resourceOpener):
-        out = dict()
-        i = 0
-        for entry in self._entries:
-            entryOut = []
-            for (flag, changes) in entry:
-                changeOut = {"Event Flag": flag, "Changes": changes}
-                entryOut.append(changeOut)
-            if not entryOut:
-                out[i] = None
-            else:
-                out[i] = entryOut
-            i += 1
-        updateProgress(25)
-        with resourceOpener("map_changes", "yml") as f:
-            s = yaml.dump(out, Dumper=yaml.CSafeDumper)
-            s = sub("Event Flag: (\d+)",
-                    lambda i: "Event Flag: " + hex(int(i.group(0)[12:])), s)
-            f.write(s)
-        updateProgress(25)
-
-    def read_from_project(self, resourceOpener):
-        with resourceOpener("map_changes", "yml") as f:
-            input = yaml.load(f, Loader=yaml.CSafeLoader)
-            for mtset in input:
-                entry = []
-                entryIn = input[mtset]
-                if entryIn is not None:
-                    for csetIn in entryIn:
-                        entry.append((csetIn["Event Flag"],
-                                      csetIn["Changes"]))
-                self._entries.append(entry)
-                updateProgress(50.0 / 20)
+        pointer_table_offset = from_snes_address(rom.read_multi(POINTER_TABLE_POINTER_OFFSET, 3))
+        log.debug("Reading pointer table from {:#x}".format(pointer_table_offset))
+        self.pointer_table.from_block(rom, pointer_table_offset)
 
     def write_to_rom(self, rom):
+        pointer_table_offset = rom.allocate(size=self.pointer_table.size)
 
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._ptrTbl.clear(20)
-        blockSize = 0
-        for entry in self._entries:
-            for (flag, set) in entry:
-                blockSize += 4 + 4 * len(set)
-            blockSize += 2
-        if blockSize > 0xffff:
-            raise RuntimeError("Too many map changes")
-        loc = rom.allocate(size=blockSize)
-        rom[self._PTR_BANK_LOC] = (loc >> 16) + 0xc0
-        i = 0
-        for entry in self._entries:
-            self._ptrTbl[i, 0].setVal(loc & 0xffff)
-            for (flag, set) in entry:
-                rom.write_multi(loc, flag, 2)
-                rom.write_multi(loc + 2, len(set), 2)
-                loc += 4
-                for (before, after) in set:
-                    rom.write_multi(loc, before, 2)
-                    rom.write_multi(loc + 2, after, 2)
-                    loc += 4
-            rom[loc] = 0
-            rom[loc + 1] = 0
-            loc += 2
-            i += 1
-            updateProgress(45.0 / 20)
-        ptrTblLoc = self._ptrTbl.writeToFree(rom)
-        rom.write_multi(self._PTR_LOC, EbModule.toSnesAddr(ptrTblLoc), 3)
-        updateProgress(5)
+        bank = rom.get_largest_unallocated_range()[0] >> 16
+        log.debug("Writing data to {:#x} bank".format(bank))
+        self.pointer_table_entry_class.bank = bank
+        rom[POINTER_TABLE_BANK_OFFSET] = bank + 0xc0
+
+        log.debug("Writing pointer table to {:#x}".format(pointer_table_offset))
+        rom.write_multi(POINTER_TABLE_POINTER_OFFSET, to_snes_address(pointer_table_offset), 3)
+        self.pointer_table.to_block(rom, pointer_table_offset)
+
+    def write_to_project(self, resource_open):
+        with resource_open("map_changes", "yml") as f:
+            self.pointer_table.to_yml_file(f, default_flow_style=None)
+
+    def read_from_project(self, resource_open):
+        with resource_open("map_changes", "yml") as f:
+            self.pointer_table.from_yml_file(f)
+
+    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+        if old_version == new_version:
+            return
+        elif old_version < 5:
+            with resource_open_r("map_changes", "yml") as f:
+                data = yaml.load(f, Loader=yaml.CSafeLoader)
+
+            for i in data:
+                if data[i] == None:
+                    data[i] = []
+                else:
+                    for entry in data[i]:
+                        entry["Tile Changes"] = entry["Changes"]
+                        del entry["Changes"]
+
+                        for j, change in enumerate(entry["Tile Changes"]):
+                            entry["Tile Changes"][j] = MapEventSubTableEntry.to_yml_rep(change)
+
+            with resource_open_w("map_changes", "yml") as f:
+                yaml.dump(data, f, Dumper=yaml.CSafeDumper)
+
+            convert_values_to_hex_repr_in_yml_file("map_changes", resource_open_r, resource_open_w, ["Event Flag"],
+                                                   default_flow_style=None)
+
+            self.upgrade_project(5, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+        else:
+            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+
+

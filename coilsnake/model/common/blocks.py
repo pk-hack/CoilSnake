@@ -266,6 +266,16 @@ class AllocatableBlock(Block):
 
         return allocated_range[0]
 
+    def get_largest_unallocated_range(self):
+        largest_begin, largest_end = 1, 0
+        for begin, end in self.unallocated_ranges:
+            if end - begin > largest_end - largest_begin:
+                largest_begin = begin
+                largest_end = end
+        if largest_end - largest_begin <= 0:
+            raise NotEnoughUnallocatedSpaceError("Not enough free space left")
+        return largest_begin, largest_end
+
 
 with open_asset("romtypes.yml") as f:
     ROM_TYPE_MAP = yaml.load(f, Loader=yaml.CSafeLoader)

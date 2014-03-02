@@ -196,12 +196,12 @@ class MiscTextModule(EbModule.EbModule):
         if old_version == new_version:
             updateProgress(100)
             return
-        elif old_version == 2:
+        elif old_version <= 2:
             tmp = updateProgress
             updateProgress = lambda x: None
             self.read_from_rom(rom)
             self.write_to_project(resource_open_w)
             updateProgress = tmp
-            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(3, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         else:
             self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
