@@ -12,8 +12,12 @@ log = logging.getLogger(__name__)
 
 
 class TableEntry(object):
+    name = "Unnamed TableEntry"
+
     @classmethod
-    def hex_labels(cls):
+    def yml_rep_hex_labels(cls):
+        """Returns the keys for values which should be converted to hexidecimal in the yml representation returned by
+        to_yml_rep."""
         return []
 
 
@@ -69,7 +73,7 @@ class LittleEndianIntegerTableEntry(TableEntry):
 
 class LittleEndianHexIntegerTableEntry(LittleEndianIntegerTableEntry):
     @classmethod
-    def hex_labels(cls):
+    def yml_rep_hex_labels(cls):
         return [cls.name]
 
 
@@ -249,9 +253,9 @@ class RowTableEntry(TableEntry):
             offset += column.size
 
     @classmethod
-    def hex_labels(cls):
+    def yml_rep_hex_labels(cls):
         return [inner
-                for outer in [x.hex_labels() for x in cls.schema]
+                for outer in [x.yml_rep_hex_labels() for x in cls.schema]
                 for inner in outer]
 
 
@@ -374,7 +378,7 @@ class Table(object):
 
         # Rewrite hexints in hexidecimal
         # The YAML parser does not offer this option, so this has to be done with a regex
-        for hex_label in self.schema.hex_labels():
+        for hex_label in self.schema.yml_rep_hex_labels():
             yml_str_rep = convert_values_to_hex_repr(yml_str_rep, hex_label)
 
         f.write(yml_str_rep)

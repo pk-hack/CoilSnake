@@ -8,6 +8,7 @@ from coilsnake.model.common.table_new import LittleEndianIntegerTableEntry, Tabl
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.pointers import EbPointer
 from coilsnake.util.common.assets import open_asset
+from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 from coilsnake.util.eb.text import standard_text_from_block, standard_text_to_block
 
 
@@ -119,6 +120,39 @@ class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
 class EbEventFlagTableEntry(LittleEndianHexIntegerTableEntry):
     name = "Event Flag"
     size = 2
+
+
+class EbPointerToVariableSizeEntryTableEntry(LittleEndianIntegerTableEntry):
+    @staticmethod
+    def create(data_table_entry, size):
+        return type("EbPointerToVariableSizeEntryTableEntry_{}".format(data_table_entry.__name__),
+                    (EbPointerToVariableSizeEntryTableEntry,),
+                    {"size": size,
+                     "data_table_entry": data_table_entry})
+
+    @classmethod
+    def from_block(cls, block, offset):
+        data_offset = from_snes_address(super(EbPointerToVariableSizeEntryTableEntry, cls).from_block(block, offset))
+        return cls.data_table_entry.from_block(block, data_offset)
+
+    @classmethod
+    def to_block(cls, block, offset, value):
+        data_size = cls.data_table_entry.to_block_size(value)
+        data_offset = block.allocate(size=data_size)
+        super(EbPointerToVariableSizeEntryTableEntry, cls).to_block(block, offset, to_snes_address(data_offset))
+        cls.data_table_entry.to_block(block, data_offset, value)
+
+    @classmethod
+    def to_yml_rep(cls, value):
+        return cls.data_table_entry.to_yml_rep(value)
+
+    @classmethod
+    def from_yml_rep(cls, yml_rep):
+        return cls.data_table_entry.from_yml_rep(yml_rep)
+
+    @classmethod
+    def yml_rep_hex_labels(cls):
+        return cls.data_table_entry.yml_rep_hex_labels()
 
 
 class EbRowTableEntry(GenericLittleEndianRowTableEntry):

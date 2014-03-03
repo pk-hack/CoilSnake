@@ -1,5 +1,5 @@
-from coilsnake.model.eb.enemy_groups import MapEnemyGroupPointerTableEntry
-from coilsnake.model.eb.table import eb_table_from_offset
+from coilsnake.model.eb.enemy_groups import MapEnemyGroupTableEntry
+from coilsnake.model.eb.table import eb_table_from_offset, EbPointerToVariableSizeEntryTableEntry
 
 from coilsnake.modules.eb import EbModule
 from coilsnake.util.eb.pointer import from_snes_address
@@ -17,7 +17,7 @@ class MapEnemyModule(EbModule.EbModule):
         EbModule.EbModule.__init__(self)
         self.group_pointer_table = eb_table_from_offset(
             offset=GROUP_POINTER_TABLE_OFFSET,
-            single_column=MapEnemyGroupPointerTableEntry)
+            single_column=EbPointerToVariableSizeEntryTableEntry.create(MapEnemyGroupTableEntry, 4))
         self.group_placement_table = eb_table_from_offset(offset=GROUP_PLACEMENT_TABLE_OFFSET)
 
     def read_from_rom(self, rom):

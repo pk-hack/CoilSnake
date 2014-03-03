@@ -68,5 +68,5 @@ class TownMapIconPlacementPointerTableEntry(EbPointerTableEntry):
             return [cls.table_entry_class.from_yml_rep(icon_yml_rep) for icon_yml_rep in yml_rep]
 
     @classmethod
-    def hex_labels(cls):
-        return cls.table_entry_class.hex_labels()
+    def yml_rep_hex_labels(cls):
+        return cls.table_entry_class.yml_rep_hex_labels()

@@ -77,5 +77,5 @@ class MapEventPointerTableEntry(EbPointerTableEntry):
                 for entry_yml_rep in yml_rep]
 
     @classmethod
-    def hex_labels(cls):
-        return EbEventFlagTableEntry.hex_labels()
+    def yml_rep_hex_labels(cls):
+        return EbEventFlagTableEntry.yml_rep_hex_labels()
