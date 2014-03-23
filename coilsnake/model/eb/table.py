@@ -1,3 +1,4 @@
+from functools import partial
 import logging
 import yaml
 
@@ -8,6 +9,7 @@ from coilsnake.model.common.table_new import LittleEndianIntegerTableEntry, Tabl
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.pointers import EbPointer
 from coilsnake.util.common.assets import open_asset
+from coilsnake.util.eb.helper import is_in_bank
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 from coilsnake.util.eb.text import standard_text_from_block, standard_text_to_block
 
@@ -16,6 +18,12 @@ log = logging.getLogger(__name__)
 
 
 class EbPointerTableEntry(LittleEndianIntegerTableEntry):
+    @staticmethod
+    def create(size):
+        return type("EbPointerTableEntry_subclass",
+                    (EbPointerTableEntry,),
+                    {"size": size})
+
     @classmethod
     def from_yml_rep(cls, yml_rep):
         if not isinstance(yml_rep, str):
@@ -122,24 +130,25 @@ class EbEventFlagTableEntry(LittleEndianHexIntegerTableEntry):
     size = 2
 
 
-class EbPointerToVariableSizeEntryTableEntry(LittleEndianIntegerTableEntry):
+class EbPointerToVariableSizeEntryTableEntry(TableEntry):
     @staticmethod
-    def create(data_table_entry, size):
+    def create(pointer_table_entry, data_table_entry):
         return type("EbPointerToVariableSizeEntryTableEntry_{}".format(data_table_entry.__name__),
                     (EbPointerToVariableSizeEntryTableEntry,),
-                    {"size": size,
-                     "data_table_entry": data_table_entry})
+                    {"pointer_table_entry": pointer_table_entry,
+                     "data_table_entry": data_table_entry,
+                     "size": pointer_table_entry.size})
 
     @classmethod
     def from_block(cls, block, offset):
-        data_offset = from_snes_address(super(EbPointerToVariableSizeEntryTableEntry, cls).from_block(block, offset))
+        data_offset = from_snes_address(cls.pointer_table_entry.from_block(block, offset))
         return cls.data_table_entry.from_block(block, data_offset)
 
     @classmethod
     def to_block(cls, block, offset, value):
         data_size = cls.data_table_entry.to_block_size(value)
         data_offset = block.allocate(size=data_size)
-        super(EbPointerToVariableSizeEntryTableEntry, cls).to_block(block, offset, to_snes_address(data_offset))
+        cls.pointer_table_entry.to_block(block, offset, to_snes_address(data_offset))
         cls.data_table_entry.to_block(block, data_offset, value)
 
     @classmethod
@@ -153,6 +162,30 @@ class EbPointerToVariableSizeEntryTableEntry(LittleEndianIntegerTableEntry):
     @classmethod
     def yml_rep_hex_labels(cls):
         return cls.data_table_entry.yml_rep_hex_labels()
+
+
+class EbBankPointerToVariableSizeEntryTableEntry(EbPointerToVariableSizeEntryTableEntry):
+    @staticmethod
+    def create(pointer_table_entry, data_table_entry, bank):
+        return type("EbBankPointerToVariableSizeEntryTableEntry_{}".format(data_table_entry.__name__),
+                    (EbBankPointerToVariableSizeEntryTableEntry,),
+                    {"pointer_table_entry": pointer_table_entry,
+                     "data_table_entry": data_table_entry,
+                     "size": pointer_table_entry.size,
+                     "bank": bank})
+
+    @classmethod
+    def from_block(cls, block, offset):
+        data_offset = cls.pointer_table_entry.from_block(block, offset)
+        data_offset |= (cls.bank << 16)
+        return cls.data_table_entry.from_block(block, data_offset)
+
+    @classmethod
+    def to_block(cls, block, offset, value):
+        data_size = cls.data_table_entry.to_block_size(value)
+        data_offset = block.allocate(size=data_size, can_write_to=partial(is_in_bank, cls.bank))
+        cls.pointer_table_entry.to_block(block, offset, to_snes_address(data_offset))
+        cls.data_table_entry.to_block(block, data_offset, value)
 
 
 class EbRowTableEntry(GenericLittleEndianRowTableEntry):

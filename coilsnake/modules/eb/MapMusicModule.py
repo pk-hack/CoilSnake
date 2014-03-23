@@ -1,91 +1,44 @@
-import yaml
-from re import sub
+from functools import partial
 
-from coilsnake.modules.eb.EbTablesModule import EbTable
-from coilsnake.Progress import updateProgress
+from coilsnake.model.eb.map_music import MapMusicTableEntry
+from coilsnake.model.eb.table import eb_table_from_offset, EbBankPointerToVariableSizeEntryTableEntry, \
+    EbPointerTableEntry
 from coilsnake.modules.eb import EbModule
+from coilsnake.util.eb.helper import not_in_bank
+from coilsnake.util.eb.pointer import from_snes_address
+
+
+MAP_MUSIC_ASM_POINTER_OFFSET = 0x6939
+MAP_MUSIC_DEFAULT_OFFSET = 0xCF58EF
 
 
 class MapMusicModule(EbModule.EbModule):
-    _ASMPTR = 0x6939
     NAME = "Map Music"
 
     def __init__(self):
         EbModule.EbModule.__init__(self)
-        self._ptrTbl = EbTable(0xCF58EF)
-        self._entries = []
+        self.pointer_table = eb_table_from_offset(
+            offset=MAP_MUSIC_DEFAULT_OFFSET,
+            single_column=EbBankPointerToVariableSizeEntryTableEntry.create(
+                EbPointerTableEntry.create(2),
+                MapMusicTableEntry,
+                0x0f))
 
     def read_from_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._ptrTbl.readFromRom(rom, EbModule.toRegAddr(rom.read_multi(self._ASMPTR, 3)))
-        updateProgress(25)
-        for i in range(self._ptrTbl.height()):
-            loc = 0xf0000 | self._ptrTbl[i, 0].val()
-            entry = []
-            flag = 1
-            while flag != 0:
-                flag = rom.read_multi(loc, 2)
-                music = rom[loc + 2]
-                entry.append((flag, music))
-                loc += 4
-            self._entries.append(entry)
-        updateProgress(25)
+        print hex(from_snes_address(rom.read_multi(MAP_MUSIC_ASM_POINTER_OFFSET, 3)))
+        self.pointer_table.from_block(rom, from_snes_address(rom.read_multi(MAP_MUSIC_ASM_POINTER_OFFSET, 3)))
 
     def write_to_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._ptrTbl.clear(165)
-        writeLoc = 0xf58ef
-        writeRangeEnd = 0xf61e5  # TODO Can re-use bank space from doors
-        i = 0
-        for entry in self._entries:
-            entryLen = len(entry) * 4
-            if writeLoc + entryLen > writeRangeEnd:
-                raise RuntimeError("Not enough room for map music")
-            self._ptrTbl[i, 0].setVal(writeLoc & 0xffff)
-            i += 1
+        rom.deallocate((0xf58ef, 0xf61e5))
 
-            for (flag, music) in entry:
-                rom.write_multi(writeLoc, flag, 2)
-                rom[writeLoc + 2] = music
-                rom[writeLoc + 3] = 0
-                writeLoc += 4
-        updateProgress(25)
-        rom.write_multi(self._ASMPTR, EbModule.toSnesAddr(self._ptrTbl.writeToFree(rom)), 3)
-        if writeLoc < writeRangeEnd:
-            rom.deallocate((writeLoc, writeRangeEnd))
-        updateProgress(25)
+        pointer_table_offset = rom.allocate(size=self.pointer_table.size, can_write_to=partial(not_in_bank, 0x0f))
+        self.pointer_table.to_block(rom, pointer_table_offset)
+        rom.write_multi(MAP_MUSIC_ASM_POINTER_OFFSET, pointer_table_offset, 3)
 
-    def write_to_project(self, resourceOpener):
-        out = dict()
-        i = 0
-        for entry in self._entries:
-            outEntry = []
-            for (flag, music) in entry:
-                outEntry.append({
-                    "Event Flag": flag,
-                    "Music": music})
-            out[i] = outEntry
-            i += 1
-        updateProgress(25)
-        with resourceOpener("map_music", "yml") as f:
-            s = yaml.dump(out, default_flow_style=False,
-                          Dumper=yaml.CSafeDumper)
-            s = sub("Event Flag: (\d+)",
-                    lambda i: "Event Flag: " + hex(int(i.group(0)[12:])), s)
-            f.write(s)
-        updateProgress(25)
+    def write_to_project(self, resource_open):
+        with resource_open("map_music", "yml") as f:
+            self.pointer_table.to_yml_file(f, default_flow_style=False)
 
-    def read_from_project(self, resourceOpener):
-        with resourceOpener("map_music", "yml") as f:
-            input = yaml.load(f, Loader=yaml.CSafeLoader)
-            for i in input:
-                entry = []
-                for subEntry in input[i]:
-                    entry.append((subEntry["Event Flag"],
-                                  subEntry["Music"]))
-                self._entries.append(entry)
-        updateProgress(50)
+    def read_from_project(self, resource_open):
+        with resource_open("map_music", "yml") as f:
+            self.pointer_table.from_yml_file(f)

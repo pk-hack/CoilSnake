@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import logging
 import yaml
 
@@ -13,6 +14,26 @@ log = logging.getLogger(__name__)
 
 class TableEntry(object):
     name = "Unnamed TableEntry"
+
+    @classmethod
+    @abstractmethod
+    def from_block(cls, block, offset):
+        pass
+
+    @classmethod
+    @abstractmethod
+    def to_block(cls, block, offset, value):
+        pass
+
+    @classmethod
+    @abstractmethod
+    def from_yml_rep(cls, yml_rep):
+        pass
+
+    @classmethod
+    @abstractmethod
+    def to_yml_rep(cls, value):
+        pass
 
     @classmethod
     def yml_rep_hex_labels(cls):
