@@ -68,6 +68,12 @@ class BooleanTableEntry(TableEntry):
 
 
 class LittleEndianIntegerTableEntry(TableEntry):
+    @staticmethod
+    def create(name, size):
+        return type(name,
+                    (LittleEndianIntegerTableEntry,),
+                    {"size": size})
+
     @classmethod
     def from_block(cls, block, offset):
         return block.read_multi(offset, cls.size)
@@ -109,6 +115,18 @@ class LittleEndianOneBasedIntegerTableEntry(LittleEndianIntegerTableEntry):
 
 
 class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):
+    @staticmethod
+    def create(name, size, values):
+        enumeration_class = type("GenericEnum_{}".format(name),
+                                 (GenericEnum,),
+                                 dict(zip([str(x).upper() for x in values],
+                                          range(len(values)))))
+        return type(name,
+                    (EnumeratedLittleEndianIntegerTableEntry,),
+                    {"name": name,
+                     "size": size,
+                     "enumeration_class": enumeration_class})
+
     @classmethod
     def from_yml_rep(cls, yml_rep):
         if isinstance(yml_rep, str):
@@ -294,15 +312,11 @@ class GenericLittleEndianRowTableEntry(RowTableEntry):
         column_specification["size"] = getitem_with_default(column_specification, "size", 1)
         column_specification["type"] = getitem_with_default(column_specification, "type", cls.DEFAULT_TABLE_ENTRY_TYPE)
         if (column_specification["type"] == "int") and ("values" in column_specification):
-            enumeration_class = type("{}_Enum".format(class_name),
-                                     (GenericEnum,),
-                                     dict(zip([str(x).upper() for x in column_specification["values"]],
-                                              range(len(column_specification["values"])))))
-            return type(class_name,
-                        (EnumeratedLittleEndianIntegerTableEntry,),
-                        {"name": column_specification["name"],
-                         "size": column_specification["size"],
-                         "enumeration_class": enumeration_class})
+            return EnumeratedLittleEndianIntegerTableEntry.create(
+                column_specification["name"],
+                column_specification["size"],
+                column_specification["values"]
+            )
         elif (column_specification["type"] == "bitfield") and ("bitvalues" in column_specification):
             enumeration_class = type("{}_Enum".format(class_name),
                                      (GenericEnum,),

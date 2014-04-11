@@ -1,247 +1,198 @@
 import yaml
 
+from coilsnake.model.common.table_new import EnumeratedLittleEndianIntegerTableEntry, LittleEndianIntegerTableEntry
+from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb import EbModule
-from coilsnake.modules.eb.EbTablesModule import EbTable
-from coilsnake.model.common.table import ValuedIntTableEntry
-from coilsnake.Progress import updateProgress
+from coilsnake.util.common.project import replace_field_in_yml
+from coilsnake.util.eb.pointer import from_snes_address
 
+
+MAP_POINTERS_OFFSET = 0xa1db
+LOCAL_TILESETS_OFFSET = 0x175000
+MAP_HEIGHT = 320
+MAP_WIDTH = 256
+
+SECTOR_TILESETS_PALETTES_TABLE_OFFSET = 0xD7A800
+SECTOR_MUSIC_TABLE_OFFSET = 0xDCD637
+SECTOR_MISC_TABLE_OFFSET = 0xD7B200
+SECTOR_TOWN_MAP_TABLE_OFFSET = 0xEFA70F
+
+
+INTEGER_ENTRY = LittleEndianIntegerTableEntry.create("Integer", 1)
+TELEPORT_ENTRY = EnumeratedLittleEndianIntegerTableEntry.create(
+    "Teleport", 1, ["Enabled", "Disabled"]
+)
+TOWNMAP_ENTRY = EnumeratedLittleEndianIntegerTableEntry.create(
+    "Town Map", 1,
+    ["None", "Onett", "Twoson", "Threed", "Fourside", "Scaraba", "Summers", "None 2"]
+)
+SETTING_ENTRY = EnumeratedLittleEndianIntegerTableEntry.create(
+    "Setting", 1,
+    ["None", "Indoors", "Exit Mouse usable", "Lost Underworld sprites", "Magicant sprites", "Robot sprites",
+     "Butterflies", "Indoors and Butterflies"]
+)
+TOWNMAP_IMAGE_ENTRY = EnumeratedLittleEndianIntegerTableEntry.create(
+    "Town Map Image", 1,
+    ["None", "Onett", "Twoson", "Threed", "Fourside", "Scaraba", "Summers"]
+)
+TOWNMAP_ARROW_ENTRY = EnumeratedLittleEndianIntegerTableEntry.create(
+    "Town Map Arrow", 1,
+    ["None", "Up", "Down", "Right", "Left"]
+)
 
 class MapModule(EbModule.EbModule):
     NAME = "Map"
-    _MAP_PTRS_PTR_ADDR = 0xa1db
-    _LOCAL_TSET_ADDR = 0x175000
-    _MAP_HEIGHT = 320
-    _MAP_WIDTH = 256
 
     def __init__(self):
         EbModule.EbModule.__init__(self)
-        self._tiles = []
-        self._mapSecTsetPalsTbl = EbTable(0xD7A800)
-        self._mapSecMusicTbl = EbTable(0xDCD637)
-        self._mapSecMiscTbl = EbTable(0xD7B200)
-        self._mapSecTownMapTbl = EbTable(0xEFA70F)
-        self.teleport = ValuedIntTableEntry(None, None,
-                                            ["Enabled", "Disabled"])
-        self.townmap = ValuedIntTableEntry(None, None,
-                                           ["None", "Onett", "Twoson", "Threed", "Fourside", "Scaraba",
-                                            "Summers", "None 2"])
-        self.setting = ValuedIntTableEntry(None, None,
-                                           ["None", "Indoors", "Exit Mouse usable",
-                                            "Lost Underworld sprites", "Magicant sprites", "Robot sprites",
-                                            "Butterflies", "Indoors and Butterflies"])
-        self.townmap_image = ValuedIntTableEntry(None, None,
-                                                 ["None", "Onett", "Twoson", "Threed", "Fourside", "Scaraba",
-                                                  "Summers"])
-        self.townmap_arrow = ValuedIntTableEntry(None, None,
-                                                 ["None", "Up", "Down", "Right", "Left"])
+        self.tiles = []
+        self.sector_tilesets_palettes_table = eb_table_from_offset(offset=SECTOR_TILESETS_PALETTES_TABLE_OFFSET)
+        self.sector_music_table = eb_table_from_offset(offset=SECTOR_MUSIC_TABLE_OFFSET)
+        self.sector_misc_table = eb_table_from_offset(offset=SECTOR_MISC_TABLE_OFFSET)
+        self.sector_town_map_table = eb_table_from_offset(offset=SECTOR_TOWN_MAP_TABLE_OFFSET)
 
     def read_from_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        # Read map tiles
-        map_ptrs_addr = \
-            EbModule.toRegAddr(rom.read_multi(self._MAP_PTRS_PTR_ADDR, 3))
-        map_addrs = map(lambda x:
-                        EbModule.toRegAddr(
-                            rom.read_multi(map_ptrs_addr + x * 4, 4)),
-                        range(8))
+        # Read map data
+        map_ptrs_addr = from_snes_address(rom.read_multi(MAP_POINTERS_OFFSET, 3))
+        map_addrs = [from_snes_address(rom.read_multi(map_ptrs_addr + x * 4, 4)) for x in range(8)]
 
         def read_row_data(row_number):
             offset = map_addrs[row_number % 8] + ((row_number >> 3) << 8)
-            return rom[offset:offset + self._MAP_WIDTH].to_list()
+            return rom[offset:offset + MAP_WIDTH].to_list()
 
-        self._tiles = map(read_row_data, range(self._MAP_HEIGHT))
-        k = self._LOCAL_TSET_ADDR
-        for i in range(self._MAP_HEIGHT >> 3):
-            for j in range(self._MAP_WIDTH):
-                self._tiles[i << 3][j] |= (rom[k] & 3) << 8
-                self._tiles[(i << 3) | 1][j] |= ((rom[k] >> 2) & 3) << 8
-                self._tiles[(i << 3) | 2][j] |= ((rom[k] >> 4) & 3) << 8
-                self._tiles[(i << 3) | 3][j] |= ((rom[k] >> 6) & 3) << 8
-                self._tiles[(i << 3) | 4][j] |= (rom[k + 0x3000] & 3) << 8
-                self._tiles[(i << 3) | 5][j] |= ((rom[k + 0x3000] >> 2) & 3) << 8
-                self._tiles[(i << 3) | 6][j] |= ((rom[k + 0x3000] >> 4) & 3) << 8
-                self._tiles[(i << 3) | 7][j] |= ((rom[k + 0x3000] >> 6) & 3) << 8
+        self.tiles = map(read_row_data, range(MAP_HEIGHT))
+        k = LOCAL_TILESETS_OFFSET
+        for i in range(MAP_HEIGHT >> 3):
+            for j in range(MAP_WIDTH):
+                self.tiles[i << 3][j] |= (rom[k] & 3) << 8
+                self.tiles[(i << 3) | 1][j] |= ((rom[k] >> 2) & 3) << 8
+                self.tiles[(i << 3) | 2][j] |= ((rom[k] >> 4) & 3) << 8
+                self.tiles[(i << 3) | 3][j] |= ((rom[k] >> 6) & 3) << 8
+                self.tiles[(i << 3) | 4][j] |= (rom[k + 0x3000] & 3) << 8
+                self.tiles[(i << 3) | 5][j] |= ((rom[k + 0x3000] >> 2) & 3) << 8
+                self.tiles[(i << 3) | 6][j] |= ((rom[k + 0x3000] >> 4) & 3) << 8
+                self.tiles[(i << 3) | 7][j] |= ((rom[k + 0x3000] >> 6) & 3) << 8
                 k += 1
-        updateProgress(25)
+
         # Read sector data
-        self._mapSecTsetPalsTbl.readFromRom(rom)
-        updateProgress(25.0 / 4)
-        self._mapSecMusicTbl.readFromRom(rom)
-        updateProgress(25.0 / 4)
-        self._mapSecMiscTbl.readFromRom(rom)
-        updateProgress(25.0 / 4)
-        self._mapSecTownMapTbl.readFromRom(rom)
-        updateProgress(25.0 / 4)
+        self.sector_tilesets_palettes_table.from_block(rom, from_snes_address(SECTOR_TILESETS_PALETTES_TABLE_OFFSET))
+        self.sector_music_table.from_block(rom, from_snes_address(SECTOR_MUSIC_TABLE_OFFSET))
+        self.sector_misc_table.from_block(rom, from_snes_address(SECTOR_MISC_TABLE_OFFSET))
+        self.sector_town_map_table.from_block(rom, from_snes_address(SECTOR_TOWN_MAP_TABLE_OFFSET))
 
     def write_to_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        map_ptrs_addr = \
-            EbModule.toRegAddr(rom.read_multi(self._MAP_PTRS_PTR_ADDR, 3))
-        map_addrs = map(lambda x:
-                        EbModule.toRegAddr(
-                            rom.read_multi(map_ptrs_addr + x * 4, 4)),
-                        range(8))
-        for i in range(self._MAP_HEIGHT):
+        # Write map data
+        map_ptrs_addr = from_snes_address(rom.read_multi(MAP_POINTERS_OFFSET, 3))
+        map_addrs = [from_snes_address(rom.read_multi(map_ptrs_addr + x * 4, 4)) for x in range(8)]
+
+        for i in range(MAP_HEIGHT):
             offset = map_addrs[i % 8] + ((i >> 3) << 8)
-            rom[offset:offset + self._MAP_WIDTH] = map(lambda x: x & 0xff, self._tiles[i])
-        k = self._LOCAL_TSET_ADDR
-        for i in range(self._MAP_HEIGHT >> 3):
-            for j in range(self._MAP_WIDTH):
-                c = ((self._tiles[i << 3][j] >> 8)
-                     | ((self._tiles[(i << 3) | 1][j] >> 8) << 2)
-                     | ((self._tiles[(i << 3) | 2][j] >> 8) << 4)
-                     | ((self._tiles[(i << 3) | 3][j] >> 8) << 6))
+            rom[offset:offset + MAP_WIDTH] = [x & 0xff for x in self.tiles[i]]
+        k = LOCAL_TILESETS_OFFSET
+        for i in range(MAP_HEIGHT >> 3):
+            for j in range(MAP_WIDTH):
+                c = ((self.tiles[i << 3][j] >> 8)
+                     | ((self.tiles[(i << 3) | 1][j] >> 8) << 2)
+                     | ((self.tiles[(i << 3) | 2][j] >> 8) << 4)
+                     | ((self.tiles[(i << 3) | 3][j] >> 8) << 6))
                 rom[k] = c
-                c = ((self._tiles[(i << 3) | 4][j] >> 8)
-                     | ((self._tiles[(i << 3) | 5][j] >> 8) << 2)
-                     | ((self._tiles[(i << 3) | 6][j] >> 8) << 4)
-                     | ((self._tiles[(i << 3) | 7][j] >> 8) << 6))
+                c = ((self.tiles[(i << 3) | 4][j] >> 8)
+                     | ((self.tiles[(i << 3) | 5][j] >> 8) << 2)
+                     | ((self.tiles[(i << 3) | 6][j] >> 8) << 4)
+                     | ((self.tiles[(i << 3) | 7][j] >> 8) << 6))
                 rom[k + 0x3000] = c
                 k += 1
-        updateProgress(25)
-        # Write sector data
-        self._mapSecTsetPalsTbl.writeToRom(rom)
-        updateProgress(25.0 / 4)
-        self._mapSecMusicTbl.writeToRom(rom)
-        updateProgress(25.0 / 4)
-        self._mapSecMiscTbl.writeToRom(rom)
-        updateProgress(25.0 / 4)
-        self._mapSecTownMapTbl.writeToRom(rom)
-        updateProgress(25.0 / 4)
 
-    def write_to_project(self, resourceOpener):
+        # Write sector data
+        self.sector_tilesets_palettes_table.to_block(rom, from_snes_address(SECTOR_TILESETS_PALETTES_TABLE_OFFSET))
+        self.sector_music_table.to_block(rom, from_snes_address(SECTOR_MUSIC_TABLE_OFFSET))
+        self.sector_misc_table.to_block(rom, from_snes_address(SECTOR_MISC_TABLE_OFFSET))
+        self.sector_town_map_table.to_block(rom, from_snes_address(SECTOR_TOWN_MAP_TABLE_OFFSET))
+
+    def write_to_project(self, resource_open):
         # Write map tiles
-        with resourceOpener("map_tiles", "map") as f:
-            for row in self._tiles:
+        with resource_open("map_tiles", "map") as f:
+            for row in self.tiles:
                 f.write(hex(row[0])[2:].zfill(3))
                 for tile in row[1:]:
                     f.write(" ")
                     f.write(hex(tile)[2:].zfill(3))
                 f.write("\n")
-        updateProgress(25.0)
+
         # Write sector data
         out = dict()
-        for i in range(self._mapSecTsetPalsTbl.height()):
-            self.teleport.setVal(self._mapSecMiscTbl[i, 0].val() >> 7)
-            self.townmap.setVal((self._mapSecMiscTbl[i, 0].val() >> 3) & 7)
-            self.setting.setVal(self._mapSecMiscTbl[i, 0].val() & 7)
-            self.townmap_image.setVal(self._mapSecTownMapTbl[i, 0].val() & 0xf)
-            self.townmap_arrow.setVal(self._mapSecTownMapTbl[i, 0].val() >> 4)
+        for i in range(self.sector_tilesets_palettes_table.num_rows):
             out[i] = {
-                "Tileset": self._mapSecTsetPalsTbl[i, 0].val() >> 3,
-                "Palette": self._mapSecTsetPalsTbl[i, 0].val() & 7,
-                "Music": self._mapSecMusicTbl[i, 0].dump(),
-                "Teleport": self.teleport.dump(),
-                "Town Map": self.townmap.dump(),
-                "Setting": self.setting.dump(),
-                "Item": self._mapSecMiscTbl[i, 1].dump(),
-                "Town Map Image": self.townmap_image.dump(),
-                "Town Map Arrow": self.townmap_arrow.dump(),
-                "Town Map X": self._mapSecTownMapTbl[i, 1].dump(),
-                "Town Map Y": self._mapSecTownMapTbl[i, 2].dump()}
-        updateProgress(12.5)
-        with resourceOpener("map_sectors", "yml") as f:
-            yaml.dump(
-                out,
-                f,
-                Dumper=yaml.CSafeDumper,
-                default_flow_style=False)
-        updateProgress(12.5)
+                "Tileset": INTEGER_ENTRY.to_yml_rep(self.sector_tilesets_palettes_table[i][0] >> 3),
+                "Palette": INTEGER_ENTRY.to_yml_rep(self.sector_tilesets_palettes_table[i][0] & 7),
+                "Music": INTEGER_ENTRY.to_yml_rep(self.sector_music_table[i][0]),
+                "Teleport": TELEPORT_ENTRY.to_yml_rep(self.sector_misc_table[i][0] >> 7),
+                "Town Map": TOWNMAP_ENTRY.to_yml_rep((self.sector_misc_table[i][0] >> 3) & 7),
+                "Setting": SETTING_ENTRY.to_yml_rep(self.sector_misc_table[i][0] & 7),
+                "Item": INTEGER_ENTRY.to_yml_rep(self.sector_misc_table[i][1]),
+                "Town Map Image": TOWNMAP_IMAGE_ENTRY.to_yml_rep(self.sector_town_map_table[i][0] & 0xf),
+                "Town Map Arrow": TOWNMAP_ARROW_ENTRY.to_yml_rep(self.sector_town_map_table[i][0] >> 4),
+                "Town Map X": INTEGER_ENTRY.to_yml_rep(self.sector_town_map_table[i][1]),
+                "Town Map Y": INTEGER_ENTRY.to_yml_rep(self.sector_town_map_table[i][2])}
+        with resource_open("map_sectors", "yml") as f:
+            yaml.dump(out, f, Dumper=yaml.CSafeDumper, default_flow_style=False)
 
-    def read_from_project(self, resourceOpener):
+    def read_from_project(self, resource_open):
         # Read map data
-        with resourceOpener("map_tiles", "map") as f:
-            self._tiles = map(lambda y:
+        with resource_open("map_tiles", "map") as f:
+            self.tiles = map(lambda y:
                               map(lambda x: int(x, 16), y.split(" ")),
                               f.readlines())
-        updateProgress(25)
+
         # Read sector data
-        self._mapSecTsetPalsTbl.clear(2560)
-        self._mapSecMusicTbl.clear(2560)
-        self._mapSecMiscTbl.clear(2560)
-        self._mapSecTownMapTbl.clear(2560)
-        pct = (25.0 / 2560)
-        with resourceOpener("map_sectors", "yml") as f:
+        with resource_open("map_sectors", "yml") as f:
             input = yaml.load(f, Loader=yaml.CSafeLoader)
             for i in input:
                 entry = input[i]
-                self._mapSecTsetPalsTbl[i, 0].setVal(
-                    (entry["Tileset"] << 3) | entry["Palette"])
-                self._mapSecMusicTbl[i, 0].load(entry["Music"])
-                self._mapSecMiscTbl[i, 1].load(entry["Item"])
-                self.teleport.load(entry["Teleport"])
-                self.townmap.load(entry["Town Map"])
-                self.setting.load(entry["Setting"])
-                self._mapSecMiscTbl[i, 0].setVal((self.teleport.val() << 7)
-                                                 | (self.townmap.val() << 3) | self.setting.val())
-                self.townmap_image.load(entry["Town Map Image"])
-                self.townmap_arrow.load(entry["Town Map Arrow"])
-                self._mapSecTownMapTbl[i, 0].setVal(
-                    (self.townmap_arrow.val() << 4) |
-                    (self.townmap_image.val() & 0xf))
-                self._mapSecTownMapTbl[i, 1].load(entry["Town Map X"])
-                self._mapSecTownMapTbl[i, 2].load(entry["Town Map Y"])
-                updateProgress(pct)
 
-    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
-                        resourceOpenerW, resourceDeleter):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        global updateProgress
+                tileset = INTEGER_ENTRY.from_yml_rep(entry["Tileset"])
+                palette = INTEGER_ENTRY.from_yml_rep(entry["Palette"])
+                self.sector_tilesets_palettes_table[i] = [(tileset << 3) | palette]
 
-        def replaceField(fname, oldField, newField, valueMap):
-            if newField is None:
-                newField = oldField
-            valueMap = dict((k, v) for k, v in valueMap.iteritems())
-            with resourceOpenerR(fname, 'yml') as f:
-                data = yaml.load(f, Loader=yaml.CSafeLoader)
-                for i in data:
-                    if data[i][oldField] in valueMap:
-                        data[i][newField] = valueMap[data[i][oldField]].lower()
-                    else:
-                        data[i][newField] = data[i][oldField]
-                    if newField != oldField:
-                        del data[i][oldField]
-            with resourceOpenerW(fname, 'yml') as f:
-                yaml.dump(data, f, Dumper=yaml.CSafeDumper,
-                          default_flow_style=False)
+                music = INTEGER_ENTRY.from_yml_rep(entry["Music"])
+                self.sector_music_table[i] = [music]
 
-        if oldVersion == newVersion:
-            updateProgress(100)
+                teleport = TELEPORT_ENTRY.from_yml_rep(entry["Teleport"])
+                townmap = TOWNMAP_ENTRY.from_yml_rep(entry["Town Map"])
+                setting = SETTING_ENTRY.from_yml_rep(entry["Setting"])
+                item = INTEGER_ENTRY.from_yml_rep(entry["Item"])
+                self.sector_misc_table[i] = [(teleport << 7) | (townmap << 3) | setting, item]
+
+                townmap_arrow = TOWNMAP_ARROW_ENTRY.from_yml_rep(entry["Town Map Arrow"])
+                townmap_image = TOWNMAP_IMAGE_ENTRY.from_yml_rep(entry["Town Map Image"])
+                townmap_x = INTEGER_ENTRY.from_yml_rep(entry["Town Map X"])
+                townmap_y = INTEGER_ENTRY.from_yml_rep(entry["Town Map Y"])
+                self.sector_town_map_table[i] = [((townmap_arrow << 4) | (townmap_image & 0xf)),
+                                                 townmap_x,
+                                                 townmap_y]
+
+    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+        if old_version == new_version:
             return
-        elif oldVersion <= 2:
-            replaceField("map_sectors", "Town Map", None,
-                         {"scummers": "summers"})
+        elif old_version <= 2:
+            replace_field_in_yml(resource_name="map_sectors",
+                                 resource_open_r=resource_open_r,
+                                 resource_open_w=resource_open_w,
+                                 key="Town Map",
+                                 value_map={"scummers": "summers"})
 
-            # Need to add the Town Map Image/Arrow/X/Y fields
-            tmp = updateProgress
-            updateProgress = lambda x: None
             self.read_from_rom(rom)
-            updateProgress = tmp
 
-            with resourceOpenerR("map_sectors", 'yml') as f:
+            with resource_open_r("map_sectors", 'yml') as f:
                 data = yaml.load(f, Loader=yaml.CSafeLoader)
                 for i in data:
-                    self.townmap_image.setVal(
-                        self._mapSecTownMapTbl[i, 0].val() & 0xf)
-                    self.townmap_arrow.setVal(
-                        self._mapSecTownMapTbl[i, 0].val() >> 4)
-                    data[i]["Town Map Image"] = self.townmap_image.dump()
-                    data[i]["Town Map Arrow"] = self.townmap_arrow.dump()
-                    data[i]["Town Map X"] = self._mapSecTownMapTbl[i, 1].dump()
-                    data[i]["Town Map Y"] = self._mapSecTownMapTbl[i, 2].dump()
-            with resourceOpenerW("map_sectors", 'yml') as f:
-                yaml.dump(data, f, Dumper=yaml.CSafeDumper,
-                          default_flow_style=False)
+                    data[i]["Town Map Image"] = TOWNMAP_IMAGE_ENTRY.to_yml_rep(self.sector_town_map_table[i][0] & 0xf)
+                    data[i]["Town Map Arrow"] = TOWNMAP_ARROW_ENTRY.to_yml_rep(self.sector_town_map_table[i][0] >> 4)
+                    data[i]["Town Map X"] = INTEGER_ENTRY.to_yml_rep(self.sector_town_map_table[i][1])
+                    data[i]["Town Map Y"] = INTEGER_ENTRY.to_yml_rep(self.sector_town_map_table[i][2])
+            with resource_open_w("map_sectors", 'yml') as f:
+                yaml.dump(data, f, Dumper=yaml.CSafeDumper, default_flow_style=False)
 
-            self.upgrade_project(3, newVersion, rom, resourceOpenerR,
-                                 resourceOpenerW, resourceDeleter)
+            self.upgrade_project(3, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         else:
-            self.upgrade_project(
-                oldVersion + 1, newVersion, rom, resourceOpenerR,
-                resourceOpenerW, resourceDeleter)
+            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
