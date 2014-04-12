@@ -1,182 +1,181 @@
 from PIL import Image
 
-from coilsnake.modules.eb.EbTablesModule import TextTableEntry
-from coilsnake.modules.eb.EbDataBlocks import EbCompressedData
-from coilsnake.modules.eb.CompressedGraphicsModule import EbTileGraphics, EbArrangement, EbPalettes
-from coilsnake.Progress import updateProgress
+from coilsnake.exceptions.common.exceptions import CoilSnakeError
+from coilsnake.model.eb.blocks import EbCompressibleBlock
+from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangement
+from coilsnake.model.eb.palettes import EbPalette
+from coilsnake.model.eb.table import EbStandardTextTableEntry
 from coilsnake.modules.eb import EbModule
+from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, write_asm_pointer, to_snes_address
+
+GRAPHICS_1_ASM_POINTER_OFFSET = 0x47c47
+GRAPHICS_2_ASM_POINTER_OFFSET = 0x47caa
+FLAVOR_NAME_ASM_POINTER_OFFSETS = [0x1F70F, 0x1F72A, 0x1F745, 0x1F760, 0x1F77B]
+FLAVOR_NAME_ENTRY = EbStandardTextTableEntry.create(size=25)
+FLAVOR_PALETTES_OFFSET = 0x201fc8
+
+ARRANGEMENT_PREVIEW_SUBPALETTES = [
+    0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 6, 6, 6, 6, 6,
+    7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 6, 6, 6, 6, 6,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6,
+    0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6,
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 6, 6, 6, 6, 3, 3, 6,
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 6,
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 1, 0, 0,
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 1, 0, 0
+]
+ARRANGEMENT_1 = EbTileArrangement(width=16, height=26)
+for y in range(ARRANGEMENT_1.height):
+    for x in range(ARRANGEMENT_1.width):
+        i = y * ARRANGEMENT_1.width + x
+        ARRANGEMENT_1[x, y].tile = i
+        ARRANGEMENT_1[x, y].subpalette = ARRANGEMENT_PREVIEW_SUBPALETTES[i]
+ARRANGEMENT_2 = EbTileArrangement(width=7, height=1)
+for y in range(ARRANGEMENT_2.height):
+    for x in range(ARRANGEMENT_2.width):
+        ARRANGEMENT_2[x, y].tile = y * ARRANGEMENT_1.width + x
+        ARRANGEMENT_2[x, y].subpalette = 0
 
 
 class WindowGraphicsModule(EbModule.EbModule):
     NAME = "Window Graphics"
     FREE_RANGES = [(0x200000, 0x20079f)]  # Graphics
 
-    _ASMPTR_1 = 0x47c47
-    _ASMPTR_2 = 0x47caa
-    _ASMPTRS_NAMES = [0x1F70F, 0x1F72A, 0x1F745, 0x1F760, 0x1F77B]
-    _PREVIEW_SUBPALS = [
-        0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 6, 6, 6, 6, 6, 7, 7, 7,
-        7, 7, 7, 7, 4, 4, 4, 4, 6, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 0,
-        1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 6, 6, 6,
-        6, 3, 3, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 6, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 1, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0,
-        0, 0, 0, 1, 0, 0]
-
     def __init__(self):
         EbModule.EbModule.__init__(self)
-        self._gfx1 = EbTileGraphics(416, 8, 2)
-        self._gfx2 = EbTileGraphics(7, 8, 2)
-        self._flavPals = [EbPalettes(8, 4) for i in range(7)]
-        self._flavNames = [(i, TextTableEntry(None, 25))
-                           for i in self._ASMPTRS_NAMES]
+        self.graphics_1 = EbGraphicTileset(num_tiles=416, tile_width=8, tile_height=8)
+        self.graphics_2 = EbGraphicTileset(num_tiles=7, tile_width=8, tile_height=8)
+
+        self.flavor_palettes = [EbPalette(8, 4) for i in range(7)]
+        self.flavor_names = dict()
 
     def read_from_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        with EbCompressedData() as tgb1:
-            tgb1.readFromRom(rom, EbModule.toRegAddr(
-                EbModule.readAsmPointer(rom, self._ASMPTR_1)))
-            self._gfx1.readFromBlock(tgb1)
-        updateProgress(20)
-        with EbCompressedData() as tgb2:
-            tgb2.readFromRom(rom, EbModule.toRegAddr(
-                EbModule.readAsmPointer(rom, self._ASMPTR_2)))
-            self._gfx2.readFromBlock(tgb2)
-        updateProgress(20)
+        with EbCompressibleBlock() as compressed_block:
+            compressed_block.from_block_compressed(
+                block=rom,
+                offset=from_snes_address(read_asm_pointer(rom, GRAPHICS_1_ASM_POINTER_OFFSET)))
+            self.graphics_1.from_block(block=compressed_block, bpp=2)
+
+        with EbCompressibleBlock() as compressed_block:
+            compressed_block.from_block_compressed(
+                block=rom,
+                offset=from_snes_address(read_asm_pointer(rom, GRAPHICS_2_ASM_POINTER_OFFSET)))
+            self.graphics_2.from_block(block=compressed_block, bpp=2)
+
         # Read palettes
-        loc = 0x201fc8
-        for pal in self._flavPals:
-            pal.readFromBlock(rom, loc=loc)
-            loc += 64
-        updateProgress(5)
+        offset = FLAVOR_PALETTES_OFFSET
+        for palette in self.flavor_palettes:
+            palette.from_block(block=rom, offset=offset)
+            offset += 64
+
         # Read names
-        for ptr, field in self._flavNames:
-            field.readFromRom(rom, EbModule.toRegAddr(
-                EbModule.readAsmPointer(rom, ptr)))
-        updateProgress(5)
+        for asm_pointer_offset in FLAVOR_NAME_ASM_POINTER_OFFSETS:
+            self.flavor_names[asm_pointer_offset] = FLAVOR_NAME_ENTRY.from_block(
+                block=rom,
+                offset=from_snes_address(read_asm_pointer(block=rom, offset=asm_pointer_offset)))
 
     def write_to_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        with EbCompressedData(self._gfx1.sizeBlock()) as gb:
-            self._gfx1.writeToBlock(gb)
-            EbModule.writeAsmPointer(rom, self._ASMPTR_1,
-                                     EbModule.toSnesAddr(gb.writeToFree(rom)))
-        updateProgress(20)
-        with EbCompressedData(self._gfx2.sizeBlock()) as gb:
-            self._gfx2.writeToBlock(gb)
-            EbModule.writeAsmPointer(rom, self._ASMPTR_2,
-                                     EbModule.toSnesAddr(gb.writeToFree(rom)))
-        updateProgress(20)
-        # Write pals
-        loc = 0x201fc8
-        for pal in self._flavPals:
-            pal.writeToBlock(rom, loc=loc)
-            loc += 64
-        updateProgress(5)
-        # Write names
-        for ptr, field in self._flavNames:
-            loc = EbModule.toSnesAddr(field.writeToFree(rom))
-            EbModule.writeAsmPointer(rom, ptr, loc)
-        updateProgress(5)
+        graphics_1_block_size = self.graphics_1.block_size(bpp=2)
+        with EbCompressibleBlock(graphics_1_block_size) as compressed_block:
+            self.graphics_1.to_block(block=compressed_block, offset=0, bpp=2)
+            graphics_1_offset = rom.allocate(size=graphics_1_block_size)
+            compressed_block.to_block_compressed(rom, graphics_1_offset)
+            write_asm_pointer(block=rom, offset=GRAPHICS_1_ASM_POINTER_OFFSET,
+                              pointer=to_snes_address(graphics_1_offset))
 
-    def write_to_project(self, resourceOpener):
-        arr1 = EbArrangement(16, 26)
-        for i in range(416):
-            arr1[
-                i %
-                16,
-                i /
-                16] = (
-                False,
-                False,
-                False,
-                self._PREVIEW_SUBPALS[
-                    i],
-                i)
-        i = 0
-        for pal in self._flavPals:
-            with resourceOpener("WindowGraphics/Windows1_" + str(i),
-                                "png") as imgFile:
-                img1 = arr1.toImage(self._gfx1, pal)
-                img1.save(imgFile, "png")
-            with resourceOpener("WindowGraphics/Windows2_" + str(i),
-                                "png") as imgFile:
-                img2 = self._gfx2.dumpToImage(pal.getSubpal(7), width=7)
-                img2.save(imgFile, "png")
-            i += 1
-        updateProgress(40)
-        # Write names
-        with resourceOpener("WindowGraphics/flavor_names", "txt") as f:
-            for ptr, field in self._flavNames:
-                print >> f, field.dump()
-        updateProgress(10)
+        graphics_2_block_size = self.graphics_2.block_size(bpp=2)
+        with EbCompressibleBlock(graphics_2_block_size) as compressed_block:
+            self.graphics_2.to_block(block=compressed_block, offset=0, bpp=2)
+            graphics_2_offset = rom.allocate(size=graphics_2_block_size)
+            compressed_block.to_block_compressed(rom, graphics_2_offset)
+            write_asm_pointer(block=rom, offset=GRAPHICS_2_ASM_POINTER_OFFSET,
+                              pointer=to_snes_address(graphics_2_offset))
 
-    def read_from_project(self, resourceOpener):
+        # Write palettes
+        offset = FLAVOR_PALETTES_OFFSET
+        for palette in self.flavor_palettes:
+            palette.to_block(block=rom, offset=offset)
+            offset += 64
+
+        # Write names
+        for asm_pointer_offset in FLAVOR_NAME_ASM_POINTER_OFFSETS:
+            name = self.flavor_names[asm_pointer_offset]
+            offset = rom.allocate(size=FLAVOR_NAME_ENTRY.size)
+            FLAVOR_NAME_ENTRY.to_block(block=rom, offset=offset, value=name)
+            write_asm_pointer(block=rom, offset=asm_pointer_offset, pointer=to_snes_address(offset))
+
+    def write_to_project(self, resource_open):
+        for i, palette in enumerate(self.flavor_palettes):
+            with resource_open("WindowGraphics/Windows1_" + str(i), "png") as image_file:
+                image = ARRANGEMENT_1.image(tileset=self.graphics_1, palette=palette)
+                image.save(image_file, "png")
+            with resource_open("WindowGraphics/Windows2_" + str(i), "png") as image_file:
+                image = ARRANGEMENT_2.image(tileset=self.graphics_2, palette=palette.get_subpalette(7))
+                image.save(image_file, "png")
+
+        # Write names
+        with resource_open("WindowGraphics/flavor_names", "txt") as f:
+            for asm_pointer_offset in FLAVOR_NAME_ASM_POINTER_OFFSETS:
+                print >> f, self.flavor_names[asm_pointer_offset]
+
+    def read_from_project(self, resource_open):
         # Read graphics. Just use the first of each image.
-        with resourceOpener("WindowGraphics/Windows1_0", "png") as imgFile:
-            img = Image.open(imgFile)
-            if img.mode != 'P':
-                raise RuntimeError(
-                    "WindowGraphics/Windows1_0 is not an indexed PNG.")
-            self._gfx1.loadFromImage(img)
-        updateProgress(20)
-        with resourceOpener("WindowGraphics/Windows2_0", "png") as imgFile:
-            img = Image.open(imgFile)
-            if img.mode != 'P':
-                raise RuntimeError(
-                    "WindowGraphics/Windows2_0 is not an indexed PNG.")
-            self._gfx2.loadFromImage(img)
-        updateProgress(20)
+        with resource_open("WindowGraphics/Windows1_0", "png") as image_file:
+            image = Image.open(image_file)
+            if image.mode != 'P':
+                raise CoilSnakeError("WindowGraphics/Windows1_0 is not an indexed PNG.")
+            self.graphics_1.from_image(image=image,
+                                       arrangement=ARRANGEMENT_1,
+                                       palette=self.flavor_palettes[0])
+
+        with resource_open("WindowGraphics/Windows2_0", "png") as image_file:
+            image = Image.open(image_file)
+            if image.mode != 'P':
+                raise CoilSnakeError("WindowGraphics/Windows2_0 is not an indexed PNG.")
+            self.graphics_2.from_image(image=image,
+                                       arrangement=ARRANGEMENT_2,
+                                       palette=self.flavor_palettes[0].get_subpalette(7))
+
         # Read pals from Windows1 of each flavor.
         # Read subpal 7 from Windows2 of each flavor.
-        i = 0
-        for pal in self._flavPals:
+        for i, palette in enumerate(self.flavor_palettes):
             # Read all the palette data from Windows1
-            with resourceOpener("WindowGraphics/Windows1_" + str(i),
-                                "png") as imgFile:
-                img = Image.open(imgFile)
-                if img.mode != 'P':
-                    raise RuntimeError(
-                        "WindowGraphics/Windows1_" + str(i) + " is not an indexed PNG.")
-                palData = img.getpalette()
-                m = 0
-                for j in range(8):
-                    for k in range(4):
-                        pal[j, k] = (
-                            palData[m], palData[m + 1], palData[m + 2])
-                        m += 3
-            # Overwrite subpalette 7 from the palette of Windows2
-            with resourceOpener("WindowGraphics/Windows2_" + str(i),
-                                "png") as imgFile:
-                img = Image.open(imgFile)
-                if img.mode != 'P':
-                    raise RuntimeError(
-                        "WindowGraphics/Windows2_" + str(i) + " is not an indexed PNG.")
-                palData = img.getpalette()
+            with resource_open("WindowGraphics/Windows1_" + str(i), "png") as image_file:
+                image = Image.open(image_file)
+                if image.mode != 'P':
+                    raise CoilSnakeError("WindowGraphics/Windows1_" + str(i) + " is not an indexed PNG.")
+                palette.from_image(image=image)
+
+            with resource_open("WindowGraphics/Windows2_" + str(i), "png") as image_file:
+                image = Image.open(image_file)
+                if image.mode != 'P':
+                    raise CoilSnakeError("WindowGraphics/Windows2_" + str(i) + " is not an indexed PNG.")
+                palette_data = image.getpalette()
                 m = 0
                 for k in range(4):
-                    pal[7, k] = (palData[m], palData[m + 1], palData[m + 2])
+                    palette[7, k].from_tuple((palette_data[m], palette_data[m + 1], palette_data[m + 2]))
                     m += 3
-            i += 1
-        updateProgress(5)
+
         # Read names
-        with resourceOpener("WindowGraphics/flavor_names", "txt") as f:
-            for ptr, field in self._flavNames:
-                field.load(f.readline()[:-1])
-        updateProgress(5)
+        with resource_open("WindowGraphics/flavor_names", "txt") as f:
+            for asm_pointer_offset in FLAVOR_NAME_ASM_POINTER_OFFSETS:
+                name = f.readline()[:-1]
+                self.flavor_names[asm_pointer_offset] = FLAVOR_NAME_ENTRY.from_yml_rep(name)

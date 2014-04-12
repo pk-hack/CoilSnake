@@ -97,6 +97,12 @@ class EbPalette(EqualityMixin):
     def list(self):
         return reduce(lambda x, y: x.__add__(y.list()), reduce(lambda x, y: x.__add__(y), self.subpalettes, []), [])
 
+    def get_subpalette(self, subpalette_num):
+        subpalette = EbPalette(num_subpalettes=1, subpalette_length=self.subpalette_length)
+        for i in range(self.subpalette_length):
+            subpalette[0, i].from_tuple(self[subpalette_num, i].tuple())
+        return subpalette
+
     def from_block(self, block, offset=0):
         log.debug("Reading a EbPalette of size[{}x{}] from offset[{:#x}]".format(self.num_subpalettes,
                                                                                  self.subpalette_length, offset))

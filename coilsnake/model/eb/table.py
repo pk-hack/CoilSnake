@@ -77,6 +77,12 @@ class EbPaletteTableEntry(TableEntry):
 
 
 class EbStandardTextTableEntry(TableEntry):
+    @staticmethod
+    def create(size):
+        return type("EbStandardTextTableEntry_subclass",
+                    (EbStandardTextTableEntry,),
+                    {"size": size})
+
     @classmethod
     def from_block(cls, block, offset):
         return standard_text_from_block(block, offset, cls.size)
