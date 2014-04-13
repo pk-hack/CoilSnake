@@ -12,12 +12,23 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
     Please note that when an EarthBound color is saved to a block, each R, G, and B value loses its three least
     significant bits."""
 
-    def __init__(self, r=0, g=0, b=0):
-        self.r = r
-        self.g = g
-        self.b = b
+    def __init__(self, r=None, g=None, b=None):
+        if (r is None) and (g is None) and (b is None):
+            self.r = self.g = self.b = 0
+            self.used = False
+        else:
+            self.r = r
+            self.g = g
+            self.b = b
+            self.used = True
+
+    def __eq__(self, other):
+        return ((self.r == other.r)
+                and (self.g == other.g)
+                and (self.b == other.b))
 
     def from_block(self, block, offset=0):
+        self.used = True
         bgr = block.read_multi(offset, 2) & 0x7FFF
         self.r = (bgr & 0x001f) * 8
         self.g = ((bgr & 0x03e0) >> 5) * 8
@@ -33,12 +44,14 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
                           2)
 
     def from_tuple(self, rgb):
+        self.used = True
         self.r, self.g, self.b = rgb
 
     def tuple(self):
         return self.r, self.g, self.b
 
     def from_list(self, rgb_list, offset=0):
+        self.used = True
         self.r = rgb_list[offset]
         self.g = rgb_list[offset + 1]
         self.b = rgb_list[offset + 2]
@@ -56,6 +69,7 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
 
     def from_yml_rep(self, yml_rep):
         try:
+            self.used = True
             self.r, self.g, self.b = map(int, yml_rep[1:-1].split(','))
         except:
             raise InvalidYmlRepresentationError("Could not parse value[{}] as an (R, G, B) color".format(yml_rep))
@@ -151,6 +165,42 @@ class EbPalette(EqualityMixin):
             for color in subpalette:
                 color.from_yml_rep(yml_rep[i])
                 i += 1
+
+    def add_colors_to_subpalette(self, colors):
+        if len(colors) > self.subpalette_length:
+            # TODO Handle this error better
+            return 0
+
+        subpalette_info = [(len(colors.intersection(subpalette)),  # number of shared colors
+                            sum([(not color.used) for color in subpalette]),  # number of unused colors in palette
+                            colors - set(subpalette), # set of colors not in palette
+                            i) for i, subpalette in enumerate(self.subpalettes)]
+        subpalette_info = filter(lambda x: x[1] > len(x[2]), subpalette_info)
+
+        if len(subpalette_info) == 0:
+            # Not enough room to put these colors in a subpalette
+            # TODO Handle this error better.
+            return 0
+
+        subpalette_info.sort(reverse=True)
+        num_shared_colors, num_unused_colors, new_colors, subpalette_id = subpalette_info[0]
+        subpalette = self.subpalettes[subpalette_id]
+        for new_color in new_colors:
+            for i in range(self.subpalette_length):
+                if not subpalette[i].used:
+                    subpalette[i].from_tuple(new_color.tuple())
+                    break
+
+        return subpalette_id
+
+    def get_color_id(self, rgb, subpalette_id):
+        r, g, b = rgb
+        color = EbColor(r=r, g=g, b=b)
+        for i, c in enumerate(self.subpalettes[subpalette_id]):
+            if color == c:
+                return i
+        # TODO Handle this error better
+        return 0
 
     def __getitem__(self, key):
         subpalette_number, color_number = key

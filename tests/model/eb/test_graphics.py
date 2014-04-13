@@ -1,9 +1,12 @@
-from nose.tools import assert_equal, assert_raises, assert_list_equal, assert_false, assert_true, assert_is_instance
+from array import array
+
+from nose.tools import assert_equal, assert_raises, assert_list_equal, assert_false, assert_true, assert_is_instance, \
+    assert_not_equal
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangementItem, EbTileArrangement
-from coilsnake.model.eb.palettes import EbPalette
+from coilsnake.model.eb.palettes import EbPalette, EbColor
 from tests.coilsnake_test import BaseTestCase, TilesetImageTestCase
 
 
@@ -171,6 +174,7 @@ class TestEbGraphicTileset(BaseTestCase, TilesetImageTestCase):
 
     def test_to_block_1bpp(self):
         tileset = EbGraphicTileset(num_tiles=2, tile_width=8, tile_height=8)
+        tileset.tiles = [None, None]
         tileset.tiles[0] = [[0, 0, 0, 0, 0, 0, 1, 1],
                             [0, 1, 1, 1, 0, 0, 0, 0],
                             [0, 1, 0, 0, 1, 0, 0, 1],
@@ -209,6 +213,7 @@ class TestEbGraphicTileset(BaseTestCase, TilesetImageTestCase):
 
     def test_to_block_2bpp(self):
         tileset = EbGraphicTileset(num_tiles=2, tile_width=8, tile_height=8)
+        tileset.tiles = [None, None]
         tileset.tiles[0] = [[2, 1, 2, 3, 2, 1, 2, 1],
                             [2, 3, 1, 0, 2, 3, 2, 2],
                             [3, 0, 3, 2, 2, 2, 0, 2],
@@ -376,6 +381,53 @@ class TestEbGraphicTileset(BaseTestCase, TilesetImageTestCase):
                            [3] * 8,
                            [3] * 8])
 
+    def test_add_tile(self):
+        tileset = EbGraphicTileset(num_tiles=5, tile_width=8, tile_height=8)
+        tile = [array('B', [5, 7, 6, 4, 1, 5, 3, 3]),
+                array('B', [5, 8, 3, 7, 5, 7, 1, 1]),
+                array('B', [6, 1, 1, 5, 4, 0, 1, 5]),
+                array('B', [2, 1, 4, 5, 4, 1, 6, 4]),
+                array('B', [4, 6, 6, 2, 1, 0, 4, 4]),
+                array('B', [6, 1, 0, 7, 5, 8, 1, 8]),
+                array('B', [8, 0, 4, 0, 2, 8, 0, 8]),
+                array('B', [0, 6, 8, 6, 0, 5, 4, 0])]
+        tile1_id, tile1_vflip, tile1_hflip = tileset.add_tile(tile)
+
+        tile2_id, tile2_vflip, tile2_hflip = tileset.add_tile(tile)
+        assert_equal(tile2_id, tile1_id)
+        assert_equal(tile2_vflip, tile1_vflip)
+        assert_equal(tile2_hflip, tile1_hflip)
+
+        tile.reverse()
+        tile2_id, tile2_vflip, tile2_hflip = tileset.add_tile(tile)
+        assert_equal(tile2_id, tile1_id)
+        assert_equal(tile2_vflip, not tile1_vflip)
+        assert_equal(tile2_hflip, tile1_hflip)
+
+        for row in tile:
+            row.reverse()
+        tile2_id, tile2_vflip, tile2_hflip = tileset.add_tile(tile)
+        assert_equal(tile2_id, tile1_id)
+        assert_equal(tile2_vflip, not tile1_vflip)
+        assert_equal(tile2_hflip, not tile1_hflip)
+
+        tile.reverse()
+        tile2_id, tile2_vflip, tile2_hflip = tileset.add_tile(tile)
+        assert_equal(tile2_id, tile1_id)
+        assert_equal(tile2_vflip, tile1_vflip)
+        assert_equal(tile2_hflip, not tile1_hflip)
+
+        tile = [array('B', [1, 2, 3, 4, 1, 5, 3, 3]),
+                array('B', [5, 8, 3, 7, 5, 7, 1, 1]),
+                array('B', [6, 1, 1, 5, 4, 0, 1, 5]),
+                array('B', [2, 1, 4, 5, 4, 1, 6, 4]),
+                array('B', [4, 6, 6, 2, 1, 0, 4, 4]),
+                array('B', [6, 1, 0, 7, 5, 8, 1, 8]),
+                array('B', [8, 0, 4, 0, 2, 8, 0, 8]),
+                array('B', [0, 6, 8, 6, 0, 5, 4, 0])]
+        tile2_id, tile2_vflip, tile2_hflip = tileset.add_tile(tile)
+        assert_not_equal(tile2_id, tile1_id)
+
 
 class TestEbTileArrangementItem(BaseTestCase):
     def test_init(self):
@@ -437,7 +489,7 @@ class TestEbTileArrangementItem(BaseTestCase):
         assert_equal(block.read_multi(1, 2), 0x4000 | (2 << 10) | 0x3f5)
 
 
-class TestEbTileArrangement(BaseTestCase):
+class TestEbTileArrangement(BaseTestCase, TilesetImageTestCase):
     def test_init(self):
         arrangement = EbTileArrangement(32, 28)
         assert_equal(arrangement.width, 32)
@@ -498,3 +550,41 @@ class TestEbTileArrangement(BaseTestCase):
         assert_raises(InvalidArgumentError, arrangement.__getitem__, (0, 2))
         assert_raises(InvalidArgumentError, arrangement.__getitem__, (1, 2))
         assert_raises(InvalidArgumentError, arrangement.__getitem__, (3, 0))
+
+    def test_from_image_single_subpalette(self):
+        palette = EbPalette(1, 2)
+
+        tileset = EbGraphicTileset(num_tiles=6, tile_width=8, tile_height=8)
+
+        arrangement = EbTileArrangement(width=6, height=1)
+
+        arrangement.from_image(self.tile_8x8_2bpp_2_img, tileset=tileset, palette=palette)
+
+        assert_equal(palette[0, 0], EbColor(0, 0, 0))
+        assert_equal(palette[0, 1], EbColor(255, 255, 255))
+
+        item = arrangement[0, 0]
+        assert_equal(item.subpalette, 0)
+
+        assert_equal(arrangement[1, 0].tile, item.tile)
+        assert_equal(arrangement[1, 0].is_horizontally_flipped, not item.is_horizontally_flipped)
+        assert_equal(arrangement[1, 0].is_vertically_flipped, item.is_vertically_flipped)
+        assert_equal(arrangement[1, 0].subpalette, 0)
+
+        assert_equal(arrangement[2, 0].tile, item.tile)
+        assert_equal(arrangement[2, 0].is_horizontally_flipped, item.is_horizontally_flipped)
+        assert_equal(arrangement[2, 0].is_vertically_flipped, not item.is_vertically_flipped)
+        assert_equal(arrangement[2, 0].subpalette, 0)
+
+        assert_equal(arrangement[3, 0].tile, item.tile)
+        assert_equal(arrangement[3, 0].is_horizontally_flipped, not item.is_horizontally_flipped)
+        assert_equal(arrangement[2, 0].is_vertically_flipped, not item.is_vertically_flipped)
+        assert_equal(arrangement[3, 0].subpalette, 0)
+
+        assert_not_equal(arrangement[4, 0].tile, item.tile)
+        assert_equal(arrangement[4, 0].subpalette, 0)
+
+        assert_equal(arrangement[5, 0].tile, item.tile)
+        assert_equal(arrangement[5, 0].is_horizontally_flipped, item.is_horizontally_flipped)
+        assert_equal(arrangement[5, 0].is_vertically_flipped, item.is_vertically_flipped)
+        assert_equal(arrangement[5, 0].subpalette, 0)

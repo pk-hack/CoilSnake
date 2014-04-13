@@ -214,7 +214,7 @@ with open_asset("structures", "eb.yml") as f:
             break
 
 
-def eb_table_from_offset(offset, single_column=None, matrix_dimensions=None):
+def eb_table_from_offset(offset, single_column=None, matrix_dimensions=None, hidden_columns=[]):
     log.debug("Creating EbTable object for offset[{:#x}]".format(offset))
     try:
         schema_specification = _EB_SCHEMA_MAP[offset]
@@ -224,7 +224,8 @@ def eb_table_from_offset(offset, single_column=None, matrix_dimensions=None):
     if single_column:
         schema = single_column
     else:
-        schema = EbRowTableEntry.from_schema_specification(schema_specification["entries"])
+        schema = EbRowTableEntry.from_schema_specification(schema_specification=schema_specification["entries"],
+                                                           hidden_columns=hidden_columns)
 
     if matrix_dimensions:
         matrix_width, matrix_height = matrix_dimensions

@@ -80,7 +80,7 @@ class EbCreditsFont(object):
 
     def from_block(self, block, tileset_asm_pointer_offset, palette_offset):
         with EbCompressibleBlock() as compressed_block:
-            compressed_block.from_block_compressed(block=block, offset=from_snes_address(
+            compressed_block.from_compressed_block(block=block, offset=from_snes_address(
                 read_asm_pointer(block=block, offset=tileset_asm_pointer_offset)))
             self.tileset.from_block(block=compressed_block, bpp=2)
         self.palette.from_block(block=block, offset=palette_offset)

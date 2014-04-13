@@ -1,5 +1,8 @@
+from array import array
+from copy import deepcopy
 import logging
 from PIL import Image
+from zlib import crc32
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, OutOfBoundsError
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
@@ -12,6 +15,12 @@ log = logging.getLogger(__name__)
 
 _EB_GRAPHIC_TILESET_SUPPORTED_BPP_FORMATS = frozenset([1, 2, 4, 8])
 
+
+def hash_tile(tile):
+    csum = 0
+    for col in tile:
+        csum = crc32(col, csum)
+    return csum
 
 class EbGraphicTileset(EqualityMixin):
     """A class representing a set of graphical tiles which adhere to the common EarthBound format.
@@ -41,8 +50,7 @@ class EbGraphicTileset(EqualityMixin):
                 tile_height))
         self.tile_height = tile_height
 
-        self.tiles = [[[0 for x in range(self.tile_width)] for y in range(self.tile_height)]
-                      for n in range(self.num_tiles_maximum)]
+        self.tiles = []
         self._num_tiles_used = 0
         self._used_tiles = dict()
 
@@ -57,6 +65,8 @@ class EbGraphicTileset(EqualityMixin):
 
         self._num_tiles_used = 0
         self._used_tiles = dict()
+        self.tiles = [[[0 for x in range(self.tile_width)] for y in range(self.tile_height)]
+                      for n in range(self.num_tiles_maximum)]
         for tile in self.tiles:
             try:
                 if bpp == 2:
@@ -109,6 +119,8 @@ class EbGraphicTileset(EqualityMixin):
         :param palette: the known arrangement which describes how the image is rendered"""
         image_data = image.load()
         already_read_tiles = set()
+        self.tiles = [[[0 for x in range(self.tile_width)] for y in range(self.tile_height)]
+              for n in range(self.num_tiles_maximum)]
         for y in range(arrangement.height):
             for x in range(arrangement.width):
                 arrangement_item = arrangement[x, y]
@@ -121,6 +133,58 @@ class EbGraphicTileset(EqualityMixin):
                             tile_row[tile_x] = image_data[image_x + tile_x, image_y] % palette.subpalette_length
                         image_y += 1
                     already_read_tiles.add(arrangement_item.tile)
+
+    def add_tile(self, tile):
+        """Adds a tile into this tileset if the tileset does not already contain it.
+
+        :param tile: the tile to add, as a two-dimensional list
+        :return: a tuple containing the tile's id in this tileset, whether the tile is stored as vertically flipped,
+        and whether the tile is stored as horizontally flipped"""
+
+        tile_copy = deepcopy(tile)
+
+        # Check for non-flipped tile
+        try:
+            tile_id = self._used_tiles[hash_tile(tile_copy)]
+            return tile_id, False, False
+        except KeyError:
+            pass
+
+        # Check for vertically flipped tile
+        tile_copy.reverse()
+        try:
+            tile_id = self._used_tiles[hash_tile(tile_copy)]
+            return tile_id, True, False
+        except KeyError:
+            pass
+
+        # Check for vertically and horizontally flipped tile
+        for row in tile_copy:
+            row.reverse()
+        try:
+            tile_id = self._used_tiles[hash_tile(tile_copy)]
+            return tile_id, True, True
+        except KeyError:
+            pass
+
+        # Check for only horizontally flipped tile
+        tile_copy.reverse()
+        tile_hash = hash_tile(tile_copy)
+        try:
+            tile_id = self._used_tiles[tile_hash]
+            return tile_id, False, True
+        except KeyError:
+            pass
+
+        # The tile does not already exist in this tileset, so add it
+        if self._num_tiles_used >= self.num_tiles_maximum:
+            # Error, not enough room for a new tile
+            return False, False, 0
+
+        self.tiles.append(tile_copy)
+        self._used_tiles[tile_hash] = self._num_tiles_used
+        self._num_tiles_used += 1
+        return self._num_tiles_used - 1, False, True
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__)
@@ -189,6 +253,15 @@ class EbTileArrangement(EqualityMixin):
                 item.from_block(block, offset)
                 offset += 2
 
+    def to_block(self, block, offset=0):
+        for row in self.arrangement:
+            for item in row:
+                item.to_block(block, offset)
+                offset += 2
+
+    def block_size(self):
+        return 2 * sum([len(x) for x in self.arrangement])
+
     def to_image(self, image, tileset, palette):
         palette.to_image(image)
         image_data = image.load()
@@ -215,6 +288,56 @@ class EbTileArrangement(EqualityMixin):
                           None)
         self.to_image(image, tileset, palette)
         return image
+
+    def from_image(self, image, tileset, palette):
+        if palette.num_subpalettes == 1:
+            # Don't need to do any subpalette fitting because there's only one subpalette
+            palette.from_image(image)
+            image_data = image.load()
+            for arrangement_y in range(self.height):
+                image_y = arrangement_y * tileset.tile_height
+                for arrangement_x in range(self.width):
+                    image_x = arrangement_x * tileset.tile_width
+                    tile = [array('B', [image_data[image_x + i, image_y + j]
+                                        for i in range(tileset.tile_width)])
+                            for j in range(tileset.tile_height)]
+
+                    tile_id, vflip, hflip = tileset.add_tile(tile)
+                    self.arrangement[arrangement_y][arrangement_x] = EbTileArrangementItem(
+                        tile=tile_id,
+                        subpalette=0,
+                        is_vertically_flipped=vflip,
+                        is_horizontally_flipped=hflip,
+                        is_priority=False)
+        else:
+            # TODO test/fix this code
+            # Multiple subpalettes, so we have to figure out which tile should use which subpalette
+            rgb_image = image.convert("RGB")
+            del image
+            rgb_image_data = rgb_image.load()
+            del rgb_image
+
+            for arrangement_y in range(self.height):
+                for arrangement_x in range(self.width):
+                    tile_colors = set()
+                    for tile_pixel_y in range(tileset.tile_height):
+                        for tile_pixel_x in range(tileset.tile_width):
+                            r, g, b = rgb_image_data[tile_pixel_x, tile_pixel_y]
+                            tile_colors.add(r & 0xf8, g & 0xf8, b & 0xf8)
+
+                    subpalette_id = palette.add_colors_to_subpalette(tile_colors)
+                    tile = [array('B', [palette.get_color_id(rgb_image_data[i, j], subpalette_id)
+                                        for j in range(arrangement_y, arrangement_y + tileset.tile_height)])
+                            for i in range(arrangement_x, arrangement_x + tileset.tile_width)]
+
+                    tile_id, vflip, hflip = tileset.add_tile(tile)
+                    self[arrangement_x, arrangement_y] = EbTileArrangementItem(
+                        tile=tile_id,
+                        subpalette=subpalette_id,
+                        is_vertically_flipped=vflip,
+                        is_horizontally_flipped=hflip,
+                        is_priority=False)
+
 
     def __getitem__(self, key):
         x, y = key

@@ -69,13 +69,13 @@ class WindowGraphicsModule(EbModule.EbModule):
 
     def read_from_rom(self, rom):
         with EbCompressibleBlock() as compressed_block:
-            compressed_block.from_block_compressed(
+            compressed_block.from_compressed_block(
                 block=rom,
                 offset=from_snes_address(read_asm_pointer(rom, GRAPHICS_1_ASM_POINTER_OFFSET)))
             self.graphics_1.from_block(block=compressed_block, bpp=2)
 
         with EbCompressibleBlock() as compressed_block:
-            compressed_block.from_block_compressed(
+            compressed_block.from_compressed_block(
                 block=rom,
                 offset=from_snes_address(read_asm_pointer(rom, GRAPHICS_2_ASM_POINTER_OFFSET)))
             self.graphics_2.from_block(block=compressed_block, bpp=2)

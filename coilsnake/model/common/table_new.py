@@ -232,20 +232,31 @@ class BitfieldTableEntry(TableEntry):
 
 class RowTableEntry(TableEntry):
     @classmethod
-    def from_schema(cls, schema, name="CustomRowTableEntry"):
+    def from_schema(cls, schema, name="CustomRowTableEntry", hidden_columns=set()):
+        if type(hidden_columns) == list:
+            hidden_columns = set(hidden_columns)
+        elif type(hidden_columns) != set:
+            raise InvalidArgumentError("Could not create RowTableEntry with invalid hidden_columns[{}]".format(
+                hidden_columns))
+
         return type(name, (cls,), {"name": name,
                                    "size": sum([x.size for x in schema]),
-                                   "schema": schema})
+                                   "schema": schema,
+                                   "hidden_columns": hidden_columns})
 
     @classmethod
-    def from_schema_specification(cls, schema_specification, name="CustomRowTableEntry"):
+    def from_schema_specification(cls, schema_specification, name="CustomRowTableEntry", hidden_columns=set()):
         schema = map(cls.to_table_entry_class, schema_specification)
-        return cls.from_schema(schema, name)
+        return cls.from_schema(schema, name, hidden_columns)
 
     @classmethod
     def from_yml_rep(cls, yml_rep):
         row = [None] * len(cls.schema)
         for i, column in enumerate(cls.schema):
+            if column.name in cls.hidden_columns:
+                row[i] = None
+                continue
+
             try:
                 column_yml_rep = yml_rep[column.name]
             except KeyError:
@@ -266,6 +277,9 @@ class RowTableEntry(TableEntry):
     def to_yml_rep(cls, value):
         yml_rep_row = dict()
         for value, column in zip(value, cls.schema):
+            if column.name in cls.hidden_columns:
+                continue
+
             try:
                 yml_rep_row[column.name] = column.to_yml_rep(value)
             except Exception as e:

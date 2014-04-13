@@ -1,200 +1,203 @@
 from PIL import Image
 
-from coilsnake.modules.eb.EbTablesModule import EbTable
-from coilsnake.modules.eb.EbDataBlocks import EbCompressedData, DataBlock
-from coilsnake.modules.eb.CompressedGraphicsModule import EbArrangement, EbTileGraphics, EbPalettes
-from coilsnake.Progress import updateProgress
+from coilsnake.exceptions.common.exceptions import CoilSnakeError
+from coilsnake.model.common.blocks import Block
+from coilsnake.model.eb.blocks import EbCompressibleBlock
+from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangement
+from coilsnake.model.eb.palettes import EbPalette
+from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb import EbModule
+from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, to_snes_address, write_asm_pointer
 
+
+GRAPHICS_POINTER_TABLE_ASM_POINTER_OFFSETS = [0x2d1ba, 0x2d4dc, 0x2d8c3, 0x4a3ba]
+ARRANGEMENT_POINTER_TABLE_ASM_POINTER_OFFSETS = [0x2d2c1, 0x2d537, 0x2d91f, 0x4a416]
+PALETTE_POINTER_TABLE_ASM_POINTER_OFFSETS = [0x2d3bb, 0x2d61b, 0x2d7e8, 0x2d9e8, 0x4a4d0]
+
+GRAPHICS_POINTER_TABLE_DEFAULT_OFFSET = 0xcad7a1
+ARRANGEMENT_POINTER_TABLE_DEFAULT_OFFSET = 0xcad93d
+PALETTE_POINTER_TABLE_DEFAULT_OFFSET = 0xcadad9
+BACKGROUND_TABLE_OFFSET = 0xcadca1
+SCROLL_TABLE_OFFSET = 0xcaf258
+DISTORTION_TABLE_OFFSET = 0xcaf708
 
 class BattleBgModule(EbModule.EbModule):
     NAME = "Battle Backgrounds"
     FREE_RANGES = [(0xa0000, 0xadca0), (0xb0000, 0xbd899)]
 
-    _ASMPTRS_GFX = [0x2d1ba, 0x2d4dc, 0x2d8c3, 0x4a3ba]
-    _ASMPTRS_ARR = [0x2d2c1, 0x2d537, 0x2d91f, 0x4a416]
-    _ASMPTRS_PAL = [0x2d3bb, 0x2d61b, 0x2d7e8, 0x2d9e8, 0x4a4d0]
-
     def __init__(self):
         EbModule.EbModule.__init__(self)
-        self._bbgGfxPtrTbl = EbTable(0xcad7a1)
-        self._bbgArrPtrTbl = EbTable(0xcad93d)
-        self._bbgPalPtrTbl = EbTable(0xcadad9)
-        self._bbgScrollTbl = EbTable(0xCAF258)
-        self._bbgDistorTbl = EbTable(0xCAF708)
-        self._bbgTbl = EbTable(0xcadca1)
+        self.graphics_pointer_table = eb_table_from_offset(offset=GRAPHICS_POINTER_TABLE_DEFAULT_OFFSET)
+        self.arrangement_pointer_table = eb_table_from_offset(offset=ARRANGEMENT_POINTER_TABLE_DEFAULT_OFFSET)
+        self.palette_pointer_table = eb_table_from_offset(offset=PALETTE_POINTER_TABLE_DEFAULT_OFFSET)
+        self.scroll_table = eb_table_from_offset(offset=SCROLL_TABLE_OFFSET)
+        self.distortion_table = eb_table_from_offset(offset=DISTORTION_TABLE_OFFSET)
+        self.bg_table = eb_table_from_offset(offset=BACKGROUND_TABLE_OFFSET,
+                                             hidden_columns=["Graphics and Arrangement", "Palette"])
+
+        self.backgrounds = None
+        self.palettes = None
 
     def __exit__(self, type, value, traceback):
-        del self._bbgGfxPtrTbl
-        del self._bbgArrPtrTbl
-        del self._bbgPalPtrTbl
-        del self._bbgTbl
+        del self.graphics_pointer_table
+        del self.arrangement_pointer_table
+        del self.palette_pointer_table
+        del self.bg_table
 
-        del self._bbgGfxArrs
-        del self._bbgPals
+        del self.backgrounds
+        del self.palettes
 
     def read_from_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._bbgTbl.readFromRom(rom)
-        pct = 50.0 / (6 + self._bbgTbl.height())
-        self._bbgGfxPtrTbl.readFromRom(rom,
-                                       EbModule.toRegAddr(
-                                           EbModule.readAsmPointer(rom,
-                                                                   self._ASMPTRS_GFX[0])))
-        updateProgress(pct)
-        self._bbgArrPtrTbl.readFromRom(rom,
-                                       EbModule.toRegAddr(
-                                           EbModule.readAsmPointer(rom,
-                                                                   self._ASMPTRS_ARR[0])))
-        updateProgress(pct)
-        self._bbgPalPtrTbl.readFromRom(rom,
-                                       EbModule.toRegAddr(
-                                           EbModule.readAsmPointer(rom,
-                                                                   self._ASMPTRS_PAL[0])))
-        updateProgress(pct)
+        self.bg_table.from_block(block=rom, offset=from_snes_address(BACKGROUND_TABLE_OFFSET))
+        self.scroll_table.from_block(block=rom, offset=from_snes_address(SCROLL_TABLE_OFFSET))
+        self.distortion_table.from_block(block=rom, offset=from_snes_address(DISTORTION_TABLE_OFFSET))
+        self.graphics_pointer_table.from_block(
+            block=rom,
+            offset=from_snes_address(read_asm_pointer(block=rom,
+                                                      offset=GRAPHICS_POINTER_TABLE_ASM_POINTER_OFFSETS[0])))
+        self.arrangement_pointer_table.from_block(
+            block=rom,
+            offset=from_snes_address(read_asm_pointer(block=rom,
+                                                      offset=ARRANGEMENT_POINTER_TABLE_ASM_POINTER_OFFSETS[0])))
+        self.palette_pointer_table.from_block(
+            block=rom,
+            offset=from_snes_address(read_asm_pointer(block=rom,
+                                                      offset=PALETTE_POINTER_TABLE_ASM_POINTER_OFFSETS[0])))
 
-        self._bbgGfxArrs = [None for i in range(self._bbgGfxPtrTbl.height())]
-        self._bbgPals = [None for i in range(self._bbgPalPtrTbl.height())]
-        updateProgress(pct)
-        self._bbgScrollTbl.readFromRom(rom)
-        updateProgress(pct)
-        self._bbgDistorTbl.readFromRom(rom)
-        updateProgress(pct)
-        for i in range(self._bbgTbl.height()):
-            gfxNum = self._bbgTbl[i, 0].val()
-            colorDepth = self._bbgTbl[i, 2].val()
-            if self._bbgGfxArrs[gfxNum] is None:
-                # Max size used in rom: 421 (2bpp) 442 (4bpp)
-                tg = EbTileGraphics(512, 8, colorDepth)
-                with EbCompressedData(tg.sizeBlock()) as tgb:
-                    tgb.readFromRom(rom, EbModule.toRegAddr(
-                        self._bbgGfxPtrTbl[gfxNum, 0].val()))
-                    tg.readFromBlock(tgb)
-                a = EbArrangement(32, 32)
-                with EbCompressedData(a.sizeBlock()) as ab:
-                    ab.readFromRom(rom, EbModule.toRegAddr(
-                        self._bbgArrPtrTbl[gfxNum, 0].val()))
-                    a.readFromBlock(ab)
+        self.backgrounds = [None for i in range(self.graphics_pointer_table.num_rows)]
+        self.palettes = [None for i in range(self.palette_pointer_table.num_rows)]
+        for i in range(self.bg_table.num_rows):
+            graphics_id = self.bg_table[i][0]
+            color_depth = self.bg_table[i][2]
+            if self.backgrounds[graphics_id] is None:
+                # Max tiles used in rom: 421 (2bpp) 442 (4bpp)
+                tileset = EbGraphicTileset(num_tiles=512, tile_width=8, tile_height=8)
+                with EbCompressibleBlock() as compressed_block:
+                    compressed_block.from_compressed_block(
+                        block=rom,
+                        offset=from_snes_address(self.graphics_pointer_table[graphics_id][0]))
+                    tileset.from_block(compressed_block, offset=0, bpp=color_depth)
 
-                self._bbgGfxArrs[gfxNum] = (tg, a)
-            palNum = self._bbgTbl[i, 1].val()
-            if self._bbgPals[palNum] is None:
-                with DataBlock(32) as pb:
-                    pb.readFromRom(rom,
-                                   EbModule.toRegAddr(self._bbgPalPtrTbl[palNum, 0].val()))
-                    p = EbPalettes(1, 16)
-                    p.readFromBlock(pb)
-                    self._bbgPals[palNum] = p
-            updateProgress(pct)
+                arrangement = EbTileArrangement(width=32, height=32)
+                with EbCompressibleBlock() as compressed_block:
+                    compressed_block.from_compressed_block(
+                        block=rom,
+                        offset=from_snes_address(self.arrangement_pointer_table[graphics_id][0]))
+                    arrangement.from_block(block=compressed_block, offset=0)
 
-    def write_to_project(self, resourceOpener):
-        pct = 50.0 / (3 + self._bbgTbl.height())
-        self._bbgTbl.writeToProject(resourceOpener, hiddenColumns=[0, 1])
-        updateProgress(pct)
-        self._bbgScrollTbl.writeToProject(resourceOpener)
-        updateProgress(pct)
-        self._bbgDistorTbl.writeToProject(resourceOpener)
-        updateProgress(pct)
+                self.backgrounds[graphics_id] = (tileset, arrangement)
+                
+            palette_id = self.bg_table[i][1]
+            if self.palettes[palette_id] is None:
+                palette = EbPalette(num_subpalettes=1, subpalette_length=16)
+                palette.from_block(block=rom, offset=from_snes_address(self.palette_pointer_table[palette_id][0]))
+                self.palettes[palette_id] = palette
+
+    def write_to_project(self, resource_open):
+        with resource_open("bg_data_table", "yml") as f:
+            self.bg_table.to_yml_file(f)
+        with resource_open("bg_scrolling_table", "yml") as f:
+            self.scroll_table.to_yml_file(f)
+        with resource_open("bg_distortion_table", "yml") as f:
+            self.distortion_table.to_yml_file(f)
+
         # Export BGs by table entry
-        for i in range(self._bbgTbl.height()):
-            (tg, a) = self._bbgGfxArrs[self._bbgTbl[i, 0].val()]
-            pal = self._bbgTbl[i, 1].val()
-            img = a.toImage(tg, self._bbgPals[pal])
-            imgFile = resourceOpener('BattleBGs/' + str(i).zfill(3), 'png')
-            img.save(imgFile, 'png')
-            imgFile.close()
-            del img
-            updateProgress(pct)
+        for i in range(self.bg_table.num_rows):
+            tileset, arrangement = self.backgrounds[self.bg_table[i][0]]
+            palette = self.palettes[self.bg_table[i][1]]
 
-    def read_from_project(self, resourceOpener):
-        self._bbgTbl.readFromProject(resourceOpener)
-        pct = 50.0 / (2 + self._bbgTbl.height())
-        self._bbgScrollTbl.readFromProject(resourceOpener)
-        updateProgress(pct)
-        self._bbgDistorTbl.readFromProject(resourceOpener)
-        updateProgress(pct)
-        self._bbgGfxArrs = []
-        self._bbgPals = []
-        for i in range(self._bbgTbl.height()):
-            img = Image.open(
-                resourceOpener('BattleBGs/' + str(i).zfill(3), 'png'))
-            if img.mode != 'P':
-                raise RuntimeError(
-                    "BattleBG #" + str(i).zfill(3) + " is not an indexed PNG.")
+            with resource_open("BattleBGs/" + str(i).zfill(3), "png") as f:
+                image = arrangement.image(tileset, palette)
+                image.save(f, "png")
 
-            np = EbPalettes(1, 16)
-            colorDepth = self._bbgTbl[i, 2].val()
-            # Max size used in rom: 421 (2bpp) 442 (4bpp)
-            ntg = EbTileGraphics(512, 8, colorDepth)
-            na = EbArrangement(32, 32)
-            na.readFromImage(img, np, ntg)
-            j = 0
-            for (tg, a) in self._bbgGfxArrs:
-                if (tg == ntg) and (a == na):
-                    self._bbgTbl[i, 0].setVal(j)
-                    break
-                j += 1
-            else:
-                self._bbgGfxArrs.append((ntg, na))
-                self._bbgTbl[i, 0].setVal(j)
-            j = 0
-            for p in self._bbgPals:
-                if p == np:
-                    self._bbgTbl[i, 1].setVal(j)
-                    break
-                j += 1
-            else:
-                self._bbgPals.append(np)
-                self._bbgTbl[i, 1].setVal(j)
-            updateProgress(pct)
+    def read_from_project(self, resource_open):
+        with resource_open("bg_data_table", "yml") as f:
+            self.bg_table.from_yml_file(f)
+        with resource_open("bg_scrolling_table", "yml") as f:
+            self.scroll_table.from_yml_file(f)
+        with resource_open("bg_distortion_table", "yml") as f:
+            self.distortion_table.from_yml_file(f)
+
+        self.backgrounds = []
+        self.palettes = []
+        for i in range(self.bg_table.num_rows):
+            with resource_open("BattleBGs/" + str(i).zfill(3), "png") as f:
+                image = Image.open(f)
+                if image.mode != 'P':
+                    raise CoilSnakeError("BattleBG #" + str(i).zfill(3) + " is not an indexed PNG.")
+
+                new_palette = EbPalette(num_subpalettes=1, subpalette_length=16)
+                new_tileset = EbGraphicTileset(num_tiles=512, tile_width=8, tile_height=8)
+                new_arrangement = EbTileArrangement(width=32, height=32)
+
+                new_arrangement.from_image(image, new_tileset, new_palette)
+
+                for j, (tileset, arrangement) in enumerate(self.backgrounds):
+                    if (tileset == new_tileset) and (arrangement == new_arrangement):
+                        self.bg_table[i][0] = j
+                        break
+                else:
+                    self.bg_table[i][0] = len(self.backgrounds)
+                    self.backgrounds.append((new_tileset, new_arrangement))
+
+                for j, palette in enumerate(self.palettes):
+                    if palette == new_palette:
+                        self.bg_table[i][1] = j
+                        break
+                else:
+                    self.bg_table[i][1] = len(self.palettes)
+                    self.palettes.append(new_palette)
 
     def write_to_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._bbgGfxPtrTbl.clear(len(self._bbgGfxArrs))
-        self._bbgArrPtrTbl.clear(len(self._bbgGfxArrs))
-        self._bbgPalPtrTbl.clear(len(self._bbgPals))
+        # Write the data table
+        self.bg_table.to_block(block=rom, offset=from_snes_address(BACKGROUND_TABLE_OFFSET))
+        self.scroll_table.to_block(block=rom, offset=from_snes_address(SCROLL_TABLE_OFFSET))
+        self.distortion_table.to_block(block=rom, offset=from_snes_address(DISTORTION_TABLE_OFFSET))
 
-        # Write gfx+arrs
-        i = 0
-        pct = (50.0 / 3) / len(self._bbgGfxArrs)
-        for (tg, a) in self._bbgGfxArrs:
-            with EbCompressedData(tg.sizeBlock()) as tgb:
-                tg.writeToBlock(tgb)
-                self._bbgGfxPtrTbl[i, 0].setVal(EbModule.toSnesAddr(
-                    tgb.writeToFree(rom)))
-            with EbCompressedData(a.sizeBlock()) as ab:
-                a.writeToBlock(ab)
-                self._bbgArrPtrTbl[i, 0].setVal(EbModule.toSnesAddr(
-                    ab.writeToFree(rom)))
-            i += 1
-            updateProgress(pct)
-        EbModule.writeAsmPointers(rom, self._ASMPTRS_GFX,
-                                  EbModule.toSnesAddr(self._bbgGfxPtrTbl.writeToFree(rom)))
-        EbModule.writeAsmPointers(rom, self._ASMPTRS_ARR,
-                                  EbModule.toSnesAddr(self._bbgArrPtrTbl.writeToFree(rom)))
+        # Write graphics and arrangements
+        for i, (tileset, arrangement) in enumerate(self.backgrounds):
+            color_depth = self.bg_table[i][2]
+            with EbCompressibleBlock(size=tileset.block_size(bpp=color_depth)) as compressed_block:
+                tileset.to_block(block=compressed_block, offset=0, bpp=color_depth)
+                compressed_block.compress()
+                tileset_offset = rom.allocate(data=compressed_block)
+                self.graphics_pointer_table[i] = [to_snes_address(tileset_offset)]
+
+            with EbCompressibleBlock(size=arrangement.block_size()) as compressed_block:
+                arrangement.to_block(block=compressed_block, offset=0)
+                compressed_block.compress()
+                arrangement_offset = rom.allocate(data=compressed_block)
+                self.arrangement_pointer_table[i] = [to_snes_address(arrangement_offset)]
+        for i in range(len(self.backgrounds), self.graphics_pointer_table.num_rows):
+            self.graphics_pointer_table[i] = [0]
+            self.arrangement_pointer_table[i] = [0]
+
+        graphics_pointer_table_offset = rom.allocate(size=self.graphics_pointer_table.size)
+        self.graphics_pointer_table.to_block(block=rom, offset=graphics_pointer_table_offset)
+        for asm_pointer_offset in GRAPHICS_POINTER_TABLE_ASM_POINTER_OFFSETS:
+            write_asm_pointer(block=rom,
+                              offset=asm_pointer_offset,
+                              pointer=to_snes_address(graphics_pointer_table_offset))
+
+        arrangement_pointer_table_offset = rom.allocate(size=self.arrangement_pointer_table.size)
+        self.arrangement_pointer_table.to_block(block=rom, offset=arrangement_pointer_table_offset)
+        for asm_pointer_offset in ARRANGEMENT_POINTER_TABLE_ASM_POINTER_OFFSETS:
+            write_asm_pointer(block=rom,
+                              offset=asm_pointer_offset,
+                              pointer=to_snes_address(arrangement_pointer_table_offset))
 
         # Write pals
-        i = 0
-        pct = (50.0 / 3) / len(self._bbgPals)
-        for p in self._bbgPals:
-            with DataBlock(32) as pb:
-                p.writeToBlock(pb)
-                self._bbgPalPtrTbl[i, 0].setVal(EbModule.toSnesAddr(
-                    pb.writeToFree(rom)))
-            i += 1
-            updateProgress(pct)
-        EbModule.writeAsmPointers(rom, self._ASMPTRS_PAL,
-                                  EbModule.toSnesAddr(self._bbgPalPtrTbl.writeToFree(rom)))
+        for i, palette in enumerate(self.palettes):
+            with Block(32) as block:
+                palette.to_block(block=block, offset=0)
+                palette_offset = rom.allocate(data=block)
+                self.palette_pointer_table[i] = [to_snes_address(palette_offset)]
+        for i in range(len(self.palettes), self.palette_pointer_table.num_rows):
+            self.palette_pointer_table[i] = [0]
 
-        # Write the data table
-        pct = (50.0 / 3) / 3
-        self._bbgTbl.writeToRom(rom)
-        updateProgress(pct)
-        self._bbgScrollTbl.writeToRom(rom)
-        updateProgress(pct)
-        self._bbgDistorTbl.writeToRom(rom)
-        updateProgress(pct)
+        palette_pointer_table_offset = rom.allocate(size=self.palette_pointer_table.size)
+        self.palette_pointer_table.to_block(block=rom, offset=palette_pointer_table_offset)
+        for asm_pointer_offset in PALETTE_POINTER_TABLE_ASM_POINTER_OFFSETS:
+            write_asm_pointer(block=rom,
+                              offset=asm_pointer_offset,
+                              pointer=to_snes_address(palette_pointer_table_offset))
