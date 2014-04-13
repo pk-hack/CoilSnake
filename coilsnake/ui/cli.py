@@ -15,7 +15,7 @@ from coilsnake.ui import information
 from coilsnake.util.common.assets import open_asset
 
 
-logging.basicConfig(format="%(name)s:%(levelname)s:\t%(message)s", level=logging.DEBUG)
+logging.basicConfig(format="%(name)s:%(levelname)s:\t%(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

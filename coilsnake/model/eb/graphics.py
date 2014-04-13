@@ -141,50 +141,40 @@ class EbGraphicTileset(EqualityMixin):
         :return: a tuple containing the tile's id in this tileset, whether the tile is stored as vertically flipped,
         and whether the tile is stored as horizontally flipped"""
 
-        tile_copy = deepcopy(tile)
-
-        # Check for non-flipped tile
+        tile_hash = hash_tile(tile)
         try:
-            tile_id = self._used_tiles[hash_tile(tile_copy)]
-            return tile_id, False, False
-        except KeyError:
-            pass
-
-        # Check for vertically flipped tile
-        tile_copy.reverse()
-        try:
-            tile_id = self._used_tiles[hash_tile(tile_copy)]
-            return tile_id, True, False
-        except KeyError:
-            pass
-
-        # Check for vertically and horizontally flipped tile
-        for row in tile_copy:
-            row.reverse()
-        try:
-            tile_id = self._used_tiles[hash_tile(tile_copy)]
-            return tile_id, True, True
-        except KeyError:
-            pass
-
-        # Check for only horizontally flipped tile
-        tile_copy.reverse()
-        tile_hash = hash_tile(tile_copy)
-        try:
-            tile_id = self._used_tiles[tile_hash]
-            return tile_id, False, True
+            tile_id, vflip, hflip = self._used_tiles[tile_hash]
+            return tile_id, vflip, hflip
         except KeyError:
             pass
 
         # The tile does not already exist in this tileset, so add it
         if self._num_tiles_used >= self.num_tiles_maximum:
             # Error, not enough room for a new tile
-            return False, False, 0
+            return 0, False, False
 
+        tile_copy = deepcopy(tile)
+        tile_id = self._num_tiles_used
         self.tiles.append(tile_copy)
-        self._used_tiles[tile_hash] = self._num_tiles_used
         self._num_tiles_used += 1
-        return self._num_tiles_used - 1, False, True
+
+        # The tile will be stored as horizontally flipped
+        self._used_tiles[tile_hash] = tile_id, False, True
+
+        tile_copy.reverse()
+        # Verically flipped tile
+        self._used_tiles[hash_tile(tile_copy)] = tile_id, True, True
+
+        for row in tile_copy:
+            row.reverse()
+        # Vertically and horizontally flipped tile
+        self._used_tiles[hash_tile(tile_copy)] = tile_id, True, False
+
+        tile_copy.reverse()
+        # Horizontally flipped tile
+        self._used_tiles[hash_tile(tile_copy)] = tile_id, False, False
+
+        return tile_id, False, True
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__)
@@ -294,13 +284,20 @@ class EbTileArrangement(EqualityMixin):
             # Don't need to do any subpalette fitting because there's only one subpalette
             palette.from_image(image)
             image_data = image.load()
-            for arrangement_y in range(self.height):
+
+            tile = [array('B', [0 for i in xrange(tileset.tile_width)])
+                    for j in xrange(tileset.tile_height)]
+
+            for arrangement_y in xrange(self.height):
                 image_y = arrangement_y * tileset.tile_height
-                for arrangement_x in range(self.width):
+                for arrangement_x in xrange(self.width):
                     image_x = arrangement_x * tileset.tile_width
-                    tile = [array('B', [image_data[image_x + i, image_y + j]
-                                        for i in range(tileset.tile_width)])
-                            for j in range(tileset.tile_height)]
+
+                    for tile_y in xrange(tileset.tile_height):
+                        image_tile_y = image_y + tile_y
+                        tile_row = tile[tile_y]
+                        for tile_x in xrange(tileset.tile_width):
+                            tile_row[tile_x] = image_data[image_x + tile_x, image_tile_y]
 
                     tile_id, vflip, hflip = tileset.add_tile(tile)
                     self.arrangement[arrangement_y][arrangement_x] = EbTileArrangementItem(
