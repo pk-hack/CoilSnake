@@ -63,7 +63,7 @@ class MapEventModule(EbModule.EbModule):
                 data = yaml.load(f, Loader=yaml.CSafeLoader)
 
             for i in data:
-                if data[i] == None:
+                if data[i] is None:
                     data[i] = []
                 else:
                     for entry in data[i]:

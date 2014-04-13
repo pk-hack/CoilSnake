@@ -150,6 +150,10 @@ class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):
 
 
 class ByteListTableEntry(TableEntry):
+    @staticmethod
+    def create(name, size):
+        return type(name, (ByteListTableEntry,), {"name": name, "size": size})
+
     @classmethod
     def from_block(cls, block, offset):
         return block[offset:offset + cls.size].to_list()

@@ -55,7 +55,6 @@ class EbPaletteTableEntry(TableEntry):
     def from_block(cls, block, offset):
         palette = EbPalette(num_subpalettes=1, subpalette_length=(cls.size / 2))
         palette.from_block(block, offset)
-        print "returning {}".format(palette)
         return palette
 
     @classmethod
