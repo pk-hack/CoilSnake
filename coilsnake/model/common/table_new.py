@@ -72,7 +72,8 @@ class LittleEndianIntegerTableEntry(TableEntry):
     def create(name, size):
         return type(name,
                     (LittleEndianIntegerTableEntry,),
-                    {"size": size})
+                    {"name": name,
+                     "size": size})
 
     @classmethod
     def from_block(cls, block, offset):

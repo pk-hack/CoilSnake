@@ -101,6 +101,9 @@ class EbPalette(EqualityMixin):
     def num_colors(self):
         return self.num_subpalettes * self.subpalette_length
 
+    def block_size(self):
+        return 2 * self.num_colors()
+
     def from_list(self, rgb_list):
         i = 0
         for j in range(self.num_subpalettes):

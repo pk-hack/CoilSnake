@@ -1,236 +1,25 @@
 from array import array
+from functools import partial
+import logging
 from zlib import crc32
-from re import sub
 import yaml
 
-from coilsnake.modules.eb.EbTablesModule import EbTable
-from coilsnake.modules.eb.EbDataBlocks import EbCompressedData, DataBlock
-from coilsnake.modules.eb.CompressedGraphicsModule import EbTileGraphics
-from coilsnake.Progress import updateProgress
+from coilsnake.model.common.blocks import Block
+from coilsnake.model.eb.map_tilesets import EbMapPalette, EbTileset
+from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb import EbModule
+from coilsnake.util.common.yml import convert_values_to_hex_repr
+from coilsnake.util.eb.helper import is_in_bank, not_in_bank
+from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
 
-chars = "0123456789abcdefghijklmnopqrstuv"
+log = logging.getLogger(__name__)
 
-# Just a palette with 6 subpals and hidden data
-
-
-class MapPalette:
-    def __init__(self):
-        self.flag = 0
-        self.flagPal = None
-        self.flagPalPtr = 0
-        self.spritePalNum = 0
-        self.flashEffect = 0
-        self.subpals = None
-        self.flagPal = None
-
-    def readFromRom(self, rom, addr, getFlagPal=True):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self.flag = rom.read_multi(addr, 2)
-        if (self.flag != 0) and getFlagPal:
-            altAddr = rom.read_multi(addr + 0x20, 2)
-            self.flagPal = MapPalette()
-            self.flagPal.readFromRom(rom, altAddr | 0x1a0000, getFlagPal=False)
-        self.spritePalNum = rom[addr + 0x40]
-        self.flashEffect = rom[addr + 0x60]
-        self.subpals = map(lambda x: EbModule.readPalette(rom, x, 16),
-                           range(addr, addr + 32 * 6, 32))
-        for subp in self.subpals:
-            subp[0] = (0, 0, 0)
-
-    def dump(self):
-        out = dict()
-        out["Event Flag"] = self.flag
-        if self.flag != 0:
-            out["Event Palette"] = self.flagPal.getAsString()
-        out["Sprite Palette"] = self.spritePalNum
-        out["Flash Effect"] = self.flashEffect
-        return out
-
-    def writeToBlock(self, block, addr):
-        i = 0
-        for subp in self.subpals:
-            EbModule.writePalette(block, addr + i, subp)
-            i += 32
-        #block.write_multi(addr, self.flag, 2)
-        #block.write_multi(addr+0x20, self.flagPalPtr, 2)
-        block[addr] = self.flag & 0xff
-        block[addr + 1] = self.flag >> 8
-        block[addr + 0x20] = self.flagPalPtr & 0xff
-        block[addr + 0x21] = self.flagPalPtr >> 8
-        block[addr + 0x40] = self.spritePalNum
-        block[addr + 0x60] = self.flashEffect
-        return 0xc0
-
-    def getAsString(self):
-        out = str()
-        for subp in self.subpals:
-            for (r, g, b) in subp:
-                out += chars[r >> 3]
-                out += chars[g >> 3]
-                out += chars[b >> 3]
-        return out
-
-    def setFromString(self, s):
-        self.subpals = []
-        i = 0
-        for j in range(6):
-            subpal = []
-            for k in range(16):
-                subpal.append((
-                    int(s[i], 32) << 3,
-                    int(s[i + 1], 32) << 3,
-                    int(s[i + 2], 32) << 3))
-                i += 3
-            subpal[0] = (0, 0, 0)
-            self.subpals.append(subpal)
-
-
-class Tileset:
-    def __init__(self):
-        self.tg = EbTileGraphics(896, 8, 4)
-        self.tg._tiles = [None] * 896
-        self.arr = [None for i in range(0, 1024)]
-        self.col = [None for i in range(0, 1024)]
-        self.pals = []
-
-    def readMinitilesFromRom(self, rom, addr):
-        with EbCompressedData() as tgb:
-            tgb.readFromRom(rom, addr)
-            self.tg.readFromBlock(tgb)
-
-    def writeMinitilesToFree(self, rom):
-        with EbCompressedData(self.tg.sizeBlock()) as tgb:
-            self.tg.writeToBlock(tgb)
-            return tgb.writeToFree(rom)
-
-    def readArrangementsFromRom(self, rom, addr):
-        with EbCompressedData() as ab:
-            ab.readFromRom(rom, addr)
-            self.numArrs = len(ab) / 32
-            a = 0
-            for i in range(self.numArrs):
-                self.arr[i] = [[0 for y in range(4)] for z in range(4)]
-                for j in range(4):
-                    for k in range(4):
-                        self.arr[i][k][j] = ab[a] + (ab[a + 1] << 8)
-                        a += 2
-
-    def writeArrangementsToFree(self, rom):
-        with EbCompressedData(1024 * 16 * 2) as ab:
-            i = 0
-            for a in self.arr:
-                for j in range(4):
-                    for k in range(4):
-                        ab[i] = a[k][j] & 0xff
-                        ab[i + 1] = a[k][j] >> 8
-                        i += 2
-            return ab.writeToFree(rom)
-
-    def readCollisionsFromRom(self, rom, addr):
-        for i in range(self.numArrs):
-            tmp = rom.read_multi(addr + i * 2, 2)
-            self.col[i] = rom[0x180000 + tmp:0x180000 + tmp + 16]
-
-    def readPaletteFromRom(self, rom, mapTset, palNum, addr):
-        pal = MapPalette()
-        pal.readFromRom(rom, addr)
-        self.pals.append((mapTset, palNum, pal))
-
-    def getTileAsString(self, n):
-        if n >= 896:
-            return (
-                "0000000000000000000000000000000000000000000000000000000000000000"
-            )
-        else:
-            s = str()
-            t = self.tg[n]
-            for j in xrange(8):
-                for i in xrange(8):
-                    s += chars[t[i][j]]
-            return s
-
-    def setTileFromString(self, n, s):
-        if n < 896:
-            strVals = map(lambda x: int(x, 32), s)
-            k = 0
-            tile = [array('B', [0] * 8) for i in xrange(8)]
-            for j in xrange(8):
-                for i in xrange(8):
-                    tile[i][j] = strVals[k]
-                    k += 1
-            self.tg._tiles[n] = tile
-
-    def getArrAsString(self, n):
-        if n >= self.numArrs:
-            return (
-                '000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
-            )
-        else:
-            s = str()
-            tmp = 0
-            for j in xrange(4):
-                for k in xrange(4):
-                    s += hex(self.arr[n][k][j])[2:].zfill(4)
-                    s += hex(self.col[n][j * 4 + k])[2:].zfill(2)
-            return s
-
-    def setArrFromString(self, n, s):
-        i = 0
-        self.arr[n] = [[0 for y in range(4)] for z in range(4)]
-        self.col[n] = array('B', [0] * 16)
-        for j in xrange(4):
-            for k in xrange(4):
-                self.arr[n][k][j] = int(s[i:i + 4], 16)
-                self.col[n][j * 4 + k] = int(s[i + 4:i + 6], 16)
-                i += 6
-
-    def writeToFTS(self, file):
-        for i in range(512):
-            print >> file, self.getTileAsString(i)
-            print >> file, self.getTileAsString(i ^ 512)
-            print >> file
-        print >> file
-
-        for (mt, mp, pal) in self.pals:
-            file.write(chars[mt])
-            file.write(chars[mp])
-            print >> file, pal.getAsString()
-        print >> file
-        print >> file
-
-        for i in range(1024):
-            print >> file, self.getArrAsString(i)
-
-    def hasMapTileset(self, mt):
-        for (mt2, mp, pal) in self.pals:
-            if mt == mt2:
-                return True
-        return False
-
-    def readFromFTS(self, file):
-        for i in range(512):
-            self.setTileFromString(i, file.readline()[:-1])
-            self.setTileFromString(i ^ 512, file.readline()[:-1])
-            file.readline()
-        file.readline()
-
-        while True:
-            line = file.readline()
-            if line == "\n":
-                break
-            mt = int(line[0], 32)
-            mp = int(line[1], 32)
-            pal = MapPalette()
-            pal.setFromString(line[2:-1])
-            self.pals.append((mt, mp, pal))
-        file.readline()
-
-        for i in range(1024):
-            self.setArrFromString(i, file.readline()[:-1])
+GRAPHICS_POINTER_TABLE_OFFSET = 0xEF105B
+ARRANGEMENTS_POINTER_TABLE_OFFSET = 0xEF10AB
+COLLISIONS_POINTER_TABLE_OFFSET = 0xEF117B
+MAP_TILESET_TABLE_OFFSET = 0xEF101B
+PALETTE_POINTER_TABLE_OFFSET = 0xEF10FB
 
 
 class TilesetModule(EbModule.EbModule):
@@ -245,242 +34,167 @@ class TilesetModule(EbModule.EbModule):
 
     def __init__(self):
         EbModule.EbModule.__init__(self)
-        self._gfxPtrTbl = EbTable(0xEF105B)
-        self._arrPtrTbl = EbTable(0xEF10AB)
-        self._colPtrTbl = EbTable(0xEF117B)
-        self._mapTsetTbl = EbTable(0xEF101B)
-        self._palPtrTbl = EbTable(0xEF10FB)
-        self._tsets = [Tileset() for i in range(20)]
+        self.graphics_pointer_table = eb_table_from_offset(GRAPHICS_POINTER_TABLE_OFFSET)
+        self.arrangements_pointer_table = eb_table_from_offset(ARRANGEMENTS_POINTER_TABLE_OFFSET)
+        self.collisions_pointer_table = eb_table_from_offset(COLLISIONS_POINTER_TABLE_OFFSET)
+        self.map_tileset_table = eb_table_from_offset(MAP_TILESET_TABLE_OFFSET)
+        self.palette_pointer_table = eb_table_from_offset(PALETTE_POINTER_TABLE_OFFSET)
+        self.tilesets = [EbTileset() for i in range(20)]
 
     def read_from_rom(self, rom):
-        self._gfxPtrTbl.readFromRom(rom)
-        updateProgress(2)
-        self._arrPtrTbl.readFromRom(rom)
-        updateProgress(2)
-        self._colPtrTbl.readFromRom(rom)
-        updateProgress(2)
-        self._mapTsetTbl.readFromRom(rom)
-        updateProgress(2)
-        self._palPtrTbl.readFromRom(rom)
-        updateProgress(2)
+        log.info("Reading pointer tables")
+        self.graphics_pointer_table.from_block(rom, from_snes_address(GRAPHICS_POINTER_TABLE_OFFSET))
+        self.arrangements_pointer_table.from_block(rom, from_snes_address(ARRANGEMENTS_POINTER_TABLE_OFFSET))
+        self.collisions_pointer_table.from_block(rom, from_snes_address(COLLISIONS_POINTER_TABLE_OFFSET))
+        self.map_tileset_table.from_block(rom, from_snes_address(MAP_TILESET_TABLE_OFFSET))
+        self.palette_pointer_table.from_block(rom, from_snes_address(PALETTE_POINTER_TABLE_OFFSET))
 
-        # Read tilesets
-        pct = 30.0 / len(self._tsets)
-        i = 0
-        for tset in self._tsets:
-            # Read data
-            tset.readMinitilesFromRom(rom,
-                                      EbModule.toRegAddr(self._gfxPtrTbl[i, 0].val()))
-            tset.readArrangementsFromRom(rom,
-                                         EbModule.toRegAddr(self._arrPtrTbl[i, 0].val()))
-            tset.readCollisionsFromRom(rom,
-                                       EbModule.toRegAddr(self._colPtrTbl[i, 0].val()))
-            i += 1
-            updateProgress(pct)
+        for i, tileset in enumerate(self.tilesets):
+            log.info("Reading tileset #{}".format(i))
+            tileset.minitiles_from_block(rom, from_snes_address(self.graphics_pointer_table[i][0]))
+            tileset.arrangements_from_block(rom, from_snes_address(self.arrangements_pointer_table[i][0]))
+            tileset.collisions_from_block(rom, from_snes_address(self.collisions_pointer_table[i][0]))
 
         # Read palettes
-        pct = 10.0 / self._mapTsetTbl.height()
-        for i in range(self._mapTsetTbl.height()):
-            drawTset = self._mapTsetTbl[i, 0].val()
-            # Each map tset has 8 maximum palettes
-            # We'll just assume they all use 8 and read the garbage
-            #romLoc = self._palPtrTbl[i,0].val()
-            # for j in xrange(8):
-            # Read the palette
-            #    self._tsets[drawTset].readPaletteFromRom(rom, i, j,
-            #            EbModule.toRegAddr(romLoc))
-            #    romLoc += 0xc0
-
-            # OK, as it turns out, all palettes need to be in the 1A bank
-            # So we actually need to conserve space and not read garbage
-            # Estimate the number of palettes for this map tileset
+        for i in range(self.map_tileset_table.num_rows):
+            log.info("Reading palettes for map tileset #{}".format(i))
+            draw_tileset = self.map_tileset_table[i][0]
+            # Estimate the number of palettes for this map tileset, assuming that the palettes are stored contiguously
             if i == 31:
-                #k = 0xDAFAA7 - self._palPtrTbl[i,0].val()
                 k = 8
             else:
-                k = self._palPtrTbl[i + 1,
-                                    0].val() - self._palPtrTbl[i, 0].val()
+                k = self.palette_pointer_table[i + 1][0] - self.palette_pointer_table[i][0]
                 k /= 0xc0
-            # Add the palettes
-            romLoc = EbModule.toRegAddr(self._palPtrTbl[i, 0].val())
+
+            # Add the palettes to the tileset
+            palette_offset = from_snes_address(self.palette_pointer_table[i][0])
             for j in range(k):
-                # Read the palette
-                self._tsets[drawTset].readPaletteFromRom(rom, i, j, romLoc)
-                romLoc += 0xc0
-            updateProgress(pct)
+                palette = EbMapPalette()
+                palette.from_block(block=rom, offset=palette_offset)
+                self.tilesets[draw_tileset].add_palette(i, j, palette)
+                palette_offset += 0xc0
 
     def write_to_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        numTsets = len(self._tsets)
-        self._gfxPtrTbl.clear(numTsets)
-        self._arrPtrTbl.clear(numTsets)
-        self._colPtrTbl.clear(numTsets)
-        self._mapTsetTbl.clear(32)
-        self._palPtrTbl.clear(32)
-
-        # Write gfx & arrs
-        pct = 30.0 / numTsets
-        i = 0
-        for tset in self._tsets:
-            self._gfxPtrTbl[i, 0].setVal(EbModule.toSnesAddr(
-                tset.writeMinitilesToFree(rom)))
-            self._arrPtrTbl[i, 0].setVal(EbModule.toSnesAddr(
-                tset.writeArrangementsToFree(rom)))
-            i += 1
-            updateProgress(pct)
-        self._gfxPtrTbl.writeToRom(rom)
-        updateProgress(2)
-        self._arrPtrTbl.writeToRom(rom)
-        updateProgress(2)
-
-        # Write collissions
-        pct = 6.0 / numTsets
-        colLocs = dict()
-        colWriteLoc = 0x180000
-        colRangeEnd = 0x18f05d
-        i = 0
-        for tset in self._tsets:
-            with DataBlock(len(tset.col) * 2) as colTable:
+        # Collisions need to be in the 0xD8 bank
+        rom.deallocate((0x180000, 0x18f05d))
+        collision_offsets = dict()
+        collision_array = array('B', [0] * 16)
+        for tileset_id, tileset in enumerate(self.tilesets):
+            log.info("Writing collisions for tileset #{}".format(tileset_id))
+            with Block(len(tileset.collisions) * 2) as collision_table:
                 j = 0
-                for c in tset.col:
-                    hash = crc32(c)
-                    try:
-                        addr = colLocs[hash]
-                    except KeyError:
-                        if (colWriteLoc + 16) > colRangeEnd:
-                            # TODO Error, not enough space for collisions
-                            print "Ran out of collision space"
-                            raise Exception
-                        else:
-                            colLocs[hash] = colWriteLoc
-                            addr = colWriteLoc
-                            rom[colWriteLoc:colWriteLoc+16] = c
-                            colWriteLoc += 16
-                    colTable[j] = addr & 0xff
-                    colTable[j + 1] = (addr >> 8) & 0xff
-                    j += 2
-                self._colPtrTbl[i, 0].setVal(EbModule.toSnesAddr(
-                    colTable.writeToFree(rom)))
-                i += 1
-            updateProgress(pct)
-        self._colPtrTbl.writeToRom(rom)
-        updateProgress(1)
+                for collision in tileset.collisions:
+                    for i, collision_item in enumerate(collision):
+                        collision_array[i] = collision_item
+                    collision_hash = crc32(collision_array)
 
-        # Write the palettes, they need to be in the DA bank
-        pct = 7.0 / 32
-        palWriteLoc = 0x1a0000
-        palRangeEnd = 0x1afaa6  # can we go more?
+                    try:
+                        collision_offset = collision_offsets[collision_hash]
+                    except KeyError:
+                        collision_offset = rom.allocate(data=collision,
+                                                        can_write_to=partial(is_in_bank, 0x18)) & 0xffff
+                        collision_offsets[collision_hash] = collision_offset
+
+
+                    collision_table.write_multi(key=j, item=collision_offset, size=2)
+                    j += 2
+                collision_table_offset = rom.allocate(data=collision_table, can_write_to=partial(not_in_bank, 0x18))
+                self.collisions_pointer_table[tileset_id] = [to_snes_address(collision_table_offset)]
+
+        self.collisions_pointer_table.to_block(block=rom, offset=from_snes_address(COLLISIONS_POINTER_TABLE_OFFSET))
+
+        # Palettes need to be in the 0xDA bank
+        rom.deallocate((0x1a0000, 0x1afaa6))  # Not sure if this can go farther
         # Write maps/drawing tilesets associations and map tset pals
-        for i in range(32):  # For each map tileset
+        for map_tileset_id in range(32):  # For each map tileset
+            log.info("Writing palettes for map tileset #{}".format(map_tileset_id))
+
             # Find the drawing tileset number for this map tileset
-            drawTset = -1
-            j = 0
-            for tset in self._tsets:
-                for (mt, mp, pal) in tset.pals:
-                    if mt == i:
-                        drawTset = j
-                        break
-                if drawTset != -1:
+            for i, tileset in enumerate(self.tilesets):
+                if tileset.has_map_tileset(map_tileset_id):
+                    tileset_id = i
                     break
-                j += 1
             else:
                 # TODO Error, this drawing tileset isn't associated
-                drawTset = 0
-            self._mapTsetTbl[i, 0].setVal(drawTset)
-            # Write the palette data for this map tileset
-            mtset_pals = sorted([(mp, pal) for (mt, mp, pal)
-                                 in self._tsets[drawTset].pals if mt == i])
-            # Let's take the easy way out and just write redundant flag pals
-            # This will waste space but oh well
-            # First, write the flag pals
-            for (mp, pal) in mtset_pals:
-                if pal.flag != 0:
-                    if palWriteLoc + 0xc0 > palRangeEnd:
-                        # TODO Error, not enough space for all these palettes
-                        raise RuntimeError("Too many palettes")
-                    pal.flagPal.writeToBlock(rom, palWriteLoc)
-                    pal.flagPalPtr = palWriteLoc & 0xffff
-                    palWriteLoc += 0xc0
-            self._palPtrTbl[i, 0].setVal(EbModule.toSnesAddr(palWriteLoc))
-            # Now write the regular pals
-            for (mp, pal) in mtset_pals:
-                if palWriteLoc + 0xc0 > palRangeEnd:
-                    # TODO Error, not enough space for all these palettes
-                    raise RuntimeError("Too many palettes")
-                pal.writeToBlock(rom, palWriteLoc)
-                palWriteLoc += 0xc0
-            updateProgress(pct)
-        self._mapTsetTbl.writeToRom(rom)
-        updateProgress(1)
-        self._palPtrTbl.writeToRom(rom)
-        updateProgress(1)
+                tileset_id = 0
+            self.map_tileset_table[map_tileset_id] = [tileset_id]
 
-        # Might as well use any extra leftover space
-        if colWriteLoc < colRangeEnd:
-            rom.deallocate((colWriteLoc, colRangeEnd))
-        if palWriteLoc < palRangeEnd:
-            rom.deallocate((palWriteLoc, palRangeEnd))
+            palettes = tileset.get_palettes_by_map_tileset(map_tileset_id)
+            palettes.sort()
 
-    def write_to_project(self, resourceOpener):
+            # Write the event palettes
+            for map_palette_id, palette in palettes:
+                if palette.flag != 0:
+                    flag_palette_offset = rom.allocate(size=palette.block_size(),
+                                                       can_write_to=partial(is_in_bank, 0x1a))
+                    palette.flag_palette.to_block(block=rom, offset=flag_palette_offset)
+                    palette.flag_palette_pointer = flag_palette_offset
+
+            # Write the standard palettes
+            palette_offset = rom.allocate(size=0xc0 * len(palettes), can_write_to=partial(is_in_bank, 0x1a))
+            self.palette_pointer_table[map_tileset_id] = [to_snes_address(palette_offset)]
+            for map_palette_id, palette in palettes:
+                palette.to_block(block=rom, offset=palette_offset)
+                palette_offset += palette.block_size()
+
+        self.map_tileset_table.to_block(block=rom, offset=from_snes_address(MAP_TILESET_TABLE_OFFSET))
+        self.palette_pointer_table.to_block(block=rom, offset=from_snes_address(PALETTE_POINTER_TABLE_OFFSET))
+
+        for tileset_id, tileset in enumerate(self.tilesets):
+            log.info("Writing tileset #{}".format(tileset_id))
+            self.graphics_pointer_table[tileset_id] = [to_snes_address(tileset.minitiles_to_block(rom))]
+            self.arrangements_pointer_table[tileset_id] = [to_snes_address(tileset.arrangements_to_block(rom))]
+
+        self.graphics_pointer_table.to_block(block=rom, offset=from_snes_address(GRAPHICS_POINTER_TABLE_OFFSET))
+        self.arrangements_pointer_table.to_block(block=rom, offset=from_snes_address(ARRANGEMENTS_POINTER_TABLE_OFFSET))
+
+    def write_to_project(self, resource_open):
         # Dump an additional YML with color0 data
-        out = dict()
-        for i in range(0, 32):  # For each map tset
+        palette_settings = dict()
+        for i in range(0, 32):  # For each map tileset
+            log.info("Writing palette settings for map tileset #{}".format(i))
             entry = dict()
-            tset = None
-            for ts in self._tsets:
-                if ts.hasMapTileset(i):
-                    tset = ts
+            tileset = None
+            for ts in self.tilesets:
+                if ts.has_map_tileset(i):
+                    tileset = ts
                     break
-            for (pN, p) in [(mp, p) for (mt, mp, p) in tset.pals if mt == i]:
-                entry[pN] = p.dump()
-            out[i] = entry
-        with resourceOpener('map_palette_settings', 'yml') as f:
-            s = yaml.dump(out, default_flow_style=False,
-                          Dumper=yaml.CSafeDumper)
-            s = sub("Event Flag: (\d+)",
-                    lambda i: "Event Flag: " + hex(int(i.group(0)[12:])), s)
-            f.write(s)
-        updateProgress(5)
 
-        # Dump the FTS files
-        pct = 45.0 / len(self._tsets)
-        i = 0
-        for tset in self._tsets:
-            with resourceOpener('Tilesets/' + str(i).zfill(2), 'fts') as f:
-                tset.writeToFTS(f)
-            i += 1
-            updateProgress(pct)
+            palettes = tileset.get_palettes_by_map_tileset(i)
+            palettes.sort()
+            for (palette_id, palette) in palettes:
+                entry[palette_id] = palette.settings_yml_rep()
+            palette_settings[i] = entry
 
-    def read_from_project(self, resourceOpener):
-        i = 0
-        pct = 45.0 / len(self._tsets)
-        for tset in self._tsets:
-            with resourceOpener('Tilesets/' + str(i).zfill(2), 'fts') as f:
-                tset.readFromFTS(f)
-            i += 1
-            updateProgress(pct)
-        with resourceOpener('map_palette_settings', 'yml') as f:
-            input = yaml.load(f, Loader=yaml.CSafeLoader)
-            for mtset in input:  # For each map tileset
+        with resource_open("map_palette_settings", "yml") as f:
+            yml_str_rep = yaml.dump(palette_settings, default_flow_style=False, Dumper=yaml.CSafeDumper)
+            convert_values_to_hex_repr(yml_str_rep, "Event Flag")
+            f.write(yml_str_rep)
+
+        # Dump the tilesets
+        for i, tileset in enumerate(self.tilesets):
+            log.info("Writing tileset #{}".format(i))
+            with resource_open("Tilesets/" + str(i).zfill(2), "fts") as f:
+                tileset.to_file(f)
+
+    def read_from_project(self, resource_open):
+        for i, tileset in enumerate(self.tilesets):
+            log.info("Reading tileset #{}".format(i))
+            with resource_open("Tilesets/" + str(i).zfill(2), "fts") as f:
+                tileset.from_file(f)
+
+        with resource_open("map_palette_settings", "yml") as f:
+            yml_rep = yaml.load(f, Loader=yaml.CSafeLoader)
+            for map_tileset in yml_rep:
                 # Get the draw (normal) tileset
-                tset = None
-                for ts in self._tsets:
-                    if ts.hasMapTileset(mtset):
-                        tset = ts
+                tileset = None
+                for ts in self.tilesets:
+                    if ts.has_map_tileset(map_tileset):
+                        tileset = ts
                         break
+
                 # For each map palette
-                mtset_pals = [(mp, p)
-                              for (mt, mp, p) in tset.pals if mt == mtset]
-                for (pN, mtset_pal) in mtset_pals:
-                    entry = input[mtset][pN]
-                    mtset_pal.flag = entry["Event Flag"]
-                    mtset_pal.flashEffect = entry["Flash Effect"]
-                    mtset_pal.spritePalNum = entry["Sprite Palette"]
-                    if mtset_pal.flag != 0:
-                        mtset_pal.flagPal = MapPalette()
-                        mtset_pal.flagPal.setFromString(entry["Event Palette"])
-                        mtset_pal.flagPal.spritePalNum = entry[
-                            "Sprite Palette"]
-                updateProgress(5.0 / 32)
+                palettes = tileset.get_palettes_by_map_tileset(map_tileset)
+                for palette_id, palette in palettes:
+                    entry = yml_rep[map_tileset][palette_id]
+                    palette.settings_from_yml_rep(entry)

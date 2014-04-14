@@ -96,16 +96,16 @@ class WindowGraphicsModule(EbModule.EbModule):
         graphics_1_block_size = self.graphics_1.block_size(bpp=2)
         with EbCompressibleBlock(graphics_1_block_size) as compressed_block:
             self.graphics_1.to_block(block=compressed_block, offset=0, bpp=2)
-            graphics_1_offset = rom.allocate(size=graphics_1_block_size)
-            compressed_block.to_block_compressed(rom, graphics_1_offset)
+            compressed_block.compress()
+            graphics_1_offset = rom.allocate(data=compressed_block)
             write_asm_pointer(block=rom, offset=GRAPHICS_1_ASM_POINTER_OFFSET,
                               pointer=to_snes_address(graphics_1_offset))
 
         graphics_2_block_size = self.graphics_2.block_size(bpp=2)
         with EbCompressibleBlock(graphics_2_block_size) as compressed_block:
             self.graphics_2.to_block(block=compressed_block, offset=0, bpp=2)
-            graphics_2_offset = rom.allocate(size=graphics_2_block_size)
-            compressed_block.to_block_compressed(rom, graphics_2_offset)
+            compressed_block.compress()
+            graphics_2_offset = rom.allocate(data=compressed_block)
             write_asm_pointer(block=rom, offset=GRAPHICS_2_ASM_POINTER_OFFSET,
                               pointer=to_snes_address(graphics_2_offset))
 
