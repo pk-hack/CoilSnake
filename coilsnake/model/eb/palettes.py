@@ -1,7 +1,10 @@
 import logging
+from zlib import crc32
+from array import array
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, InvalidYmlRepresentationError
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
+
 
 log = logging.getLogger(__name__)
 
@@ -212,3 +215,7 @@ class EbPalette(EqualityMixin):
             raise InvalidArgumentError("Could not get color[{},{}] from palette of size[{},{}]".format(
                 subpalette_number, color_number, self.num_subpalettes, self.subpalette_length))
         return self.subpalettes[subpalette_number][color_number]
+
+    def hash(self):
+        a = array('B', self.list())
+        return crc32(a)

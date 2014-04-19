@@ -3,6 +3,12 @@ from coilsnake.model.common.table_new import LittleEndianIntegerTableEntry, \
 from coilsnake.model.eb.table import EbEventFlagTableEntry
 
 
+EnemyGroupTableEntry = RowTableEntry.from_schema(
+    name="Enemy Group Entry",
+    schema=[LittleEndianIntegerTableEntry.create("Amount", 1),
+            LittleEndianIntegerTableEntry.create("Enemy", 2)]
+)
+
 MapEnemyGroupHeaderTableEntry = RowTableEntry.from_schema(
     name="Map Enemy Group Header Table Entry",
     schema=[EbEventFlagTableEntry,

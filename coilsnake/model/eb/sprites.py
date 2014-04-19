@@ -3,8 +3,85 @@ from array import array
 
 from coilsnake.model.common.table_new import EnumeratedLittleEndianIntegerTableEntry, ByteListTableEntry, RowTableEntry, \
     LittleEndianIntegerTableEntry
+from coilsnake.model.eb.graphics import hash_tile
 from coilsnake.util.eb.graphics import read_4bpp_graphic_from_block, write_4bpp_graphic_to_block
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
+
+
+BATTLE_SPRITE_SIZES = [(0, 0), (32, 32), (64, 32), (32, 64), (64, 64), (128, 64), (128, 128)]
+
+
+class EbBattleSprite(object):
+    def __init__(self):
+        self.sprite = None
+        self.width = None
+        self.height = None
+
+    def block_size(self):
+        return (self.width / 32) * (self.height / 32) * 4 * 4 * 32
+
+    def from_block(self, block, offset=0, size=0):
+        width, height = BATTLE_SPRITE_SIZES[size]
+        if (self.width != width) or (self.height != height):
+            self.width = width
+            self.height = height
+            self.sprite = [array('B', [0] * self.width) for y in range(self.height)]
+
+        for q in range(0, height / 32):
+            for r in range(0, width / 32):
+                for a in range(0, 4):
+                    for j in range(0, 4):
+                        offset += read_4bpp_graphic_from_block(
+                            target=self.sprite,
+                            source=block,
+                            offset=offset,
+                            x=(j + r * 4) * 8,
+                            y=(a + q * 4) * 8
+                        )
+
+    def to_block(self, block, offset=0):
+        for q in range(0, self.height / 32):
+            for r in range(0, self.width / 32):
+                for a in range(0, 4):
+                    for j in range(0, 4):
+                        offset += write_4bpp_graphic_to_block(
+                            source=self.sprite,
+                            target=block,
+                            offset=offset,
+                            x=(j + r * 4) * 8,
+                            y=(a + q * 4) * 8
+                        )
+
+    def image(self, palette):
+        image = Image.new("P", (self.width, self.height), None)
+        palette.to_image(image)
+
+        image_data = image.load()
+        for y in range(0, self.height):
+            for x in range(0, self.width):
+                image_data[x, y] = self.sprite[y][x]
+
+        return image
+
+    def from_image(self, image):
+        if (self.width, self.height) != image.size:
+            self.width, self.height = image.size
+            self.sprite = [array('B', [0] * self.width) for y in range(self.height)]
+
+        image_data = image.load()
+        for y in range(self.height):
+            for x in range(0, self.width):
+                self.sprite[y][x] = image_data[x, y]
+
+    def size(self):
+        return BATTLE_SPRITE_SIZES.index((self.width, self.height))
+
+    def __getitem__(self, key):
+        x, y = key
+        return self.sprite[y][x]
+
+    def hash(self):
+        return hash_tile(self.sprite)
 
 
 class EbRegularSprite:

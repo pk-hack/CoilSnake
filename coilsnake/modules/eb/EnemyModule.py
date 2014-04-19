@@ -1,141 +1,28 @@
-from array import array
 from PIL import Image
+import logging
 import yaml
-from functools import reduce
 
-from coilsnake.modules.eb.EbTablesModule import EbTable
-from coilsnake.modules.eb.EbDataBlocks import EbCompressedData
-from coilsnake.modules.eb.CompressedGraphicsModule import EbPalettes
-from coilsnake.Progress import updateProgress
+from coilsnake.model.eb.blocks import EbCompressibleBlock
+from coilsnake.model.eb.enemy_groups import EnemyGroupTableEntry
+from coilsnake.model.eb.palettes import EbPalette
+from coilsnake.model.eb.sprites import EbBattleSprite
+from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb import EbModule
 from coilsnake.util.common.project import replace_field_in_yml
+from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, to_snes_address, write_asm_pointer
 
 
-class EbSprite:
-    def __init__(self):
-        self._sprite = None
-        self._spriteHash = None
-        self._width = None
-        self._height = None
-
-    def __eq__(self, other):
-        return ((self._width == other._width)
-                and (self._height == other._height)
-                and (self._spriteHash == other._spriteHash))
-
-    def sizeBlock(self):
-        return (self._width / 32) * (self._height / 32) * 4 * 4 * 32
-
-    def readFromBlock(self, block, width, height, loc=0):
-        self._width = width
-        self._height = height
-        self._sprite = map(lambda x: array('B', [0] * height),
-                           range(0, width))
-        offset = loc
-        for q in range(0, height / 32):
-            for r in range(0, width / 32):
-                for a in range(0, 4):
-                    for j in range(0, 4):
-                        EbModule.read4BPPArea(self._sprite, block, offset,
-                                              (j + r * 4) * 8, (a + q * 4) * 8)
-                        offset += 32
-        self._spriteHash = EbModule.hashArea(self._sprite)
-
-    def writeToBlock(self, block, loc=0):
-        offset = loc
-        for q in range(0, self._height / 32):
-            for r in range(0, self._width / 32):
-                for a in range(0, 4):
-                    for j in range(0, 4):
-                        EbModule.write4BPPArea(
-                            self._sprite, block, offset,
-                            (j + r * 4) * 8, (a + q * 4) * 8)
-                        offset += 32
-
-    def toImage(self, pal):
-        img = Image.new("P", (self._width, self._height), None)
-        # Have to convert the palette from [(r,g,b),(r,g,b)] to [r,g,b,r,g,b]
-        rawPal = reduce(lambda x, y: x.__add__(list(y)), pal, [])
-        img.putpalette(rawPal)
-        imgData = img.load()
-        for x in range(0, self._width):
-            for y in range(0, self._height):
-                imgData[x, y] = self._sprite[x][y]
-        return img
-
-    def fromImage(self, img):
-        self._width, self._height = img.size
-        self._sprite = []
-        imgData = img.load()
-        for x in range(0, self._width):
-            col = array('B', [0] * self._height)
-            for y in range(0, self._height):
-                col[y] = imgData[x, y]
-            self._sprite.append(col)
-        self._spriteHash = EbModule.hashArea(self._sprite)
-
-    def width(self):
-        return self._width
-
-    def height(self):
-        return self._height
-
-    def __getitem__(self, key):
-        x, y = key
-        return self._sprite[x][y]
+log = logging.getLogger(__name__)
 
 
-class EbBattleSprite:
-    SIZES = [(0, 0), (32, 32), (64, 32), (32, 64),
-             (64, 64), (128, 64), (128, 128)]
+GRAPHICS_POINTER_TABLE_ASM_POINTER_OFFSET = 0x2ee0b
+GRAPHICS_POINTER_TABLE_POINTER_OFFSETS = [0x2ebe0, 0x2f014, 0x2f065]
+PALETTES_ASM_POINTER_OFFSET = 0x2ef74
 
-    def __init__(self):
-        self._sprite = EbSprite()
-        self._size = 0
-
-    def __eq__(self, other):
-        return (self._size == other._size) and (self._sprite == other._sprite)
-
-    def size(self):
-        return self._size
-
-    def sizeBlock(self):
-        return self._sprite.sizeBlock()
-
-    def readFromBlock(self, block, size):
-        self._size = size
-        w, h = self.SIZES[size]
-        self._sprite.readFromBlock(block, w, h)
-
-    def writeToBlock(self, block):
-        self._sprite.writeToBlock(block)
-
-    def writeToProject(self, resourceOpener, enemyNum, palette):
-        img = self._sprite.toImage(palette)
-        imgFile = resourceOpener(
-            "BattleSprites/" + str(enemyNum).zfill(3), 'png')
-        img.save(imgFile, 'png', transparency=0)
-        imgFile.close()
-
-    def readFromProject(self, resourceOpener, enemyNum, pal):
-        f = resourceOpener("BattleSprites/" + str(enemyNum).zfill(3), 'png')
-        fname = f.name
-        f.close()
-        img = Image.open(fname)
-        if img.mode != 'P':
-            raise RuntimeError(
-                "BattleSprites/" + str(enemyNum).zfill(3) + " is not an indexed PNG.")
-        self._sprite.fromImage(img)
-        self._size = self.SIZES.index(
-            (self._sprite.width(), self._sprite.height()))
-        palData = img.getpalette()
-        del img
-        for i in range(pal.palSize()):
-            pal[0,
-                i] = (
-                palData[i * 3],
-                palData[i * 3 + 1],
-                palData[i * 3 + 2])
+ENEMY_CONFIGURATION_TABLE_DEFAULT_OFFSET = 0xD59589
+BATTLE_SPRITES_POINTER_TABLE_DEFAULT_OFFSET = 0xCE62EE
+ENEMY_GROUP_TABLE_DEFAULT_OFFSET = 0xD0C60D
+ENEMY_GROUP_BACKGROUND_TABLE_DEFAULT_OFFSET = 0xCBD89A
 
 
 class EnemyModule(EbModule.EbModule):
@@ -144,251 +31,231 @@ class EnemyModule(EbModule.EbModule):
                    (0x0e0000, 0x0e6913),  # Battle Sprites continued & Battle Sprite palettes
                    (0x10d52d, 0x10dfb3)]  # Enemy Group Data
 
-    _ASMPTR_GFX = 0x2ee0b
-    _REGPTR_GFX = [0x2ebe0, 0x2f014, 0x2f065]
-    _ASMPTR_PAL = 0x2ef74
-
     def __init__(self):
         EbModule.EbModule.__init__(self)
-        self._enemyCfgTable = EbTable(0xd59589)
-        self._bsPtrTbl = EbTable(0xce62ee)
-        self._bsPalsTable = EbTable(0xce6514)
-        self._enemyGroupTbl = EbTable(0xD0C60D)
-        self._enemyGroupBgTbl = EbTable(0xCBD89A)
-        self._bsprites = []
-        self._bsPals = []
-        self._enemyGroups = []
+        self.enemy_config_table = eb_table_from_offset(offset=ENEMY_CONFIGURATION_TABLE_DEFAULT_OFFSET,
+                                                       hidden_columns=["Battle Sprite", "Battle Sprite Palette"])
+        self.graphics_pointer_table = eb_table_from_offset(offset=BATTLE_SPRITES_POINTER_TABLE_DEFAULT_OFFSET)
+        self.enemy_group_table = eb_table_from_offset(offset=ENEMY_GROUP_TABLE_DEFAULT_OFFSET,
+                                                      hidden_columns=["Pointer"])
+        self.enemy_group_bg_table = eb_table_from_offset(offset=ENEMY_GROUP_BACKGROUND_TABLE_DEFAULT_OFFSET)
+
+        self.battle_sprites = None
+        self.palettes = None
+        self.enemy_groups = None
 
     def read_from_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        self._bsPtrTbl.readFromRom(rom,
-                                   EbModule.toRegAddr(
-                                       EbModule.readAsmPointer(rom,
-                                                               self._ASMPTR_GFX)))
-        self._bsPalsTable.readFromRom(rom,
-                                      EbModule.toRegAddr(
-                                          EbModule.readAsmPointer(rom,
-                                                                  self._ASMPTR_PAL)))
-        pct = 45.0 / (self._bsPtrTbl.height()
-                      + self._bsPalsTable.height() + 1)
-        self._enemyCfgTable.readFromRom(rom)
-        updateProgress(pct)
-        # Read the palettes
-        for i in range(self._bsPalsTable.height()):
-            pal = EbPalettes(1, 16)
-            pal.set(0, self._bsPalsTable[i, 0].val())
-            self._bsPals.append(pal)
-            updateProgress(pct)
-        # Read the sprites
-        for i in range(self._bsPtrTbl.height()):
-            with EbCompressedData() as bsb:
-                bsb.readFromRom(rom,
-                                EbModule.toRegAddr(self._bsPtrTbl[i, 0].val()))
-                bs = EbBattleSprite()
-                bs.readFromBlock(bsb, self._bsPtrTbl[i, 1].val())
-                self._bsprites.append(bs)
-            updateProgress(pct)
+        self.enemy_config_table.from_block(block=rom,
+                                           offset=from_snes_address(ENEMY_CONFIGURATION_TABLE_DEFAULT_OFFSET))
+        self.enemy_group_bg_table.from_block(block=rom,
+                                             offset=from_snes_address(ENEMY_GROUP_BACKGROUND_TABLE_DEFAULT_OFFSET))
 
-        # Read the group data
-        self._enemyGroupTbl.readFromRom(rom)
-        self._enemyGroupBgTbl.readFromRom(rom)
-        self._enemyGroups = []
-        pct = 5.0 / self._enemyGroupTbl.height()
-        for i in range(self._enemyGroupTbl.height()):
+        # Read the sprites
+        log.info("Reading battle sprites")
+        self.graphics_pointer_table.from_block(
+            rom, from_snes_address(read_asm_pointer(block=rom, offset=GRAPHICS_POINTER_TABLE_ASM_POINTER_OFFSET)))
+        self.battle_sprites = []
+        for i in range(self.graphics_pointer_table.num_rows):
+            with EbCompressibleBlock() as compressed_block:
+                compressed_block.from_compressed_block(
+                    block=rom,
+                    offset=from_snes_address(self.graphics_pointer_table[i][0]))
+                sprite = EbBattleSprite()
+                sprite.from_block(block=compressed_block, offset=0, size=self.graphics_pointer_table[i][1])
+                self.battle_sprites.append(sprite)
+
+        # Determine how many palettes there are
+        num_palettes = 0
+        for i in range(self.enemy_config_table.num_rows):
+            num_palettes = max(num_palettes, self.enemy_config_table[i][14])
+        num_palettes += 1
+
+        # Read the palettes
+        log.info("Reading palettes")
+        palettes_offset = from_snes_address(read_asm_pointer(block=rom, offset=PALETTES_ASM_POINTER_OFFSET))
+        self.palettes = []
+        for i in range(num_palettes):
+            palette = EbPalette(num_subpalettes=1, subpalette_length=16)
+            palette.from_block(block=rom, offset=palettes_offset)
+            self.palettes.append(palette)
+            palettes_offset += palette.block_size()
+
+        # Read the groups
+        log.info("Reading groups")
+        self.enemy_group_table.from_block(rom, from_snes_address(ENEMY_GROUP_TABLE_DEFAULT_OFFSET))
+        self.enemy_groups = []
+        for i in range(self.enemy_group_table.num_rows):
             group = []
-            ptr = EbModule.toRegAddr(self._enemyGroupTbl[i, 0].val())
-            while rom[ptr] != 0xff:
-                group.append((rom.read_multi(ptr + 1, 2), rom[ptr]))
-                ptr += 3
-            self._enemyGroups.append(group)
-            updateProgress(pct)
+            group_offset = from_snes_address(self.enemy_group_table[i][0])
+            while rom[group_offset] != 0xff:
+                group.append(EnemyGroupTableEntry.from_block(block=rom, offset=group_offset))
+                group_offset += EnemyGroupTableEntry.size
+            self.enemy_groups.append(group)
 
     def write_to_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        pct = 40.0 / (len(self._bsprites) + len(self._bsPals) + 3)
-        # Write the main table
-        self._enemyCfgTable.writeToRom(rom)
-        updateProgress(pct)
-        # Write the gfx ptr table
-        self._bsPtrTbl.clear(len(self._bsprites))
-        i = 0
-        for bs in self._bsprites:
-            with EbCompressedData(bs.sizeBlock()) as bsb:
-                bs.writeToBlock(bsb)
-                self._bsPtrTbl[i, 0].setVal(EbModule.toSnesAddr(
-                    bsb.writeToFree(rom)))
-            self._bsPtrTbl[i, 1].setVal(bs.size())
-            i += 1
-            updateProgress(pct)
-        gfxAddr = EbModule.toSnesAddr(self._bsPtrTbl.writeToFree(rom))
-        EbModule.writeAsmPointer(rom, self._ASMPTR_GFX, gfxAddr)
-        updateProgress(pct)
-        for p in self._REGPTR_GFX:
-            rom.write_multi(p, gfxAddr, 3)
-        # Write the pal table
-        self._bsPalsTable.clear(len(self._bsPals))
-        i = 0
-        for p in self._bsPals:
-            self._bsPalsTable[i, 0].setVal(p.getSubpal(0))
-            i += 1
-            updateProgress(pct)
-        EbModule.writeAsmPointer(rom, self._ASMPTR_PAL,
-                                 EbModule.toSnesAddr(self._bsPalsTable.writeToFree(rom)))
-        updateProgress(pct)
+        self.enemy_config_table.to_block(block=rom,
+                                         offset=from_snes_address(ENEMY_CONFIGURATION_TABLE_DEFAULT_OFFSET))
+        self.enemy_group_bg_table.to_block(block=rom,
+                                           offset=from_snes_address(ENEMY_GROUP_BACKGROUND_TABLE_DEFAULT_OFFSET))
+
+        # Write the sprites
+        for i, battle_sprite in enumerate(self.battle_sprites):
+            self.graphics_pointer_table[i] = [None, battle_sprite.size()]
+            with EbCompressibleBlock(size=battle_sprite.block_size()) as compressed_block:
+                battle_sprite.to_block(block=compressed_block, offset=0)
+                compressed_block.compress()
+                graphics_offset = rom.allocate(data=compressed_block)
+                self.graphics_pointer_table[i][0] = to_snes_address(graphics_offset)
+
+        graphics_pointer_table_offset = rom.allocate(size=self.graphics_pointer_table.size)
+        self.graphics_pointer_table.to_block(block=rom, offset=graphics_pointer_table_offset)
+        write_asm_pointer(block=rom, offset=GRAPHICS_POINTER_TABLE_ASM_POINTER_OFFSET,
+                          pointer=to_snes_address(graphics_pointer_table_offset))
+        for pointer_offset in GRAPHICS_POINTER_TABLE_POINTER_OFFSETS:
+            rom.write_multi(pointer_offset, item=to_snes_address(graphics_pointer_table_offset), size=3)
+
+        # Write the palettes
+        if self.palettes:
+            palettes_offset = rom.allocate(size=self.palettes[0].block_size() * len(self.palettes))
+            write_asm_pointer(block=rom, offset=PALETTES_ASM_POINTER_OFFSET, pointer=to_snes_address(palettes_offset))
+            for palette in self.palettes:
+                palette.to_block(block=rom, offset=palettes_offset)
+                palettes_offset += palette.block_size()
+
         # Write the groups
-        self._enemyGroupBgTbl.writeToRom(rom)
-        updateProgress(5)
-        i = 0
-        for group in self._enemyGroups:
-            loc = rom.allocate(size=(len(group) * 3 + 1))
-            self._enemyGroupTbl[i, 0].setVal(EbModule.toSnesAddr(loc))
-            i += 1
-            for enemyID, amount in group:
-                rom[loc] = amount
-                rom[loc + 1] = enemyID & 0xff
-                rom[loc + 2] = enemyID >> 8
-                loc += 3
-            rom[loc] = 0xff
-        self._enemyGroupTbl.writeToRom(rom)
-        updateProgress(5)
+        for i, group in enumerate(self.enemy_groups):
+            offset = rom.allocate(size=(len(group) * EnemyGroupTableEntry.size + 1))
+            self.enemy_group_table[i] = [to_snes_address(offset)]
+            for group_entry in group:
+                EnemyGroupTableEntry.to_block(block=rom, offset=offset, value=group_entry)
+                offset += EnemyGroupTableEntry.size
+            rom[offset] = 0xff
+        self.enemy_group_table.to_block(block=rom, offset=from_snes_address(ENEMY_GROUP_TABLE_DEFAULT_OFFSET))
 
-    def write_to_project(self, resourceOpener):
-        pct = 40.0 / (self._enemyCfgTable.height() + 1)
-        # First, write the Enemy Configuration Table
-        self._enemyCfgTable.writeToProject(resourceOpener, [4, 14])
-        updateProgress(pct)
+    def write_to_project(self, resource_open):
+        with resource_open("enemy_configuration_table", "yml") as f:
+            self.enemy_config_table.to_yml_file(f)
 
-        # Next, write the battle sprite images
-        for i in range(self._enemyCfgTable.height()):
-            if self._enemyCfgTable[i, 4].val() > 0:
-                self._bsprites[self._enemyCfgTable[i, 4].val() - 1].writeToProject(
-                    resourceOpener, i,
-                    self._bsPals[self._enemyCfgTable[i, 14].val()].getSubpal(0))
-            updateProgress(pct)
+        # Write the battle sprite images
+        log.info("Writing battle sprites")
+        for i in range(self.enemy_config_table.num_rows):
+            battle_sprite_id = self.enemy_config_table[i][4]
+            if battle_sprite_id > 0:
+                palette_id = self.enemy_config_table[i][14]
+                palette = self.palettes[palette_id]
 
-        # Now write the groups
+                image = self.battle_sprites[battle_sprite_id - 1].image(palette=palette)
+                with resource_open("BattleSprites/" + str(i).zfill(3), "png") as f:
+                    image.save(f, "png", transparency=0)
+                del image
+
+        # Write the groups
+        log.info("Writing groups")
         out = dict()
-        i = 0
-        pct = 5.0 / len(self._enemyGroups)
-        for group in self._enemyGroups:
-            entry = dict()
-            for j in range(1, 4):
-                field = self._enemyGroupTbl[i, j]
-                entry[field.name] = field.dump()
-            for j in range(2):
-                field = self._enemyGroupBgTbl[i, j]
-                entry[field.name] = field.dump()
-            enemyList = dict()
-            j = 0
-            for enemyID, amount in group:
-                enemyEntry = dict()
-                enemyEntry["Enemy"] = enemyID
-                enemyEntry["Amount"] = amount
-                enemyList[j] = enemyEntry
-                j += 1
-            entry["Enemies"] = enemyList
+        enemy_group_table_yml_rep = self.enemy_group_table.to_yml_rep()
+        enemy_group_bg_table_yml_rep = self.enemy_group_bg_table.to_yml_rep()
+        for i, group in enumerate(self.enemy_groups):
+            entry = enemy_group_table_yml_rep[i]
+            entry.update(enemy_group_bg_table_yml_rep[i])
+
+            group_yml_rep = []
+            for enemy_entry in group:
+                group_yml_rep.append(EnemyGroupTableEntry.to_yml_rep(enemy_entry))
+            entry["Enemies"] = group_yml_rep
+
             out[i] = entry
-            i += 1
-            updateProgress(pct)
-        with resourceOpener("enemy_groups", "yml") as f:
+
+        with resource_open("enemy_groups", "yml") as f:
             yaml.dump(out, f, Dumper=yaml.CSafeDumper)
-        updateProgress(5)
 
-    def read_from_project(self, resourceOpener):
-        # First, read the Enemy Configuration Table
-        self._enemyCfgTable.readFromProject(resourceOpener)
-        pct = 40.0 / (self._enemyCfgTable.height())
+    def read_from_project(self, resource_open):
+        with resource_open("enemy_configuration_table", "yml") as f:
+            self.enemy_config_table.from_yml_file(f)
 
-        # Second, read the Battle Sprites
-        bsHashes = dict()
-        bsNextNum = 1
-        palNextNum = 0
-        for i in range(self._enemyCfgTable.height()):
-            bs = EbBattleSprite()
-            pal = EbPalettes(1, 16)
+        # Read the sprites and palettes
+        self.battle_sprites = []
+        self.palettes = []
+
+        sprite_hashes = dict()
+        num_sprites = 0
+        palette_hashes = dict()
+        num_palettes = 0
+        for i in range(self.enemy_config_table.num_rows):
+            battle_sprite = EbBattleSprite()
+            palette = EbPalette(num_subpalettes=1, subpalette_length=16)
+
             try:
-                bs.readFromProject(resourceOpener, i, pal)
-                # Add the battle sprite
-                try:
-                    # self._enemyCfgTable[i,4].set(self._bsprites.index(bs))
-                    bsNum = bsHashes[bs._sprite._spriteHash]
-                    self._enemyCfgTable[i, 4].setVal(bsNum)
-                except KeyError:
-                    self._bsprites.append(bs)
-                    self._enemyCfgTable[i, 4].setVal(bsNextNum)
-                    bsHashes[bs._sprite._spriteHash] = bsNextNum
-                    bsNextNum += 1
-                # Add the palette
-                # TODO should probably use hash table here too?
-                #      then again, I don't think it's actually a bottleneck
-                try:
-                    self._enemyCfgTable[i, 14].setVal(self._bsPals.index(pal))
-                except ValueError:
-                    self._bsPals.append(pal)
-                    self._enemyCfgTable[i, 14].setVal(palNextNum)
-                    palNextNum += 1
+                with resource_open("BattleSprites/" + str(i).zfill(3), "png") as f:
+                    image = Image.open(f)
+                    battle_sprite.from_image(image)
+                    palette.from_image(image)
+                    del image
             except IOError:
-                # No battle sprite PNG
-                self._enemyCfgTable[i, 4].setVal(0)
-                self._enemyCfgTable[i, 14].setVal(0)
-            updateProgress(pct)
+                # No battle sprite
+                self.enemy_config_table[i][4] = 0
+                self.enemy_config_table[i][14] = 0
+                continue
 
-        # Third, read the groups
-        self._enemyGroupTbl.readFromProject(resourceOpener, "enemy_groups")
-        updateProgress(2)
-        self._enemyGroupBgTbl.readFromProject(resourceOpener, "enemy_groups")
-        updateProgress(2)
-        self._enemyGroups = []
-        pct = 4.0 / 484
-        with resourceOpener("enemy_groups", "yml") as f:
-            input = yaml.load(f, Loader=yaml.CSafeLoader)
-            updateProgress(2)
-            for group in input:
-                tmp1 = input[group]["Enemies"]
-                enemyList = []
-                i = 0
-                for enemy in tmp1:
-                    tmp2 = tmp1[i]
-                    enemyList.append((tmp2["Enemy"], tmp2["Amount"]))
-                    i += 1
-                self._enemyGroups.append(enemyList)
-                updateProgress(pct)
+            sprite_hash = battle_sprite.hash()
+            try:
+                self.enemy_config_table[i][4] = sprite_hashes[sprite_hash] + 1
+            except KeyError:
+                self.enemy_config_table[i][4] = num_sprites + 1
+                sprite_hashes[sprite_hash] = num_sprites
+                self.battle_sprites.append(battle_sprite)
+                num_sprites += 1
 
-    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
-                        resourceOpenerW, resourceDeleter):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
-        if oldVersion == newVersion:
-            updateProgress(100)
+            palette_hash = palette.hash()
+            try:
+                self.enemy_config_table[i][14] = palette_hashes[palette_hash]
+            except KeyError:
+                self.enemy_config_table[i][14] = num_palettes
+                palette_hashes[palette_hash] = num_palettes
+                self.palettes.append(palette)
+                num_palettes += 1
+
+        # Read the groups
+        with resource_open("enemy_groups", "yml") as f:
+            self.enemy_group_table.from_yml_file(f)
+
+        with resource_open("enemy_groups", "yml") as f:
+            self.enemy_group_bg_table.from_yml_file(f)
+
+        with resource_open("enemy_groups", "yml") as f:
+            self.enemy_groups = []
+            enemy_groups_yml_rep = yaml.load(f, Loader=yaml.CSafeLoader)
+            if type(enemy_groups_yml_rep) == dict:
+                enemy_groups_yml_rep = [enemy_groups_yml_rep[x] for x in sorted(enemy_groups_yml_rep.keys())]
+            for entry in enemy_groups_yml_rep:
+                group = [EnemyGroupTableEntry.from_yml_rep(x) for x in entry["Enemies"]]
+                self.enemy_groups.append(group)
+
+    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+        if old_version == new_version:
             return
-        elif oldVersion == 3:
+        elif old_version == 3:
             replace_field_in_yml(resource_name="enemy_configuration_table",
-                                 resource_open_r=resourceOpenerR,
-                                 resource_open_w=resourceOpenerW,
+                                 resource_open_r=resource_open_r,
+                                 resource_open_w=resource_open_w,
                                  key='"The" Flag',
                                  value_map={0: "False",
                                             1: "True"}),
             replace_field_in_yml(resource_name="enemy_configuration_table",
-                                 resource_open_r=resourceOpenerR,
-                                 resource_open_w=resourceOpenerW,
+                                 resource_open_r=resource_open_r,
+                                 resource_open_w=resource_open_w,
                                  key="Boss Flag",
                                  value_map={0: "False",
                                             1: "True"}),
             replace_field_in_yml(resource_name="enemy_configuration_table",
-                                 resource_open_r=resourceOpenerR,
-                                 resource_open_w=resourceOpenerW,
+                                 resource_open_r=resource_open_r,
+                                 resource_open_w=resource_open_w,
                                  key="Run Flag",
                                  value_map={6: "Unknown",
                                             7: "True",
                                             8: "False"}),
             replace_field_in_yml(resource_name="enemy_configuration_table",
-                                 resource_open_r=resourceOpenerR,
-                                 resource_open_w=resourceOpenerW,
+                                 resource_open_r=resource_open_r,
+                                 resource_open_w=resource_open_w,
                                  key="Item Rarity",
                                  value_map={0: "1/128",
                                             1: "2/128",
@@ -399,9 +266,7 @@ class EnemyModule(EbModule.EbModule):
                                             6: "64/128",
                                             7: "128/128"})
             self.upgrade_project(
-                oldVersion + 1, newVersion, rom, resourceOpenerR,
-                resourceOpenerW, resourceDeleter)
+                old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         else:
             self.upgrade_project(
-                oldVersion + 1, newVersion, rom, resourceOpenerR,
-                resourceOpenerW, resourceDeleter)
+                old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
