@@ -2,12 +2,11 @@ import yaml
 from PIL import Image
 
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
-
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.sprites import SpriteGroup, SPRITE_SIZES
 from coilsnake.model.eb.table import eb_table_from_offset
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.project import replace_field_in_yml
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
@@ -16,7 +15,7 @@ GROUP_POINTER_TABLE_OFFSET = 0xef133f
 PALETTE_TABLE_OFFSET = 0xc30000
 
 
-class SpriteGroupModule(EbModule.EbModule):
+class SpriteGroupModule(EbModule):
     NAME = "Sprite Groups"
     FREE_RANGES = [(0x2f1a7f, 0x2f4a3f),
                    (0x110000, 0x11ffff),
@@ -26,7 +25,7 @@ class SpriteGroupModule(EbModule.EbModule):
                    (0x150000, 0x154fff)]
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(SpriteGroupModule, self).__init__()
         self.group_pointer_table = eb_table_from_offset(offset=GROUP_POINTER_TABLE_OFFSET)
         self.palette_table = eb_table_from_offset(offset=PALETTE_TABLE_OFFSET)
         self.groups = None

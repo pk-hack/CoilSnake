@@ -5,7 +5,7 @@ from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangement
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.table import EbStandardTextTableEntry
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, write_asm_pointer, to_snes_address
 
 GRAPHICS_1_ASM_POINTER_OFFSET = 0x47c47
@@ -55,12 +55,12 @@ for y in range(ARRANGEMENT_2.height):
         ARRANGEMENT_2[x, y].subpalette = 0
 
 
-class WindowGraphicsModule(EbModule.EbModule):
+class WindowGraphicsModule(EbModule):
     NAME = "Window Graphics"
     FREE_RANGES = [(0x200000, 0x20079f)]  # Graphics
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(WindowGraphicsModule, self).__init__()
         self.graphics_1 = EbGraphicTileset(num_tiles=416, tile_width=8, tile_height=8)
         self.graphics_2 = EbGraphicTileset(num_tiles=7, tile_width=8, tile_height=8)
 

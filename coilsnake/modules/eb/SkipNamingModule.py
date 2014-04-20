@@ -1,9 +1,9 @@
 import yaml
 
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 
 
-class SkipNamingModule(EbModule.EbModule):
+class SkipNamingModule(EbModule):
     NAME = "Skip Names"
 
     def write_to_project(self, resourceOpener):

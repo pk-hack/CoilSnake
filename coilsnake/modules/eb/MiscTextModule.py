@@ -1,7 +1,7 @@
 import yaml
 
 from coilsnake.model.eb.table import EbStandardTextTableEntry
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 
 
 MISC_TEXT_OFFSETS = {
@@ -156,11 +156,11 @@ for category_name, category in MISC_TEXT_OFFSETS.iteritems():
                 {"size": size})
 
 
-class MiscTextModule(EbModule.EbModule):
+class MiscTextModule(EbModule):
     NAME = "Miscellaneous Text"
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(MiscTextModule, self).__init__()
         self.data = dict()
 
     def read_from_rom(self, rom):

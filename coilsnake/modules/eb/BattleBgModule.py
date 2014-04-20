@@ -6,9 +6,8 @@ from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangement
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.table import eb_table_from_offset
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, to_snes_address, write_asm_pointer
-
 
 GRAPHICS_POINTER_TABLE_ASM_POINTER_OFFSETS = [0x2d1ba, 0x2d4dc, 0x2d8c3, 0x4a3ba]
 ARRANGEMENT_POINTER_TABLE_ASM_POINTER_OFFSETS = [0x2d2c1, 0x2d537, 0x2d91f, 0x4a416]
@@ -21,12 +20,13 @@ BACKGROUND_TABLE_OFFSET = 0xcadca1
 SCROLL_TABLE_OFFSET = 0xcaf258
 DISTORTION_TABLE_OFFSET = 0xcaf708
 
-class BattleBgModule(EbModule.EbModule):
+
+class BattleBgModule(EbModule):
     NAME = "Battle Backgrounds"
     FREE_RANGES = [(0xa0000, 0xadca0), (0xb0000, 0xbd899)]
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(BattleBgModule, self).__init__()
         self.graphics_pointer_table = eb_table_from_offset(offset=GRAPHICS_POINTER_TABLE_DEFAULT_OFFSET)
         self.arrangement_pointer_table = eb_table_from_offset(offset=ARRANGEMENT_POINTER_TABLE_DEFAULT_OFFSET)
         self.palette_pointer_table = eb_table_from_offset(offset=PALETTE_POINTER_TABLE_DEFAULT_OFFSET)

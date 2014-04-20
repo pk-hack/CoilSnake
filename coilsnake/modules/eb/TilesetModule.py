@@ -7,7 +7,7 @@ import yaml
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.map_tilesets import EbMapPalette, EbTileset
 from coilsnake.model.eb.table import eb_table_from_offset
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.yml import convert_values_to_hex_repr
 from coilsnake.util.eb.helper import is_in_bank, not_in_bank
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
@@ -22,7 +22,7 @@ MAP_TILESET_TABLE_OFFSET = 0xEF101B
 PALETTE_POINTER_TABLE_OFFSET = 0xEF10FB
 
 
-class TilesetModule(EbModule.EbModule):
+class TilesetModule(EbModule):
     NAME = "Tilesets"
     FREE_RANGES = [(0x17c600, 0x17fbe7),
                    (0x190000, 0x19fc17),
@@ -33,7 +33,7 @@ class TilesetModule(EbModule.EbModule):
                    (0x1f0000, 0x1fc242)]
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(TilesetModule, self).__init__()
         self.graphics_pointer_table = eb_table_from_offset(GRAPHICS_POINTER_TABLE_OFFSET)
         self.arrangements_pointer_table = eb_table_from_offset(ARRANGEMENTS_POINTER_TABLE_OFFSET)
         self.collisions_pointer_table = eb_table_from_offset(COLLISIONS_POINTER_TABLE_OFFSET)

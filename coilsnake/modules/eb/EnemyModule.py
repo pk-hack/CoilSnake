@@ -7,7 +7,7 @@ from coilsnake.model.eb.enemy_groups import EnemyGroupTableEntry
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.sprites import EbBattleSprite
 from coilsnake.model.eb.table import eb_table_from_offset
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.project import replace_field_in_yml
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, to_snes_address, write_asm_pointer
 
@@ -25,14 +25,14 @@ ENEMY_GROUP_TABLE_DEFAULT_OFFSET = 0xD0C60D
 ENEMY_GROUP_BACKGROUND_TABLE_DEFAULT_OFFSET = 0xCBD89A
 
 
-class EnemyModule(EbModule.EbModule):
+class EnemyModule(EbModule):
     NAME = "Enemies"
     FREE_RANGES = [(0x0d0000, 0x0dffff),  # Battle Sprites
                    (0x0e0000, 0x0e6913),  # Battle Sprites continued & Battle Sprite palettes
                    (0x10d52d, 0x10dfb3)]  # Enemy Group Data
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(EnemyModule, self).__init__()
         self.enemy_config_table = eb_table_from_offset(offset=ENEMY_CONFIGURATION_TABLE_DEFAULT_OFFSET,
                                                        hidden_columns=["Battle Sprite", "Battle Sprite Palette"])
         self.graphics_pointer_table = eb_table_from_offset(offset=BATTLE_SPRITES_POINTER_TABLE_DEFAULT_OFFSET)

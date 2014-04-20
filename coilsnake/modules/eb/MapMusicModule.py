@@ -3,7 +3,7 @@ from functools import partial
 from coilsnake.model.eb.map_music import MapMusicTableEntry
 from coilsnake.model.eb.table import eb_table_from_offset, EbBankPointerToVariableSizeEntryTableEntry, \
     EbPointerTableEntry
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.eb.helper import not_in_bank
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
@@ -12,11 +12,11 @@ MAP_MUSIC_ASM_POINTER_OFFSET = 0x6939
 MAP_MUSIC_DEFAULT_OFFSET = 0xCF58EF
 
 
-class MapMusicModule(EbModule.EbModule):
+class MapMusicModule(EbModule):
     NAME = "Map Music"
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(MapMusicModule, self).__init__()
         self.pointer_table = eb_table_from_offset(
             offset=MAP_MUSIC_DEFAULT_OFFSET,
             single_column=EbBankPointerToVariableSizeEntryTableEntry.create(

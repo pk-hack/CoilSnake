@@ -2,10 +2,9 @@ import yaml
 
 from coilsnake.model.common.table import EnumeratedLittleEndianIntegerTableEntry, LittleEndianIntegerTableEntry
 from coilsnake.model.eb.table import eb_table_from_offset
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.project import replace_field_in_yml
 from coilsnake.util.eb.pointer import from_snes_address
-
 
 MAP_POINTERS_OFFSET = 0xa1db
 LOCAL_TILESETS_OFFSET = 0x175000
@@ -16,7 +15,6 @@ SECTOR_TILESETS_PALETTES_TABLE_OFFSET = 0xD7A800
 SECTOR_MUSIC_TABLE_OFFSET = 0xDCD637
 SECTOR_MISC_TABLE_OFFSET = 0xD7B200
 SECTOR_TOWN_MAP_TABLE_OFFSET = 0xEFA70F
-
 
 INTEGER_ENTRY = LittleEndianIntegerTableEntry.create("Integer", 1)
 TELEPORT_ENTRY = EnumeratedLittleEndianIntegerTableEntry.create(
@@ -40,11 +38,12 @@ TOWNMAP_ARROW_ENTRY = EnumeratedLittleEndianIntegerTableEntry.create(
     ["None", "Up", "Down", "Right", "Left"]
 )
 
-class MapModule(EbModule.EbModule):
+
+class MapModule(EbModule):
     NAME = "Map"
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(MapModule, self).__init__()
         self.tiles = []
         self.sector_tilesets_palettes_table = eb_table_from_offset(offset=SECTOR_TILESETS_PALETTES_TABLE_OFFSET)
         self.sector_music_table = eb_table_from_offset(offset=SECTOR_MUSIC_TABLE_OFFSET)

@@ -68,28 +68,3 @@ class TestEbModule(BaseTestCase):
 
     def test_default_decomp(self):
         self.test_decomp(EbModule.decomp)
-
-    def test_palette_io(self):
-        c = (48, 32, 16)
-        EbModule.writePaletteColor(self.rom, 0, c)
-        c2 = EbModule.readPaletteColor(self.rom, 0)
-        assert_equal(c, c2)
-
-        pal = [(176, 232, 24), (40, 152, 88), (216, 208, 136), (160, 0, 88),
-               (56, 40, 96), (112, 16, 240), (112, 64, 88), (48, 88, 0), (56,
-                                                                          136, 64), (176, 104, 144), (0, 48, 224),
-               (224, 224, 136),
-               (56, 248, 168), (56, 216, 80), (184, 48, 248), (200, 112, 32)]
-        EbModule.writePalette(self.rom, 0, pal)
-        pal2 = EbModule.readPalette(self.rom, 0, 16)
-        assert_equal(pal, pal2)
-
-    def test_asm_pointer_io(self):
-        ptr = EbModule.readAsmPointer(self.rom, 0xeefb)
-        assert_equal(ptr, 0xe14f2a)
-
-        EbModule.writeAsmPointer(self.rom, 0, 0xabcdef01)
-        assert_equal(self.rom[0:8].to_list(), [0x0, 0x01, 0xef, 0x0, 0x0, 0x0, 0xcd, 0xab])
-
-        ptr2 = EbModule.readAsmPointer(self.rom, 0)
-        assert_equal(0xabcdef01, ptr2)

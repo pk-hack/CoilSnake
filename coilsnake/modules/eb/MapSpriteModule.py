@@ -3,7 +3,7 @@ import logging
 
 from coilsnake.model.eb.map_sprites import SpritePlacementPointerTableEntry
 from coilsnake.model.eb.table import eb_table_from_offset
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.eb.helper import not_in_bank
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
@@ -11,14 +11,14 @@ from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 log = logging.getLogger(__name__)
 
 
-class MapSpriteModule(EbModule.EbModule):
+class MapSpriteModule(EbModule):
     NAME = "NPC Placements"
 
     POINTER_TABLE_DEFAULT_OFFSET = 0xCF61E7
     POINTER_TABLE_POINTER_OFFSET = 0x2261
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(MapSpriteModule, self).__init__()
         self.table = eb_table_from_offset(
             offset=self.POINTER_TABLE_DEFAULT_OFFSET,
             single_column=SpritePlacementPointerTableEntry,

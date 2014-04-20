@@ -1,7 +1,7 @@
 import logging
 
 from coilsnake.model.eb.fonts import EbFont, EbCreditsFont
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 
 
 log = logging.getLogger(__name__)
@@ -12,12 +12,12 @@ CREDITS_GRAPHICS_ASM_POINTER = 0x4f1a7
 CREDITS_PALETTES_ADDRESS = 0x21e914
 
 
-class FontModule(EbModule.EbModule):
+class FontModule(EbModule):
     NAME = "Fonts"
     FREE_RANGES = [(0x21e528, 0x21e913)]  # Credits font graphics
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(FontModule, self).__init__()
         self.fonts = [
             EbFont(num_characters=96, tile_width=16, tile_height=16),
             EbFont(num_characters=96, tile_width=16, tile_height=16),

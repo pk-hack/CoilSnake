@@ -2,12 +2,12 @@ import yaml
 
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.model.eb.town_maps import TownMapIconPlacementPointerTableEntry, TownMapEnum
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.project import convert_values_to_hex_repr_in_yml_file
 from coilsnake.util.eb.pointer import read_asm_pointer, write_asm_pointer, from_snes_address, to_snes_address
 
 
-class TownMapIconModule(EbModule.EbModule):
+class TownMapIconModule(EbModule):
     NAME = "Town Map Icon Positions"
     FREE_RANGES = [(0x21f491, 0x21f580)]  # Pointer Table and Data
 
@@ -15,7 +15,7 @@ class TownMapIconModule(EbModule.EbModule):
     POINTER_TABLE_ASM_POINTER_OFFSET = 0x4D464
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(TownMapIconModule, self).__init__()
         self.table = eb_table_from_offset(
             offset=self.POINTER_TABLE_DEFAULT_OFFSET,
             single_column=TownMapIconPlacementPointerTableEntry)

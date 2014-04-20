@@ -3,7 +3,7 @@ import yaml
 
 from coilsnake.model.eb.map_events import MapEventPointerTableEntry, MapEventSubTableEntry
 from coilsnake.model.eb.table import eb_table_from_offset
-from coilsnake.modules.eb import EbModule
+from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.project import convert_values_to_hex_repr_in_yml_file
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
@@ -15,12 +15,12 @@ POINTER_TABLE_DEFAULT_OFFSET = 0xD01598
 POINTER_TABLE_BANK_OFFSET = 0x704
 
 
-class MapEventModule(EbModule.EbModule):
+class MapEventModule(EbModule):
     NAME = "Map Event Tile Changes"
     FREE_RANGES = [(0x101598, 0x10187f)]
 
     def __init__(self):
-        EbModule.EbModule.__init__(self)
+        super(MapEventModule, self).__init__()
         self.pointer_table_entry_class = type("MapEventPointerTableEntrySubclass", (MapEventPointerTableEntry,), {})
         self.pointer_table = eb_table_from_offset(
             offset=POINTER_TABLE_DEFAULT_OFFSET,
