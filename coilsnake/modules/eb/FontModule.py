@@ -1,6 +1,5 @@
 import logging
 
-from coilsnake.Progress import updateProgress
 from coilsnake.model.eb.fonts import EbFont, EbCreditsFont
 from coilsnake.modules.eb import EbModule
 
@@ -27,7 +26,6 @@ class FontModule(EbModule.EbModule):
             EbFont(num_characters=96, tile_width=8, tile_height=8)
         ]
         self.credits_font = EbCreditsFont()
-        self._percent = 50.0 / (len(self.fonts) + 1)
 
     def read_credits_font_from_rom(self, rom):
         log.info("Reading the credits font from the ROM")
@@ -40,10 +38,8 @@ class FontModule(EbModule.EbModule):
                                                                          FONT_CHARACTER_WIDTHS_ADDRESSES)):
             log.info("Reading font #{} from the ROM".format(i))
             font.from_block(block=rom, tileset_offset=graphics_address, character_widths_offset=widths_address)
-            updateProgress(self._percent)
 
         self.read_credits_font_from_rom(rom)
-        updateProgress(self._percent)
 
     def write_credits_font_to_rom(self, rom):
         log.info("Writing the credits font to the ROM")
@@ -56,10 +52,8 @@ class FontModule(EbModule.EbModule):
                                                                          FONT_CHARACTER_WIDTHS_ADDRESSES)):
             log.info("Writing font #{} to the ROM".format(i))
             font.to_block(block=rom, tileset_offset=graphics_address, character_widths_offset=widths_address)
-            updateProgress(self._percent)
 
         self.write_credits_font_to_rom(rom)
-        updateProgress(self._percent)
 
     def write_credits_font_to_project(self, resource_open):
         with resource_open("Fonts/credits", "png") as image_file:
@@ -71,10 +65,8 @@ class FontModule(EbModule.EbModule):
             with resource_open("Fonts/" + str(i), 'png') as image_file:
                 with resource_open("Fonts/" + str(i) + "_widths", "yml") as widths_file:
                     font.to_files(image_file, widths_file, image_format="png", widths_format="yml")
-            updateProgress(self._percent)
 
         self.write_credits_font_to_project(resource_open)
-        updateProgress(self._percent)
 
     def read_credits_font_from_project(self, resource_open):
         with resource_open("Fonts/credits", "png") as image_file:
@@ -85,14 +77,11 @@ class FontModule(EbModule.EbModule):
             with resource_open("Fonts/" + str(i), 'png') as image_file:
                 with resource_open("Fonts/" + str(i) + "_widths", "yml") as widths_file:
                     font.from_files(image_file, widths_file, image_format="png", widths_format="yml")
-            updateProgress(self._percent)
 
         self.read_credits_font_from_project(resource_open)
-        updateProgress(self._percent)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
-            updateProgress(100)
             return
         elif old_version <= 2:
             # The credits font was a new feature in version 3

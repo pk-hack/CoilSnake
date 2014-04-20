@@ -1,11 +1,10 @@
 import yaml
-from re import sub
 import logging
 
 from coilsnake.model.eb.doors import door_from_block, door_from_yml_rep, not_in_destination_bank
-from coilsnake.Progress import updateProgress
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
+from coilsnake.util.common.yml import convert_values_to_hex_repr
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
 
@@ -22,8 +21,6 @@ class DoorModule(EbModule):
 
     def read_from_rom(self, rom):
         self.pointer_table.from_block(rom, from_snes_address(0xD00000))
-        updateProgress(5)
-        pct = 45.0 / (40 * 32)
         self.door_areas = []
         for i in range(self.pointer_table.num_rows):
             offset = from_snes_address(self.pointer_table[i][0])
@@ -39,14 +36,11 @@ class DoorModule(EbModule):
                 door_area.append(door)
                 offset += 5
             self.door_areas.append(door_area)
-            i += 1
-            updateProgress(pct)
 
     def write_to_project(self, resourceOpener):
         out = dict()
         x = y = 0
         rowOut = dict()
-        pct = 45.0 / (40 * 32)
         for entry in self.door_areas:
             if not entry:
                 rowOut[x % 32] = None
@@ -60,21 +54,18 @@ class DoorModule(EbModule):
                 rowOut = dict()
             else:
                 x += 1
-            updateProgress(pct)
+
         with resourceOpener("map_doors", "yml") as f:
             s = yaml.dump(
                 out,
                 default_flow_style=False,
                 Dumper=yaml.CSafeDumper)
-            s = sub("Event Flag: (\d+)", lambda i: "Event Flag: " + hex(int(i.group(0)[12:])), s)
+            convert_values_to_hex_repr(yml_str_rep=s, key="Event Flag")
             f.write(s)
-        updateProgress(5)
 
     def read_from_project(self, resourceOpener):
         self.door_areas = []
-        pct = 45.0 / (40 * 32)
         with resourceOpener("map_doors", "yml") as f:
-            updateProgress(5)
             input = yaml.load(f, Loader=yaml.CSafeLoader)
             for y in input:
                 row = input[y]
@@ -87,7 +78,6 @@ class DoorModule(EbModule):
                             d = door_from_yml_rep(door)
                             entry.append(d)
                         self.door_areas.append(entry)
-                    updateProgress(pct)
 
     def write_to_rom(self, rom):
         # Deallocate the range of the ROM in which we will write the door destinations.
@@ -97,7 +87,6 @@ class DoorModule(EbModule):
         rom.deallocate((0x0F0000, 0x0F58EE))
         destination_offsets = dict()
         empty_area_offset = from_snes_address(rom.allocate(data=[0, 0], can_write_to=not_in_destination_bank))
-        pct = 45.0 / (40 * 32)
         i = 0
         for door_area in self.door_areas:
             if (door_area is None) or (not door_area):
@@ -112,6 +101,4 @@ class DoorModule(EbModule):
                     door.write_to_block(rom, area_offset, destination_offsets)
                     area_offset += 5
             i += 1
-            updateProgress(pct)
         self.pointer_table.to_block(rom, from_snes_address(0xD00000))
-        updateProgress(5)

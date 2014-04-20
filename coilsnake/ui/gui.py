@@ -12,11 +12,11 @@ import tkFileDialog
 import tkMessageBox
 from ttk import Progressbar
 
-from coilsnake import Progress
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui import cli, information
 from coilsnake.ui.Fun import getTitle
 from coilsnake.util.common.assets import ASSET_PATH
+
 
 
 
@@ -556,13 +556,6 @@ Please specify it in the Preferences menu.""")
         self._progBar = Progressbar(self._root,
                                     orient=HORIZONTAL, mode='determinate')
         self._progBar.grid(row=9, column=0, columnspan=8, sticky=W + E)
-
-        def updProg(dp):
-            Progress.__updateProgress__(dp)
-            # Note: The number of modules is hardcoded here as "20"
-            self._progBar.step((90.0 / 20) * (dp / 100.0))
-
-        Progress.updateProgress = updProg
 
         # Console
         consoleFrame = Frame(self._root)

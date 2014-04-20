@@ -1,6 +1,5 @@
 import yaml
 
-from coilsnake.Progress import updateProgress
 from coilsnake.modules.eb import EbModule
 
 
@@ -20,12 +19,10 @@ class SkipNamingModule(EbModule.EbModule):
         with resourceOpener("naming_skip", "yml") as f:
             yaml.dump(out, f, default_flow_style=False,
                       Dumper=yaml.CSafeDumper)
-        updateProgress(50)
 
     def read_from_project(self, resourceOpener):
         with resourceOpener("naming_skip", "yml") as f:
             self._data = yaml.load(f, Loader=yaml.CSafeLoader)
-        updateProgress(50)
 
     def writeLoaderAsm(self, rom, loc, s, strlen, memLoc, byte2):
         i = 0
@@ -40,9 +37,6 @@ class SkipNamingModule(EbModule.EbModule):
         return loc
 
     def write_to_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
         if self._data["Enable Skip"]:
             rom[0x1faae] = 0x5c
             loc = rom.allocate(size=(10 + 4 * 5 * 5 + 3 * 6 * 5))
@@ -62,4 +56,3 @@ class SkipNamingModule(EbModule.EbModule):
                 rom[loc:loc+6] = [0x28, 0x68, 0x5c, 0xc0, 0xfa, 0xc1]
             else:
                 rom[loc:loc+6] = [0x28, 0x68, 0x5c, 0x05, 0xfd, 0xc1]
-        updateProgress(50)

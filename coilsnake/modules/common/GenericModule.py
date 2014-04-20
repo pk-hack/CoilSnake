@@ -1,6 +1,3 @@
-from coilsnake.Progress import updateProgress
-
-
 class GenericModule(object):
     NAME = "Abstract Generic Module"
     FREE_RANGES = []
@@ -19,16 +16,16 @@ class GenericModule(object):
         pass
 
     def read_from_rom(self, rom):
-        updateProgress(50)
+        pass
 
     def write_to_rom(self, rom):
-        updateProgress(50)
+        pass
 
     def read_from_project(self, resource_open):
-        updateProgress(50)
+        pass
 
     def write_to_project(self, resource_open):
-        updateProgress(50)
+        pass
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
-        updateProgress(100)
+        pass

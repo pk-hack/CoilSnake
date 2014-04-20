@@ -1,7 +1,6 @@
 import os
 import yaml
 
-from coilsnake.Progress import updateProgress
 from coilsnake.Ips import Ips
 from coilsnake.modules.common.GenericModule import GenericModule
 from coilsnake.util.common.assets import ASSET_PATH
@@ -19,16 +18,11 @@ class PatchModule(GenericModule):
 
     def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
                         resourceOpenerW, resourceDeleter):
-        global updateProgress
         if oldVersion == newVersion:
-            updateProgress(100)
             return
         elif oldVersion == 1:
-            tmp = updateProgress
-            updateProgress = lambda x: None
             self.read_from_rom(rom)
             self.write_to_project(resourceOpenerW)
-            updateProgress = tmp
             self.upgrade_project(
                 oldVersion + 1, newVersion, rom, resourceOpenerR,
                 resourceOpenerW, resourceDeleter)
@@ -38,7 +32,6 @@ class PatchModule(GenericModule):
                 resourceOpenerW, resourceDeleter)
 
     def read_from_rom(self, rom):
-
         self._patches = dict()
         # Loop through all the patches for this romtype
         for ipsDescFname in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
@@ -51,12 +44,8 @@ class PatchModule(GenericModule):
                     self._patches[ipsDesc["Title"]] = "enabled"
                 else:
                     self._patches[ipsDesc["Title"]] = "disabled"
-        updateProgress(50)
 
     def write_to_rom(self, rom):
-        """
-        @type rom: coilsnake.data_blocks.Rom
-        """
         for ipsDescFname in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
             patchName = ipsDescFname[:-4]
             with open(os.path.join(get_ips_directory(rom.type), ipsDescFname)) as ipsDescFile:
@@ -88,15 +77,12 @@ class PatchModule(GenericModule):
                     # Mark the used ranges as used
                     for range in ranges:
                         rom.mark_allocated(range)
-        updateProgress(50)
 
     def write_to_project(self, resourceOpener):
         with resourceOpener("patches", "yml") as f:
             yaml.dump(self._patches, f, default_flow_style=False,
                       Dumper=yaml.CSafeDumper)
-        updateProgress(50)
 
     def read_from_project(self, resourceOpener):
         with resourceOpener("patches", "yml") as f:
             self._patches = yaml.load(f, Loader=yaml.CSafeLoader)
-        updateProgress(50)

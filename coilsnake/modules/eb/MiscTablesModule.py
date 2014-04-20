@@ -1,6 +1,6 @@
 import yaml
 
-from coilsnake.Progress import updateProgress
+from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.project import replace_field_in_yml
@@ -38,33 +38,27 @@ class MiscTablesModule(EbModule):
     def __init__(self):
         super(MiscTablesModule, self).__init__()
         self.tables = map(lambda x: (from_snes_address(x), eb_table_from_offset(x)), self.TABLE_OFFSETS)
-        self._pct = 50.0 / len(self.tables)
 
     def read_from_rom(self, rom):
         for offset, table in self.tables:
             table.from_block(rom, offset)
-            updateProgress(self._pct)
 
     def write_to_rom(self, rom):
         for offset, table in self.tables:
             table.to_block(rom, offset)
-            updateProgress(self._pct)
 
     def read_from_project(self, resource_open):
         for _, table in self.tables:
             with resource_open(table.name.lower(), "yml") as f:
                 table.from_yml_file(f)
-                updateProgress(self._pct)
 
     def write_to_project(self, resource_open):
         for _, table in self.tables:
             with resource_open(table.name.lower(), "yml") as f:
                 table.to_yml_file(f)
-                updateProgress(self._pct)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
-            updateProgress(100)
             return
         elif old_version == 3:
             replace_field_in_yml(resource_name="item_configuration_table",
@@ -160,5 +154,4 @@ class MiscTablesModule(EbModule):
                                  resource_open_w=resource_open_w,
                                  resource_delete=resource_delete)
         else:
-            raise RuntimeError("Don't know how to upgrade from version",
-                               old_version, "to", new_version)
+            raise CoilSnakeError("Don't know how to upgrade from version", old_version, "to", new_version)

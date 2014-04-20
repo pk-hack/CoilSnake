@@ -1,6 +1,5 @@
 import yaml
 
-from coilsnake.Progress import updateProgress
 from coilsnake.model.eb.table import EbStandardTextTableEntry
 from coilsnake.modules.eb import EbModule
 
@@ -185,23 +184,17 @@ class MiscTextModule(EbModule.EbModule):
     def write_to_project(self, resourceOpener):
         with resourceOpener("text_misc", "yml") as f:
             yaml.dump(self.data, f, default_flow_style=False, Dumper=yaml.CSafeDumper)
-        updateProgress(50.0)
 
     def read_from_project(self, resourceOpener):
         with resourceOpener("text_misc", "yml") as f:
             self.data = yaml.load(f, Loader=yaml.CSafeLoader)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
-        global updateProgress
         if old_version == new_version:
-            updateProgress(100)
             return
         elif old_version <= 2:
-            tmp = updateProgress
-            updateProgress = lambda x: None
             self.read_from_rom(rom)
             self.write_to_project(resource_open_w)
-            updateProgress = tmp
             self.upgrade_project(3, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         else:
             self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)

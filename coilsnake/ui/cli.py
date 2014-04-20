@@ -10,7 +10,6 @@ import logging
 
 from coilsnake import Project
 from coilsnake.model.common.blocks import Rom
-from coilsnake.Progress import setProgress
 from coilsnake.ui import information
 from coilsnake.util.common.assets import open_asset
 
@@ -67,7 +66,6 @@ class CoilSnake:
 
             compatible_modules = (x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type))
             for (module_name, module_class) in compatible_modules:
-                setProgress(0)
                 start_time = time.time()
                 print "-", module_class.NAME, "...   0.00%",
                 sys.stdout.flush()
@@ -136,7 +134,6 @@ class CoilSnake:
         print "To       ROM : ", outRomFname, "(", rom.type, ")"
 
         for (module_name, module_class) in compatible_modules:
-            setProgress(0)
             start_time = time.time()
             print "-", module_class.NAME, "...   0.00%",
             sys.stdout.flush()
@@ -163,7 +160,6 @@ class CoilSnake:
 
         compatible_modules = (x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type))
         for (module_name, module_class) in compatible_modules:
-            setProgress(0)
             start_time = time.time()
             print "-", module_class.NAME, "...   0.00%",
             sys.stdout.flush()

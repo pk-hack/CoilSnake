@@ -1,6 +1,5 @@
 import logging
 
-from coilsnake.Progress import updateProgress
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.model.eb.pointers import EbPointer
 from coilsnake.util.eb.pointer import from_snes_address
@@ -23,7 +22,6 @@ class CccInterfaceModule(EbModule):
         log.info("Creating empty CCScript compilation summary file")
         f = resource_open(CccInterfaceModule.SUMMARY_RESOURCE_NAME, CccInterfaceModule.SUMMARY_RESOURCE_EXTENSION)
         f.close()
-        updateProgress(50)
 
     def read_from_project(self, resource_open):
         EbPointer.label_address_map.clear()
@@ -61,10 +59,8 @@ class CccInterfaceModule(EbModule):
                         module_name = line[17:]
                         log.debug("Found CCScript module[%s]", module_name)
         log.info("Found %d CCScript labels", len(EbPointer.label_address_map))
-        updateProgress(50)
 
     def write_to_rom(self, rom):
         if self.used_range:
             log.info("Marking (%#x,%#x) as allocated by CCScript", self.used_range[0], self.used_range[1])
             rom.mark_allocated(self.used_range)
-        updateProgress(50)
