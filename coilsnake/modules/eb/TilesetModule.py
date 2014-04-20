@@ -95,7 +95,6 @@ class TilesetModule(EbModule):
                                                         can_write_to=partial(is_in_bank, 0x18)) & 0xffff
                         collision_offsets[collision_hash] = collision_offset
 
-
                     collision_table.write_multi(key=j, item=collision_offset, size=2)
                     j += 2
                 collision_table_offset = rom.allocate(data=collision_table, can_write_to=partial(not_in_bank, 0x18))

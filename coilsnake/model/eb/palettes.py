@@ -211,9 +211,9 @@ class EbPalette(EqualityMixin):
 
     def get_color_id(self, rgb, subpalette_id):
         r, g, b = rgb
-        color = EbColor(r=r, g=g, b=b)
-        for i, c in enumerate(self.subpalettes[subpalette_id]):
-            if color == c:
+        subpalette = self.subpalettes[subpalette_id]
+        for i, c in enumerate(subpalette):
+            if c.r == r and c.g == g and c.b == b:
                 return i
         # TODO Handle this error better
         return 0

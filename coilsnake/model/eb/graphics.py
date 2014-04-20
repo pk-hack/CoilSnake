@@ -283,9 +283,13 @@ class EbTileArrangement(EqualityMixin):
 
     def from_image(self, image, tileset, palette):
         if palette.num_subpalettes == 1:
-            # Don't need to do any subpalette fitting because there's only one subpalette
-            palette.from_image(image)
-            image_data = image.load()
+            self._from_image_with_single_subpalette(image, tileset, palette)
+        else:
+            # Multiple subpalettes, so we have to figure out which tile should use which subpalette
+            rgb_image = image.convert("RGB")
+            del image
+            rgb_image_data = rgb_image.load()
+            del rgb_image
 
             tile = [array('B', [0 for i in xrange(tileset.tile_width)])
                     for j in xrange(tileset.tile_height)]
@@ -295,42 +299,21 @@ class EbTileArrangement(EqualityMixin):
                 for arrangement_x in xrange(self.width):
                     image_x = arrangement_x * tileset.tile_width
 
+                    tile_colors = set()
                     for tile_y in xrange(tileset.tile_height):
                         image_tile_y = image_y + tile_y
-                        tile_row = tile[tile_y]
                         for tile_x in xrange(tileset.tile_width):
-                            tile_row[tile_x] = image_data[image_x + tile_x, image_tile_y]
-
-                    tile_id, vflip, hflip = tileset.add_tile(tile)
-                    arrangement_item = self.arrangement[arrangement_y][arrangement_x]
-                    arrangement_item.tile = tile_id
-                    arrangement_item.subpalette = 0
-                    arrangement_item.is_vertically_flipped = vflip
-                    arrangement_item.is_horizontally_flipped = hflip
-                    arrangement_item.is_priority = False
-        else:
-            # Multiple subpalettes, so we have to figure out which tile should use which subpalette
-            rgb_image = image.convert("RGB")
-            del image
-            rgb_image_data = rgb_image.load()
-            del rgb_image
-
-            for arrangement_y in range(self.height):
-                image_y = arrangement_y * tileset.tile_height
-                for arrangement_x in range(self.width):
-                    image_x = arrangement_x * tileset.tile_width
-
-                    tile_colors = set()
-                    for tile_y in range(tileset.tile_height):
-                        image_tile_y = image_y + tile_y
-                        for tile_x in range(tileset.tile_width):
                             r, g, b = rgb_image_data[image_x + tile_x, image_tile_y]
                             tile_colors.add(EbColor(r=r & 0xf8, g=g & 0xf8, b=b & 0xf8))
 
                     subpalette_id = palette.add_colors_to_subpalette(tile_colors)
-                    tile = [array('B', [palette.get_color_id(rgb_image_data[i, j], subpalette_id)
-                                        for i in range(image_x, image_x + tileset.tile_width)])
-                            for j in range(image_y, image_y + tileset.tile_height)]
+
+                    for tile_y in xrange(tileset.tile_height):
+                        image_tile_y = image_y + tile_y
+                        for tile_x in xrange(tileset.tile_width):
+                            image_tile_x = image_x + tile_x
+                            tile[tile_y][tile_x] = palette.get_color_id(rgb_image_data[image_tile_x, image_tile_y],
+                                                                        subpalette_id)
 
                     tile_id, vflip, hflip = tileset.add_tile(tile)
                     arrangement_item = self.arrangement[arrangement_y][arrangement_x]
@@ -339,6 +322,34 @@ class EbTileArrangement(EqualityMixin):
                     arrangement_item.is_vertically_flipped = vflip
                     arrangement_item.is_horizontally_flipped = hflip
                     arrangement_item.is_priority = False
+
+    def _from_image_with_single_subpalette(self, image, tileset, palette):
+        # Don't need to do any subpalette fitting because there's only one subpalette
+        palette.from_image(image)
+        image_data = image.load()
+
+        tile = [array('B', [0 for i in xrange(tileset.tile_width)])
+                for j in xrange(tileset.tile_height)]
+
+        for arrangement_y in xrange(self.height):
+            image_y = arrangement_y * tileset.tile_height
+            for arrangement_x in xrange(self.width):
+                image_x = arrangement_x * tileset.tile_width
+
+                for tile_y in xrange(tileset.tile_height):
+                    image_tile_y = image_y + tile_y
+                    tile_row = tile[tile_y]
+                    for tile_x in xrange(tileset.tile_width):
+                        tile_row[tile_x] = image_data[image_x + tile_x, image_tile_y]
+
+                tile_id, vflip, hflip = tileset.add_tile(tile)
+                arrangement_item = self.arrangement[arrangement_y][arrangement_x]
+                arrangement_item.tile = tile_id
+                arrangement_item.subpalette = 0
+                arrangement_item.is_vertically_flipped = vflip
+                arrangement_item.is_horizontally_flipped = hflip
+                arrangement_item.is_priority = False
+
 
     def __getitem__(self, key):
         x, y = key

@@ -103,11 +103,9 @@ class Block(object):
         elif size == 0:
             return
         else:
-            while size > 0:
-                self[key] = item & 0xff
+            for i in xrange(key, key+size):
+                self.data[i] = item & 0xff
                 item >>= 8
-                size -= 1
-                key += 1
 
     def __getitem__(self, key):
         if isinstance(key, slice):
@@ -129,7 +127,14 @@ class Block(object):
             raise TypeError("Argument \"key\" had invalid type of %s" % type(key).__name__)
 
     def __setitem__(self, key, item):
-        if isinstance(key, slice) and \
+        if isinstance(key, int) and isinstance(item, (int, long)):
+            if item < 0 or item > 0xff:
+                raise InvalidArgumentError("Attempting to write value[%d] into a single byte" % item)
+            if key >= self.size:
+                raise OutOfBoundsError("Attempted to write to offset[%#x] which is out of bounds" % key)
+            else:
+                self.data[key] = item
+        elif isinstance(key, slice) and \
                 (isinstance(item, list) or isinstance(item, array.array) or isinstance(item, Block)):
             if key.start > key.stop:
                 raise InvalidArgumentError("Second argument of slice %s must be greater than  the first" % key)
@@ -150,13 +155,6 @@ class Block(object):
                     self.data[key] = item.data
                 else:
                     raise InvalidArgumentError("Can not write value of type[{}]".format(type(item)))
-        elif isinstance(key, int) and isinstance(item, (int, long)):
-            if item < 0 or item > 0xff:
-                raise InvalidArgumentError("Attempting to write value[%d] into a single byte" % item)
-            if key >= self.size:
-                raise OutOfBoundsError("Attempted to write to offset[%#x] which is out of bounds" % key)
-            else:
-                self.data[key] = item
         else:
             raise TypeError("Arguments \"key\" and \"item\" had invalid types of %s and %s" % (type(key).__name__,
                                                                                                type(item).__name__))
