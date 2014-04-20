@@ -30,6 +30,12 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
                 and (self.g == other.g)
                 and (self.b == other.b))
 
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __hash__(self):
+        return hash(self.tuple())
+
     def from_block(self, block, offset=0):
         self.used = True
         bgr = block.read_multi(offset, 2) & 0x7FFF
@@ -173,15 +179,19 @@ class EbPalette(EqualityMixin):
                 i += 1
 
     def add_colors_to_subpalette(self, colors):
+        if type(colors) == list:
+            colors = set(colors)
+
         if len(colors) > self.subpalette_length:
             # TODO Handle this error better
             return 0
 
-        subpalette_info = [(len(colors.intersection(subpalette)),  # number of shared colors
+        subpalette_info = [(len(colors & set(subpalette)),  # number of shared colors
                             sum([(not color.used) for color in subpalette]),  # number of unused colors in palette
-                            colors - set(subpalette), # set of colors not in palette
-                            i) for i, subpalette in enumerate(self.subpalettes)]
-        subpalette_info = filter(lambda x: x[1] > len(x[2]), subpalette_info)
+                            i,
+                            colors - set(subpalette),  # set of colors not in palette
+                            ) for i, subpalette in enumerate(self.subpalettes)]
+        subpalette_info = filter(lambda x: x[1] >= len(x[3]), subpalette_info)
 
         if len(subpalette_info) == 0:
             # Not enough room to put these colors in a subpalette
@@ -189,7 +199,7 @@ class EbPalette(EqualityMixin):
             return 0
 
         subpalette_info.sort(reverse=True)
-        num_shared_colors, num_unused_colors, new_colors, subpalette_id = subpalette_info[0]
+        num_shared_colors, num_unused_colors, subpalette_id, new_colors = subpalette_info[0]
         subpalette = self.subpalettes[subpalette_id]
         for new_color in new_colors:
             for i in range(self.subpalette_length):

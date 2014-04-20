@@ -1,6 +1,6 @@
 from PIL import Image
 
-from nose.tools import assert_equal, assert_list_equal, assert_raises
+from nose.tools import assert_equal, assert_list_equal, assert_raises, assert_true, assert_false
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
@@ -167,3 +167,44 @@ class TestEbPalette(BaseTestCase, TilesetImageTestCase):
                           [0, 0, 0, 40, 8, 72, 80, 88, 48,
                            248, 0, 0, 80, 56, 40, 16, 136, 136])
         del image
+
+    def test_add_colors_to_subpalette_single_color(self):
+        self.palette.add_colors_to_subpalette([EbColor(r=64, g=32, b=16)])
+
+        assert_equal(self.palette[1, 0].tuple(), (64, 32, 16))
+        assert_true(self.palette[1, 0].used)
+        for i in range(self.palette.num_subpalettes):
+            for j in range(self.palette.subpalette_length):
+                if (i, j) not in [(1, 0)]:
+                    assert_false(self.palette[i, j].used)
+
+    def test_add_colors_to_subpalette_shared_colors(self):
+        self.palette.add_colors_to_subpalette([EbColor(r=64, g=32, b=16)])
+        self.palette.add_colors_to_subpalette([EbColor(r=64, g=32, b=16), EbColor(r=128, g=0, b=16)])
+
+        assert_equal(self.palette[1, 0].tuple(), (64, 32, 16))
+        assert_true(self.palette[1, 0].used)
+        assert_equal(self.palette[1, 1].tuple(), (128, 0, 16))
+        assert_true(self.palette[1, 1].used)
+        for i in range(self.palette.num_subpalettes):
+            for j in range(self.palette.subpalette_length):
+                if (i, j) not in [(1, 0), (1, 1)]:
+                    assert_false(self.palette[i, j].used)
+
+    def test_add_colors_to_subpalette_shared_colors2(self):
+        self.palette.add_colors_to_subpalette([EbColor(r=64, g=32, b=16)])
+        self.palette.add_colors_to_subpalette([EbColor(r=64, g=32, b=16),
+                                               EbColor(r=128, g=0, b=16)])
+        self.palette.add_colors_to_subpalette([EbColor(r=64, g=32, b=16),
+                                               EbColor(r=16, g=32, b=64),
+                                               EbColor(r=32, g=32, b=32)])
+
+        assert_equal(self.palette[1, 0].tuple(), (64, 32, 16))
+        assert_true(self.palette[1, 0].used)
+        assert_equal(self.palette[1, 1].tuple(), (128, 0, 16))
+        assert_true(self.palette[1, 1].used)
+        assert_false(self.palette[1, 2].used)
+
+        assert_equal(set([self.palette[0, x].tuple() for x in range(self.palette.subpalette_length)]),
+                     set([(64, 32, 16), (16, 32, 64), (32, 32, 32)]))
+        assert_equal([self.palette[0, x].used for x in range(self.palette.subpalette_length)].count(True), 3)

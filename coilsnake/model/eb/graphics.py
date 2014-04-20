@@ -5,6 +5,8 @@ from PIL import Image
 from zlib import crc32
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, OutOfBoundsError
+from coilsnake.model.eb.blocks import EbCompressibleBlock
+from coilsnake.model.eb.palettes import EbPalette, EbColor
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
 from coilsnake.util.eb.graphics import read_2bpp_graphic_from_block, read_4bpp_graphic_from_block, \
     read_8bpp_graphic_from_block, read_1bpp_graphic_from_block, write_2bpp_graphic_to_block, \
@@ -300,14 +302,13 @@ class EbTileArrangement(EqualityMixin):
                             tile_row[tile_x] = image_data[image_x + tile_x, image_tile_y]
 
                     tile_id, vflip, hflip = tileset.add_tile(tile)
-                    self.arrangement[arrangement_y][arrangement_x] = EbTileArrangementItem(
-                        tile=tile_id,
-                        subpalette=0,
-                        is_vertically_flipped=vflip,
-                        is_horizontally_flipped=hflip,
-                        is_priority=False)
+                    arrangement_item = self.arrangement[arrangement_y][arrangement_x]
+                    arrangement_item.tile = tile_id
+                    arrangement_item.subpalette = 0
+                    arrangement_item.is_vertically_flipped = vflip
+                    arrangement_item.is_horizontally_flipped = hflip
+                    arrangement_item.is_priority = False
         else:
-            # TODO test/fix this code
             # Multiple subpalettes, so we have to figure out which tile should use which subpalette
             rgb_image = image.convert("RGB")
             del image
@@ -315,26 +316,29 @@ class EbTileArrangement(EqualityMixin):
             del rgb_image
 
             for arrangement_y in range(self.height):
+                image_y = arrangement_y * tileset.tile_height
                 for arrangement_x in range(self.width):
+                    image_x = arrangement_x * tileset.tile_width
+
                     tile_colors = set()
-                    for tile_pixel_y in range(tileset.tile_height):
-                        for tile_pixel_x in range(tileset.tile_width):
-                            r, g, b = rgb_image_data[tile_pixel_x, tile_pixel_y]
-                            tile_colors.add(r & 0xf8, g & 0xf8, b & 0xf8)
+                    for tile_y in range(tileset.tile_height):
+                        image_tile_y = image_y + tile_y
+                        for tile_x in range(tileset.tile_width):
+                            r, g, b = rgb_image_data[image_x + tile_x, image_tile_y]
+                            tile_colors.add(EbColor(r=r & 0xf8, g=g & 0xf8, b=b & 0xf8))
 
                     subpalette_id = palette.add_colors_to_subpalette(tile_colors)
                     tile = [array('B', [palette.get_color_id(rgb_image_data[i, j], subpalette_id)
-                                        for j in range(arrangement_y, arrangement_y + tileset.tile_height)])
-                            for i in range(arrangement_x, arrangement_x + tileset.tile_width)]
+                                        for i in range(image_x, image_x + tileset.tile_width)])
+                            for j in range(image_y, image_y + tileset.tile_height)]
 
                     tile_id, vflip, hflip = tileset.add_tile(tile)
-                    self[arrangement_x, arrangement_y] = EbTileArrangementItem(
-                        tile=tile_id,
-                        subpalette=subpalette_id,
-                        is_vertically_flipped=vflip,
-                        is_horizontally_flipped=hflip,
-                        is_priority=False)
-
+                    arrangement_item = self.arrangement[arrangement_y][arrangement_x]
+                    arrangement_item.tile = tile_id
+                    arrangement_item.subpalette = subpalette_id
+                    arrangement_item.is_vertically_flipped = vflip
+                    arrangement_item.is_horizontally_flipped = hflip
+                    arrangement_item.is_priority = False
 
     def __getitem__(self, key):
         x, y = key
@@ -342,3 +346,206 @@ class EbTileArrangement(EqualityMixin):
             raise InvalidArgumentError("Couldn't get arrangement item[{},{}] from arrangement of size[{}x{}]".format(
                 x, y, self.width, self.height))
         return self.arrangement[y][x]
+
+
+class EbCompressedGraphic(object):
+    def __init__(self, num_tiles, tile_width, tile_height, bpp, arrangement_width, arrangement_height,
+                 num_palettes, num_subpalettes, subpalette_length, compressed_palettes=True):
+        self.bpp = bpp
+        self.compressed_palettes = compressed_palettes
+
+        self.graphics = EbGraphicTileset(num_tiles=num_tiles, tile_width=tile_width, tile_height=tile_height)
+        if arrangement_width and arrangement_height:
+            self.arrangement = EbTileArrangement(width=arrangement_width, height=arrangement_height)
+        else:
+            self.arrangement = None
+        self.palettes = [EbPalette(num_subpalettes=num_subpalettes, subpalette_length=subpalette_length)
+                         for x in range(num_palettes)]
+
+    def from_block(self, block, graphics_offset, arrangement_offset, palette_offsets):
+        with EbCompressibleBlock() as compressed_block:
+            compressed_block.from_compressed_block(block=block, offset=graphics_offset)
+            self.graphics.from_block(block=compressed_block, offset=0, bpp=self.bpp)
+
+        if self.arrangement:
+            with EbCompressibleBlock() as compressed_block:
+                compressed_block.from_compressed_block(block=block, offset=arrangement_offset)
+                self.arrangement.from_block(block=compressed_block, offset=0)
+
+        for i, palette_offset in enumerate(palette_offsets):
+            if self.compressed_palettes:
+                with EbCompressibleBlock() as compressed_block:
+                    compressed_block.from_compressed_block(block=block, offset=palette_offset)
+                    self.palettes[i].from_block(block=compressed_block, offset=0)
+            else:
+                self.palettes[i].from_block(block=block, offset=palette_offset)
+
+    def to_block(self, block):
+        with EbCompressibleBlock(self.graphics.block_size(bpp=self.bpp)) as compressed_block:
+            self.graphics.to_block(block=compressed_block, offset=0, bpp=self.bpp)
+            compressed_block.compress()
+            graphics_offset = block.allocate(data=compressed_block)
+
+        if self.arrangement:
+            with EbCompressibleBlock(self.arrangement.block_size()) as compressed_block:
+                self.arrangement.to_block(block=compressed_block, offset=0)
+                compressed_block.compress()
+                arrangement_offset = block.allocate(data=compressed_block)
+        else:
+            arrangement_offset = None
+
+        palette_offsets = []
+        for i, palette in enumerate(self.palettes):
+            with EbCompressibleBlock(palette.block_size()) as compressed_block:
+                palette.to_block(block=compressed_block, offset=0)
+                if self.compressed_palettes:
+                    compressed_block.compress()
+                palette_offset = block.allocate(data=compressed_block)
+                palette_offsets.append(palette_offset)
+
+        return graphics_offset, arrangement_offset, palette_offsets
+
+    def images(self, arrangement=None):
+        if not arrangement:
+            arrangement = self.arrangement
+        return [arrangement.image(self.graphics, palette) for palette in self.palettes]
+
+    def image(self, arrangement=None):
+        return self.images(arrangement=arrangement)[0]
+
+    def from_images(self, images, arrangement=None):
+        if arrangement:
+            self.palettes[0].from_image(images[0])
+            self.graphics.from_image(images[0], arrangement, self.palettes[0])
+        else:
+            self.arrangement.from_image(images[0], self.graphics, self.palettes[0])
+
+        for i, palette in enumerate(self.palettes[1:]):
+            palette.from_image(images[i + 1])
+
+    def from_image(self, image, arrangement=None):
+        self.from_images(images=[image], arrangement=arrangement)
+
+
+class EbCompanyLogo(EbCompressedGraphic):
+    def __init__(self):
+        super(EbCompanyLogo, self).__init__(
+            num_tiles=256,
+            tile_width=8,
+            tile_height=8,
+            bpp=2,
+            arrangement_width=32,
+            arrangement_height=28,
+            num_palettes=1,
+            num_subpalettes=5,
+            subpalette_length=4
+        )
+
+    def from_block(self, block, graphics_offset, arrangement_offset, palette_offsets):
+        super(EbCompanyLogo, self).from_block(block, graphics_offset, arrangement_offset, palette_offsets)
+
+        # The first color of every subpalette after subpalette 0 is ignored and drawn as the first color subpalette 0
+        #  instead
+        c = self.palettes[0][0, 0].tuple()
+        for i in range(1, self.palettes[0].subpalette_length):
+            self.palettes[0][i, 0].from_tuple(c)
+
+    def from_images(self, images, arrangement=None):
+        self.palettes[0].from_image(images[0])
+        # Set all first colors of each subpalette to the image's first color
+        c = self.palettes[0][0, 0].tuple()
+        for i in range(1, self.palettes[0].subpalette_length):
+            self.palettes[0][i, 0].from_tuple(c)
+
+        super(EbCompanyLogo, self).from_images(images, arrangement)
+
+
+class EbAttractModeLogo(EbCompressedGraphic):
+    def __init__(self):
+        super(EbAttractModeLogo, self).__init__(
+            num_tiles=256,
+            tile_width=8,
+            tile_height=8,
+            bpp=2,
+            arrangement_width=32,
+            arrangement_height=32,
+            num_palettes=1,
+            num_subpalettes=1,
+            subpalette_length=4
+        )
+
+
+class EbGasStationLogo(EbCompressedGraphic):
+    def __init__(self):
+        super(EbGasStationLogo, self).__init__(
+            num_tiles=632,
+            tile_width=8,
+            tile_height=8,
+            bpp=8,
+            arrangement_width=32,
+            arrangement_height=32,
+            num_palettes=3,
+            num_subpalettes=1,
+            subpalette_length=256
+        )
+
+
+class EbTownMap(EbCompressedGraphic):
+    def __init__(self):
+        super(EbTownMap, self).__init__(
+            num_tiles=512,
+            tile_width=8,
+            tile_height=8,
+            bpp=4,
+            arrangement_width=32,
+            arrangement_height=28,
+            num_palettes=1,
+            num_subpalettes=2,
+            subpalette_length=16
+        )
+
+    def from_block(self, block, offset):
+        with EbCompressibleBlock() as compressed_block:
+            compressed_block.from_compressed_block(block=block, offset=offset)
+            self.palettes[0].from_block(block=compressed_block, offset=0)
+            self.arrangement.from_block(block=compressed_block, offset=self.palettes[0].block_size())
+            self.graphics.from_block(block=compressed_block,
+                                     offset=self.palettes[0].block_size() + 2048,
+                                     bpp=self.bpp)
+
+    def to_block(self, rom):
+        # Arrangement space is 2048 bytes long since it's 32x32x2 in VRAM
+        with EbCompressibleBlock(size=self.palettes[0].block_size() + 2048 + self.graphics.block_size(bpp=self.bpp)) \
+                as compressed_block:
+            self.palettes[0].to_block(block=compressed_block, offset=0)
+            self.arrangement.to_block(block=compressed_block, offset=self.palettes[0].block_size())
+            self.graphics.to_block(block=compressed_block,
+                                   offset=self.palettes[0].block_size() + 2048,
+                                   bpp=self.bpp)
+            compressed_block.compress()
+            return rom.allocate(data=compressed_block)
+
+    def from_images(self, images, arrangement=None):
+        # The game has problems if you try to use color 0 of subpal 1 directly after using color 0 of subpal 0
+        self.palettes[0][1, 0].r = 0
+        self.palettes[0][1, 0].g = 0
+        self.palettes[0][1, 0].b = 0
+        self.palettes[0][1, 0].used = True
+
+        super(EbTownMap, self).from_images(images, arrangement)
+
+
+class EbTownMapIcons(EbCompressedGraphic):
+    def __init__(self):
+        super(EbTownMapIcons, self).__init__(
+            num_tiles=288,
+            tile_width=8,
+            tile_height=8,
+            bpp=4,
+            arrangement_width=0,
+            arrangement_height=0,
+            num_palettes=1,
+            num_subpalettes=2,
+            subpalette_length=16,
+            compressed_palettes=False
+        )
