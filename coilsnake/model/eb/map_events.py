@@ -1,6 +1,6 @@
 from functools import partial
 
-from coilsnake.model.common.table_new import RowTableEntry, LittleEndianIntegerTableEntry
+from coilsnake.model.common.table import RowTableEntry, LittleEndianIntegerTableEntry
 from coilsnake.model.eb.table import EbPointerTableEntry, EbEventFlagTableEntry
 from coilsnake.util.eb.helper import is_in_bank
 

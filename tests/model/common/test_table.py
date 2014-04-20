@@ -3,7 +3,7 @@ from nose.tools import assert_dict_equal, assert_list_equal, assert_raises, asse
 from coilsnake.exceptions.common.exceptions import TableError, \
     TableEntryInvalidYmlRepresentationError, TableEntryMissingDataError, TableSchemaError
 from coilsnake.model.common.blocks import Block
-from coilsnake.model.common.table_new import Table, GenericLittleEndianRowTableEntry
+from coilsnake.model.common.table import Table, GenericLittleEndianRowTableEntry
 from tests.coilsnake_test import BaseTestCase
 
 

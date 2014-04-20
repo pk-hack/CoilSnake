@@ -1,4 +1,4 @@
-from coilsnake.model.common.table_new import RowTableEntry, LittleEndianIntegerTableEntry, \
+from coilsnake.model.common.table import RowTableEntry, LittleEndianIntegerTableEntry, \
     EnumeratedLittleEndianIntegerTableEntry
 from coilsnake.model.eb.table import EbPointerTableEntry, EbEventFlagTableEntry
 from coilsnake.util.common.type import enum_class_from_name_list

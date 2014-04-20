@@ -1,7 +1,7 @@
 from coilsnake.exceptions.common.exceptions import TableEntryInvalidYmlRepresentationError, TableSchemaError
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.table import EbRowTableEntry
-from tests.model.common.test_table_new import TestGenericLittleEndianTable, GenericTestTable
+from tests.model.common.test_table import TestGenericLittleEndianTable, GenericTestTable
 
 
 class TestEbTableGenericRegression(TestGenericLittleEndianTable):

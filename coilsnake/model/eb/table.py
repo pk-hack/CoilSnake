@@ -4,7 +4,7 @@ import yaml
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, TableEntryInvalidYmlRepresentationError, \
     InvalidYmlRepresentationError
-from coilsnake.model.common.table_new import LittleEndianIntegerTableEntry, Table, MatrixTable, \
+from coilsnake.model.common.table import LittleEndianIntegerTableEntry, Table, MatrixTable, \
     GenericLittleEndianRowTableEntry, TableEntry, LittleEndianHexIntegerTableEntry
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.pointers import EbPointer

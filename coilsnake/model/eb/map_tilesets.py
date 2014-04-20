@@ -1,4 +1,4 @@
-from coilsnake.model.common.table_new import LittleEndianIntegerTableEntry
+from coilsnake.model.common.table import LittleEndianIntegerTableEntry
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbGraphicTileset
 from coilsnake.model.eb.palettes import EbPalette

@@ -1,4 +1,4 @@
-from coilsnake.model.common.table_new import LittleEndianIntegerTableEntry, \
+from coilsnake.model.common.table import LittleEndianIntegerTableEntry, \
     RowTableEntry, TableEntry
 from coilsnake.model.eb.table import EbEventFlagTableEntry
 

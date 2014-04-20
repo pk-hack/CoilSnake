@@ -1,7 +1,7 @@
 from PIL import Image
 from array import array
 
-from coilsnake.model.common.table_new import EnumeratedLittleEndianIntegerTableEntry, ByteListTableEntry, RowTableEntry, \
+from coilsnake.model.common.table import EnumeratedLittleEndianIntegerTableEntry, ByteListTableEntry, RowTableEntry, \
     LittleEndianIntegerTableEntry
 from coilsnake.model.eb.graphics import hash_tile
 from coilsnake.util.eb.graphics import read_4bpp_graphic_from_block, write_4bpp_graphic_to_block
