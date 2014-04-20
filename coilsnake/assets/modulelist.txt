@@ -19,3 +19,4 @@ eb.CompressedGraphicsModule
 eb.EnemyModule
 eb.TilesetModule
 smb.TextModule
+common.LunarIpsCompatibilityModule
