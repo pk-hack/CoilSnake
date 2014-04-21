@@ -1,22 +1,23 @@
 #! /usr/bin/env python
-import os
+from functools import partial
 from subprocess import Popen
 from os.path import dirname, isdir, join
-import yaml
 from threading import Thread
 from time import time
-from traceback import print_exc
 from Tkinter import *
 import tkFileDialog
 import tkMessageBox
 import ttk
 
 from coilsnake.model.common.blocks import Rom
-from coilsnake.ui import information
+from coilsnake.ui import information, gui_util
 from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging
 from coilsnake.ui.fun import get_fun_title
+from coilsnake.ui.gui_preferences import CoilSnakePreferences
+from coilsnake.ui.gui_util import browse_for_rom, browse_for_project
 from coilsnake.ui.information import coilsnake_about
-from coilsnake.util.common.assets import ASSET_PATH
+from coilsnake.util.common.assets import asset_path
+
 
 
 # Import CCScriptWriter from the submodule, if possible.
@@ -28,90 +29,72 @@ else:
     CCScriptWriter = None
 
 
-class CoilSnakeFrontend:
-    PREFS_FNAME = "prefs.yml"
 
+
+
+class CoilSnakeGui(object):
     def __init__(self):
-        try:
-            with open(self.PREFS_FNAME, 'r') as f:
-                self._prefs = yaml.load(f, Loader=yaml.CSafeLoader)
-        except IOError:
-            self._prefs = {'title': 0}
+        self.preferences = CoilSnakePreferences()
+        self.preferences.load()
+        self.buttons = []
 
-    def get_preference_value(self, key):
-        try:
-            return self._prefs[key]
-        except KeyError:
-            return ""
-
-    def save_preferences(self):
-        with open(self.PREFS_FNAME, "w") as f:
-            yaml.dump(self._prefs, f, Dumper=yaml.CSafeDumper)
+    # Preferences functions
 
     def toggle_titles(self):
-        self._prefs["title"] = (~(self._prefs["title"])) | 1
-        self.save_preferences()
+        self.preferences["title"] = not self.preferences["title"]
+        self.preferences.save()
+
+    def set_emulator_exe(self):
+        emulator_exe = tkFileDialog.askopenfilename(
+            parent=self.root,
+            title="Select an Emulator Executable",
+            initialfile=self.preferences["Emulator"])
+        if emulator_exe:
+            self.preferences["Emulator"] = emulator_exe
+            self.preferences.save()
+
+    # GUI Popup functions
 
     def about_menu(self):
-        am = Toplevel(self.root)
-        photo = PhotoImage(file=os.path.join(ASSET_PATH, "images", "logo.gif"))
-        photoLabel = Label(am, image=photo)
-        photoLabel.photo = photo
-        photoLabel.pack(fill='both', expand=1)
+        about_menu = Toplevel(self.root)
+        photo = PhotoImage(file=asset_path("images", "logo.gif"))
+        about_label = Label(about_menu, image=photo)
+        about_label.photo = photo
+        about_label.pack(fill='both', expand=1)
 
-        Label(am,
+        Label(about_menu,
               text=coilsnake_about(),
               anchor="w", justify="left", bg="white", borderwidth=5,
               relief=GROOVE).pack(
             fill='both', expand=1)
-        Button(am, text="Toggle Alternate Titles",
-               command=self.toggle_titles).pack(fill=X)
-        Button(am, text="Close", command=am.destroy).pack(fill=X)
-        am.resizable(False, False)
-        am.title("About CoilSnake %s" % information.VERSION)
-
-    def set_text(self, entry, str):
-        entry.delete(0, END)
-        entry.insert(0, str)
-        entry.xview(END)
-
-    def set_emulator_exe(self):
-        self._prefs["Emulator"] = tkFileDialog.askopenfilename(
-            parent=self.root,
-            title="Select an Emulator Executable",
-            initialfile=self.get_preference_value("Emulator"))
-        self.save_preferences()
-
-    def browse_for_rom(self, entry, save=False):
-        if save:
-            fname = tkFileDialog.asksaveasfilename(
-                parent=self.root, title="Select an output ROM",
-                filetypes=[('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')])
-        else:
-            fname = tkFileDialog.askopenfilename(
-                parent=self.root, title="Select a ROM",
-                filetypes=[('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')])
-        if len(fname) > 0:
-            self.set_text(entry, fname)
-
-    def browse_for_project(self, entry, save=False):
-        fname = tkFileDialog.askdirectory(
-            parent=self.root, title="Select a Project Directory",
-            mustexist=(not save))
-        self.set_text(entry, fname)
+        Button(about_menu, text="Toggle Alternate Titles", command=self.toggle_titles).pack(fill=X)
+        Button(about_menu, text="Close", command=about_menu.destroy).pack(fill=X)
+        about_menu.resizable(False, False)
+        about_menu.title("About CoilSnake {}".format(information.VERSION))
 
     def run_rom(self, entry):
-        romFname = entry.get()
-        if self.get_preference_value("Emulator") == "":
+        rom_filename = entry.get()
+        if not self.preferences["Emulator"]:
             tkMessageBox.showerror(parent=self.root,
                                    title="Error",
                                    message="""Emulator executable not specified.
 Please specify it in the Preferences menu.""")
-        elif romFname != "":
-            Popen([self.get_preference_value("Emulator"), romFname])
+        elif rom_filename:
+            Popen([self.preferences["Emulator"], rom_filename])
 
-    def reset_console(self):
-        pass
+    # Actions
+
+    def clear_console(self):
+        self.console.delete(1.0, END)
+        self.console.see(END)
+
+    def disable_all_buttons(self):
+        for button in self.buttons:
+            button["state"] = DISABLED
+
+    def enable_all_buttons(self):
+        for button in self.buttons:
+            button["state"] = NORMAL
 
     def do_decompile(self, rom_entry, project_entry):
         rom = rom_entry.get()
@@ -119,14 +102,13 @@ Please specify it in the Preferences menu.""")
 
         if rom and project:
             # Update the GUI
-            self.reset_console()
-            self.decompile_button["state"] = DISABLED
-            self.compile_button["state"] = DISABLED
-            self.upgrade_button["state"] = DISABLED
+            self.clear_console()
+            self.disable_all_buttons()
+            
             # Save the fields to preferences
-            self._prefs["export_rom"] = rom
-            self._prefs["export_proj"] = project
-            self.save_preferences()
+            self.preferences["export_rom"] = rom
+            self.preferences["export_proj"] = project
+            self.preferences.save()
 
             self.progress_bar["value"] = 0
             thread = Thread(target=self._do_decompile_help,
@@ -137,14 +119,11 @@ Please specify it in the Preferences menu.""")
         try:
             decompile_rom(rom_filename=rom, project_path=project)
         except Exception as inst:
-            print "\nError:", str(inst)
-            if self.get_preference_value("ErrorDetails") == "1":
-                print_exc()
+            # TODO
+            pass
 
         self.progress_bar["value"] = 0
-        self.decompile_button["state"] = NORMAL
-        self.compile_button["state"] = NORMAL
-        self.upgrade_button["state"] = NORMAL
+        self.enable_all_buttons()
 
     def do_compile(self, project_entry, base_rom_entry, rom_entry):
         base_rom = base_rom_entry.get()
@@ -153,16 +132,13 @@ Please specify it in the Preferences menu.""")
 
         if base_rom and rom and project:
             # Update the GUI
-            self.reset_console()
-            self.decompile_button["state"] = DISABLED
-            self.compile_button["state"] = DISABLED
-            self.upgrade_button["state"] = DISABLED
-            self._importRunB["state"] = DISABLED
+            self.clear_console()
+            self.disable_all_buttons()
             # Save the fields to preferences
-            self._prefs["import_proj"] = project
-            self._prefs["import_baserom"] = base_rom
-            self._prefs["import_rom"] = rom
-            self.save_preferences()
+            self.preferences["import_proj"] = project
+            self.preferences["import_baserom"] = base_rom
+            self.preferences["import_rom"] = rom
+            self.preferences.save()
 
             # Reset the progress bar
             self.progress_bar["value"] = 0
@@ -175,14 +151,11 @@ Please specify it in the Preferences menu.""")
         try:
             compile_project(project, base_rom, rom)
         except Exception as inst:
-            print "\nError:", str(inst)
-            if self.get_preference_value("ErrorDetails") == "1":
-                print_exc()
+            # TODO
+            pass
+
         self.progress_bar["value"] = 0
-        self.decompile_button["state"] = NORMAL
-        self.compile_button["state"] = NORMAL
-        self.upgrade_button["state"] = NORMAL
-        self._importRunB["state"] = NORMAL
+        self.enable_all_buttons()
 
     def do_upgrade(self, rom_entry, project_entry):
         rom = rom_entry.get()
@@ -190,14 +163,12 @@ Please specify it in the Preferences menu.""")
 
         if rom and project:
             # Update the GUI
-            self.reset_console()
-            self.decompile_button["state"] = DISABLED
-            self.compile_button["state"] = DISABLED
-            self.upgrade_button["state"] = DISABLED
+            self.clear_console()
+            self.disable_all_buttons()
             # Save the fields to preferences
-            self._prefs["upgrade_rom"] = rom
-            self._prefs["upgrade_proj"] = project
-            self.save_preferences()
+            self.preferences["upgrade_rom"] = rom
+            self.preferences["upgrade_proj"] = project
+            self.preferences.save()
 
             self.progress_bar["value"] = 0
             self.progress_bar.step(10)
@@ -209,67 +180,11 @@ Please specify it in the Preferences menu.""")
         try:
             upgrade_project(project_path=project, base_rom_filename=rom)
         except Exception as inst:
-            print "\nError:", str(inst)
-            if self.get_preference_value("ErrorDetails") == "1":
-                print_exc()
+            pass
+            # TODO
+
         self.progress_bar["value"] = 0
-        self.decompile_button["state"] = NORMAL
-        self.compile_button["state"] = NORMAL
-        self.upgrade_button["state"] = NORMAL
-
-    def expand_rom(self, ex=False):
-        rom = Rom()
-        filename = tkFileDialog.askopenfilename(
-            parent=self.root, title="Select a ROM to expand",
-            filetypes=[('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')])
-        if filename:
-            rom.load(filename)
-            if (not ex and len(rom) >= 0x400000) or (ex and (len(rom) >= 0x600000)):
-                tkMessageBox.showerror(
-                    parent=self.root,
-                    title="Error",
-                    message="This ROM is already expanded.")
-            else:
-                if ex:
-                    rom.expand(0x600000)
-                else:
-                    rom.expand(0x400000)
-                rom.save(filename)
-                del rom
-                tkMessageBox.showinfo(
-                    parent=self.root,
-                    title="Expansion Successful",
-                    message="Your ROM was expanded.")
-
-    def expand_rom_ex(self):
-        self.expand_rom(ex=True)
-
-    def add_header_to_rom(self):
-        filename = tkFileDialog.askopenfilename(
-            parent=self.root, title="Select a ROM to which to add a header",
-            filetypes=[('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')])
-        if filename:
-            with Rom() as rom:
-                rom.from_file(filename)
-                rom.add_header()
-                rom.to_file(filename)
-            tkMessageBox.showinfo(
-                parent=self.root,
-                title="Header Addition Successful",
-                message="Your ROM was given a header.")
-
-    def strip_header_from_rom(self):
-        filename = tkFileDialog.askopenfilename(
-            parent=self.root, title="Select a ROM from which to remove a header",
-            filetypes=[('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')])
-        if filename:
-            with Rom() as rom:
-                rom.from_file(filename)
-                rom.to_file(filename)
-            tkMessageBox.showinfo(
-                parent=self.root,
-                title="Header Removal Successful",
-                message="Your ROM's header was removed.")
+        self.enable_all_buttons()
 
     def extract_earthbound_dialogue(self):
         if not CCScriptWriter:
@@ -312,9 +227,7 @@ Please specify it in the Preferences menu.""")
             ccsw.processDialogue()
             ccsw.outputDialogue(True)
         except Exception as inst:
-            print "\nError:", str(inst)
-            if self.get_preference_value("ErrorDetails") == "1":
-                print_exc()
+            pass  # TODO
         else:
             print "Complete. Time: {:.2f}s".format(float(time() - start))
             tkMessageBox.showinfo(
@@ -324,15 +237,18 @@ Please specify it in the Preferences menu.""")
         finally:
             rom_file.close()
 
+    # GUI
+
+    def main(self):
+        self.create_gui()
+        self.root.mainloop()
+
     def create_gui(self):
         self.root = Tk()
-        if self.get_preference_value("title") == 1:
+        if self.preferences["title"]:
             self.root.wm_title(get_fun_title() + " " + information.VERSION)
         else:
-            self.root.wm_title("CoilSnake" + " " + information.VERSION)
-            if self.get_preference_value("title") == 0:
-                self._prefs["title"] = 1
-                self.save_preferences()
+            self.root.wm_title("CoilSnake " + information.VERSION)
 
         self.create_menubar()
 
@@ -378,10 +294,6 @@ Please specify it in the Preferences menu.""")
 
         setup_logging(quiet=False, verbose=False)
 
-    def main(self):
-        self.create_gui()
-        self.root.mainloop()
-
     def create_menubar(self):
         menubar = Menu(self.root)
 
@@ -394,21 +306,21 @@ Please specify it in the Preferences menu.""")
         # Tools pulldown menu
         toolsMenu = Menu(menubar, tearoff=0)
         toolsMenu.add_command(label="Expand ROM to 32 MBit",
-                              command=self.expand_rom)
+                              command=partial(gui_util.expand_rom, self.root))
         toolsMenu.add_command(label="Expand ROM to 48 MBit",
-                              command=self.expand_rom_ex)
+                              command=partial(gui_util.expand_rom_ex, self.root))
         toolsMenu.add_command(label="Add Header to ROM",
-                              command=self.add_header_to_rom)
+                              command=partial(gui_util.add_header_to_rom, self.root))
         toolsMenu.add_command(label="Remove Header from ROM",
-                              command=self.strip_header_from_rom)
+                              command=partial(gui_util.strip_header_from_rom, self.root))
         toolsMenu.add_command(label="Extract EarthBound Dialogue to Project",
                               command=self.extract_earthbound_dialogue)
         menubar.add_cascade(label="Tools", menu=toolsMenu)
 
         # Help menu
-        helpMenu = Menu(menubar, tearoff=0)
-        helpMenu.add_command(label="About", command=self.about_menu)
-        menubar.add_cascade(label="Help", menu=helpMenu)
+        help_menu = Menu(menubar, tearoff=0)
+        help_menu.add_command(label="About", command=self.about_menu)
+        menubar.add_cascade(label="Help", menu=help_menu)
 
         self.root.config(menu=menubar)
 
@@ -417,29 +329,36 @@ Please specify it in the Preferences menu.""")
 
     def add_rom_fields_to_frame(self, name, frame, row, column):
         Label(frame, text="{}:".format(name), width=13, justify=RIGHT).grid(row=row, column=column, sticky=E+W)
-        rom_entry = Entry(frame)
+        rom_entry = Entry(frame, width=30)
         rom_entry.grid(row=row, column=column+1)
 
         def browse_tmp():
-            self.browse_for_rom(rom_entry)
+            browse_for_rom(self.root, rom_entry)
 
         def run_tmp():
             self.run_rom(rom_entry)
 
-        Button(frame, text="Browse...", command=browse_tmp).grid(row=row, column=column+2, sticky=E+W)
-        Button(frame, text="Run", command=run_tmp).grid(row=row, column=column+3, sticky=E+W)
+        button = Button(frame, text="Browse...", command=browse_tmp)
+        button.grid(row=row, column=column+2, sticky=E+W)
+        self.buttons.append(button)
+
+        button = Button(frame, text="Run", command=run_tmp)
+        button.grid(row=row, column=column+3, sticky=E+W)
+        self.buttons.append(button)
 
         return rom_entry
 
     def add_project_fields_to_frame(self, name, frame, row, column):
         Label(frame, text="{}:".format(name), width=13, justify=RIGHT).grid(row=row, column=column, sticky=E+W)
-        project_entry = Entry(frame)
+        project_entry = Entry(frame, width=30)
         project_entry.grid(row=row, column=column+1)
 
         def browse_tmp():
-            self.browse_for_project(project_entry, save=True)
+            browse_for_project(self.root, project_entry, save=True)
 
-        Button(frame, text="Browse...", command=browse_tmp).grid(row=row, column=column+2, sticky=E+W)
+        button = Button(frame, text="Browse...", command=browse_tmp)
+        button.grid(row=row, column=column+2, sticky=E+W)
+        self.buttons.append(button)
 
         return project_entry
 
@@ -457,6 +376,7 @@ Please specify it in the Preferences menu.""")
 
         self.decompile_button = Button(decompile_frame, text="Decompile", command=decompile_tmp)
         self.decompile_button.grid(row=3, column=0, columnspan=4, sticky=E+W)
+        self.buttons.append(self.decompile_button)
 
         return decompile_frame
 
@@ -476,6 +396,7 @@ Please specify it in the Preferences menu.""")
 
         self.compile_button = Button(compile_frame, text="Compile", command=compile_tmp)
         self.compile_button.grid(row=4, column=0, columnspan=4, sticky=E+W)
+        self.buttons.append(self.compile_button)
 
         return compile_frame
 
@@ -493,10 +414,11 @@ Please specify it in the Preferences menu.""")
 
         self.upgrade_button = Button(upgrade_frame, text="Upgrade", command=upgrade_tmp)
         self.upgrade_button.grid(row=3, column=0, columnspan=4, sticky=E+W)
+        self.buttons.append(self.upgrade_button)
 
         return upgrade_frame
 
 
 def main():
-    csf = CoilSnakeFrontend()
-    sys.exit(csf.main())
+    gui = CoilSnakeGui()
+    sys.exit(gui.main())
