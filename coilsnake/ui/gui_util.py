@@ -1,6 +1,8 @@
 from Tkconstants import END
+import subprocess
 import tkFileDialog
 import tkMessageBox
+import sys
 
 from coilsnake.model.common.blocks import Rom
 
@@ -97,3 +99,16 @@ def browse_for_project(root, entry, save=False):
     if filename:
         set_entry_text(entry, filename)
         entry.xview(END)
+
+
+def open_folder(entry):
+    path = entry.get()
+    if not path:
+        return
+
+    if sys.platform == 'darwin':
+        subprocess.check_call(['open', path])
+    elif sys.platform == 'linux2':
+        subprocess.check_call(['gnome-open', path])
+    elif sys.platform == 'win32':
+        subprocess.check_call(['explorer', path])

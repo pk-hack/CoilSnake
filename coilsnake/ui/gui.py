@@ -8,18 +8,19 @@ from Tkinter import *
 import tkFileDialog
 import tkMessageBox
 import ttk
+import os
 
 from PIL import ImageTk
 
+from coilsnake import Project
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui import information, gui_util
 from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging
 from coilsnake.ui.fun import get_fun_title
 from coilsnake.ui.gui_preferences import CoilSnakePreferences
-from coilsnake.ui.gui_util import browse_for_rom, browse_for_project
+from coilsnake.ui.gui_util import browse_for_rom, browse_for_project, open_folder
 from coilsnake.ui.information import coilsnake_about
 from coilsnake.util.common.assets import asset_path
-
 
 
 
@@ -103,6 +104,18 @@ class CoilSnakeGui(object):
 Please specify it in the Preferences menu.""")
         elif rom_filename:
             Popen([self.preferences["emulator"], rom_filename])
+    
+    def edit_project(self, entry):
+        project_path = entry.get()
+        self.preferences["java"] = "/usr/bin/java"
+        if not self.preferences["java"]:
+            tkMessageBox.showerror(parent=self.root,
+                                   title="Error",
+                                   message="""Java executable not specified.
+Please specify it in the Preferences menu.""")
+        elif project_path:
+            Popen([self.preferences["java"], "-jar", asset_path(["bin", "EbProjEdit.jar"]),
+                   os.path.join(project_path, Project.PROJECT_FILENAME)])
 
     # Actions
 
@@ -275,6 +288,9 @@ Please specify it in the Preferences menu.""")
         upgrade_frame = self.create_upgrade_frame(notebook)
         notebook.add(upgrade_frame, text="Upgrade")
 
+        decompile_script_frame = self.create_decompile_script_frame(notebook)
+        notebook.add(decompile_script_frame, text="Decompile Script")
+
         notebook.pack(fill=BOTH, expand=1)
 
         self.progress_bar = ttk.Progressbar(self.root, orient=HORIZONTAL, mode='determinate')
@@ -338,50 +354,44 @@ Please specify it in the Preferences menu.""")
 
     def create_decompile_frame(self, notebook):
         decompile_frame = ttk.Frame(notebook)
-        self.add_title_fields_to_frame(text="ROM -> New Project", frame=decompile_frame, row=0, column=0)
+        self.add_title_fields_to_frame(text="Decompile a ROM to create a new project.", frame=decompile_frame)
 
-        input_rom_entry = self.add_rom_fields_to_frame(
-            name="ROM", frame=decompile_frame, row=1, column=0)
-        project_entry = self.add_project_fields_to_frame(
-            name="Output Directory", frame=decompile_frame, row=2, column=0)
+        input_rom_entry = self.add_rom_fields_to_frame(name="ROM", frame=decompile_frame)
+        project_entry = self.add_project_fields_to_frame(name="Output Directory", frame=decompile_frame)
 
         def decompile_tmp():
             self.do_decompile(input_rom_entry, project_entry)
 
-        self.decompile_button = Button(decompile_frame, text="Decompile", command=decompile_tmp)
-        self.decompile_button.pack(fill=BOTH, expand=1)
-        self.buttons.append(self.decompile_button)
+        decompile_button = Button(decompile_frame, text="Decompile", command=decompile_tmp)
+        decompile_button.pack(fill=BOTH, expand=1)
+        self.buttons.append(decompile_button)
 
         return decompile_frame
 
     def create_compile_frame(self, notebook):
         compile_frame = ttk.Frame(notebook)
-        self.add_title_fields_to_frame(text="Project -> New ROM", frame=compile_frame, row=0, column=0)
+        self.add_title_fields_to_frame(text="Compile a project to create a new ROM.", frame=compile_frame)
 
-        base_rom_entry = self.add_rom_fields_to_frame(
-            name="Base ROM", frame=compile_frame, row=1, column=0)
-        project_entry = self.add_project_fields_to_frame(
-            name="Project", frame=compile_frame, row=2, column=0)
-        output_rom_entry = self.add_rom_fields_to_frame(
-            name="Output ROM", frame=compile_frame, row=3, column=0)
+        base_rom_entry = self.add_rom_fields_to_frame(name="Base ROM", frame=compile_frame)
+        project_entry = self.add_project_fields_to_frame(name="Project", frame=compile_frame)
+        output_rom_entry = self.add_rom_fields_to_frame(name="Output ROM", frame=compile_frame)
 
         def compile_tmp():
             self.do_compile(project_entry, base_rom_entry, output_rom_entry)
 
-        self.compile_button = Button(compile_frame, text="Compile", command=compile_tmp)
-        self.compile_button.pack(fill=BOTH, expand=1)
-        self.buttons.append(self.compile_button)
+        compile_button = Button(compile_frame, text="Compile", command=compile_tmp)
+        compile_button.pack(fill=BOTH, expand=1)
+        self.buttons.append(compile_button)
 
         return compile_frame
 
     def create_upgrade_frame(self, notebook):
         upgrade_frame = ttk.Frame(notebook)
-        self.add_title_fields_to_frame(text="Upgrade Project", frame=upgrade_frame, row=0, column=0)
+        self.add_title_fields_to_frame(text="Upgrade a project created using an older version of CoilSnake.",
+                                       frame=upgrade_frame)
 
-        rom_entry = self.add_rom_fields_to_frame(
-            name="Base ROM", frame=upgrade_frame, row=1, column=0)
-        project_entry = self.add_project_fields_to_frame(
-            name="Project", frame=upgrade_frame, row=2, column=0)
+        rom_entry = self.add_rom_fields_to_frame(name="Base ROM", frame=upgrade_frame)
+        project_entry = self.add_project_fields_to_frame(name="Project", frame=upgrade_frame)
 
         def upgrade_tmp():
             self.do_upgrade(rom_entry, project_entry)
@@ -392,10 +402,27 @@ Please specify it in the Preferences menu.""")
 
         return upgrade_frame
 
-    def add_title_fields_to_frame(self, text, frame, row, column):
-        Label(frame, text=text, justify=CENTER).pack(fill=BOTH, expand=1)
+    def create_decompile_script_frame(self, notebook):
+        decompile_script_frame = ttk.Frame(notebook)
+        self.add_title_fields_to_frame(text="Decompile a ROM's script to an already existing project.",
+                                       frame=decompile_script_frame)
 
-    def add_rom_fields_to_frame(self, name, frame, row, column):
+        input_rom_entry = self.add_rom_fields_to_frame(name="ROM", frame=decompile_script_frame)
+        project_entry = self.add_project_fields_to_frame(name="Project", frame=decompile_script_frame)
+
+        def decompile_script_tmp():
+            self.do_decompile(input_rom_entry, project_entry)
+
+        button = Button(decompile_script_frame, text="Decompile Script", command=decompile_script_tmp)
+        button.pack(fill=BOTH, expand=1)
+        self.buttons.append(button)
+
+        return decompile_script_frame
+
+    def add_title_fields_to_frame(self, text, frame):
+        Label(frame, text=text, justify=CENTER, height=2).pack(fill=BOTH, expand=1)
+
+    def add_rom_fields_to_frame(self, name, frame):
         rom_frame = ttk.Frame(frame)
 
         Label(rom_frame, text="{}:".format(name), width=13, justify=RIGHT).pack(side=LEFT, fill=BOTH, expand=1)
@@ -408,19 +435,23 @@ Please specify it in the Preferences menu.""")
         def run_tmp():
             self.run_rom(rom_entry)
 
-        button = Button(rom_frame, text="Browse...", command=browse_tmp, width=10)
+        button = Button(rom_frame, text="Browse...", command=browse_tmp, width=6)
         button.pack(side=LEFT, fill=BOTH, expand=1)
         self.buttons.append(button)
 
-        button = Button(rom_frame, text="Run", command=run_tmp, width=10)
+        button = Button(rom_frame, text="Run", command=run_tmp, width=5)
         button.pack(side=LEFT, fill=BOTH, expand=1)
         self.buttons.append(button)
+
+        button = Button(rom_frame, text="", width=5, state=DISABLED, takefocus=False, border=0)
+        button.pack(side=LEFT, fill=BOTH, expand=1)
+        button.lower()
 
         rom_frame.pack()
 
         return rom_entry
 
-    def add_project_fields_to_frame(self, name, frame, row, column):
+    def add_project_fields_to_frame(self, name, frame):
         project_frame = ttk.Frame(frame)
 
         Label(project_frame, text="{}:".format(name), width=13, justify=RIGHT).pack(side=LEFT)
@@ -430,11 +461,21 @@ Please specify it in the Preferences menu.""")
         def browse_tmp():
             browse_for_project(self.root, project_entry, save=True)
 
-        button = Button(project_frame, text="Browse...", command=browse_tmp, width=10)
+        def open_tmp():
+            open_folder(project_entry)
+
+        def edit_tmp():
+            self.edit_project(project_entry)
+
+        button = Button(project_frame, text="Browse...", command=browse_tmp, width=6)
         button.pack(side=LEFT, fill=BOTH, expand=1)
         self.buttons.append(button)
 
-        button = Button(project_frame, text="Open", command=browse_tmp, width=10)
+        button = Button(project_frame, text="Open", command=open_tmp, width=5)
+        button.pack(side=LEFT, fill=BOTH, expand=1)
+        self.buttons.append(button)
+
+        button = Button(project_frame, text="Edit", command=edit_tmp, width=5)
         button.pack(side=LEFT, fill=BOTH, expand=1)
         self.buttons.append(button)
 
