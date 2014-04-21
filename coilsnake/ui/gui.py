@@ -9,6 +9,8 @@ import tkFileDialog
 import tkMessageBox
 import ttk
 
+from PIL import ImageTk
+
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui import information, gui_util
 from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging
@@ -20,6 +22,7 @@ from coilsnake.util.common.assets import asset_path
 
 
 
+
 # Import CCScriptWriter from the submodule, if possible.
 
 if isdir(join("tools", "CCScriptWriter")):
@@ -27,9 +30,6 @@ if isdir(join("tools", "CCScriptWriter")):
     from CCScriptWriter import CCScriptWriter
 else:
     CCScriptWriter = None
-
-
-
 
 
 class CoilSnakeGui(object):
@@ -48,41 +48,12 @@ class CoilSnakeGui(object):
         emulator_exe = tkFileDialog.askopenfilename(
             parent=self.root,
             title="Select an Emulator Executable",
-            initialfile=self.preferences["Emulator"])
+            initialfile=self.preferences["emulator"])
         if emulator_exe:
-            self.preferences["Emulator"] = emulator_exe
+            self.preferences["emulator"] = emulator_exe
             self.preferences.save()
 
-    # GUI Popup functions
-
-    def about_menu(self):
-        about_menu = Toplevel(self.root)
-        photo = PhotoImage(file=asset_path("images", "logo.gif"))
-        about_label = Label(about_menu, image=photo)
-        about_label.photo = photo
-        about_label.pack(fill='both', expand=1)
-
-        Label(about_menu,
-              text=coilsnake_about(),
-              anchor="w", justify="left", bg="white", borderwidth=5,
-              relief=GROOVE).pack(
-            fill='both', expand=1)
-        Button(about_menu, text="Toggle Alternate Titles", command=self.toggle_titles).pack(fill=X)
-        Button(about_menu, text="Close", command=about_menu.destroy).pack(fill=X)
-        about_menu.resizable(False, False)
-        about_menu.title("About CoilSnake {}".format(information.VERSION))
-
-    def run_rom(self, entry):
-        rom_filename = entry.get()
-        if not self.preferences["Emulator"]:
-            tkMessageBox.showerror(parent=self.root,
-                                   title="Error",
-                                   message="""Emulator executable not specified.
-Please specify it in the Preferences menu.""")
-        elif rom_filename:
-            Popen([self.preferences["Emulator"], rom_filename])
-
-    # Actions
+    # GUI update functions
 
     def clear_console(self):
         self.console.delete(1.0, END)
@@ -95,6 +66,45 @@ Please specify it in the Preferences menu.""")
     def enable_all_buttons(self):
         for button in self.buttons:
             button["state"] = NORMAL
+
+    # GUI popup functions
+
+    def about_menu(self):
+        about_menu = Toplevel(self.root)
+
+        photo = ImageTk.PhotoImage(file=asset_path(["images", "logo.png"]))
+        about_label = Label(about_menu, image=photo)
+        about_label.photo = photo
+        about_label.pack(side=LEFT, expand=1)
+
+        about_right_frame = ttk.Frame(about_menu)
+        Label(about_right_frame,
+              text=coilsnake_about(),
+              height=15,
+              anchor="w",
+              justify="left",
+              bg="white",
+              borderwidth=5,
+              relief=GROOVE).pack(fill=BOTH, expand=1, side=TOP)
+        Button(about_right_frame, text="Toggle Alternate Titles", command=self.toggle_titles).pack(fill=BOTH, expand=1)
+        Button(about_right_frame, text="Close", command=about_menu.destroy).pack(fill=BOTH, expand=1)
+
+        about_right_frame.pack(side=LEFT, fill=BOTH, expand=1)
+
+        about_menu.resizable(False, False)
+        about_menu.title("About CoilSnake {}".format(information.VERSION))
+
+    def run_rom(self, entry):
+        rom_filename = entry.get()
+        if not self.preferences["emulator"]:
+            tkMessageBox.showerror(parent=self.root,
+                                   title="Error",
+                                   message="""Emulator executable not specified.
+Please specify it in the Preferences menu.""")
+        elif rom_filename:
+            Popen([self.preferences["emulator"], rom_filename])
+
+    # Actions
 
     def do_decompile(self, rom_entry, project_entry):
         rom = rom_entry.get()
@@ -134,6 +144,7 @@ Please specify it in the Preferences menu.""")
             # Update the GUI
             self.clear_console()
             self.disable_all_buttons()
+
             # Save the fields to preferences
             self.preferences["import_proj"] = project
             self.preferences["import_baserom"] = base_rom
@@ -165,6 +176,7 @@ Please specify it in the Preferences menu.""")
             # Update the GUI
             self.clear_console()
             self.disable_all_buttons()
+
             # Save the fields to preferences
             self.preferences["upgrade_rom"] = rom
             self.preferences["upgrade_proj"] = project
@@ -263,19 +275,19 @@ Please specify it in the Preferences menu.""")
         upgrade_frame = self.create_upgrade_frame(notebook)
         notebook.add(upgrade_frame, text="Upgrade")
 
-        notebook.grid(row=0, column=0, sticky=E+W)
+        notebook.pack(fill=BOTH, expand=1)
 
         self.progress_bar = ttk.Progressbar(self.root, orient=HORIZONTAL, mode='determinate')
-        self.progress_bar.grid(row=1, column=0, sticky=E+W)
+        self.progress_bar.pack(fill=BOTH, expand=1)
 
         console_frame = Frame(self.root)
-        console_frame.grid(row=2, column=0, sticky=E+W)
         scrollbar = Scrollbar(console_frame)
         self.console = Text(console_frame, width=80, height=8)
         scrollbar.pack(side=RIGHT, fill=Y)
         self.console.pack(fill=X)
         scrollbar.config(command=self.console.yview)
         self.console.config(yscrollcommand=scrollbar.set)
+        console_frame.pack(fill=X, expand=1)
 
         class StdoutRedirector(object):
             def __init__(self, textarea):
@@ -324,44 +336,6 @@ Please specify it in the Preferences menu.""")
 
         self.root.config(menu=menubar)
 
-    def add_title_fields_to_frame(self, text, frame, row, column):
-        Label(frame, text=text, justify=CENTER).grid(row=0, column=0, columnspan=4, sticky=E+W)
-
-    def add_rom_fields_to_frame(self, name, frame, row, column):
-        Label(frame, text="{}:".format(name), width=13, justify=RIGHT).grid(row=row, column=column, sticky=E+W)
-        rom_entry = Entry(frame, width=30)
-        rom_entry.grid(row=row, column=column+1)
-
-        def browse_tmp():
-            browse_for_rom(self.root, rom_entry)
-
-        def run_tmp():
-            self.run_rom(rom_entry)
-
-        button = Button(frame, text="Browse...", command=browse_tmp)
-        button.grid(row=row, column=column+2, sticky=E+W)
-        self.buttons.append(button)
-
-        button = Button(frame, text="Run", command=run_tmp)
-        button.grid(row=row, column=column+3, sticky=E+W)
-        self.buttons.append(button)
-
-        return rom_entry
-
-    def add_project_fields_to_frame(self, name, frame, row, column):
-        Label(frame, text="{}:".format(name), width=13, justify=RIGHT).grid(row=row, column=column, sticky=E+W)
-        project_entry = Entry(frame, width=30)
-        project_entry.grid(row=row, column=column+1)
-
-        def browse_tmp():
-            browse_for_project(self.root, project_entry, save=True)
-
-        button = Button(frame, text="Browse...", command=browse_tmp)
-        button.grid(row=row, column=column+2, sticky=E+W)
-        self.buttons.append(button)
-
-        return project_entry
-
     def create_decompile_frame(self, notebook):
         decompile_frame = ttk.Frame(notebook)
         self.add_title_fields_to_frame(text="ROM -> New Project", frame=decompile_frame, row=0, column=0)
@@ -375,7 +349,7 @@ Please specify it in the Preferences menu.""")
             self.do_decompile(input_rom_entry, project_entry)
 
         self.decompile_button = Button(decompile_frame, text="Decompile", command=decompile_tmp)
-        self.decompile_button.grid(row=3, column=0, columnspan=4, sticky=E+W)
+        self.decompile_button.pack(fill=BOTH, expand=1)
         self.buttons.append(self.decompile_button)
 
         return decompile_frame
@@ -395,7 +369,7 @@ Please specify it in the Preferences menu.""")
             self.do_compile(project_entry, base_rom_entry, output_rom_entry)
 
         self.compile_button = Button(compile_frame, text="Compile", command=compile_tmp)
-        self.compile_button.grid(row=4, column=0, columnspan=4, sticky=E+W)
+        self.compile_button.pack(fill=BOTH, expand=1)
         self.buttons.append(self.compile_button)
 
         return compile_frame
@@ -413,10 +387,61 @@ Please specify it in the Preferences menu.""")
             self.do_upgrade(rom_entry, project_entry)
 
         self.upgrade_button = Button(upgrade_frame, text="Upgrade", command=upgrade_tmp)
-        self.upgrade_button.grid(row=3, column=0, columnspan=4, sticky=E+W)
+        self.upgrade_button.pack(fill=BOTH, expand=1)
         self.buttons.append(self.upgrade_button)
 
         return upgrade_frame
+
+    def add_title_fields_to_frame(self, text, frame, row, column):
+        Label(frame, text=text, justify=CENTER).pack(fill=BOTH, expand=1)
+
+    def add_rom_fields_to_frame(self, name, frame, row, column):
+        rom_frame = ttk.Frame(frame)
+
+        Label(rom_frame, text="{}:".format(name), width=13, justify=RIGHT).pack(side=LEFT, fill=BOTH, expand=1)
+        rom_entry = Entry(rom_frame, width=30)
+        rom_entry.pack(side=LEFT, fill=BOTH, expand=1)
+
+        def browse_tmp():
+            browse_for_rom(self.root, rom_entry)
+
+        def run_tmp():
+            self.run_rom(rom_entry)
+
+        button = Button(rom_frame, text="Browse...", command=browse_tmp, width=10)
+        button.pack(side=LEFT, fill=BOTH, expand=1)
+        self.buttons.append(button)
+
+        button = Button(rom_frame, text="Run", command=run_tmp, width=10)
+        button.pack(side=LEFT, fill=BOTH, expand=1)
+        self.buttons.append(button)
+
+        rom_frame.pack()
+
+        return rom_entry
+
+    def add_project_fields_to_frame(self, name, frame, row, column):
+        project_frame = ttk.Frame(frame)
+
+        Label(project_frame, text="{}:".format(name), width=13, justify=RIGHT).pack(side=LEFT)
+        project_entry = Entry(project_frame, width=30)
+        project_entry.pack(side=LEFT, fill=BOTH, expand=1)
+
+        def browse_tmp():
+            browse_for_project(self.root, project_entry, save=True)
+
+        button = Button(project_frame, text="Browse...", command=browse_tmp, width=10)
+        button.pack(side=LEFT, fill=BOTH, expand=1)
+        self.buttons.append(button)
+
+        button = Button(project_frame, text="Open", command=browse_tmp, width=10)
+        button.pack(side=LEFT, fill=BOTH, expand=1)
+        self.buttons.append(button)
+
+        project_frame.pack()
+
+        return project_entry
+
 
 
 def main():

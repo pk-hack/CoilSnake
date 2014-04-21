@@ -11,28 +11,28 @@ logger = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--verbose", help="Increase output verbosity", action="store_true")
-    parser.add_argument("--quiet", help="Silence all output", action="store_true")
+    parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
+    parser.add_argument("--quiet", help="silence all output", action="store_true")
     subparsers = parser.add_subparsers()
 
-    compile_parser = subparsers.add_parser("compile", help="Compile from Project to ROM")
+    compile_parser = subparsers.add_parser("compile", help="compile from project to rom")
     compile_parser.add_argument("project_directory")
     compile_parser.add_argument("base_rom")
     compile_parser.add_argument("output_rom")
     compile_parser.set_defaults(func=_compile)
 
-    decompile_parser = subparsers.add_parser("decompile", help="Decompile from ROM to Project")
+    decompile_parser = subparsers.add_parser("decompile", help="decompile from rom to project")
     decompile_parser.add_argument("rom")
     decompile_parser.add_argument("project_directory")
     decompile_parser.set_defaults(func=_decompile)
 
     upgrade_parser = subparsers.add_parser("upgrade",
-                                           help="Upgrade a Project to be compatible with this version of CoilSnake")
+                                           help="upgrade a project which was created by an older version of CoilSnake")
     upgrade_parser.add_argument("base_rom")
     upgrade_parser.add_argument("project_directory")
     upgrade_parser.set_defaults(func=_upgrade)
 
-    version_parser = subparsers.add_parser("version", help="Display version information")
+    version_parser = subparsers.add_parser("version", help="display version information")
     version_parser.set_defaults(func=_version)
 
     args = parser.parse_args()

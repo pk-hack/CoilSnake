@@ -33,7 +33,7 @@ coilsnake-cmd
 ### Development
 To run CoilSnake from source without installing:
 ```
-sudo apt-get install python-dev libyaml-dev
+sudo apt-get install python-dev libyaml-dev tk8.5-dev tcl8.5-dev
 sudo pip install Pillow PyYAML
 make
 python coilsnake.py
