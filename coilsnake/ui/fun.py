@@ -6,7 +6,7 @@ def xor_crypt_string(data, key):
     return ''.join(chr(ord(x) ^ ord(y)) for (x, y) in izip(data, cycle(key)))
 
 
-superSecretData = [
+super_secret_data = [
     '\x10\x1b\x06\x1cs\x0c\x04\x02\x0b',
     '\x01\x01\x01\x11W\x03\x1c-\x01\x00',
     '\x01\x1b\x0c\x1bI\x0cE,\n\x0eT\x01\x1d',
@@ -71,6 +71,6 @@ superSecretData = [
     '\x03\x11\x01\x13I\x0eE,\x1c\x06S\x0b\x1d']
 
 
-def getTitle():
-    return xor_crypt_string(choice(superSecretData),
+def get_fun_title():
+    return xor_crypt_string(choice(super_secret_data),
                             "Stop being nosy and just enjoy the program")  # seriously come on

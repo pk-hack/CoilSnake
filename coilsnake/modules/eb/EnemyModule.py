@@ -51,7 +51,7 @@ class EnemyModule(EbModule):
                                              offset=from_snes_address(ENEMY_GROUP_BACKGROUND_TABLE_DEFAULT_OFFSET))
 
         # Read the sprites
-        log.info("Reading battle sprites")
+        log.debug("Reading battle sprites")
         self.graphics_pointer_table.from_block(
             rom, from_snes_address(read_asm_pointer(block=rom, offset=GRAPHICS_POINTER_TABLE_ASM_POINTER_OFFSET)))
         self.battle_sprites = []
@@ -71,7 +71,7 @@ class EnemyModule(EbModule):
         num_palettes += 1
 
         # Read the palettes
-        log.info("Reading palettes")
+        log.debug("Reading palettes")
         palettes_offset = from_snes_address(read_asm_pointer(block=rom, offset=PALETTES_ASM_POINTER_OFFSET))
         self.palettes = []
         for i in range(num_palettes):
@@ -81,7 +81,7 @@ class EnemyModule(EbModule):
             palettes_offset += palette.block_size()
 
         # Read the groups
-        log.info("Reading groups")
+        log.debug("Reading enemy groups")
         self.enemy_group_table.from_block(rom, from_snes_address(ENEMY_GROUP_TABLE_DEFAULT_OFFSET))
         self.enemy_groups = []
         for i in range(self.enemy_group_table.num_rows):
@@ -137,7 +137,7 @@ class EnemyModule(EbModule):
             self.enemy_config_table.to_yml_file(f)
 
         # Write the battle sprite images
-        log.info("Writing battle sprites")
+        log.debug("Writing battle sprites")
         for i in range(self.enemy_config_table.num_rows):
             battle_sprite_id = self.enemy_config_table[i][4]
             if battle_sprite_id > 0:
@@ -150,7 +150,7 @@ class EnemyModule(EbModule):
                 del image
 
         # Write the groups
-        log.info("Writing groups")
+        log.debug("Writing groups")
         out = dict()
         enemy_group_table_yml_rep = self.enemy_group_table.to_yml_rep()
         enemy_group_bg_table_yml_rep = self.enemy_group_bg_table.to_yml_rep()

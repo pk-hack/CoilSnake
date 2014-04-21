@@ -1,14 +1,10 @@
 from functools import partial
-import logging
 
 from coilsnake.model.eb.map_sprites import SpritePlacementPointerTableEntry
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.eb.helper import not_in_bank
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
-
-
-log = logging.getLogger(__name__)
 
 
 class MapSpriteModule(EbModule):

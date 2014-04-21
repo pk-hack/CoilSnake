@@ -107,27 +107,27 @@ class CompressedGraphicsModule(EbModule):
         del self.gas_station_logo
 
     def read_from_rom(self, rom):
-        log.info("Reading town maps")
+        log.debug("Reading town maps")
         self.read_town_maps_from_rom(rom)
-        log.info("Reading town map icons")
+        log.debug("Reading town map icons")
         self.read_town_map_icons_from_rom(rom)
-        log.info("Reading company logos")
+        log.debug("Reading company logos")
         self.read_logos_from_rom(rom, self.company_logos, COMPANY_LOGO_INFOS)
-        log.info("Reading attract mode logos")
+        log.debug("Reading attract mode logos")
         self.read_logos_from_rom(rom, self.attract_mode_logos, ATTRACT_MODE_INFOS)
-        log.info("Reading gas station logo")
+        log.debug("Reading gas station logo")
         self.read_logos_from_rom(rom, [self.gas_station_logo], [GAS_STATION_INFO])
 
     def write_to_rom(self, rom):
-        log.info("Writing town maps")
+        log.debug("Writing town maps")
         self.write_town_maps_to_rom(rom)
-        log.info("Writing town map icons")
+        log.debug("Writing town map icons")
         self.write_town_map_icons_to_rom(rom)
-        log.info("Writing company logos")
+        log.debug("Writing company logos")
         self.write_logos_to_rom(rom, self.company_logos, COMPANY_LOGO_INFOS)
-        log.info("Writing attract mode logos")
+        log.debug("Writing attract mode logos")
         self.write_logos_to_rom(rom, self.attract_mode_logos, ATTRACT_MODE_INFOS)
-        log.info("Writing gas station logo")
+        log.debug("Writing gas station logo")
         self.write_logos_to_rom(rom, [self.gas_station_logo], [GAS_STATION_INFO])
 
     def read_town_maps_from_rom(self, rom):
@@ -183,27 +183,27 @@ class CompressedGraphicsModule(EbModule):
                 write_asm_pointer(block=rom, offset=asm_pointer_offset, pointer=to_snes_address(offset))
 
     def read_from_project(self, resource_open):
-        log.info("Reading town maps")
+        log.debug("Reading town maps")
         self.read_town_maps_from_project(resource_open)
-        log.info("Reading town map icons")
+        log.debug("Reading town map icons")
         self.read_town_map_icons_from_project(resource_open)
-        log.info("Reading company logos")
+        log.debug("Reading company logos")
         self.read_logos_from_project(resource_open, self.company_logos, COMPANY_LOGO_INFOS)
-        log.info("Reading attract mode logos")
+        log.debug("Reading attract mode logos")
         self.read_logos_from_project(resource_open, self.attract_mode_logos, ATTRACT_MODE_INFOS)
-        log.info("Reading gas station logo")
+        log.debug("Reading gas station logo")
         self.read_gas_station_from_project(resource_open)
 
     def write_to_project(self, resource_open):
-        log.info("Writing town maps")
+        log.debug("Writing town maps")
         self.write_town_maps_to_project(resource_open)
-        log.info("Writing town map icons")
+        log.debug("Writing town map icons")
         self.write_town_map_icons_to_project(resource_open)
-        log.info("Writing company logos")
+        log.debug("Writing company logos")
         self.write_logos_to_project(resource_open, self.company_logos, COMPANY_LOGO_INFOS)
-        log.info("Writing attract mode logos")
+        log.debug("Writing attract mode logos")
         self.write_logos_to_project(resource_open, self.attract_mode_logos, ATTRACT_MODE_INFOS)
-        log.info("Writing gas station logo")
+        log.debug("Writing gas station logo")
         self.write_gas_station_to_project(resource_open)
 
     def read_town_maps_from_project(self, resource_open):

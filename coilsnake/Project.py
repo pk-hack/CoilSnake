@@ -36,7 +36,6 @@ class Project:
         self._dirName = ""
 
     def load(self, f, romtype=None):
-        log.info("Loading %s", f)
         if isinstance(f, str):
             self._dirName = os.path.dirname(f)
         else:

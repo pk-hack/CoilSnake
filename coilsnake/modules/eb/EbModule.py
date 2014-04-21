@@ -1,11 +1,6 @@
-import logging
 import sys
 
 from coilsnake.modules.common.GenericModule import GenericModule
-
-
-log = logging.getLogger(__name__)
-
 
 try:
     from coilsnake.util.eb import native_comp

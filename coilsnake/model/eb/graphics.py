@@ -1,6 +1,5 @@
 from array import array
 from copy import deepcopy
-import logging
 from PIL import Image
 from zlib import crc32
 
@@ -12,8 +11,6 @@ from coilsnake.util.eb.graphics import read_2bpp_graphic_from_block, read_4bpp_g
     read_8bpp_graphic_from_block, read_1bpp_graphic_from_block, write_2bpp_graphic_to_block, \
     write_4bpp_graphic_to_block, write_8bpp_graphic_to_block, write_1bpp_graphic_to_block
 
-
-log = logging.getLogger(__name__)
 
 _EB_GRAPHIC_TILESET_SUPPORTED_BPP_FORMATS = frozenset([1, 2, 4, 8])
 

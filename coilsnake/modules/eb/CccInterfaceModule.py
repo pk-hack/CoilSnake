@@ -19,7 +19,7 @@ class CccInterfaceModule(EbModule):
         self.used_range = None
 
     def write_to_project(self, resource_open):
-        log.info("Creating empty CCScript compilation summary file")
+        log.debug("Creating empty CCScript compilation summary file")
         f = resource_open(CccInterfaceModule.SUMMARY_RESOURCE_NAME, CccInterfaceModule.SUMMARY_RESOURCE_EXTENSION)
         f.close()
 
@@ -35,10 +35,10 @@ class CccInterfaceModule(EbModule):
                 if compilation_start_address != 0xffffffff and compilation_end_address != 0xffffffff:
                     self.used_range = (from_snes_address(compilation_start_address),
                                        from_snes_address(compilation_end_address))
-                    log.info("Found range[(%#06x,%#06x)] used during compilation",
+                    log.debug("Found range[(%#06x,%#06x)] used during compilation",
                              self.used_range[0], self.used_range[1])
                 else:
-                    log.info("Found no space used during compilation")
+                    log.debug("Found no space used during compilation")
 
                 module_name = None
                 in_module_section = False  # False = before section, True = in section
@@ -58,9 +58,9 @@ class CccInterfaceModule(EbModule):
                     elif line.startswith("Labels in module "):
                         module_name = line[17:]
                         log.debug("Found CCScript module[%s]", module_name)
-        log.info("Found %d CCScript labels", len(EbPointer.label_address_map))
+        log.debug("Found %d CCScript labels", len(EbPointer.label_address_map))
 
     def write_to_rom(self, rom):
         if self.used_range:
-            log.info("Marking (%#x,%#x) as allocated by CCScript", self.used_range[0], self.used_range[1])
+            log.debug("Marking (%#x,%#x) as allocated by CCScript", self.used_range[0], self.used_range[1])
             rom.mark_allocated(self.used_range)

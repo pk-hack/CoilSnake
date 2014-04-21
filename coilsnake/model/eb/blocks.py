@@ -1,11 +1,6 @@
-import logging
-
 from coilsnake.model.common.blocks import Block
 from coilsnake.modules.eb.EbModule import comp, decomp
 from coilsnake.exceptions.eb.exceptions import InvalidEbCompressedDataError
-
-
-log = logging.getLogger(__name__)
 
 
 class EbCompressibleBlock(Block):

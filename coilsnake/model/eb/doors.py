@@ -305,10 +305,10 @@ def door_from_block(block, offset):
         door.from_block(block, offset)
         return door
     except IndexError:
-        log.warning("Ignoring a door at %#x with an invalid type of %#x", offset, block[offset + 2])
+        log.debug("Ignoring a door at %#x with an invalid type of %#x", offset, block[offset + 2])
         return None
     except InvalidUserDataError as e:
-        log.warning("Ignoring a door at %#x that contained invalid data: %s", offset, e.message)
+        log.debug("Ignoring a door at %#x that contained invalid data: %s", offset, e.message)
         return None
 
 

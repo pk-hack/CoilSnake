@@ -1,215 +1,61 @@
 #! /usr/bin/env python
-
-from subprocess import Popen, PIPE, STDOUT
-from shutil import copyfile
 import argparse
-import os
-import sys
-import time
 import logging
 
-from coilsnake import Project
-from coilsnake.model.common.blocks import Rom
-from coilsnake.ui import information
-from coilsnake.util.common.assets import open_asset
+from coilsnake.ui.common import compile_project, decompile_rom, upgrade_project, setup_logging
+from coilsnake.ui.information import coilsnake_about
 
 
-logging.basicConfig(format="%(name)s:%(levelname)s:\t%(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class CoilSnake:
-    def __init__(self):
-        self._all_modules = self.load_modules()
-
-    def load_modules(self):
-        all_modules = []
-        with open_asset("modulelist.txt") as f:
-            for line in f:
-                line = line.rstrip('\n')
-                if line[0] == '#':
-                    continue
-                components = line.split('.')
-                mod = __import__("coilsnake.modules." + line, globals(), locals(), [components[-1]])
-                all_modules.append((line, mod.__dict__[components[-1]] ))
-        return all_modules
-
-    def upgradeProject(self, baseRomFname, inputFname):
-        # Open project
-        proj = Project.Project()
-        proj.load(os.path.join(inputFname, Project.PROJECT_FILENAME))
-        # Print
-        print "Upgrading Project : ", inputFname, "(", proj.type(), ")"
-        print "From              : CoilSnake", \
-            Project.getVersionName(proj.version())
-        print "To                : CoilSnake", \
-            Project.getVersionName(Project.FORMAT_VERSION)
-        # Check that this project needs upgrading
-        if proj.version() > Project.FORMAT_VERSION:
-            print "Project '" + inputFname + "' is not compatible" \
-                                             " with this version of CoilSnake.\nPlease use this" \
-                                             " project with a newer version of CoilSnake."
-            return False
-        elif proj.version() == Project.FORMAT_VERSION:
-            print "This Project is already up-to-date.\nUpgrade cancelled."
-            return False
-        else:
-            # Perform the upgrade:
-
-            # Open rom
-            rom = Rom()
-            rom.from_file(baseRomFname)
-            # Make sure project type matches romtype
-            if rom.type != proj.type():
-                print "Rom type %s does not match Project type %s" % (rom.type, proj.type())
-                return False
-
-            compatible_modules = (x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type))
-            for (module_name, module_class) in compatible_modules:
-                start_time = time.time()
-                print "-", module_class.NAME, "...   0.00%",
-                sys.stdout.flush()
-                with module_class() as module:
-                    logger.info("Upgrading Project for module[%s]", module_name)
-                    module.upgrade_project(proj.version(), Project.FORMAT_VERSION, rom,
-                                           lambda x, y: proj.getResource(module_name, x, y, 'rb'),
-                                           lambda x, y: proj.getResource(module_name, x, y, 'wb'),
-                                           lambda x: proj.deleteResource(module_name, x))
-                    logger.info("Completed module[%s]", module_name)
-                print "(%0.2fs)" % (time.time() - start_time)
-
-            proj.setVersion(Project.FORMAT_VERSION)
-            proj.write(os.path.join(inputFname, Project.PROJECT_FILENAME))
-            return True
-
-    def projToRom(self, inputFname, cleanRomFname, outRomFname, ccc=None):
-        # Open project
-        proj = Project.Project()
-        proj.load(os.path.join(inputFname, Project.PROJECT_FILENAME))
-        # Check that the project is readable by this version of CS
-        if proj.version() > Project.FORMAT_VERSION:
-            print "Project '" + inputFname + "' is not compatible" \
-                                             " with this version of CoilSnake.\nPlease use this" \
-                                             " project with a newer version of CoilSnake."
-            return False
-        elif proj.version() < Project.FORMAT_VERSION:
-            print "Project '" + inputFname + "' is not compatible" \
-                                             " with this version of CoilSnake.\nPlease upgrade this" \
-                                             " project before trying to use it."
-            return False
-        # Compile scripts using CCScript
-        if cleanRomFname != outRomFname:
-            copyfile(cleanRomFname, outRomFname)
-        if ccc:
-            scriptFnames = [os.path.join(inputFname, "ccscript", x)
-                            for x in os.listdir(os.path.join(inputFname, "ccscript"))
-                            if x.endswith('.ccs')]
-            print "Calling external CCScript Compiler...",
-            process = Popen(
-                [ccc, "-n", "-o", outRomFname, "-s", "F10000",
-                 "--summary", os.path.join(inputFname, "ccscript", "summary.txt")] +
-                scriptFnames, stdout=PIPE, stderr=STDOUT)
-            process.wait()
-            if process.returncode == 0:
-                print "Done"
-            else:
-                print
-                print process.stdout.read(),
-                raise RuntimeError("There is an error in your CCScript code."
-                                   + " Scroll up to see the error message.")
-        # Open rom
-        rom = Rom()
-        rom.from_file(outRomFname)
-        # Make sure project type matches romtype
-        if rom.type != proj.type():
-            print "Rom type %s does not match Project type %s" % (rom.type, proj.type())
-            return False
-
-        compatible_modules = list(x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type))
-        for (module_name, module_class) in compatible_modules:
-            for free_range in module_class.FREE_RANGES:
-                rom.deallocate(free_range)
-
-        print "From Project : ", inputFname, "(", proj.type(), ")"
-        print "To       ROM : ", outRomFname, "(", rom.type, ")"
-
-        for (module_name, module_class) in compatible_modules:
-            start_time = time.time()
-            print "-", module_class.NAME, "...   0.00%",
-            sys.stdout.flush()
-            with module_class() as module:
-                logger.info("Reading from Project for module[%s]", module_name)
-                module.read_from_project(lambda x, y: proj.getResource(module_name, x, y, 'rb'))
-                logger.info("Writing to ROM for module[%s]", module_name)
-                module.write_to_rom(rom)
-                logger.info("Finished module[%s]", module_name)
-            print "(%0.2fs)" % (time.time() - start_time)
-        rom.to_file(outRomFname)
-        return True
-
-    def romToProj(self, inputRomFname, outputFname):
-        # Load the ROM
-        rom = Rom()
-        rom.from_file(inputRomFname)
-        # Load the Project
-        proj = Project.Project()
-        proj.load(os.path.join(outputFname, Project.PROJECT_FILENAME), rom.type)
-
-        print "From   ROM :", inputRomFname, "(", rom.type, ")"
-        print "To Project :", outputFname, "(", proj.type(), ")"
-
-        compatible_modules = (x for x in self._all_modules if x[1].is_compatible_with_romtype(rom.type))
-        for (module_name, module_class) in compatible_modules:
-            start_time = time.time()
-            print "-", module_class.NAME, "...   0.00%",
-            sys.stdout.flush()
-            with module_class() as module:
-                logger.info("Reading from ROM for module[%s]", module_name)
-                module.read_from_rom(rom)
-                logger.info("Writing to Project for module[%s]", module_name)
-                module.write_to_project(lambda x, y: proj.getResource(module_name, x, y, 'wb'))
-                logger.info("Finished module[%s]", module_name)
-            print "(%0.2fs)" % (time.time() - start_time)
-        proj.write(os.path.join(outputFname, Project.PROJECT_FILENAME))
-        return True
-
-
 def main():
-    print "CoilSnake", information.VERSION, "(" + information.RELEASE_DATE + ")"
     parser = argparse.ArgumentParser()
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-c', '--compile', action='store', nargs=3,
-                       dest="compileInfo", help="Compile from Project to ROM",
-                       metavar=("ProjectDirectory", "BaseROM", "OutputROM"))
-    group.add_argument('-d', '--decompile', action='store', nargs=2,
-                       dest="decompileInfo", help="Decompile from ROM to Project",
-                       metavar=("ROM", "ProjectDirectory"))
-    group.add_argument('-u', '--upgrade', action='store', nargs=2,
-                       dest="upgradeInfo", help="Upgrade a Project to be compatible with"
-                                                + " this version of CoilSnake",
-                       metavar=("BaseROM", "ProjectDirectory"))
-    parser.add_argument("--ccc", help="Path to CCScript Compiler Executable")
+    parser.add_argument("--verbose", help="Increase output verbosity", action="store_true")
+    parser.add_argument("--quiet", help="Silence all output", action="store_true")
+    subparsers = parser.add_subparsers()
+
+    compile_parser = subparsers.add_parser("compile", help="Compile from Project to ROM")
+    compile_parser.add_argument("project_directory")
+    compile_parser.add_argument("base_rom")
+    compile_parser.add_argument("output_rom")
+    compile_parser.set_defaults(func=_compile)
+
+    decompile_parser = subparsers.add_parser("decompile", help="Decompile from ROM to Project")
+    decompile_parser.add_argument("rom")
+    decompile_parser.add_argument("project_directory")
+    decompile_parser.set_defaults(func=_decompile)
+
+    upgrade_parser = subparsers.add_parser("upgrade",
+                                           help="Upgrade a Project to be compatible with this version of CoilSnake")
+    upgrade_parser.add_argument("base_rom")
+    upgrade_parser.add_argument("project_directory")
+    upgrade_parser.set_defaults(func=_upgrade)
+
+    version_parser = subparsers.add_parser("version", help="Display version information")
+    version_parser.set_defaults(func=_version)
+
     args = parser.parse_args()
 
-    if args.compileInfo is not None:
-        # Compile
-        cs = CoilSnake()
-        cs.projToRom(args.compileInfo[0],
-                     args.compileInfo[1], args.compileInfo[2],
-                     args.ccc)
-    elif args.decompileInfo is not None:
-        # Decompile
-        cs = CoilSnake()
-        cs.romToProj(args.decompileInfo[0],
-                     args.decompileInfo[1])
-    elif args.upgradeInfo is not None:
-        # Upgrade
-        cs = CoilSnake()
-        cs.upgradeProject(args.upgradeInfo[0],
-                          args.upgradeInfo[1])
+    setup_logging(quiet=args.quiet, verbose=args.verbose)
 
-#import cProfile
-if __name__ == '__main__':
-    sys.exit(main())
-    #    cProfile.run('main()', '/home/max/cs.prof')
-    #    sys.exit(0)
+    args.func(args)
+
+
+def _compile(args):
+    compile_project(project_path=args.project_directory,
+                    base_rom_filename=args.base_rom,
+                    output_rom_filename=args.output_rom)
+
+
+def _decompile(args):
+    decompile_rom(rom_filename=args.rom,
+                  project_path=args.project_directory)
+
+
+def _upgrade(args):
+    upgrade_project(base_rom_filename=args.base_rom,
+                    project_path=args.project_directory)
+
+def _version(args):
+    print coilsnake_about()

@@ -1,7 +1,3 @@
-import logging
-
-log = logging.getLogger(__name__)
-
 ##### The logic for the following code that reads/writes to tile-based graphical data is borrowed from HackModule.java
 ##### in JHack, written by AnyoneEB.
 
@@ -14,8 +10,6 @@ def read_1bpp_graphic_from_block(source, target, offset, x=0, y=0, height=8):
     :param x: x offset on the target image to write to
     :param y: y offset on the target image to write to
     :param height: the height in pixels of the graphic to read"""
-    log.debug("read_1bpp_graphic_from_block called with offset[{:#x}], x[{}], y[{}], height[{}]".format(
-        offset, x, y, height))
     for i in xrange(height):
         b = source[offset]
         offset += 1
@@ -32,8 +26,6 @@ def write_1bpp_graphic_to_block(source, target, offset, x=0, y=0, height=8):
     :param x: x offset on the source image to read from
     :param y: y offset on the source image to read from
     :param height: the height in pixels of the graphic to write"""
-    log.debug("write_1bpp_graphic_to_block called with offset[{:#x}], x[{}], y[{}], height[{}]".format(
-        offset, x, y, height))
     for i in xrange(height):
         b = 0
         for j in xrange(8):

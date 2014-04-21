@@ -28,7 +28,7 @@ class FontModule(EbModule):
         self.credits_font = EbCreditsFont()
 
     def read_credits_font_from_rom(self, rom):
-        log.info("Reading the credits font from the ROM")
+        log.debug("Reading the credits font from the ROM")
         self.credits_font.from_block(block=rom,
                                      tileset_asm_pointer_offset=CREDITS_GRAPHICS_ASM_POINTER,
                                      palette_offset=CREDITS_PALETTES_ADDRESS)
@@ -36,13 +36,13 @@ class FontModule(EbModule):
     def read_from_rom(self, rom):
         for i, (font, graphics_address, widths_address) in enumerate(zip(self.fonts, FONT_GRAPHICS_ADDRESSES,
                                                                          FONT_CHARACTER_WIDTHS_ADDRESSES)):
-            log.info("Reading font #{} from the ROM".format(i))
+            log.debug("Reading font #{} from the ROM".format(i))
             font.from_block(block=rom, tileset_offset=graphics_address, character_widths_offset=widths_address)
 
         self.read_credits_font_from_rom(rom)
 
     def write_credits_font_to_rom(self, rom):
-        log.info("Writing the credits font to the ROM")
+        log.debug("Writing the credits font to the ROM")
         self.credits_font.to_block(block=rom,
                                    tileset_asm_pointer_offset=CREDITS_GRAPHICS_ASM_POINTER,
                                    palette_offset=CREDITS_PALETTES_ADDRESS)
@@ -50,7 +50,7 @@ class FontModule(EbModule):
     def write_to_rom(self, rom):
         for i, (font, graphics_address, widths_address) in enumerate(zip(self.fonts, FONT_GRAPHICS_ADDRESSES,
                                                                          FONT_CHARACTER_WIDTHS_ADDRESSES)):
-            log.info("Writing font #{} to the ROM".format(i))
+            log.debug("Writing font #{} to the ROM".format(i))
             font.to_block(block=rom, tileset_offset=graphics_address, character_widths_offset=widths_address)
 
         self.write_credits_font_to_rom(rom)

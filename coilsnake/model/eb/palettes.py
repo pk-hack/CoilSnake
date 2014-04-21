@@ -1,12 +1,8 @@
-import logging
 from zlib import crc32
 from array import array
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, InvalidYmlRepresentationError
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
-
-
-log = logging.getLogger(__name__)
 
 
 class EbColor(EqualityMixin, StringRepresentationMixin):
@@ -42,10 +38,8 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
         self.r = (bgr & 0x001f) * 8
         self.g = ((bgr & 0x03e0) >> 5) * 8
         self.b = (bgr >> 10) * 8
-        log.debug("Read {} from offset[{:#x}]".format(self, offset))
 
     def to_block(self, block, offset=0):
-        log.debug("Writing {} to offset[{:#x}]".format(self, offset))
         block.write_multi(offset,
                           ((self.r >> 3) & 0x1f)
                           | (((self.g >> 3) & 0x1f) << 5)
@@ -130,29 +124,21 @@ class EbPalette(EqualityMixin):
         return subpalette
 
     def from_block(self, block, offset=0):
-        log.debug("Reading a EbPalette of size[{}x{}] from offset[{:#x}]".format(self.num_subpalettes,
-                                                                                 self.subpalette_length, offset))
         for subpalette in self.subpalettes:
             for color in subpalette:
                 color.from_block(block, offset)
                 offset += 2
 
     def to_block(self, block, offset=0):
-        log.debug("Writing a EbPalette of size[{}x{}] to offset[{:#x}]".format(self.num_subpalettes,
-                                                                               self.subpalette_length, offset))
         for subpalette in self.subpalettes:
             for color in subpalette:
                 color.to_block(block, offset)
                 offset += 2
 
     def from_image(self, image):
-        log.debug("Reading a EbPalette of size[{}x{}] from an image with palette data of length[{}]".format(
-            self.num_subpalettes, self.subpalette_length, len(image.getpalette())))
         self.from_list(image.getpalette()[0:(self.num_colors() * 3)])
 
     def to_image(self, image):
-        log.debug("Writing an EbPalette of size[{}x{}] to an image".format(self.num_subpalettes,
-                                                                           self.subpalette_length))
         color_list = self.list()
         # Some programs do not know how to interpret an image with a two-color palette, so pad the palette
         if self.num_colors() == 2:

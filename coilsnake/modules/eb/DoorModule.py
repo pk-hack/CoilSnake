@@ -1,14 +1,10 @@
 import yaml
-import logging
 
 from coilsnake.model.eb.doors import door_from_block, door_from_yml_rep, not_in_destination_bank
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.yml import convert_values_to_hex_repr
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
-
-
-log = logging.getLogger(__name__)
 
 
 class DoorModule(EbModule):

@@ -1,5 +1,4 @@
 from functools import partial
-import logging
 import yaml
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, TableEntryInvalidYmlRepresentationError, \
@@ -12,9 +11,6 @@ from coilsnake.util.common.assets import open_asset
 from coilsnake.util.eb.helper import is_in_bank
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 from coilsnake.util.eb.text import standard_text_from_block, standard_text_to_block
-
-
-log = logging.getLogger(__name__)
 
 
 class EbPointerTableEntry(LittleEndianIntegerTableEntry):
@@ -215,7 +211,6 @@ with open_asset("structures", "eb.yml") as f:
 
 
 def eb_table_from_offset(offset, single_column=None, matrix_dimensions=None, hidden_columns=[]):
-    log.debug("Creating EbTable object for offset[{:#x}]".format(offset))
     try:
         schema_specification = _EB_SCHEMA_MAP[offset]
     except KeyError:

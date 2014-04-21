@@ -1,6 +1,5 @@
 import array
 import copy
-import logging
 import os
 import yaml
 from zlib import crc32
@@ -8,9 +7,6 @@ from zlib import crc32
 from coilsnake.exceptions.common.exceptions import OutOfBoundsError, InvalidArgumentError, \
     NotEnoughUnallocatedSpaceError, FileAccessError, CouldNotAllocateError
 from coilsnake.util.common.assets import open_asset
-
-
-log = logging.getLogger(__name__)
 
 
 def check_range_validity(range, size):
