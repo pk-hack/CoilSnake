@@ -71,9 +71,9 @@ def strip_header_from_rom(root):
             message="Your ROM's header was removed.")
 
 
-def set_entry_text(entry, str):
+def set_entry_text(entry, text):
     entry.delete(0, END)
-    entry.insert(0, str)
+    entry.insert(0, text)
     entry.xview(END)
 
 

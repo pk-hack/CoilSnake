@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+import Tkinter
 from functools import partial
 from subprocess import Popen
 from os.path import dirname, isdir, join
@@ -7,6 +8,7 @@ from time import time
 from Tkinter import *
 import tkFileDialog
 import tkMessageBox
+import tkSimpleDialog
 import ttk
 import os
 
@@ -18,9 +20,10 @@ from coilsnake.ui import information, gui_util
 from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging
 from coilsnake.ui.fun import get_fun_title
 from coilsnake.ui.gui_preferences import CoilSnakePreferences
-from coilsnake.ui.gui_util import browse_for_rom, browse_for_project, open_folder
+from coilsnake.ui.gui_util import browse_for_rom, browse_for_project, open_folder, set_entry_text
 from coilsnake.ui.information import coilsnake_about
 from coilsnake.util.common.assets import asset_path
+
 
 
 
@@ -37,7 +40,7 @@ class CoilSnakeGui(object):
     def __init__(self):
         self.preferences = CoilSnakePreferences()
         self.preferences.load()
-        self.buttons = []
+        self.components = []
 
     # Preferences functions
 
@@ -60,13 +63,13 @@ class CoilSnakeGui(object):
         self.console.delete(1.0, END)
         self.console.see(END)
 
-    def disable_all_buttons(self):
-        for button in self.buttons:
-            button["state"] = DISABLED
+    def disable_all_components(self):
+        for component in self.components:
+            component["state"] = DISABLED
 
-    def enable_all_buttons(self):
-        for button in self.buttons:
-            button["state"] = NORMAL
+    def enable_all_components(self):
+        for component in self.components:
+            component["state"] = NORMAL
 
     # GUI popup functions
 
@@ -126,7 +129,7 @@ Please specify it in the Preferences menu.""")
         if rom and project:
             # Update the GUI
             self.clear_console()
-            self.disable_all_buttons()
+            self.disable_all_components()
             
             # Save the fields to preferences
             self.preferences["export_rom"] = rom
@@ -146,7 +149,7 @@ Please specify it in the Preferences menu.""")
             pass
 
         self.progress_bar["value"] = 0
-        self.enable_all_buttons()
+        self.enable_all_components()
 
     def do_compile(self, project_entry, base_rom_entry, rom_entry):
         base_rom = base_rom_entry.get()
@@ -156,7 +159,7 @@ Please specify it in the Preferences menu.""")
         if base_rom and rom and project:
             # Update the GUI
             self.clear_console()
-            self.disable_all_buttons()
+            self.disable_all_components()
 
             # Save the fields to preferences
             self.preferences["import_proj"] = project
@@ -179,7 +182,7 @@ Please specify it in the Preferences menu.""")
             pass
 
         self.progress_bar["value"] = 0
-        self.enable_all_buttons()
+        self.enable_all_components()
 
     def do_upgrade(self, rom_entry, project_entry):
         rom = rom_entry.get()
@@ -188,7 +191,7 @@ Please specify it in the Preferences menu.""")
         if rom and project:
             # Update the GUI
             self.clear_console()
-            self.disable_all_buttons()
+            self.disable_all_components()
 
             # Save the fields to preferences
             self.preferences["upgrade_rom"] = rom
@@ -209,7 +212,7 @@ Please specify it in the Preferences menu.""")
             # TODO
 
         self.progress_bar["value"] = 0
-        self.enable_all_buttons()
+        self.enable_all_components()
 
     def extract_earthbound_dialogue(self):
         if not CCScriptWriter:
@@ -353,41 +356,62 @@ Please specify it in the Preferences menu.""")
         self.root.config(menu=menubar)
 
     def create_decompile_frame(self, notebook):
+        self.decompile_fields = dict()
+
         decompile_frame = ttk.Frame(notebook)
-        self.add_title_fields_to_frame(text="Decompile a ROM to create a new project.", frame=decompile_frame)
+        self.add_title_label_to_frame(text="Decompile a ROM to create a new project.", frame=decompile_frame)
+
+        profile_selector_init = self.add_profile_selector_to_frame(frame=decompile_frame,
+                                                                   tab="decompile",
+                                                                   fields=self.decompile_fields)
 
         input_rom_entry = self.add_rom_fields_to_frame(name="ROM", frame=decompile_frame)
+        self.decompile_fields["rom"] = input_rom_entry
         project_entry = self.add_project_fields_to_frame(name="Output Directory", frame=decompile_frame)
+        self.decompile_fields["output_directory"] = project_entry
+
+        profile_selector_init()
 
         def decompile_tmp():
             self.do_decompile(input_rom_entry, project_entry)
 
         decompile_button = Button(decompile_frame, text="Decompile", command=decompile_tmp)
         decompile_button.pack(fill=BOTH, expand=1)
-        self.buttons.append(decompile_button)
+        self.components.append(decompile_button)
 
         return decompile_frame
 
     def create_compile_frame(self, notebook):
+        self.compile_fields = dict()
+
         compile_frame = ttk.Frame(notebook)
-        self.add_title_fields_to_frame(text="Compile a project to create a new ROM.", frame=compile_frame)
+        self.add_title_label_to_frame(text="Compile a project to create a new ROM.", frame=compile_frame)
+
+        profile_selector_init = self.add_profile_selector_to_frame(frame=compile_frame,
+                                                                   tab="compile",
+                                                                   fields=self.compile_fields)
 
         base_rom_entry = self.add_rom_fields_to_frame(name="Base ROM", frame=compile_frame)
+        self.compile_fields["base_rom"] = base_rom_entry
         project_entry = self.add_project_fields_to_frame(name="Project", frame=compile_frame)
+        self.compile_fields["project"] = project_entry
         output_rom_entry = self.add_rom_fields_to_frame(name="Output ROM", frame=compile_frame)
+        self.compile_fields["output_rom"] = output_rom_entry
+
+        profile_selector_init()
 
         def compile_tmp():
             self.do_compile(project_entry, base_rom_entry, output_rom_entry)
 
         compile_button = Button(compile_frame, text="Compile", command=compile_tmp)
         compile_button.pack(fill=BOTH, expand=1)
-        self.buttons.append(compile_button)
+        self.components.append(compile_button)
 
         return compile_frame
 
     def create_upgrade_frame(self, notebook):
         upgrade_frame = ttk.Frame(notebook)
-        self.add_title_fields_to_frame(text="Upgrade a project created using an older version of CoilSnake.",
+        self.add_title_label_to_frame(text="Upgrade a project created using an older version of CoilSnake.",
                                        frame=upgrade_frame)
 
         rom_entry = self.add_rom_fields_to_frame(name="Base ROM", frame=upgrade_frame)
@@ -398,13 +422,13 @@ Please specify it in the Preferences menu.""")
 
         self.upgrade_button = Button(upgrade_frame, text="Upgrade", command=upgrade_tmp)
         self.upgrade_button.pack(fill=BOTH, expand=1)
-        self.buttons.append(self.upgrade_button)
+        self.components.append(self.upgrade_button)
 
         return upgrade_frame
 
     def create_decompile_script_frame(self, notebook):
         decompile_script_frame = ttk.Frame(notebook)
-        self.add_title_fields_to_frame(text="Decompile a ROM's script to an already existing project.",
+        self.add_title_label_to_frame(text="Decompile a ROM's script to an already existing project.",
                                        frame=decompile_script_frame)
 
         input_rom_entry = self.add_rom_fields_to_frame(name="ROM", frame=decompile_script_frame)
@@ -415,12 +439,78 @@ Please specify it in the Preferences menu.""")
 
         button = Button(decompile_script_frame, text="Decompile Script", command=decompile_script_tmp)
         button.pack(fill=BOTH, expand=1)
-        self.buttons.append(button)
+        self.components.append(button)
 
         return decompile_script_frame
 
-    def add_title_fields_to_frame(self, text, frame):
+    def add_title_label_to_frame(self, text, frame):
         Label(frame, text=text, justify=CENTER, height=2).pack(fill=BOTH, expand=1)
+
+    def add_profile_selector_to_frame(self, frame, tab, fields):
+        profile_frame = ttk.Frame(frame)
+
+        Label(profile_frame, text="Profile:", width=13).pack(side=LEFT, fill=BOTH, expand=1)
+
+        def tmp_select(profile_name):
+            for field_id in fields:
+                set_entry_text(entry=fields[field_id],
+                               text=self.preferences.get_profile_value(tab, profile_name, field_id))
+
+        profile_var = StringVar(profile_frame)
+
+        profile = OptionMenu(profile_frame, profile_var, "", command=tmp_select)
+        profile["width"] = 26
+        profile.pack(side=LEFT, fill=BOTH, expand=1)
+        self.components.append(profile)
+
+        def tmp_reload_options(selected_profile_name=None):
+            profile["menu"].delete(0, END)
+            for profile_name in sorted(self.preferences.get_profiles(tab)):
+                if not selected_profile_name:
+                    selected_profile_name = profile_name
+                profile["menu"].add_command(label=profile_name,
+                                            command=Tkinter._setit(profile_var, profile_name, tmp_select))
+            profile_var.set(selected_profile_name)
+            tmp_select(selected_profile_name)
+
+        def tmp_new():
+            profile_name = tkSimpleDialog.askstring("New Profile Name", "Specify the name of the new profile.")
+            if profile_name:
+                self.preferences.add_profile(tab, profile_name)
+                tmp_reload_options(profile_name)
+                self.preferences.save()
+
+        def tmp_save():
+            profile_name = profile_var.get()
+            for field_id in fields:
+                self.preferences.set_profile_value(tab, profile_name, field_id, fields[field_id].get())
+            self.preferences.save()
+
+        def tmp_delete():
+            if self.preferences.count_profiles(tab) <= 1:
+                tkMessageBox.showerror(parent=self.root,
+                                       title="Error",
+                                       message="Cannot delete the only profile.")
+            else:
+                self.preferences.delete_profile(tab, profile_var.get())
+                tmp_reload_options()
+                self.preferences.save()
+
+        button = Button(profile_frame, text="Save", width=5, command=tmp_save)
+        button.pack(side=LEFT, fill=BOTH, expand=1)
+        self.components.append(button)
+
+        button = Button(profile_frame, text="Delete", width=5, command=tmp_delete)
+        button.pack(side=LEFT, fill=BOTH, expand=1)
+        self.components.append(button)
+
+        button = Button(profile_frame, text="New", width=5, command=tmp_new)
+        button.pack(side=LEFT, fill=BOTH, expand=1)
+        self.components.append(button)
+
+        profile_frame.pack()
+
+        return tmp_reload_options
 
     def add_rom_fields_to_frame(self, name, frame):
         rom_frame = ttk.Frame(frame)
@@ -428,6 +518,7 @@ Please specify it in the Preferences menu.""")
         Label(rom_frame, text="{}:".format(name), width=13, justify=RIGHT).pack(side=LEFT, fill=BOTH, expand=1)
         rom_entry = Entry(rom_frame, width=30)
         rom_entry.pack(side=LEFT, fill=BOTH, expand=1)
+        self.components.append(rom_entry)
 
         def browse_tmp():
             browse_for_rom(self.root, rom_entry)
@@ -437,11 +528,11 @@ Please specify it in the Preferences menu.""")
 
         button = Button(rom_frame, text="Browse...", command=browse_tmp, width=6)
         button.pack(side=LEFT, fill=BOTH, expand=1)
-        self.buttons.append(button)
+        self.components.append(button)
 
         button = Button(rom_frame, text="Run", command=run_tmp, width=5)
         button.pack(side=LEFT, fill=BOTH, expand=1)
-        self.buttons.append(button)
+        self.components.append(button)
 
         button = Button(rom_frame, text="", width=5, state=DISABLED, takefocus=False, border=0)
         button.pack(side=LEFT, fill=BOTH, expand=1)
@@ -457,6 +548,7 @@ Please specify it in the Preferences menu.""")
         Label(project_frame, text="{}:".format(name), width=13, justify=RIGHT).pack(side=LEFT)
         project_entry = Entry(project_frame, width=30)
         project_entry.pack(side=LEFT, fill=BOTH, expand=1)
+        self.components.append(project_entry)
 
         def browse_tmp():
             browse_for_project(self.root, project_entry, save=True)
@@ -469,20 +561,19 @@ Please specify it in the Preferences menu.""")
 
         button = Button(project_frame, text="Browse...", command=browse_tmp, width=6)
         button.pack(side=LEFT, fill=BOTH, expand=1)
-        self.buttons.append(button)
+        self.components.append(button)
 
         button = Button(project_frame, text="Open", command=open_tmp, width=5)
         button.pack(side=LEFT, fill=BOTH, expand=1)
-        self.buttons.append(button)
+        self.components.append(button)
 
         button = Button(project_frame, text="Edit", command=edit_tmp, width=5)
         button.pack(side=LEFT, fill=BOTH, expand=1)
-        self.buttons.append(button)
+        self.components.append(button)
 
         project_frame.pack()
 
         return project_entry
-
 
 
 def main():
