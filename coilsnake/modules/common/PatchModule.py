@@ -1,7 +1,7 @@
 import os
 import yaml
 
-from coilsnake.Ips import Ips
+from coilsnake.model.common.ips import IpsPatch
 from coilsnake.modules.common.GenericModule import GenericModule
 from coilsnake.util.common.assets import ASSET_PATH
 
@@ -36,7 +36,7 @@ class PatchModule(GenericModule):
         # Loop through all the patches for this romtype
         for ipsDescFname in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
             patchName = ipsDescFname[:-4]
-            ips = Ips()
+            ips = IpsPatch()
             ips.load(os.path.join(get_ips_directory(rom.type), patchName + '.ips'))
             with open(os.path.join(get_ips_directory(rom.type), ipsDescFname)) as ipsDescFile:
                 ipsDesc = yaml.load(ipsDescFile, Loader=yaml.CSafeLoader)
@@ -65,7 +65,7 @@ class PatchModule(GenericModule):
                                                ") is not free")
                     # Now apply the patch
                     patchName = ipsDescFname[:-4]
-                    ips = Ips()
+                    ips = IpsPatch()
                     offset = 0
                     if "Header" in ipsDesc:
                         offset = ipsDesc["Header"]

@@ -27,6 +27,7 @@ from coilsnake.util.common.assets import asset_path
 
 
 
+
 # Import CCScriptWriter from the submodule, if possible.
 
 if isdir(join("tools", "CCScriptWriter")):
@@ -110,7 +111,6 @@ Please specify it in the Preferences menu.""")
     
     def edit_project(self, entry):
         project_path = entry.get()
-        self.preferences["java"] = "/usr/bin/java"
         if not self.preferences["java"]:
             tkMessageBox.showerror(parent=self.root,
                                    title="Error",
@@ -130,11 +130,6 @@ Please specify it in the Preferences menu.""")
             # Update the GUI
             self.clear_console()
             self.disable_all_components()
-            
-            # Save the fields to preferences
-            self.preferences["export_rom"] = rom
-            self.preferences["export_proj"] = project
-            self.preferences.save()
 
             self.progress_bar["value"] = 0
             thread = Thread(target=self._do_decompile_help,
@@ -161,12 +156,6 @@ Please specify it in the Preferences menu.""")
             self.clear_console()
             self.disable_all_components()
 
-            # Save the fields to preferences
-            self.preferences["import_proj"] = project
-            self.preferences["import_baserom"] = base_rom
-            self.preferences["import_rom"] = rom
-            self.preferences.save()
-
             # Reset the progress bar
             self.progress_bar["value"] = 0
 
@@ -192,11 +181,6 @@ Please specify it in the Preferences menu.""")
             # Update the GUI
             self.clear_console()
             self.disable_all_components()
-
-            # Save the fields to preferences
-            self.preferences["upgrade_rom"] = rom
-            self.preferences["upgrade_proj"] = project
-            self.preferences.save()
 
             self.progress_bar["value"] = 0
             self.progress_bar.step(10)
