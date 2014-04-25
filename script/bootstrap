@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+echo "Installing dependencies"
+sudo apt-get install python-dev libyaml-dev
+sudo pip install --upgrade Pillow PyYAML

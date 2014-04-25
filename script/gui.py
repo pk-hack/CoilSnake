@@ -1,4 +1,7 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
+
+import sys
+sys.path.append(".")
 
 from coilsnake.ui.gui import main
 

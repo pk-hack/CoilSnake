@@ -14,36 +14,33 @@ CoilSnake supports modification of most of the data in the game, such as:
 
 ### Installation
 ```
-sudo apt-get install python-dev libyaml-dev
-python setup.py build
+./script/build
 sudo python setup.py install
 ```
 
 ### Usage
-To start up the GUI:
+After installing, you can start up the GUI with:
 ```
 coilsnake
 ```
 
 To use the command line client:
 ```
-coilsnake-cmd
+coilsnake-cli
 ```
 
 ### Development
 To run CoilSnake from source without installing:
 ```
-sudo apt-get install python-dev libyaml-dev tk8.5-dev tcl8.5-dev
-sudo pip install Pillow PyYAML
-make
-python coilsnake.py
+./script/build
+./script/gui.py  # Launch the GUI
 # or...
-python coilsnake-cmd.py
+./script/cli.py  # Launch the CLI
 ```
 
 To run the unit tests:
 ```
-python setup.py test
+./script/test
 ```
 
 ### Support or Contact

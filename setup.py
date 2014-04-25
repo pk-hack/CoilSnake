@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
@@ -21,7 +21,7 @@ setup(
     entry_points={
         "console_scripts": [
             "coilsnake = coilsnake.ui.gui:main",
-            "coilsnake-cmd = coilsnake.ui.cli:main"
+            "coilsnake-cli = coilsnake.ui.cli:main"
         ]
     },
 
