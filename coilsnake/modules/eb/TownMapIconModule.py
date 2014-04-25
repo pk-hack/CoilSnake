@@ -3,7 +3,7 @@ import yaml
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.model.eb.town_maps import TownMapIconPlacementPointerTableEntry, TownMapEnum
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.common.project import convert_values_to_hex_repr_in_yml_file
+from coilsnake.util.common.yml import convert_values_to_hex_repr_in_yml_file
 from coilsnake.util.eb.pointer import read_asm_pointer, write_asm_pointer, from_snes_address, to_snes_address
 
 

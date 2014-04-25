@@ -15,7 +15,7 @@ class UsedRangeModule(GenericModule):
         """
             Sets the module to its default state (no used ranges).
         """
-        GenericModule.__init__(self)
+        super(UsedRangeModule, self).__init__()
         self.ranges = []
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):

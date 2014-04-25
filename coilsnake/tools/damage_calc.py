@@ -68,7 +68,7 @@ def main():
     proj.load(args.projDir[0] + os.sep + Project.PROJECT_FILENAME)
 
     partyStats = [None, None, None, None]
-    with proj.getResource("eb", "stats_growth_vars", "yml", "r") as f:
+    with proj.get_resource("eb", "stats_growth_vars", "yml", "r") as f:
         growthVars = yaml.load(f, Loader=yaml.CSafeLoader)
         for i in range(4):
             partyStats[i] = calcStats(growthVars[i], args.levels[i])
@@ -80,7 +80,7 @@ def main():
         print i, '\t', '\t'.join(map(str,partyStats[i]))
             
     if args.enemyInfo is not None:
-        with proj.getResource("eb", "enemy_configuration_table", "yml", "r") as f:
+        with proj.get_resource("eb", "enemy_configuration_table", "yml", "r") as f:
             enemyData = (yaml.load(f,
                 Loader=yaml.CSafeLoader))[args.enemyInfo[0]]
             print "\n*** Enemy Stats:", enemyData["Name"], "***"

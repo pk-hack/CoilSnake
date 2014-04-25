@@ -4,7 +4,7 @@ from shutil import copyfile
 import time
 from subprocess import Popen, PIPE, STDOUT
 
-from coilsnake.Project import Project, FORMAT_VERSION, PROJECT_FILENAME
+from coilsnake.Project import Project, FORMAT_VERSION, PROJECT_FILENAME, get_version_name
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui.formatter import CoilSnakeFormatter
@@ -36,11 +36,12 @@ def upgrade_project(project_path, base_rom_filename):
     project.load(project_filename)
     check_if_project_too_new(project)
 
-    if project.version() == FORMAT_VERSION:
+    if project.version== FORMAT_VERSION:
         log.info("Project is already up to date.")
         return
 
-    log.info("Upgrading Project {} from {} to {}".format(project_path, project.version(), FORMAT_VERSION))
+    log.info("Upgrading Project {} from {} to {}".format(project_path, get_version_name(project.version),
+                                                         get_version_name(FORMAT_VERSION)))
 
     rom = Rom()
     rom.from_file(base_rom_filename)
@@ -51,14 +52,14 @@ def upgrade_project(project_path, base_rom_filename):
         log.debug("Starting upgrade of {}", module_class.NAME)
         start_time = time.time()
         with module_class() as module:
-            module.upgrade_project(project.version(), FORMAT_VERSION, rom,
-                                   lambda x, y: project.getResource(module_name, x, y, 'rb'),
-                                   lambda x, y: project.getResource(module_name, x, y, 'wb'),
-                                   lambda x: project.deleteResource(module_name, x))
+            module.upgrade_project(project.version, FORMAT_VERSION, rom,
+                                   lambda x, y: project.get_resource(module_name, x, y, 'rb'),
+                                   lambda x, y: project.get_resource(module_name, x, y, 'wb'),
+                                   lambda x: project.delete_resource(module_name, x))
         log.info("Upgraded {} in {:.2f}s", module_class.NAME, time.time() - start_time)
 
     log.debug("Saving Project")
-    project.setVersion(FORMAT_VERSION)
+    project.version = FORMAT_VERSION
     project.write(project_filename)
 
 
@@ -110,7 +111,7 @@ def compile_project(project_path, base_rom_filename, output_rom_filename):
         start_time = time.time()
         with module_class() as module:
             log.debug("Reading {}".format(module_class.NAME))
-            module.read_from_project(lambda x, y: project.getResource(module_name, x, y, 'rb'))
+            module.read_from_project(lambda x, y: project.get_resource(module_name, x, y, 'rb'))
             log.debug("Writing {}".format(module_class.NAME))
             module.write_to_rom(rom)
         log.info("Compiled {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
@@ -142,13 +143,14 @@ def decompile_rom(rom_filename, project_path):
             log.debug("Reading {}".format(module_class.NAME))
             module.read_from_rom(rom)
             log.debug("Writing {}".format(module_class.NAME))
-            module.write_to_project(lambda x, y: project.getResource(module_name, x, y, 'wb'))
+            module.write_to_project(lambda x, y: project.get_resource(module_name, x, y, 'wb'))
         log.info("Decompiled {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
 
     log.debug("Saving Project")
     project.write(os.path.join(project_path, PROJECT_FILENAME))
 
     log.info("Decompiled to {} in {:.2f}s".format(project_path, time.time() - decompile_start_time))
+
 
 def load_modules():
     all_modules = []
@@ -164,16 +166,16 @@ def load_modules():
 
 
 def check_if_project_too_new(project):
-    if project.version() > FORMAT_VERSION:
+    if project.version > FORMAT_VERSION:
         raise CoilSnakeError("This project is not compatible with this version of CoilSnake. Please use this project"
                              + " with a newer version of CoilSnake.")
 
 
 def check_if_project_too_old(project):
-    if project.version() < FORMAT_VERSION:
+    if project.version < FORMAT_VERSION:
         raise CoilSnakeError("This project must be upgraded before performing this operation.")
 
 
 def check_if_types_match(project, rom):
-    if rom.type != project.type():
-        raise CoilSnakeError("Rom type {} does not match Project type {}".format(rom.type, project.type()))
+    if rom.type != project.romtype:
+        raise CoilSnakeError("Rom type {} does not match Project type {}".format(rom.type, project.romtype))

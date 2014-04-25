@@ -3,8 +3,7 @@ import yaml
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.common.project import replace_field_in_yml
-from coilsnake.util.common.yml import convert_values_to_hex_repr
+from coilsnake.util.common.yml import convert_values_to_hex_repr, replace_field_in_yml
 from coilsnake.util.eb.pointer import from_snes_address
 
 

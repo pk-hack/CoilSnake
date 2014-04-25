@@ -3,7 +3,7 @@ import yaml
 from coilsnake.model.common.table import EnumeratedLittleEndianIntegerTableEntry, LittleEndianIntegerTableEntry
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.common.project import replace_field_in_yml
+from coilsnake.util.common.yml import replace_field_in_yml
 from coilsnake.util.eb.pointer import from_snes_address
 
 MAP_POINTERS_OFFSET = 0xa1db

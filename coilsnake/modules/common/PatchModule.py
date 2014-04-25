@@ -1,6 +1,8 @@
 import os
 import yaml
 
+from coilsnake.exceptions.common.exceptions import CoilSnakeError
+
 from coilsnake.model.common.ips import IpsPatch
 from coilsnake.modules.common.GenericModule import GenericModule
 from coilsnake.util.common.assets import ASSET_PATH
@@ -13,76 +15,69 @@ def get_ips_directory(romtype):
     return os.path.join(IPS_DIRECTORY, romtype)
 
 
+def get_ips_filename(romtype, patch_name):
+    return os.path.join(IPS_DIRECTORY, romtype, patch_name + ".ips")
+
+
 class PatchModule(GenericModule):
     NAME = "Patches"
 
-    def upgrade_project(self, oldVersion, newVersion, rom, resourceOpenerR,
-                        resourceOpenerW, resourceDeleter):
-        if oldVersion == newVersion:
-            return
-        elif oldVersion == 1:
-            self.read_from_rom(rom)
-            self.write_to_project(resourceOpenerW)
-            self.upgrade_project(
-                oldVersion + 1, newVersion, rom, resourceOpenerR,
-                resourceOpenerW, resourceDeleter)
-        else:
-            self.upgrade_project(
-                oldVersion + 1, newVersion, rom, resourceOpenerR,
-                resourceOpenerW, resourceDeleter)
+    def __init__(self):
+        super(PatchModule, self).__init__()
+        self.patches = None
 
     def read_from_rom(self, rom):
-        self._patches = dict()
+        self.patches = dict()
         # Loop through all the patches for this romtype
-        for ipsDescFname in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
-            patchName = ipsDescFname[:-4]
-            ips = IpsPatch()
-            ips.load(os.path.join(get_ips_directory(rom.type), patchName + '.ips'))
-            with open(os.path.join(get_ips_directory(rom.type), ipsDescFname)) as ipsDescFile:
-                ipsDesc = yaml.load(ipsDescFile, Loader=yaml.CSafeLoader)
-                if ipsDesc["Auto-Apply"]:
-                    self._patches[ipsDesc["Title"]] = "enabled"
+        for ip_desc_filename in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
+            with open(os.path.join(get_ips_directory(rom.type), ip_desc_filename)) as ips_desc_file:
+                ips_desc = yaml.load(ips_desc_file, Loader=yaml.CSafeLoader)
+                if ips_desc["Auto-Apply"]:
+                    self.patches[ips_desc["Title"]] = "enabled"
                 else:
-                    self._patches[ipsDesc["Title"]] = "disabled"
+                    self.patches[ips_desc["Title"]] = "disabled"
 
     def write_to_rom(self, rom):
-        for ipsDescFname in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
-            patchName = ipsDescFname[:-4]
-            with open(os.path.join(get_ips_directory(rom.type), ipsDescFname)) as ipsDescFile:
-                ipsDesc = yaml.load(ipsDescFile, Loader=yaml.CSafeLoader)
-                if ((ipsDesc["Title"] in self._patches) and
-                        (self._patches[ipsDesc["Title"]].lower() == "enabled")):
-                    ranges = map(lambda y: tuple(map(lambda z: int(z, 0),
-                                                     y[1:-1].split(','))), ipsDesc["Ranges"])
-
+        for ips_desc_filename in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
+            patch_name = ips_desc_filename[:-4]
+            with open(os.path.join(get_ips_directory(rom.type), ips_desc_filename)) as ips_desc_file:
+                ips_desc = yaml.load(ips_desc_file, Loader=yaml.CSafeLoader)
+                if (ips_desc["Title"] in self.patches) and (self.patches[ips_desc["Title"]].lower() == "enabled"):
                     # First, check that we can apply this
+                    ranges = map(lambda y: tuple(map(lambda z: int(z, 0), y[1:-1].split(','))), ips_desc["Ranges"])
                     for range in ranges:
                         if not rom.is_unallocated(range):
-                            # Range is not free, can't apply
-                            raise RuntimeError("Can't apply patch \"" +
-                                               ipsDesc["Title"] + "\", range (" +
-                                               hex(range[0]) + "," + hex(range[1]) +
-                                               ") is not free")
+                            raise CoilSnakeError(
+                                "Can't apply patch \"{}\" because range ({:#x},{:#x}) is not unallocated".format(
+                                    ips_desc["Title"], range[0], range[1]))
+
                     # Now apply the patch
-                    patchName = ipsDescFname[:-4]
                     ips = IpsPatch()
                     offset = 0
-                    if "Header" in ipsDesc:
-                        offset = ipsDesc["Header"]
-                    ips.load(
-                        'resources/ips/' +
-                        rom.type + '/' + patchName + '.ips',
-                        offset)
+                    if "Header" in ips_desc:
+                        offset = ips_desc["Header"]
+                    ips.load(get_ips_filename(rom.type, patch_name), offset)
                     ips.apply(rom)
+
                     # Mark the used ranges as used
                     for range in ranges:
                         rom.mark_allocated(range)
 
-    def write_to_project(self, resourceOpener):
-        with resourceOpener("patches", "yml") as f:
-            yaml.dump(self._patches, f, default_flow_style=False,
+    def write_to_project(self, resource_open):
+        with resource_open("patches", "yml") as f:
+            yaml.dump(self.patches, f, default_flow_style=False,
                       Dumper=yaml.CSafeDumper)
 
-    def read_from_project(self, resourceOpener):
-        with resourceOpener("patches", "yml") as f:
-            self._patches = yaml.load(f, Loader=yaml.CSafeLoader)
+    def read_from_project(self, resource_open):
+        with resource_open("patches", "yml") as f:
+            self.patches = yaml.load(f, Loader=yaml.CSafeLoader)
+
+    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+        if old_version == new_version:
+            return
+        elif old_version == 1:
+            self.read_from_rom(rom)
+            self.write_to_project(resource_open_w)
+            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+        else:
+            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)

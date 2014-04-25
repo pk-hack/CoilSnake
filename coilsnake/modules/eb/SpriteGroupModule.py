@@ -1,4 +1,5 @@
 import yaml
+
 from PIL import Image
 
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
@@ -7,7 +8,7 @@ from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.sprites import SpriteGroup, SPRITE_SIZES
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.common.project import replace_field_in_yml
+from coilsnake.util.common.yml import replace_field_in_yml
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
 

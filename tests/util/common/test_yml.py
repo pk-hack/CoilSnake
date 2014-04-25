@@ -2,7 +2,7 @@ import os
 
 from nose.tools import assert_equal
 
-from coilsnake.util.common.project import replace_field_in_yml
+from coilsnake.util.common.yml import replace_field_in_yml
 from tests.coilsnake_test import BaseTestCase, TemporaryWritableFileTestCase, TEST_DATA_DIR, assert_files_equal
 
 

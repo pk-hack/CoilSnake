@@ -28,6 +28,7 @@ from coilsnake.util.common.assets import asset_path
 
 
 
+
 # Import CCScriptWriter from the submodule, if possible.
 
 if isdir(join("tools", "CCScriptWriter")):
@@ -212,7 +213,7 @@ Please specify it in the Preferences menu.""")
             return
         rom = Rom()
         rom.from_file(rom_filename)
-        if rom.type() != "Earthbound":
+        if rom.type != "Earthbound":
             tkMessageBox.showerror(
                 "Invalid EarthBound ROM",
                 "You have specified an invalid EarthBound ROM.",

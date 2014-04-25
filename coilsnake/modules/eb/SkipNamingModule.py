@@ -1,12 +1,13 @@
 import yaml
 
 from coilsnake.modules.eb.EbModule import EbModule
+from coilsnake.util.eb.pointer import to_snes_address
 
 
 class SkipNamingModule(EbModule):
     NAME = "Skip Names"
 
-    def write_to_project(self, resourceOpener):
+    def write_to_project(self, resource_open):
         out = {"Enable Skip": False,
                "Enable Summary": False,
                "Name1": "Ness",
@@ -16,43 +17,42 @@ class SkipNamingModule(EbModule):
                "Pet": "King",
                "Food": "Steak",
                "Thing": "Rockin"}
-        with resourceOpener("naming_skip", "yml") as f:
-            yaml.dump(out, f, default_flow_style=False,
-                      Dumper=yaml.CSafeDumper)
+        with resource_open("naming_skip", "yml") as f:
+            yaml.dump(out, f, default_flow_style=False, Dumper=yaml.CSafeDumper)
 
-    def read_from_project(self, resourceOpener):
-        with resourceOpener("naming_skip", "yml") as f:
-            self._data = yaml.load(f, Loader=yaml.CSafeLoader)
+    def read_from_project(self, resource_open):
+        with resource_open("naming_skip", "yml") as f:
+            self.data = yaml.load(f, Loader=yaml.CSafeLoader)
 
-    def writeLoaderAsm(self, rom, loc, s, strlen, memLoc, byte2):
+    def write_loader_asm(self, rom, offset, s, strlen, mem_offset, byte2):
         i = 0
         for ch in s[0:strlen]:
-            rom[loc:loc+5] = [0xa9, ord(ch) + 0x30, 0x8d, memLoc + i, byte2]
+            rom[offset:offset+5] = [0xa9, ord(ch) + 0x30, 0x8d, mem_offset + i, byte2]
             i += 1
-            loc += 5
+            offset += 5
         for j in range(i, strlen):
-            rom[loc:loc+5] = [0xa9, 0, 0x8d, memLoc + i, byte2]
+            rom[offset:offset+5] = [0xa9, 0, 0x8d, mem_offset + i, byte2]
             i += 1
-            loc += 5
-        return loc
+            offset += 5
+        return offset
 
     def write_to_rom(self, rom):
-        if self._data["Enable Skip"]:
+        if self.data["Enable Skip"]:
             rom[0x1faae] = 0x5c
-            loc = rom.allocate(size=(10 + 4 * 5 * 5 + 3 * 6 * 5))
-            rom.write_multi(0x1faaf, EbModule.toSnesAddr(loc), 3)
-            rom[loc:loc+4] = [0x48, 0x08, 0xe2, 0x20]
-            loc += 4
+            offset = rom.allocate(size=(10 + 4 * 5 * 5 + 3 * 6 * 5))
+            rom.write_multi(0x1faaf, to_snes_address(offset), 3)
+            rom[offset:offset+4] = [0x48, 0x08, 0xe2, 0x20]
+            offset += 4
 
-            loc = self.writeLoaderAsm(rom, loc, self._data["Name1"], 5, 0xce, 0x99)
-            loc = self.writeLoaderAsm(rom, loc, self._data["Name2"], 5, 0x2d, 0x9a)
-            loc = self.writeLoaderAsm(rom, loc, self._data["Name3"], 5, 0x8c, 0x9a)
-            loc = self.writeLoaderAsm(rom, loc, self._data["Name4"], 5, 0xeb, 0x9a)
-            loc = self.writeLoaderAsm(rom, loc, self._data["Pet"],   6, 0x19, 0x98)
-            loc = self.writeLoaderAsm(rom, loc, self._data["Food"],  6, 0x1f, 0x98)
-            loc = self.writeLoaderAsm(rom, loc, self._data["Thing"], 6, 0x29, 0x98)
+            offset = self.write_loader_asm(rom, offset, self.data["Name1"], 5, 0xce, 0x99)
+            offset = self.write_loader_asm(rom, offset, self.data["Name2"], 5, 0x2d, 0x9a)
+            offset = self.write_loader_asm(rom, offset, self.data["Name3"], 5, 0x8c, 0x9a)
+            offset = self.write_loader_asm(rom, offset, self.data["Name4"], 5, 0xeb, 0x9a)
+            offset = self.write_loader_asm(rom, offset, self.data["Pet"],   6, 0x19, 0x98)
+            offset = self.write_loader_asm(rom, offset, self.data["Food"],  6, 0x1f, 0x98)
+            offset = self.write_loader_asm(rom, offset, self.data["Thing"], 6, 0x29, 0x98)
 
-            if self._data["Enable Summary"]:
-                rom[loc:loc+6] = [0x28, 0x68, 0x5c, 0xc0, 0xfa, 0xc1]
+            if self.data["Enable Summary"]:
+                rom[offset:offset+6] = [0x28, 0x68, 0x5c, 0xc0, 0xfa, 0xc1]
             else:
-                rom[loc:loc+6] = [0x28, 0x68, 0x5c, 0x05, 0xfd, 0xc1]
+                rom[offset:offset+6] = [0x28, 0x68, 0x5c, 0x05, 0xfd, 0xc1]
