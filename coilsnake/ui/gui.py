@@ -14,7 +14,6 @@ import os
 
 from PIL import ImageTk
 
-from coilsnake import Project
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui import information, gui_util
 from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging
@@ -22,11 +21,8 @@ from coilsnake.ui.fun import get_fun_title
 from coilsnake.ui.gui_preferences import CoilSnakePreferences
 from coilsnake.ui.gui_util import browse_for_rom, browse_for_project, open_folder, set_entry_text
 from coilsnake.ui.information import coilsnake_about
+from coilsnake.util.common.project import PROJECT_FILENAME
 from coilsnake.util.common.assets import asset_path
-
-
-
-
 
 
 # Import CCScriptWriter from the submodule, if possible.
@@ -119,7 +115,7 @@ Please specify it in the Preferences menu.""")
 Please specify it in the Preferences menu.""")
         elif project_path:
             Popen([self.preferences["java"], "-jar", asset_path(["bin", "EbProjEdit.jar"]),
-                   os.path.join(project_path, Project.PROJECT_FILENAME)])
+                   os.path.join(project_path, PROJECT_FILENAME)])
 
     # Actions
 

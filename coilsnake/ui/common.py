@@ -4,10 +4,11 @@ from shutil import copyfile
 import time
 from subprocess import Popen, PIPE, STDOUT
 
-from coilsnake.Project import Project, FORMAT_VERSION, PROJECT_FILENAME, get_version_name
+from coilsnake.util.common.project import FORMAT_VERSION, PROJECT_FILENAME, get_version_name
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui.formatter import CoilSnakeFormatter
+from coilsnake.util.common.project import Project
 from coilsnake.util.common.assets import open_asset, ccc_file_name
 
 

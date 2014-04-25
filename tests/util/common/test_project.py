@@ -2,7 +2,7 @@ import os
 
 from nose.tools import assert_equal
 
-from coilsnake import Project
+from coilsnake.util.common import project
 from tests.coilsnake_test import BaseTestCase, TEST_DATA_DIR
 
 
@@ -12,7 +12,7 @@ class TestProject(BaseTestCase):
     """
 
     def setup(self):
-        self.project = Project.Project()
+        self.project = project.Project()
 
     def test_empty_project(self):
         assert_equal(self.project.romtype, "Unknown")
