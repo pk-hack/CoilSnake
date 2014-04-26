@@ -1,7 +1,6 @@
 import logging
-import yaml
 
-from PIL import Image
+import yaml
 
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.enemy_groups import EnemyGroupTableEntry
@@ -9,6 +8,7 @@ from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.sprites import EbBattleSprite
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
+from coilsnake.util.common.image import open_indexed_image
 from coilsnake.util.common.yml import replace_field_in_yml
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, to_snes_address, write_asm_pointer
 
@@ -187,7 +187,7 @@ class EnemyModule(EbModule):
 
             try:
                 with resource_open("BattleSprites/" + str(i).zfill(3), "png") as f:
-                    image = Image.open(f)
+                    image = open_indexed_image(f)
                     battle_sprite.from_image(image)
                     palette.from_image(image)
                     del image

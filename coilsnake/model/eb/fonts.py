@@ -1,10 +1,9 @@
 import yaml
-from PIL import Image
 
-from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbTileArrangement, EbGraphicTileset
 from coilsnake.model.eb.palettes import EbPalette
+from coilsnake.util.common.image import open_indexed_image
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, write_asm_pointer, to_snes_address
 
 
@@ -41,10 +40,7 @@ class EbFont(object):
             yaml.dump(character_widths_dict, widths_file, default_flow_style=False, Dumper=yaml.CSafeDumper)
 
     def from_files(self, image_file, widths_file, image_format="png", widths_format="yml"):
-        image = Image.open(image_file)
-        if image.mode != 'P':
-            raise InvalidArgumentError("Can't read image file[%s] which don't use an indexed palette",
-                                       image_file.name)
+        image = open_indexed_image(image_file)
         self.tileset.from_image(image, _FONT_IMAGE_ARRANGEMENT, _FONT_IMAGE_PALETTE)
         del image
 
@@ -100,10 +96,7 @@ class EbCreditsFont(object):
         del image
 
     def from_files(self, image_file, image_format="png"):
-        image = Image.open(image_file)
-        if image.mode != 'P':
-            raise InvalidArgumentError("Can't read image file[%s] which doesn't use an indexed palette",
-                                       image_file.name)
+        image = open_indexed_image(image_file)
         self.palette.from_image(image)
         self.tileset.from_image(image, _CREDITS_PREVIEW_ARRANGEMENT, self.palette)
         del image

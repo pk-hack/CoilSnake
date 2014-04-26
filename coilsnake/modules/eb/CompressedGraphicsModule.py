@@ -1,4 +1,3 @@
-from PIL import Image
 from collections import namedtuple
 import logging
 
@@ -6,6 +5,7 @@ from coilsnake.model.eb.graphics import EbTileArrangement, EbTownMap, EbCompanyL
     EbGasStationLogo, EbTownMapIcons
 from coilsnake.model.eb.town_maps import TOWN_MAP_NAMES
 from coilsnake.modules.eb.EbModule import EbModule
+from coilsnake.util.common.image import open_indexed_image, open_image
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address, read_asm_pointer, write_asm_pointer
 
 
@@ -209,7 +209,7 @@ class CompressedGraphicsModule(EbModule):
     def read_town_maps_from_project(self, resource_open):
         for resource_name, town_map in zip(TOWN_MAP_RESOURCE_NAMES, self.town_maps):
             with resource_open(resource_name, "png") as image_file:
-                image = Image.open(image_file)
+                image = open_indexed_image(image_file)
                 town_map.from_image(image)
 
     def write_town_maps_to_project(self, resource_open):
@@ -220,7 +220,7 @@ class CompressedGraphicsModule(EbModule):
 
     def read_town_map_icons_from_project(self, resource_open):
         with resource_open("TownMaps/icons", "png") as image_file:
-            image = Image.open(image_file)
+            image = open_indexed_image(image_file)
             self.town_map_icons.from_image(image=image, arrangement=TOWN_MAP_ICON_PREVIEW_ARRANGEMENT)
 
     def write_town_map_icons_to_project(self, resource_open):
@@ -231,7 +231,7 @@ class CompressedGraphicsModule(EbModule):
     def read_logos_from_project(self, resource_open, logos, infos):
         for info, logo in zip(infos, logos):
             with resource_open(info.name, "png") as image_file:
-                image = Image.open(image_file)
+                image = open_indexed_image(image_file)
                 logo.from_image(image)
 
     def write_logos_to_project(self, resource_open, logos, infos):
@@ -242,11 +242,11 @@ class CompressedGraphicsModule(EbModule):
 
     def read_gas_station_from_project(self, resource_open):
         with resource_open(GAS_STATION_INFO.name + "1", "png") as image1_file:
-            image1 = Image.open(image1_file)
+            image1 = open_image(image1_file)
             with resource_open(GAS_STATION_INFO.name + "2", "png") as image2_file:
-                image2 = Image.open(image2_file)
+                image2 = open_image(image2_file)
                 with resource_open(GAS_STATION_INFO.name + "3", "png") as image3_file:
-                    image3 = Image.open(image3_file)
+                    image3 = open_image(image3_file)
                     self.gas_station_logo.from_images([image1, image2, image3])
 
     def write_gas_station_to_project(self, resource_open):

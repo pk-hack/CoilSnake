@@ -1,13 +1,12 @@
 import yaml
 
-from PIL import Image
-
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.sprites import SpriteGroup, SPRITE_SIZES
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
+from coilsnake.util.common.image import open_indexed_image
 from coilsnake.util.common.yml import replace_field_in_yml
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
@@ -74,18 +73,15 @@ class SpriteGroupModule(EbModule):
             for i in range(num_groups):
                 group = SpriteGroup(16)
                 group.from_yml_rep(input[i])
-                try:
-                    image = Image.open(resource_open("SpriteGroups/" + str(i).zfill(3), "png"))
-                except IOError:
-                    raise CoilSnakeError("Could not open image for Sprite Group #" + str(i))
 
-                if image.mode != 'P':
-                    raise CoilSnakeError("SpriteGroups/" + str(i).zfill(3) + " is not an indexed PNG.")
-
-                group.from_image(image)
                 palette = EbPalette(1, 16)
-                palette.from_image(image)
-                del image
+
+                with resource_open("SpriteGroups/" + str(i).zfill(3), "png") as f:
+                    image = open_indexed_image(f)
+                    group.from_image(image)
+                    palette.from_image(image)
+                    del image
+
                 self.groups.append(group)
 
                 # Assign the palette number to the sprite

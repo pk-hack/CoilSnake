@@ -1,12 +1,10 @@
-from PIL import Image
-
-from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangement
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
+from coilsnake.util.common.image import open_indexed_image
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, to_snes_address, write_asm_pointer
 
 GRAPHICS_POINTER_TABLE_ASM_POINTER_OFFSETS = [0x2d1ba, 0x2d4dc, 0x2d8c3, 0x4a3ba]
@@ -122,9 +120,7 @@ class BattleBgModule(EbModule):
         self.palettes = []
         for i in range(self.bg_table.num_rows):
             with resource_open("BattleBGs/" + str(i).zfill(3), "png") as f:
-                image = Image.open(f)
-                if image.mode != 'P':
-                    raise CoilSnakeError("BattleBG #" + str(i).zfill(3) + " is not an indexed PNG.")
+                image = open_indexed_image(f)
 
                 new_palette = EbPalette(num_subpalettes=1, subpalette_length=16)
                 new_tileset = EbGraphicTileset(num_tiles=512, tile_width=8, tile_height=8)

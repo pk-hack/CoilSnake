@@ -1,11 +1,9 @@
-from PIL import Image
-
-from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangement
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.table import EbStandardTextTableEntry
 from coilsnake.modules.eb.EbModule import EbModule
+from coilsnake.util.common.image import open_indexed_image
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, write_asm_pointer, to_snes_address
 
 GRAPHICS_1_ASM_POINTER_OFFSET = 0x47c47
@@ -139,17 +137,13 @@ class WindowGraphicsModule(EbModule):
     def read_from_project(self, resource_open):
         # Read graphics. Just use the first of each image.
         with resource_open("WindowGraphics/Windows1_0", "png") as image_file:
-            image = Image.open(image_file)
-            if image.mode != 'P':
-                raise CoilSnakeError("WindowGraphics/Windows1_0 is not an indexed PNG.")
+            image = open_indexed_image(image_file)
             self.graphics_1.from_image(image=image,
                                        arrangement=ARRANGEMENT_1,
                                        palette=self.flavor_palettes[0])
 
         with resource_open("WindowGraphics/Windows2_0", "png") as image_file:
-            image = Image.open(image_file)
-            if image.mode != 'P':
-                raise CoilSnakeError("WindowGraphics/Windows2_0 is not an indexed PNG.")
+            image = open_indexed_image(image_file)
             self.graphics_2.from_image(image=image,
                                        arrangement=ARRANGEMENT_2,
                                        palette=self.flavor_palettes[0].get_subpalette(7))
@@ -159,15 +153,11 @@ class WindowGraphicsModule(EbModule):
         for i, palette in enumerate(self.flavor_palettes):
             # Read all the palette data from Windows1
             with resource_open("WindowGraphics/Windows1_" + str(i), "png") as image_file:
-                image = Image.open(image_file)
-                if image.mode != 'P':
-                    raise CoilSnakeError("WindowGraphics/Windows1_" + str(i) + " is not an indexed PNG.")
+                image = open_indexed_image(image_file)
                 palette.from_image(image=image)
 
             with resource_open("WindowGraphics/Windows2_" + str(i), "png") as image_file:
-                image = Image.open(image_file)
-                if image.mode != 'P':
-                    raise CoilSnakeError("WindowGraphics/Windows2_" + str(i) + " is not an indexed PNG.")
+                image = open_indexed_image(image_file)
                 palette_data = image.getpalette()
                 m = 0
                 for k in range(4):
