@@ -56,7 +56,7 @@ class IpsPatch:
                     rom[i] = value
             elif instruction == 'RECORD':
                 offset, size, data = args
-                rom[offset] = data
+                rom[offset:offset + size] = data
 
     def is_applied(self, rom):
         if self.last_offset_used >= rom.size:
