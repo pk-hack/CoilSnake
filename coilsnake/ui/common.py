@@ -27,7 +27,7 @@ def setup_logging(quiet=False, verbose=False):
     logging.root.addHandler(handler)
 
 
-def upgrade_project(project_path, base_rom_filename):
+def upgrade_project(project_path, base_rom_filename, progress_bar=None):
     modules = load_modules()
 
     # Open project
@@ -48,7 +48,9 @@ def upgrade_project(project_path, base_rom_filename):
     rom.from_file(base_rom_filename)
     check_if_types_match(project=project, rom=rom)
 
-    compatible_modules = [x for x in modules if x[1].is_compatible_with_romtype(rom.type)]
+    compatible_modules = [(name, clazz) for name, clazz in modules if clazz.is_compatible_with_romtype(rom.type)]
+    tick_amount = 1.0/len(compatible_modules)
+
     for module_name, module_class in compatible_modules:
         log.debug("Starting upgrade of {}", module_class.NAME)
         start_time = time.time()
@@ -57,14 +59,16 @@ def upgrade_project(project_path, base_rom_filename):
                                    lambda x, y: project.get_resource(module_name, x, y, 'rb'),
                                    lambda x, y: project.get_resource(module_name, x, y, 'wb'),
                                    lambda x: project.delete_resource(module_name, x))
-        log.info("Upgraded {} in {:.2f}s", module_class.NAME, time.time() - start_time)
+            if progress_bar:
+                progress_bar.tick(tick_amount)
+        log.info("Upgraded {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
 
     log.debug("Saving Project")
     project.version = FORMAT_VERSION
     project.write(project_filename)
 
 
-def compile_project(project_path, base_rom_filename, output_rom_filename):
+def compile_project(project_path, base_rom_filename, output_rom_filename, progress_bar=None):
     modules = load_modules()
 
     project_filename = os.path.join(project_path, PROJECT_FILENAME)
@@ -99,6 +103,9 @@ def compile_project(project_path, base_rom_filename, output_rom_filename):
     rom.from_file(output_rom_filename)
     check_if_types_match(project=project, rom=rom)
 
+    compatible_modules = [(name, clazz) for name, clazz in modules if clazz.is_compatible_with_romtype(rom.type)]
+    tick_amount = 1.0/(2*len(compatible_modules))
+
     log.info("Compiling Project {}".format(project_path))
     compile_start_time = time.time()
 
@@ -113,8 +120,12 @@ def compile_project(project_path, base_rom_filename, output_rom_filename):
         with module_class() as module:
             log.debug("Reading {}".format(module_class.NAME))
             module.read_from_project(lambda x, y: project.get_resource(module_name, x, y, 'rb'))
+            if progress_bar:
+                progress_bar.tick(tick_amount)
             log.debug("Writing {}".format(module_class.NAME))
             module.write_to_rom(rom)
+            if progress_bar:
+                progress_bar.tick(tick_amount)
         log.info("Compiled {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
 
     log.debug("Saving ROM")
@@ -123,7 +134,7 @@ def compile_project(project_path, base_rom_filename, output_rom_filename):
     log.info("Compiled to {} in {:.2f}s".format(output_rom_filename, time.time() - compile_start_time))
 
 
-def decompile_rom(rom_filename, project_path):
+def decompile_rom(rom_filename, project_path, progress_bar=None):
     modules = load_modules()
 
     rom = Rom()
@@ -132,10 +143,13 @@ def decompile_rom(rom_filename, project_path):
     project = Project()
     project.load(os.path.join(project_path, PROJECT_FILENAME), rom.type)
 
+    compatible_modules = [(name, clazz) for name, clazz in modules if clazz.is_compatible_with_romtype(rom.type)]
+    tick_amount = 1.0/(2*len(compatible_modules))
+
     log.info("Decompiling ROM {}".format(rom_filename))
     decompile_start_time = time.time()
 
-    for module_name, module_class in modules:
+    for module_name, module_class in compatible_modules:
         if not module_class.is_compatible_with_romtype(rom.type):
             continue
 
@@ -143,8 +157,12 @@ def decompile_rom(rom_filename, project_path):
         with module_class() as module:
             log.debug("Reading {}".format(module_class.NAME))
             module.read_from_rom(rom)
+            if progress_bar:
+                progress_bar.tick(tick_amount)
             log.debug("Writing {}".format(module_class.NAME))
             module.write_to_project(lambda x, y: project.get_resource(module_name, x, y, 'wb'))
+            if progress_bar:
+                progress_bar.tick(tick_amount)
         log.info("Decompiled {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
 
     log.debug("Saving Project")

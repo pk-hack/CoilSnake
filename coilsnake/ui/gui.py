@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 import Tkinter
 from functools import partial
+import logging
 from subprocess import Popen
 from os.path import dirname, isdir, join
 from threading import Thread
@@ -21,9 +22,12 @@ from coilsnake.ui.fun import get_fun_title
 from coilsnake.ui.gui_preferences import CoilSnakePreferences
 from coilsnake.ui.gui_util import browse_for_rom, browse_for_project, open_folder, set_entry_text
 from coilsnake.ui.information import coilsnake_about
+from coilsnake.ui.progressbar import GuiProgressBar
 from coilsnake.util.common.project import PROJECT_FILENAME
 from coilsnake.util.common.assets import asset_path
 
+
+log = logging.getLogger(__name__)
 
 # Import CCScriptWriter from the submodule, if possible.
 
@@ -39,6 +43,7 @@ class CoilSnakeGui(object):
         self.preferences = CoilSnakePreferences()
         self.preferences.load()
         self.components = []
+        self.progress_bar = None
 
     # Preferences functions
 
@@ -128,19 +133,17 @@ Please specify it in the Preferences menu.""")
             self.clear_console()
             self.disable_all_components()
 
-            self.progress_bar["value"] = 0
-            thread = Thread(target=self._do_decompile_help,
-                            args=(rom, project))
+            self.progress_bar.set(0)
+            thread = Thread(target=self._do_decompile_help, args=(rom, project))
             thread.start()
 
     def _do_decompile_help(self, rom, project):
         try:
-            decompile_rom(rom_filename=rom, project_path=project)
+            decompile_rom(rom_filename=rom, project_path=project, progress_bar=self.progress_bar)
         except Exception as inst:
-            # TODO
-            pass
+            log.exception("Error")
 
-        self.progress_bar["value"] = 0
+        self.progress_bar.set(0)
         self.enable_all_components()
 
     def do_compile(self, project_entry, base_rom_entry, rom_entry):
@@ -154,20 +157,18 @@ Please specify it in the Preferences menu.""")
             self.disable_all_components()
 
             # Reset the progress bar
-            self.progress_bar["value"] = 0
+            self.progress_bar.set(0)
 
-            thread = Thread(target=self._do_compile_help,
-                            args=(project, base_rom, rom))
+            thread = Thread(target=self._do_compile_help, args=(project, base_rom, rom))
             thread.start()
 
     def _do_compile_help(self, project, base_rom, rom):
         try:
-            compile_project(project, base_rom, rom)
+            compile_project(project, base_rom, rom, progress_bar=self.progress_bar)
         except Exception as inst:
-            # TODO
-            pass
+            log.exception("Error")
 
-        self.progress_bar["value"] = 0
+        self.progress_bar.set(0)
         self.enable_all_components()
 
     def do_upgrade(self, rom_entry, project_entry):
@@ -179,20 +180,17 @@ Please specify it in the Preferences menu.""")
             self.clear_console()
             self.disable_all_components()
 
-            self.progress_bar["value"] = 0
-            self.progress_bar.step(10)
-            thread = Thread(target=self._do_upgrade_help,
-                            args=(rom_entry.get(), project_entry.get()))
+            self.progress_bar.set(0)
+            thread = Thread(target=self._do_upgrade_help, args=(rom_entry.get(), project_entry.get()))
             thread.start()
 
     def _do_upgrade_help(self, rom, project):
         try:
-            upgrade_project(project_path=project, base_rom_filename=rom)
+            upgrade_project(project_path=project, base_rom_filename=rom, progress_bar=self.progress_bar)
         except Exception as inst:
-            pass
-            # TODO
+            log.exception("Error")
 
-        self.progress_bar["value"] = 0
+        self.progress_bar.set(0)
         self.enable_all_components()
 
     def extract_earthbound_dialogue(self):
@@ -277,8 +275,9 @@ Please specify it in the Preferences menu.""")
 
         notebook.pack(fill=BOTH, expand=1)
 
-        self.progress_bar = ttk.Progressbar(self.root, orient=HORIZONTAL, mode='determinate')
-        self.progress_bar.pack(fill=BOTH, expand=1)
+        progress_bar_component = ttk.Progressbar(self.root, orient=HORIZONTAL, mode='determinate')
+        progress_bar_component.pack(fill=BOTH, expand=1)
+        self.progress_bar = GuiProgressBar(progress_bar_component)
 
         console_frame = Frame(self.root)
         scrollbar = Scrollbar(console_frame)

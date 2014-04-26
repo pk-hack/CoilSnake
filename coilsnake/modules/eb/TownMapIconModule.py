@@ -38,9 +38,7 @@ class TownMapIconModule(EbModule):
             self.table.to_yml_file(f)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
-        global updateProgress
         if old_version == new_version:
-            updateProgress(100)
             return
         elif old_version == 4:
             with resource_open_r("TownMaps/icon_positions", "yml") as f:
@@ -58,11 +56,8 @@ class TownMapIconModule(EbModule):
 
             self.upgrade_project(5, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         elif old_version <= 2:
-            tmp = updateProgress
-            updateProgress = lambda x: None
             self.read_from_rom(rom)
             self.write_to_project(resource_open_w)
-            updateProgress = tmp
             self.upgrade_project(4, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         else:
             self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)

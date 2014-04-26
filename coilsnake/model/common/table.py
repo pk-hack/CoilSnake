@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import logging
+
 import yaml
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, IndexOutOfRangeError, \
@@ -108,11 +109,25 @@ class LittleEndianHexIntegerTableEntry(LittleEndianIntegerTableEntry):
 class LittleEndianOneBasedIntegerTableEntry(LittleEndianIntegerTableEntry):
     @classmethod
     def from_block(cls, block, offset):
-        return super(LittleEndianOneBasedIntegerTableEntry, cls).from_block(block, offset) + 1
+        return super(LittleEndianOneBasedIntegerTableEntry, cls).from_block(block, offset) - 1
 
     @classmethod
     def to_block(cls, block, offset, value):
-        super(LittleEndianOneBasedIntegerTableEntry, cls).to_block(block, offset, value - 1)
+        super(LittleEndianOneBasedIntegerTableEntry, cls).to_block(block, offset, value + 1)
+
+    @classmethod
+    def from_yml_rep(cls, yml_rep):
+        if yml_rep is None:
+            return -1
+        else:
+            return super(LittleEndianOneBasedIntegerTableEntry, cls).from_yml_rep(yml_rep)
+
+    @classmethod
+    def to_yml_rep(cls, value):
+        if value == -1:
+            return None
+        else:
+            return super(LittleEndianOneBasedIntegerTableEntry, cls).to_yml_rep(value)
 
 
 class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):

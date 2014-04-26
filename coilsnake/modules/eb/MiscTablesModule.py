@@ -1,6 +1,5 @@
 import yaml
 
-from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.yml import convert_values_to_hex_repr, replace_field_in_yml
@@ -153,4 +152,4 @@ class MiscTablesModule(EbModule):
                                  resource_open_w=resource_open_w,
                                  resource_delete=resource_delete)
         else:
-            raise CoilSnakeError("Don't know how to upgrade from version", old_version, "to", new_version)
+            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
