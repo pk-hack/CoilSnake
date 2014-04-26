@@ -38,12 +38,14 @@ def upgrade_project(project_path, base_rom_filename, progress_bar=None):
     project.load(project_filename)
     check_if_project_too_new(project)
 
-    if project.version== FORMAT_VERSION:
+    if project.version == FORMAT_VERSION:
         log.info("Project is already up to date.")
         return
 
-    log.info("Upgrading Project {} from {} to {}".format(project_path, get_version_name(project.version),
-                                                         get_version_name(FORMAT_VERSION)))
+    log.info("Upgrading project from version {} to {}".format(
+        get_version_name(project.version),
+        get_version_name(FORMAT_VERSION)))
+    upgrade_start_time = time.time()
 
     rom = Rom()
     rom.from_file(base_rom_filename)
@@ -64,9 +66,10 @@ def upgrade_project(project_path, base_rom_filename, progress_bar=None):
                 progress_bar.tick(tick_amount)
         log.info("Upgraded {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
 
-    log.debug("Saving Project")
     project.version = FORMAT_VERSION
     project.write(project_filename)
+
+    log.info("Upgraded {} in {:.2f}s".format(project_path, time.time() - upgrade_start_time))
 
 
 def compile_project(project_path, base_rom_filename, output_rom_filename, progress_bar=None):

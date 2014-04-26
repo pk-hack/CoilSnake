@@ -1,8 +1,8 @@
 import os
+
 import yaml
 
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
-
 from coilsnake.model.common.ips import IpsPatch
 from coilsnake.modules.common.GenericModule import GenericModule
 from coilsnake.util.common.assets import ASSET_PATH
@@ -32,10 +32,12 @@ class PatchModule(GenericModule):
         for ip_desc_filename in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
             with open(os.path.join(get_ips_directory(rom.type), ip_desc_filename)) as ips_desc_file:
                 ips_desc = yaml.load(ips_desc_file, Loader=yaml.CSafeLoader)
+                ips_desc_title = ips_desc["Title"]
+
                 if ips_desc["Auto-Apply"]:
-                    self.patches[ips_desc["Title"]] = "enabled"
+                    self.patches[ips_desc_title] = "enabled"
                 else:
-                    self.patches[ips_desc["Title"]] = "disabled"
+                    self.patches[ips_desc_title] = "disabled"
 
     def write_to_rom(self, rom):
         for ips_desc_filename in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
@@ -73,11 +75,24 @@ class PatchModule(GenericModule):
             self.patches = yaml.load(f, Loader=yaml.CSafeLoader)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
-        if old_version == new_version:
-            return
-        elif old_version == 1:
+        if old_version == 1:
             self.read_from_rom(rom)
             self.write_to_project(resource_open_w)
-            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
-        else:
-            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+        elif old_version < new_version:
+            self.read_from_project(resource_open_r)
+
+            # Add in all the new patches
+            for ip_desc_filename in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
+                with open(os.path.join(get_ips_directory(rom.type), ip_desc_filename)) as ips_desc_file:
+                    ips_desc = yaml.load(ips_desc_file, Loader=yaml.CSafeLoader)
+                    ips_desc_title = ips_desc["Title"]
+
+                    if ips_desc_title in self.patches:
+                        continue
+
+                    if ips_desc["Auto-Apply"]:
+                        self.patches[ips_desc_title] = "enabled"
+                    else:
+                        self.patches[ips_desc_title] = "disabled"
+
+            self.write_to_project(resource_open_w)
