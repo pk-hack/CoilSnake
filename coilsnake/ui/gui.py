@@ -123,6 +123,16 @@ Please specify it in the Preferences menu.""")
         project = project_entry.get()
 
         if rom and project:
+            if os.path.isdir(project):
+                confirm = tkMessageBox.askquestion("Are You Sure?",
+                                                   "Are you sure you would like to permanently overwrite the " \
+                                                   + "contents of the selected output directory?",
+                                                   icon='warning')
+                if confirm != "yes":
+                    return
+
+            self.save_default_tab()
+
             # Update the GUI
             self.clear_console()
             self.disable_all_components()
@@ -146,6 +156,8 @@ Please specify it in the Preferences menu.""")
         project = project_entry.get()
 
         if base_rom and rom and project:
+            self.save_default_tab()
+
             # Update the GUI
             self.clear_console()
             self.disable_all_components()
@@ -170,6 +182,16 @@ Please specify it in the Preferences menu.""")
         project = project_entry.get()
 
         if rom and project:
+            confirm = tkMessageBox.askquestion("Are You Sure?",
+                                               "Are you sure you would like to upgrade this project? This operation "
+                                               + "cannot be undone.\n\n"
+                                               + "It is recommended that you backup your project before proceeding.",
+                                               icon='warning')
+            if confirm != "yes":
+                return
+
+            self.save_default_tab()
+
             # Update the GUI
             self.clear_console()
             self.disable_all_components()
@@ -192,6 +214,16 @@ Please specify it in the Preferences menu.""")
         project = project_entry.get()
 
         if rom and project:
+            confirm = tkMessageBox.askquestion("Are You Sure?",
+                                               "Are you sure you would like to decompile the script into this "
+                                               "project? This operation cannot be undone.\n\n"
+                                               + "It is recommended that you backup your project before proceeding.",
+                                               icon='warning')
+            if confirm != "yes":
+                return
+
+            self.save_default_tab()
+
             # Update the GUI
             self.clear_console()
             self.disable_all_components()
@@ -317,7 +349,6 @@ Please specify it in the Preferences menu.""")
         profile_selector_init()
 
         def decompile_tmp():
-            self.save_default_tab()
             self.do_decompile(input_rom_entry, project_entry)
 
         decompile_button = Button(decompile_frame, text="Decompile", command=decompile_tmp)
@@ -346,7 +377,6 @@ Please specify it in the Preferences menu.""")
         profile_selector_init()
 
         def compile_tmp():
-            self.save_default_tab()
             self.do_compile(project_entry, base_rom_entry, output_rom_entry)
 
         compile_button = Button(compile_frame, text="Compile", command=compile_tmp)
@@ -364,7 +394,6 @@ Please specify it in the Preferences menu.""")
         project_entry = self.add_project_fields_to_frame(name="Project", frame=upgrade_frame)
 
         def upgrade_tmp():
-            self.save_default_tab()
             self.do_upgrade(rom_entry, project_entry)
 
         self.upgrade_button = Button(upgrade_frame, text="Upgrade", command=upgrade_tmp)
@@ -382,7 +411,6 @@ Please specify it in the Preferences menu.""")
         project_entry = self.add_project_fields_to_frame(name="Project", frame=decompile_script_frame)
 
         def decompile_script_tmp():
-            self.save_default_tab()
             self.do_decompile_script(input_rom_entry, project_entry)
 
         button = Button(decompile_script_frame, text="Decompile Script", command=decompile_script_tmp)
