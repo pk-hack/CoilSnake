@@ -49,6 +49,11 @@ class CoilSnakeGui(object):
             self.preferences["emulator"] = emulator_exe
             self.preferences.save()
 
+    def save_default_tab(self):
+        tab_number = self.notebook.index(self.notebook.select())
+        self.preferences.set_default_tab(tab_number)
+        self.preferences.save()
+
     # GUI update functions
 
     def clear_console(self):
@@ -217,21 +222,22 @@ Please specify it in the Preferences menu.""")
 
         self.create_menubar()
 
-        notebook = ttk.Notebook(self.root)
+        self.notebook = ttk.Notebook(self.root)
 
-        decompile_frame = self.create_decompile_frame(notebook)
-        notebook.add(decompile_frame, text="Decompile")
+        decompile_frame = self.create_decompile_frame(self.notebook)
+        self.notebook.add(decompile_frame, text="Decompile")
 
-        compile_frame = self.create_compile_frame(notebook)
-        notebook.add(compile_frame, text="Compile")
+        compile_frame = self.create_compile_frame(self.notebook)
+        self.notebook.add(compile_frame, text="Compile")
 
-        upgrade_frame = self.create_upgrade_frame(notebook)
-        notebook.add(upgrade_frame, text="Upgrade")
+        upgrade_frame = self.create_upgrade_frame(self.notebook)
+        self.notebook.add(upgrade_frame, text="Upgrade")
 
-        decompile_script_frame = self.create_decompile_script_frame(notebook)
-        notebook.add(decompile_script_frame, text="Decompile Script")
+        decompile_script_frame = self.create_decompile_script_frame(self.notebook)
+        self.notebook.add(decompile_script_frame, text="Decompile Script")
 
-        notebook.pack(fill=BOTH, expand=1)
+        self.notebook.pack(fill=BOTH, expand=1)
+        self.notebook.select(self.preferences.get_default_tab())
 
         progress_bar_component = ttk.Progressbar(self.root, orient=HORIZONTAL, mode='determinate')
         progress_bar_component.pack(fill=BOTH, expand=1)
@@ -311,6 +317,7 @@ Please specify it in the Preferences menu.""")
         profile_selector_init()
 
         def decompile_tmp():
+            self.save_default_tab()
             self.do_decompile(input_rom_entry, project_entry)
 
         decompile_button = Button(decompile_frame, text="Decompile", command=decompile_tmp)
@@ -339,6 +346,7 @@ Please specify it in the Preferences menu.""")
         profile_selector_init()
 
         def compile_tmp():
+            self.save_default_tab()
             self.do_compile(project_entry, base_rom_entry, output_rom_entry)
 
         compile_button = Button(compile_frame, text="Compile", command=compile_tmp)
@@ -356,6 +364,7 @@ Please specify it in the Preferences menu.""")
         project_entry = self.add_project_fields_to_frame(name="Project", frame=upgrade_frame)
 
         def upgrade_tmp():
+            self.save_default_tab()
             self.do_upgrade(rom_entry, project_entry)
 
         self.upgrade_button = Button(upgrade_frame, text="Upgrade", command=upgrade_tmp)
@@ -373,6 +382,7 @@ Please specify it in the Preferences menu.""")
         project_entry = self.add_project_fields_to_frame(name="Project", frame=decompile_script_frame)
 
         def decompile_script_tmp():
+            self.save_default_tab()
             self.do_decompile_script(input_rom_entry, project_entry)
 
         button = Button(decompile_script_frame, text="Decompile Script", command=decompile_script_tmp)

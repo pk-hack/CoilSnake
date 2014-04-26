@@ -1,4 +1,5 @@
 import os
+
 import yaml
 
 
@@ -16,6 +17,15 @@ class CoilSnakePreferences(object):
     def save(self):
         with open(self.PREFERENCES_FILENAME, "w") as f:
             yaml.dump(self.preferences, f, Dumper=yaml.CSafeDumper)
+
+    def get_default_tab(self):
+        if "default_tab" in self.preferences:
+            return self.preferences["default_tab"]
+        else:
+            return 0
+
+    def set_default_tab(self, default_tab):
+        self["default_tab"] = default_tab
 
     def add_profile(self, tab_name, profile_name):
         tab = self._get_preferences_profile_tab(tab_name)
