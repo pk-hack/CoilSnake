@@ -14,7 +14,11 @@ setup(
     packages=find_packages(),
     include_package_data=True,
 
-    install_requires=["Pillow", "PyYAML"],
+    setup_requires=[
+        "Pillow",
+        "PyYAML",
+        "CCScriptWriter"
+    ],
     ext_modules=[
         Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c"])
     ],
@@ -26,5 +30,8 @@ setup(
     },
 
     test_suite="nose.collector",
-    tests_require=["nose>=1.0", "mock"],
+    tests_require=[
+        "nose>=1.0",
+        "mock"
+    ],
 )

@@ -3,9 +3,7 @@ import Tkinter
 from functools import partial
 import logging
 from subprocess import Popen
-from os.path import dirname, isdir, join
 from threading import Thread
-from time import time
 from Tkinter import *
 import tkFileDialog
 import tkMessageBox
@@ -15,9 +13,8 @@ import os
 
 from PIL import ImageTk
 
-from coilsnake.model.common.blocks import Rom
 from coilsnake.ui import information, gui_util
-from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging
+from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging, decompile_script
 from coilsnake.ui.fun import get_fun_title
 from coilsnake.ui.gui_preferences import CoilSnakePreferences
 from coilsnake.ui.gui_util import browse_for_rom, browse_for_project, open_folder, set_entry_text
@@ -28,14 +25,6 @@ from coilsnake.util.common.assets import asset_path
 
 
 log = logging.getLogger(__name__)
-
-# Import CCScriptWriter from the submodule, if possible.
-
-if isdir(join("tools", "CCScriptWriter")):
-    sys.path.append(join("tools", "CCScriptWriter"))
-    from CCScriptWriter import CCScriptWriter
-else:
-    CCScriptWriter = None
 
 
 class CoilSnakeGui(object):
@@ -181,7 +170,7 @@ Please specify it in the Preferences menu.""")
             self.disable_all_components()
 
             self.progress_bar.set(0)
-            thread = Thread(target=self._do_upgrade_help, args=(rom_entry.get(), project_entry.get()))
+            thread = Thread(target=self._do_upgrade_help, args=(rom, project))
             thread.start()
 
     def _do_upgrade_help(self, rom, project):
@@ -193,58 +182,27 @@ Please specify it in the Preferences menu.""")
         self.progress_bar.set(0)
         self.enable_all_components()
 
-    def extract_earthbound_dialogue(self):
-        if not CCScriptWriter:
-            tkMessageBox.showerror(
-                "CCScriptWriter Not Installed",
-                "You need to place CCScriptWriter.py in the tools/CCScriptWriter folder.",
-                parent=self.root)
-            return
-        rom_filename = tkFileDialog.askopenfilename(
-            parent=self.root, title="Select an EarthBound ROM from which to extract the dialogue text",
-            filetypes=[('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')])
-        if not rom_filename:
-            return
-        rom = Rom()
-        rom.from_file(rom_filename)
-        if rom.type != "Earthbound":
-            tkMessageBox.showerror(
-                "Invalid EarthBound ROM",
-                "You have specified an invalid EarthBound ROM.",
-                parent=self.root)
-            return
-        del rom
-        project_filename = tkFileDialog.askopenfilename(
-            parent=self.root, title="Select a CoilSnake project to modify",
-            filetypes=[('CoilSnake Project', 'Project.snake')])
-        if not project_filename:
-            return
-        project_ccscript_path = join(dirname(project_filename), "ccscript")
-        thread = Thread(
-            target=self._run_CCScriptWriter,
-            args=(project_ccscript_path, rom_filename))
-        thread.start()
+    def do_decompile_script(self, rom_entry, project_entry):
+        rom = rom_entry.get()
+        project = project_entry.get()
 
-    def _run_CCScriptWriter(self, project_dir, rom_name):
-        start = time()
-        rom_file = open(rom_name, "rb")
+        if rom and project:
+            # Update the GUI
+            self.clear_console()
+            self.disable_all_components()
+            self.progress_bar.cycle_animation()
+
+            thread = Thread(target=self._do_decompile_script_help, args=(rom, project))
+            thread.start()
+
+    def _do_decompile_script_help(self, rom, project):
         try:
-            ccsw = CCScriptWriter(rom_file, project_dir, False)
-            ccsw.loadDialogue(True)
-            ccsw.processDialogue()
-            ccsw.outputDialogue(True)
+            decompile_script(rom_filename=rom, project_path=project, progress_bar=self.progress_bar)
         except Exception as inst:
-            pass  # TODO
-        else:
-            print "Complete. Time: {:.2f}s".format(float(time() - start))
-            tkMessageBox.showinfo(
-                title="Dialogue Extraction Successful",
-                message="Successfully extracted EarthBound dialogue.",
-                parent=self.root)
-        finally:
-            rom_file.close()
+            log.exception("Error")
 
-    # GUI
+        self.progress_bar.stop_cycle_animation()
+        self.enable_all_components()
 
     def main(self):
         self.create_gui()
@@ -325,7 +283,7 @@ Please specify it in the Preferences menu.""")
         toolsMenu.add_command(label="Remove Header from ROM",
                               command=partial(gui_util.strip_header_from_rom, self.root))
         toolsMenu.add_command(label="Extract EarthBound Dialogue to Project",
-                              command=self.extract_earthbound_dialogue)
+                              command=self.do_decompile_script)
         menubar.add_cascade(label="Tools", menu=toolsMenu)
 
         # Help menu
@@ -409,13 +367,13 @@ Please specify it in the Preferences menu.""")
     def create_decompile_script_frame(self, notebook):
         decompile_script_frame = ttk.Frame(notebook)
         self.add_title_label_to_frame(text="Decompile a ROM's script to an already existing project.",
-                                       frame=decompile_script_frame)
+                                      frame=decompile_script_frame)
 
         input_rom_entry = self.add_rom_fields_to_frame(name="ROM", frame=decompile_script_frame)
         project_entry = self.add_project_fields_to_frame(name="Project", frame=decompile_script_frame)
 
         def decompile_script_tmp():
-            self.do_decompile(input_rom_entry, project_entry)
+            self.do_decompile_script(input_rom_entry, project_entry)
 
         button = Button(decompile_script_frame, text="Decompile Script", command=decompile_script_tmp)
         button.pack(fill=BOTH, expand=1)

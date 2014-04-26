@@ -26,6 +26,14 @@ class AbstractProgressBar(object):
     def redraw(self):
         pass
 
+    @abstractmethod
+    def cycle_animation(self):
+        pass
+
+    @abstractmethod
+    def stop_cycle_animation(self):
+        pass
+
 
 class GuiProgressBar(AbstractProgressBar):
     def __init__(self, progressbar):
@@ -34,3 +42,12 @@ class GuiProgressBar(AbstractProgressBar):
 
     def redraw(self):
         self.progressbar["value"] = self.progress * 100.0
+
+    def cycle_animation(self):
+        self.progressbar["mode"] = "indeterminate"
+        self.progressbar.start()
+
+    def stop_cycle_animation(self):
+        self.progressbar.stop()
+        self.progressbar["mode"] = "determinate"
+        self.set(0)

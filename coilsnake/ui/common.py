@@ -10,6 +10,7 @@ from coilsnake.model.common.blocks import Rom
 from coilsnake.ui.formatter import CoilSnakeFormatter
 from coilsnake.util.common.project import Project
 from coilsnake.util.common.assets import open_asset, ccc_file_name
+from CCScriptWriter.CCScriptWriter import CCScriptWriter
 
 
 log = logging.getLogger(__name__)
@@ -169,6 +170,32 @@ def decompile_rom(rom_filename, project_path, progress_bar=None):
     project.write(os.path.join(project_path, PROJECT_FILENAME))
 
     log.info("Decompiled to {} in {:.2f}s".format(project_path, time.time() - decompile_start_time))
+
+
+def decompile_script(rom_filename, project_path, progress_bar=None):
+    rom = Rom()
+    rom.from_file(rom_filename)
+    if rom.type != "Earthbound":
+        raise CoilSnakeError("Cannot decompile script of a non-Earthbound rom. A {} rom was supplied.".format(
+            rom.type))
+    del rom
+
+    project_ccscript_path = os.path.join(project_path, "ccscript")
+
+    start_time = time.time()
+
+    rom_file = open(rom_filename, "rb")
+    try:
+        ccsw = CCScriptWriter(rom_file, project_ccscript_path, False)
+        ccsw.loadDialogue(True)
+        ccsw.processDialogue()
+        ccsw.outputDialogue(True)
+    except Exception as inst:
+        log.exception("Error")
+    else:
+        log.info("Decompiled script to {} in {:.2f}s".format(project_path, time.time() - start_time))
+    finally:
+        rom_file.close()
 
 
 def load_modules():
