@@ -1,7 +1,8 @@
 from array import array
 from copy import deepcopy
-from PIL import Image
 from zlib import crc32
+
+from PIL import Image
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, OutOfBoundsError
 from coilsnake.model.eb.blocks import EbCompressibleBlock
@@ -20,6 +21,7 @@ def hash_tile(tile):
     for col in tile:
         csum = crc32(col, csum)
     return csum
+
 
 class EbGraphicTileset(EqualityMixin):
     """A class representing a set of graphical tiles which adhere to the common EarthBound format.

@@ -1,5 +1,6 @@
-from PIL import Image
 from array import array
+
+from PIL import Image
 
 from coilsnake.model.common.table import EnumeratedLittleEndianIntegerTableEntry, ByteListTableEntry, RowTableEntry, \
     LittleEndianIntegerTableEntry
@@ -212,9 +213,9 @@ class SpriteGroup:
                 try:
                     tmp_sprite_pointers.append((unique_sprites.index(sprite), True))
                 except ValueError:
-                    # Flipped sprite not in uniques
+                    sprite.flip_horizontally()
                     unique_sprites.append(sprite)
-                    tmp_sprite_pointers.append((unique_sprites.index(sprite), True))
+                    tmp_sprite_pointers.append((unique_sprites.index(sprite), False))
         # Find a free block
         offset = rom.allocate(size=sum([x.block_size() for x in unique_sprites]),
                               can_write_to=(lambda y: (y & 15) == 0))
