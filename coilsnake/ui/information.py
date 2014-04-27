@@ -5,7 +5,11 @@ RELEASE_DATE = "?/?/2014"
 
 WEBSITE = "http://kiij.github.io/CoilSnake"
 AUTHOR = "MrTenda"
+ADDITIONAL_CREDITS = """- Some portions based on JHack, created by AnyoneEB
+- Contributions by H.S, Michael1, and many others"""
 DEPENDENCIES = [
+    {"name": "CoilSnake logo",
+     "author": "Rydel"},
     {"name": "CCScript",
      "author": "Mr. Accident",
      "url":"http://starmen.net/pkhack/ccscript"},
@@ -17,20 +21,21 @@ DEPENDENCIES = [
      "url": "https://github.com/PKHackers/EBYAML"},
     {"name": "EarthBound Compression Library",
      "author": "Goplat"},
-    {"name": "JHack",
-     "author": "AnyoneEB"}
-    ]
+]
 
 
 def coilsnake_about():
-    description = """CoilSnake {version} by {author} ({release_date})
-Website: {website}""".format(version=VERSION, author=AUTHOR, release_date=RELEASE_DATE, website=WEBSITE)
+    description = """CoilSnake {version}
+Written by {author}
+Released on {release_date}
+""".format(version=VERSION, author=AUTHOR, release_date=RELEASE_DATE, website=WEBSITE)
 
     for dependency in DEPENDENCIES:
-        description += "\n* " + dependency["name"]
+        description += "\n- " + dependency["name"]
         if "author" in dependency:
-            description += " by {}".format(dependency["author"])
+            description += " created by {}".format(dependency["author"])
         if "url" in dependency:
-            description += " ({})".format(dependency["url"])
+            description += "\n  {}".format(dependency["url"])
 
+    description += "\n" + ADDITIONAL_CREDITS
     return description

@@ -305,6 +305,7 @@ Please specify it in the Preferences menu.""")
         about_right_frame = ttk.Frame(self.about_menu)
         Label(about_right_frame,
               text=coilsnake_about(),
+              font="Courier",
               height=15,
               anchor="w",
               justify="left",
