@@ -13,6 +13,7 @@ import os
 
 from PIL import ImageTk
 
+from coilsnake.model.common.blocks import Rom
 from coilsnake.ui import information, gui_util
 from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging, decompile_script
 from coilsnake.ui.fun import get_fun_title
@@ -157,6 +158,22 @@ Please specify it in the Preferences menu.""")
 
         if base_rom and rom and project:
             self.save_default_tab()
+
+            base_rom_rom = Rom()
+            base_rom_rom.from_file(base_rom)
+            if base_rom_rom.type == "Earthbound" and len(base_rom_rom) == 0x300000:
+                confirm = tkMessageBox.askquestion("Expand Your Base ROM?",
+                                                   "You are attempting to compile using a base ROM which is "
+                                                   "unexpanded. It is likely that this will not succeed, as CoilSnake "
+                                                   "needs the extra space in an expanded ROM to store additional data."
+                                                   "\n\n"
+                                                   "Would you like to expand this base ROM before proceeding? This "
+                                                   "will permanently overwrite your base ROM.",
+                                                   icon='warning')
+                if confirm == "yes":
+                    base_rom_rom.expand(0x400000)
+                    base_rom_rom.to_file(base_rom)
+            del base_rom_rom
 
             # Update the GUI
             self.clear_console()
@@ -305,24 +322,22 @@ Please specify it in the Preferences menu.""")
         menubar = Menu(self.root)
 
         # Preferences pulldown menu
-        prefMenu = Menu(menubar, tearoff=0)
-        prefMenu.add_command(label="Emulator Executable",
-                             command=self.set_emulator_exe)
-        menubar.add_cascade(label="Preferences", menu=prefMenu)
+        pref_menu = Menu(menubar, tearoff=0)
+        pref_menu.add_command(label="Emulator Executable",
+                              command=self.set_emulator_exe)
+        menubar.add_cascade(label="Preferences", menu=pref_menu)
 
         # Tools pulldown menu
-        toolsMenu = Menu(menubar, tearoff=0)
-        toolsMenu.add_command(label="Expand ROM to 32 MBit",
-                              command=partial(gui_util.expand_rom, self.root))
-        toolsMenu.add_command(label="Expand ROM to 48 MBit",
-                              command=partial(gui_util.expand_rom_ex, self.root))
-        toolsMenu.add_command(label="Add Header to ROM",
-                              command=partial(gui_util.add_header_to_rom, self.root))
-        toolsMenu.add_command(label="Remove Header from ROM",
-                              command=partial(gui_util.strip_header_from_rom, self.root))
-        toolsMenu.add_command(label="Extract EarthBound Dialogue to Project",
-                              command=self.do_decompile_script)
-        menubar.add_cascade(label="Tools", menu=toolsMenu)
+        tools_menu = Menu(menubar, tearoff=0)
+        tools_menu.add_command(label="Expand ROM to 32 MBit",
+                               command=partial(gui_util.expand_rom, self.root))
+        tools_menu.add_command(label="Expand ROM to 48 MBit",
+                               command=partial(gui_util.expand_rom_ex, self.root))
+        tools_menu.add_command(label="Add Header to ROM",
+                               command=partial(gui_util.add_header_to_rom, self.root))
+        tools_menu.add_command(label="Remove Header from ROM",
+                               command=partial(gui_util.strip_header_from_rom, self.root))
+        menubar.add_cascade(label="Tools", menu=tools_menu)
 
         # Help menu
         help_menu = Menu(menubar, tearoff=0)

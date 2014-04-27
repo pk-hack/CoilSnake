@@ -18,7 +18,7 @@ def expand_rom(root, ex=False):
         title="Select a ROM to expand",
         filetypes=ROM_FILETYPES)
     if filename:
-        rom.load(filename)
+        rom.from_file(filename)
         if (not ex and len(rom) >= 0x400000) or (ex and (len(rom) >= 0x600000)):
             tkMessageBox.showerror(
                 parent=root,
@@ -29,7 +29,7 @@ def expand_rom(root, ex=False):
                 rom.expand(0x600000)
             else:
                 rom.expand(0x400000)
-            rom.save(filename)
+            rom.to_file(filename)
             del rom
             tkMessageBox.showinfo(
                 parent=root,
@@ -84,13 +84,13 @@ def browse_for_rom(root, entry, save=False):
             parent=root,
             initialdir=os.path.dirname(entry.get()),
             title="Select an output ROM",
-            filetypes=[('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')])
+            filetypes=ROM_FILETYPES)
     else:
         filename = tkFileDialog.askopenfilename(
             parent=root,
             initialdir=os.path.dirname(entry.get()),
             title="Select a ROM",
-            filetypes=[('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')])
+            filetypes=ROM_FILETYPES)
     if filename:
         set_entry_text(entry, filename)
         entry.xview(END)
