@@ -14,6 +14,6 @@ def open_asset(*path):
 
 def ccc_file_name():
     if sys.platform == "win32" or sys.platform == "cygwin":
-        return asset_path("bin", "ccc.exe")
+        return asset_path(["ccc", "ccc.exe"])
     else:
-        return asset_path("bin", "ccc")
+        return asset_path(["ccc", "ccc"])

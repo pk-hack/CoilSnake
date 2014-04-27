@@ -1,4 +1,6 @@
-VERSION = "1.3"
+from coilsnake.util.common import project
+
+VERSION = project.VERSION_NAMES[project.FORMAT_VERSION]
 RELEASE_DATE = "?/?/2014"
 
 WEBSITE = "http://kiij.github.io/CoilSnake"

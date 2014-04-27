@@ -1,0 +1,3 @@
+[submodule "ccscript_legacy"]
+	path = ccscript_legacy
+	url = git://github.com/mraccident/ccscript_legacy.git
