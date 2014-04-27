@@ -22,6 +22,10 @@ def get_ips_filename(romtype, patch_name):
 class PatchModule(GenericModule):
     NAME = "Patches"
 
+    @staticmethod
+    def is_compatible_with_romtype(romtype):
+        return romtype != "Unknown"
+
     def __init__(self):
         super(PatchModule, self).__init__()
         self.patches = None
@@ -87,12 +91,7 @@ class PatchModule(GenericModule):
                     ips_desc = yaml.load(ips_desc_file, Loader=yaml.CSafeLoader)
                     ips_desc_title = ips_desc["Title"]
 
-                    if ips_desc_title in self.patches:
-                        continue
-
-                    if ips_desc["Auto-Apply"]:
-                        self.patches[ips_desc_title] = "enabled"
-                    else:
+                    if ips_desc_title not in self.patches:
                         self.patches[ips_desc_title] = "disabled"
 
             self.write_to_project(resource_open_w)
