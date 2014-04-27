@@ -1,4 +1,0 @@
-#!/bin/bash
-
-script/build
-./setup.py test

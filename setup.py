@@ -3,21 +3,22 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
-from coilsnake.ui import information
-
 
 setup(
     name="coilsnake",
-    version=information.VERSION,
+    version="2.0",
     description="A program for modifying the EarthBound ROM.",
     url="http://kiij.github.io/CoilSnake",
     packages=find_packages(),
     include_package_data=True,
 
-    setup_requires=[
-        "Pillow",
-        "PyYAML",
-        "CCScriptWriter"
+    install_requires=[
+        "Pillow>=2.4.0",
+        "PyYAML>=3.11",
+        "CCScriptWriter>=1.1"
+    ],
+    dependency_links=[
+        "http://github.com/Lyrositor/CCScriptWriter/tarball/master#egg=CCScriptWriter-1.1"
     ],
     ext_modules=[
         Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c"])
@@ -32,6 +33,6 @@ setup(
     test_suite="nose.collector",
     tests_require=[
         "nose>=1.0",
-        "mock"
+        "mock>=1.0.1"
     ],
 )

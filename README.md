@@ -1,21 +1,27 @@
 ## CoilSnake
 
-**CoilSnake** is a tool for modifying the ROM image of the 1995 Super Nintendo game *EarthBound*. It allows users to
-extract data from the ROM image, modify the extracted data, and then re-compile the data into a new ROM image.
-CoilSnake supports modification of most of the data in the game, such as:
+**CoilSnake** is a tool for modifying the ROM image of the 1995 Super Nintendo game *EarthBound*.
+CoilSnake allows you to edit the game's assets as text and PNG files, then "build" a new ROM using those assets.
+
+CoilSnake supports modification of most of the data in *EarthBound*, including:
 
 * sprites
 * maps
-* the script and text
+* the script
 * battle backgrounds
 * items
 * enemies
 * and more!
 
 ### Installation
+#### Windows
+Download the Windows version of CoilSnake [here](http://kiij.github.io/CoilSnake/).
+
+#### Linux
 ```
-./script/build
-sudo python setup.py install
+sudo apt-get install python-pip python-dev libyaml-dev python-tk g++ libboost-filesystem-dev
+make
+sudo make install
 ```
 
 ### Usage
@@ -24,23 +30,25 @@ After installing, you can start up the GUI with:
 coilsnake
 ```
 
-To use the command line client:
+To use the command line interface:
 ```
 coilsnake-cli
 ```
 
 ### Development
-To run CoilSnake from source without installing:
+If you are developing CoilSnake, you may wish to install it in “development mode”,
+which makes CoilSnake available on sys.path but also allows it to be edited directly from its source checkout.
 ```
-./script/build
+make
+python setup.py develop
 ./script/gui.py  # Launch the GUI
-# or...
 ./script/cli.py  # Launch the CLI
 ```
 
+### Running The Tests
 To run the unit tests:
 ```
-./script/test
+make test
 ```
 
 ### Support or Contact
