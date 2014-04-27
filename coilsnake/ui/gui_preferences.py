@@ -16,7 +16,7 @@ class CoilSnakePreferences(object):
 
     def save(self):
         with open(self.PREFERENCES_FILENAME, "w") as f:
-            yaml.dump(self.preferences, f, Dumper=yaml.CSafeDumper)
+            yaml.dump(self.preferences, f, Dumper=yaml.CSafeDumper, default_flow_style=False)
 
     def get_default_tab(self):
         if "default_tab" in self.preferences:
@@ -36,9 +36,27 @@ class CoilSnakePreferences(object):
         if profile_name in tab:
             del tab[profile_name]
 
+    def has_profile(self, tab_name, profile_name):
+        tab = self._get_preferences_profile_tab(tab_name)
+        return profile_name in tab
+
     def get_profiles(self, tab_name):
         tab = self._get_preferences_profile_tab(tab_name)
-        return tab.keys()
+        profiles = tab.keys()
+        if " default" in tab.keys():
+            profiles.remove(" default")
+        return profiles
+
+    def get_default_profile(self, tab_name):
+        tab = self._get_preferences_profile_tab(tab_name)
+        if " default" in tab:
+            return tab[" default"]
+        else:
+            return None
+
+    def set_default_profile(self, tab_name, profile_name):
+        tab = self._get_preferences_profile_tab(tab_name)
+        tab[" default"] = profile_name
 
     def count_profiles(self, tab_name):
         tab = self._get_preferences_profile_tab(tab_name)

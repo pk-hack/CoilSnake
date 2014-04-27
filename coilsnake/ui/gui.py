@@ -431,6 +431,8 @@ Please specify it in the Preferences menu.""")
             for field_id in fields:
                 set_entry_text(entry=fields[field_id],
                                text=self.preferences.get_profile_value(tab, profile_name, field_id))
+            self.preferences.set_default_profile(tab, profile_name)
+            self.preferences.save()
 
         profile_var = StringVar(profile_frame)
 
@@ -452,6 +454,13 @@ Please specify it in the Preferences menu.""")
         def tmp_new():
             profile_name = tkSimpleDialog.askstring("New Profile Name", "Specify the name of the new profile.")
             if profile_name:
+                profile_name = profile_name.strip()
+                if self.preferences.has_profile(tab, profile_name):
+                    tkMessageBox.showerror(parent=self.root,
+                                           title="Error",
+                                           message="A profile with that name already exists.")
+                    return
+
                 self.preferences.add_profile(tab, profile_name)
                 tmp_reload_options(profile_name)
                 self.preferences.save()
@@ -486,7 +495,10 @@ Please specify it in the Preferences menu.""")
 
         profile_frame.pack()
 
-        return tmp_reload_options
+        def tmp_reload_options_and_select_default():
+            tmp_reload_options(selected_profile_name=self.preferences.get_default_profile(tab))
+
+        return tmp_reload_options_and_select_default
 
     def add_rom_fields_to_frame(self, name, frame):
         rom_frame = ttk.Frame(frame)
