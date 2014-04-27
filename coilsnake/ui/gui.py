@@ -10,6 +10,7 @@ import tkMessageBox
 import tkSimpleDialog
 import ttk
 import os
+import webbrowser
 
 from PIL import ImageTk
 
@@ -355,7 +356,12 @@ Please specify it in the Preferences menu.""")
             self.about_menu.deiconify()
             self.about_menu.lift()
 
-        help_menu.add_command(label="About", command=show_about_window)
+        def open_coilsnake_website():
+            webbrowser.open(information.WEBSITE, 2)
+
+        help_menu.add_command(label="About CoilSnake", command=show_about_window)
+        help_menu.add_command(label="CoilSnake Website", command=open_coilsnake_website)
+
         menubar.add_cascade(label="Help", menu=help_menu)
 
         self.root.config(menu=menubar)
