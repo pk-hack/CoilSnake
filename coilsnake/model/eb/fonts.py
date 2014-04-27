@@ -1,9 +1,8 @@
-import yaml
-
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbTileArrangement, EbGraphicTileset
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.util.common.image import open_indexed_image
+from coilsnake.util.common.yml import yml_load, yml_dump
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, write_asm_pointer, to_snes_address
 
 
@@ -37,7 +36,7 @@ class EbFont(object):
 
         character_widths_dict = dict(enumerate(self.character_widths))
         if widths_format == "yml":
-            yaml.dump(character_widths_dict, widths_file, default_flow_style=False, Dumper=yaml.CSafeDumper)
+            yml_dump(character_widths_dict, widths_file, default_flow_style=False)
 
     def from_files(self, image_file, widths_file, image_format="png", widths_format="yml"):
         image = open_indexed_image(image_file)
@@ -45,7 +44,7 @@ class EbFont(object):
         del image
 
         if widths_format == "yml":
-            widths_dict = yaml.load(widths_file, Loader=yaml.CSafeLoader)
+            widths_dict = yml_load(widths_file)
             self.character_widths = map(lambda i: widths_dict[i], range(self.tileset.num_tiles_maximum))
 
 

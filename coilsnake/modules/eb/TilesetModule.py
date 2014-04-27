@@ -2,13 +2,12 @@ from array import array
 from functools import partial
 import logging
 from zlib import crc32
-import yaml
 
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.map_tilesets import EbMapPalette, EbTileset
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.common.yml import convert_values_to_hex_repr
+from coilsnake.util.common.yml import convert_values_to_hex_repr, yml_load, yml_dump
 from coilsnake.util.eb.helper import is_in_bank, not_in_bank
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
@@ -165,7 +164,7 @@ class TilesetModule(EbModule):
             palette_settings[i] = entry
 
         with resource_open("map_palette_settings", "yml") as f:
-            yml_str_rep = yaml.dump(palette_settings, default_flow_style=False, Dumper=yaml.CSafeDumper)
+            yml_str_rep = yml_dump(palette_settings, default_flow_style=False)
             convert_values_to_hex_repr(yml_str_rep, "Event Flag")
             f.write(yml_str_rep)
 
@@ -183,7 +182,7 @@ class TilesetModule(EbModule):
 
         log.debug("Reading palette settings")
         with resource_open("map_palette_settings", "yml") as f:
-            yml_rep = yaml.load(f, Loader=yaml.CSafeLoader)
+            yml_rep = yml_load(f)
             for map_tileset in yml_rep:
                 # Get the draw (normal) tileset
                 tileset = None

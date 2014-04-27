@@ -4,8 +4,12 @@
 # IE: Removes all data only leaving table entries
 
 import sys
-import yaml
 from re import sub
+
+import yaml
+
+from coilsnake.util.common.yml import yml_dump
+
 
 if len(sys.argv) != 3:
     sys.exit("Must supply input & output EBYAML file")
@@ -17,7 +21,7 @@ with open(sys.argv[1], "r") as f:
             if i == 1:
                 f2.write("# This is a automatically generated trimmed version of the full EBYAML file.\n# This file only contains data block descriptions which have an \"entries\" entry.\n---\n...\n---\n")
                 i += 1
-            elif i==2:
+            elif i == 2:
                 newDoc = { }
                 for block in doc:
                     if not (doc[block] is None
@@ -27,8 +31,7 @@ with open(sys.argv[1], "r") as f:
                         newDoc[block] = doc[block]
                         if newDoc[block].has_key("description"):
                             del(newDoc[block]["description"])
-                s = yaml.dump(newDoc, default_flow_style=False,
-                        Dumper=yaml.CSafeDumper)
+                s = yml_dump(newDoc, default_flow_style=False)
                 # Convert labels to hex
                 s = sub("(\d+):\n",
                         lambda i: "0x" + hex(

@@ -1,6 +1,6 @@
 import os
 
-import yaml
+from coilsnake.util.common.yml import yml_load, yml_dump
 
 
 class CoilSnakePreferences(object):
@@ -10,13 +10,13 @@ class CoilSnakePreferences(object):
     def load(self):
         try:
             with open(self.PREFERENCES_FILENAME, 'r') as f:
-                self.preferences = yaml.load(f, Loader=yaml.CSafeLoader)
+                self.preferences = yml_load(f)
         except IOError:
             self.preferences = {}
 
     def save(self):
         with open(self.PREFERENCES_FILENAME, "w") as f:
-            yaml.dump(self.preferences, f, Dumper=yaml.CSafeDumper, default_flow_style=False)
+            yml_dump(self.preferences, f, default_flow_style=False)
 
     def get_default_tab(self):
         if "default_tab" in self.preferences:

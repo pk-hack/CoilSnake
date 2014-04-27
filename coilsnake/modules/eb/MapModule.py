@@ -3,7 +3,7 @@ import yaml
 from coilsnake.model.common.table import EnumeratedLittleEndianIntegerTableEntry, LittleEndianIntegerTableEntry
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.common.yml import replace_field_in_yml
+from coilsnake.util.common.yml import replace_field_in_yml, yml_load, yml_dump
 from coilsnake.util.eb.pointer import from_snes_address
 
 MAP_POINTERS_OFFSET = 0xa1db
@@ -134,7 +134,7 @@ class MapModule(EbModule):
                 "Town Map X": INTEGER_ENTRY.to_yml_rep(self.sector_town_map_table[i][1]),
                 "Town Map Y": INTEGER_ENTRY.to_yml_rep(self.sector_town_map_table[i][2])}
         with resource_open("map_sectors", "yml") as f:
-            yaml.dump(out, f, Dumper=yaml.CSafeDumper, default_flow_style=False)
+            yml_dump(out, f, default_flow_style=False)
 
     def read_from_project(self, resource_open):
         # Read map data
@@ -145,7 +145,7 @@ class MapModule(EbModule):
 
         # Read sector data
         with resource_open("map_sectors", "yml") as f:
-            input = yaml.load(f, Loader=yaml.CSafeLoader)
+            input = yml_load(f)
             for i in input:
                 entry = input[i]
 
@@ -183,7 +183,7 @@ class MapModule(EbModule):
             self.read_from_rom(rom)
 
             with resource_open_r("map_sectors", 'yml') as f:
-                data = yaml.load(f, Loader=yaml.CSafeLoader)
+                data = yml_load(f)
                 for i in data:
                     data[i]["Town Map Image"] = TOWNMAP_IMAGE_ENTRY.to_yml_rep(self.sector_town_map_table[i][0] & 0xf)
                     data[i]["Town Map Arrow"] = TOWNMAP_ARROW_ENTRY.to_yml_rep(self.sector_town_map_table[i][0] >> 4)

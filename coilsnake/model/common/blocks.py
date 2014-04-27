@@ -1,12 +1,12 @@
 import array
 import copy
 import os
-import yaml
 from zlib import crc32
 
 from coilsnake.exceptions.common.exceptions import OutOfBoundsError, InvalidArgumentError, \
     NotEnoughUnallocatedSpaceError, FileAccessError, CouldNotAllocateError
 from coilsnake.util.common.assets import open_asset
+from coilsnake.util.common.yml import yml_load
 
 
 def check_range_validity(range, size):
@@ -272,7 +272,7 @@ class AllocatableBlock(Block):
 
 
 with open_asset("romtypes.yml") as f:
-    ROM_TYPE_MAP = yaml.load(f, Loader=yaml.CSafeLoader)
+    ROM_TYPE_MAP = yml_load(f)
 
 ROM_TYPE_NAME_UNKNOWN = "Unknown"
 

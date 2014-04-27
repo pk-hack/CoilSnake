@@ -3,10 +3,10 @@
 import argparse
 import os
 import random
-import yaml
 import sys
 
 import Project
+from coilsnake.util.common.yml import yml_load
 
 
 sys.path.append('./')
@@ -52,6 +52,7 @@ def calcStats(growthVars, endLevel):
             stats[1] = newPP
     return stats
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('levels', type=int,
@@ -69,7 +70,7 @@ def main():
 
     partyStats = [None, None, None, None]
     with proj.get_resource("eb", "stats_growth_vars", "yml", "r") as f:
-        growthVars = yaml.load(f, Loader=yaml.CSafeLoader)
+        growthVars = yml_load(f)
         for i in range(4):
             partyStats[i] = calcStats(growthVars[i], args.levels[i])
     
@@ -81,8 +82,7 @@ def main():
             
     if args.enemyInfo is not None:
         with proj.get_resource("eb", "enemy_configuration_table", "yml", "r") as f:
-            enemyData = (yaml.load(f,
-                Loader=yaml.CSafeLoader))[args.enemyInfo[0]]
+            enemyData = (yml_load(f))[args.enemyInfo[0]]
             print "\n*** Enemy Stats:", enemyData["Name"], "***"
             print '\t'.join(map(str, ['', 'HP', 'PP', 'Off', 'Def', 'Speed',
                 'Guts', "Luck"]))

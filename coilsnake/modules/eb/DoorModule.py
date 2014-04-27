@@ -1,9 +1,7 @@
-import yaml
-
 from coilsnake.model.eb.doors import door_from_block, door_from_yml_rep, not_in_destination_bank
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.common.yml import convert_values_to_hex_repr
+from coilsnake.util.common.yml import convert_values_to_hex_repr, yml_load, yml_dump
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
 
@@ -52,17 +50,16 @@ class DoorModule(EbModule):
                 x += 1
 
         with resourceOpener("map_doors", "yml") as f:
-            s = yaml.dump(
+            s = yml_dump(
                 out,
-                default_flow_style=False,
-                Dumper=yaml.CSafeDumper)
+                default_flow_style=False)
             convert_values_to_hex_repr(yml_str_rep=s, key="Event Flag")
             f.write(s)
 
     def read_from_project(self, resourceOpener):
         self.door_areas = []
         with resourceOpener("map_doors", "yml") as f:
-            input = yaml.load(f, Loader=yaml.CSafeLoader)
+            input = yml_load(f)
             for y in input:
                 row = input[y]
                 for x in row:

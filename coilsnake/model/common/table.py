@@ -1,13 +1,11 @@
 from abc import abstractmethod
 import logging
 
-import yaml
-
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, IndexOutOfRangeError, \
     TableEntryInvalidYmlRepresentationError, TableError, TableEntryMissingDataError, TableEntryError, TableSchemaError
 from coilsnake.util.common.helper import getitem_with_default, in_range, not_in_range
 from coilsnake.util.common.type import GenericEnum
-from coilsnake.util.common.yml import convert_values_to_hex_repr
+from coilsnake.util.common.yml import convert_values_to_hex_repr, yml_load, yml_dump
 
 
 log = logging.getLogger(__name__)
@@ -439,11 +437,11 @@ class Table(object):
         return yml_rep
 
     def from_yml_file(self, f):
-        yml_rep = yaml.load(f, yaml.CSafeLoader)
+        yml_rep = yml_load(f)
         self.from_yml_rep(yml_rep)
 
     def to_yml_file(self, f, default_flow_style=False):
-        yml_str_rep = yaml.dump(self.to_yml_rep(), default_flow_style=default_flow_style, Dumper=yaml.CSafeDumper)
+        yml_str_rep = yml_dump(self.to_yml_rep(), default_flow_style=default_flow_style)
 
         # Rewrite hexints in hexidecimal
         # The YAML parser does not offer this option, so this has to be done with a regex

@@ -1,7 +1,13 @@
+import logging
 import re
+
 import yaml
 
+from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.util.common.helper import lower_if_str
+
+
+log = logging.getLogger(__name__)
 
 
 def convert_values_to_hex_repr(yml_str_rep, key):
@@ -24,7 +30,7 @@ def replace_field_in_yml(resource_name, resource_open_r, resource_open_w, key, n
         new_key = key
     value_map = dict((lower_if_str(k), lower_if_str(v)) for k, v in value_map.iteritems())
     with resource_open_r(resource_name, "yml") as f:
-        data = yaml.load(f, Loader=yaml.CSafeLoader)
+        data = yml_load(f)
         for i in data:
             if lower_if_str(data[i][key]) in value_map:
                 data[i][new_key] = value_map[lower_if_str(data[i][key])]
@@ -34,7 +40,7 @@ def replace_field_in_yml(resource_name, resource_open_r, resource_open_w, key, n
                 data[i][new_key] = data[i][key]
                 del data[i][key]
     with resource_open_w(resource_name, "yml") as f:
-        yaml.dump(data, f, default_flow_style=False, Dumper=yaml.CSafeDumper)
+        yml_dump(data, f, default_flow_style=False)
 
 
 def convert_values_to_hex_repr_in_yml_file(resource_name, resource_open_r, resource_open_w, keys,
@@ -48,3 +54,34 @@ def convert_values_to_hex_repr_in_yml_file(resource_name, resource_open_r, resou
 
     with resource_open_w(resource_name, "yml") as f:
         f.write(yml_str_rep)
+
+
+def yml_load(f):
+    try:
+        return yaml.load(f, Loader=yaml.CSafeLoader)
+    except:
+        error = "Could not load YML file " + f.name
+        log.exception(error)
+        raise CoilSnakeError(error)
+
+
+def yml_dump(yml_rep, f=None, default_flow_style=None):
+    if f:
+        try:
+            yaml.dump(yml_rep,
+                      f,
+                      default_flow_style=default_flow_style,
+                      Dumper=yaml.CSafeDumper)
+        except:
+            error = "Could not save YML to file " + f.name
+            log.exception(error)
+            raise CoilSnakeError(error)
+    else:
+        try:
+            return yaml.dump(yml_rep,
+                             default_flow_style=default_flow_style,
+                             Dumper=yaml.CSafeDumper)
+        except:
+            error = "Could not save YML"
+            log.exception(error)
+            raise CoilSnakeError(error)

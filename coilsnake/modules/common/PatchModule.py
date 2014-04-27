@@ -1,11 +1,10 @@
 import os
 
-import yaml
-
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.model.common.ips import IpsPatch
 from coilsnake.modules.common.GenericModule import GenericModule
 from coilsnake.util.common.assets import ASSET_PATH
+from coilsnake.util.common.yml import yml_load, yml_dump
 
 
 IPS_DIRECTORY = os.path.join(ASSET_PATH, "ips")
@@ -35,7 +34,7 @@ class PatchModule(GenericModule):
         # Loop through all the patches for this romtype
         for ip_desc_filename in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
             with open(os.path.join(get_ips_directory(rom.type), ip_desc_filename)) as ips_desc_file:
-                ips_desc = yaml.load(ips_desc_file, Loader=yaml.CSafeLoader)
+                ips_desc = yml_load(ips_desc_file)
                 ips_desc_title = ips_desc["Title"]
 
                 if ips_desc["Auto-Apply"]:
@@ -47,7 +46,7 @@ class PatchModule(GenericModule):
         for ips_desc_filename in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
             patch_name = ips_desc_filename[:-4]
             with open(os.path.join(get_ips_directory(rom.type), ips_desc_filename)) as ips_desc_file:
-                ips_desc = yaml.load(ips_desc_file, Loader=yaml.CSafeLoader)
+                ips_desc = yml_load(ips_desc_file)
                 if (ips_desc["Title"] in self.patches) and (self.patches[ips_desc["Title"]].lower() == "enabled"):
                     # First, check that we can apply this
                     ranges = map(lambda y: tuple(map(lambda z: int(z, 0), y[1:-1].split(','))), ips_desc["Ranges"])
@@ -71,12 +70,11 @@ class PatchModule(GenericModule):
 
     def write_to_project(self, resource_open):
         with resource_open("patches", "yml") as f:
-            yaml.dump(self.patches, f, default_flow_style=False,
-                      Dumper=yaml.CSafeDumper)
+            yml_dump(self.patches, f, default_flow_style=False)
 
     def read_from_project(self, resource_open):
         with resource_open("patches", "yml") as f:
-            self.patches = yaml.load(f, Loader=yaml.CSafeLoader)
+            self.patches = yml_load(f)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == 1:
@@ -88,7 +86,7 @@ class PatchModule(GenericModule):
             # Add in all the new patches
             for ip_desc_filename in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:
                 with open(os.path.join(get_ips_directory(rom.type), ip_desc_filename)) as ips_desc_file:
-                    ips_desc = yaml.load(ips_desc_file, Loader=yaml.CSafeLoader)
+                    ips_desc = yml_load(ips_desc_file)
                     ips_desc_title = ips_desc["Title"]
 
                     if ips_desc_title not in self.patches:

@@ -1,6 +1,5 @@
-import yaml
-
 from coilsnake.modules.common.GenericModule import GenericModule
+from coilsnake.util.common.yml import yml_load
 
 MODULE_COMMENT = """# List all ranges which CoilSnake should not touch
 # Example:
@@ -47,7 +46,7 @@ class UsedRangeModule(GenericModule):
             Reads a user-written list of ranges that shouldn't be touched.
         """
         with resourceOpener(self.FILE, 'yml') as f:
-            ranges = yaml.load(f, Loader=yaml.CSafeLoader)
+            ranges = yml_load(f)
             if not ranges:
                 self.ranges = []
             else:

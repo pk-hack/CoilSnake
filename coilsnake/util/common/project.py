@@ -1,8 +1,8 @@
 import logging
 import os
-import yaml
 
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
+from coilsnake.util.common.yml import yml_load, yml_dump
 
 
 log = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ class Project:
         try:
             if isinstance(f, str):
                 f = open(f, 'r')
-            data = yaml.load(f, Loader=yaml.CSafeLoader)
+            data = yml_load(f)
             if (romtype is None) or (romtype == data["romtype"]):
                 self.romtype = data["romtype"]
                 self._resources = data["resources"]
@@ -78,7 +78,7 @@ class Project:
             'resources': self._resources,
             'version': FORMAT_VERSION}
         f = open(filename, 'w+')
-        yaml.dump(tmp, f, Dumper=yaml.CSafeDumper)
+        yml_dump(tmp, f)
         f.close()
 
     def get_resource(self, module_name, resource_name, extension="dat", mode="rw"):

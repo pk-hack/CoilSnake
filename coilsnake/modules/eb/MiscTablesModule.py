@@ -1,8 +1,6 @@
-import yaml
-
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.common.yml import convert_values_to_hex_repr, replace_field_in_yml
+from coilsnake.util.common.yml import convert_values_to_hex_repr, replace_field_in_yml, yml_load, yml_dump
 from coilsnake.util.eb.pointer import from_snes_address
 
 
@@ -115,8 +113,8 @@ class MiscTablesModule(EbModule):
                                  new_key="Delivery Failure Text Pointer")
 
             with resource_open_r("timed_delivery_table", "yml") as f:
-                out = yaml.load(f, Loader=yaml.CSafeLoader)
-                yml_str_rep = yaml.dump(out, default_flow_style=False, Dumper=yaml.CSafeDumper)
+                out = yml_load(f)
+                yml_str_rep = yml_dump(out, default_flow_style=False)
 
             yml_str_rep = convert_values_to_hex_repr(yml_str_rep, "Event Flag")
 

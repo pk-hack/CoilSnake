@@ -1,9 +1,7 @@
-import yaml
-
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.model.eb.town_maps import TownMapIconPlacementPointerTableEntry, TownMapEnum
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.common.yml import convert_values_to_hex_repr_in_yml_file
+from coilsnake.util.common.yml import convert_values_to_hex_repr_in_yml_file, yml_load, yml_dump
 from coilsnake.util.eb.pointer import read_asm_pointer, write_asm_pointer, from_snes_address, to_snes_address
 
 
@@ -42,14 +40,14 @@ class TownMapIconModule(EbModule):
             return
         elif old_version == 4:
             with resource_open_r("TownMaps/icon_positions", "yml") as f:
-                data = yaml.load(f, Loader=yaml.CSafeLoader)
+                data = yml_load(f)
 
                 for i in range(6):
                     old_key = TownMapEnum.tostring(i).lower()
                     data[i] = data[old_key]
                     del data[old_key]
             with resource_open_w("TownMaps/icon_positions", "yml") as f:
-                yaml.dump(data, f, default_flow_style=False, Dumper=yaml.CSafeDumper)
+                yml_dump(data, f, default_flow_style=False)
 
             convert_values_to_hex_repr_in_yml_file("TownMaps/icon_positions", resource_open_r, resource_open_w,
                                                    ["Event Flag"])

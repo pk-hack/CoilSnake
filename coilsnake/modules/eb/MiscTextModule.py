@@ -1,7 +1,6 @@
-import yaml
-
 from coilsnake.model.eb.table import EbStandardTextTableEntry
 from coilsnake.modules.eb.EbModule import EbModule
+from coilsnake.util.common.yml import yml_load, yml_dump
 
 
 MISC_TEXT_OFFSETS = {
@@ -183,11 +182,11 @@ class MiscTextModule(EbModule):
 
     def write_to_project(self, resourceOpener):
         with resourceOpener("text_misc", "yml") as f:
-            yaml.dump(self.data, f, default_flow_style=False, Dumper=yaml.CSafeDumper)
+            yml_dump(self.data, f, default_flow_style=False)
 
     def read_from_project(self, resourceOpener):
         with resourceOpener("text_misc", "yml") as f:
-            self.data = yaml.load(f, Loader=yaml.CSafeLoader)
+            self.data = yml_load(f)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:

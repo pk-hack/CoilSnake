@@ -1,5 +1,3 @@
-import yaml
-
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.palettes import EbPalette
@@ -7,7 +5,7 @@ from coilsnake.model.eb.sprites import SpriteGroup, SPRITE_SIZES
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.image import open_indexed_image
-from coilsnake.util.common.yml import replace_field_in_yml
+from coilsnake.util.common.yml import replace_field_in_yml, yml_load, yml_dump
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
 
@@ -60,14 +58,14 @@ class SpriteGroupModule(EbModule):
                 image.save(image_file, 'png', transparency=0)
             del image
         with resource_open("sprite_groups", "yml") as f:
-            yaml.dump(out, f, Dumper=yaml.CSafeDumper)
+            yml_dump(out, f)
 
     def read_from_project(self, resource_open):
         with resource_open("sprite_group_palettes", "yml") as f:
             self.palette_table.from_yml_file(f)
 
         with resource_open("sprite_groups", "yml") as f:
-            input = yaml.load(f, Loader=yaml.CSafeLoader)
+            input = yml_load(f)
             num_groups = len(input)
             self.groups = []
             for i in range(num_groups):
@@ -118,7 +116,7 @@ class SpriteGroupModule(EbModule):
             return
         elif old_version == 4:
             with resource_open_r("sprite_groups", "yml") as f:
-                data = yaml.load(f, Loader=yaml.CSafeLoader)
+                data = yml_load(f)
                 for i in data:
                     entry = data[i]
                     collision_settings = entry["Collision Settings"]
@@ -128,7 +126,7 @@ class SpriteGroupModule(EbModule):
                     entry["East/West Collision Height"] = collision_settings[3]
                     del entry["Collision Settings"]
             with resource_open_w("sprite_groups", "yml") as f:
-                yaml.dump(data, f, Dumper=yaml.CSafeDumper)
+                yml_dump(data, f)
             self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         elif old_version == 2:
             replace_field_in_yml(resource_name="sprite_groups",

@@ -1,6 +1,5 @@
-import yaml
-
 from coilsnake.modules.eb.EbModule import EbModule
+from coilsnake.util.common.yml import yml_load, yml_dump
 from coilsnake.util.eb.pointer import to_snes_address
 
 
@@ -18,11 +17,11 @@ class SkipNamingModule(EbModule):
                "Food": "Steak",
                "Thing": "Rockin"}
         with resource_open("naming_skip", "yml") as f:
-            yaml.dump(out, f, default_flow_style=False, Dumper=yaml.CSafeDumper)
+            yml_dump(out, f, default_flow_style=False)
 
     def read_from_project(self, resource_open):
         with resource_open("naming_skip", "yml") as f:
-            self.data = yaml.load(f, Loader=yaml.CSafeLoader)
+            self.data = yml_load(f)
 
     def write_loader_asm(self, rom, offset, s, strlen, mem_offset, byte2):
         i = 0

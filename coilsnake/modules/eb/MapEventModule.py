@@ -1,10 +1,9 @@
 import logging
-import yaml
 
 from coilsnake.model.eb.map_events import MapEventPointerTableEntry, MapEventSubTableEntry
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.common.yml import convert_values_to_hex_repr_in_yml_file
+from coilsnake.util.common.yml import convert_values_to_hex_repr_in_yml_file, yml_load, yml_dump
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
 
@@ -60,7 +59,7 @@ class MapEventModule(EbModule):
             return
         elif old_version < 5:
             with resource_open_r("map_changes", "yml") as f:
-                data = yaml.load(f, Loader=yaml.CSafeLoader)
+                data = yml_load(f)
 
             for i in data:
                 if data[i] is None:
@@ -74,7 +73,7 @@ class MapEventModule(EbModule):
                             entry["Tile Changes"][j] = MapEventSubTableEntry.to_yml_rep(change)
 
             with resource_open_w("map_changes", "yml") as f:
-                yaml.dump(data, f, Dumper=yaml.CSafeDumper)
+                yml_dump(data, f)
 
             convert_values_to_hex_repr_in_yml_file("map_changes", resource_open_r, resource_open_w, ["Event Flag"],
                                                    default_flow_style=None)

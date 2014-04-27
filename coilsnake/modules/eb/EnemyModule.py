@@ -1,7 +1,5 @@
 import logging
 
-import yaml
-
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.enemy_groups import EnemyGroupTableEntry
 from coilsnake.model.eb.palettes import EbPalette
@@ -9,7 +7,7 @@ from coilsnake.model.eb.sprites import EbBattleSprite
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.image import open_indexed_image
-from coilsnake.util.common.yml import replace_field_in_yml
+from coilsnake.util.common.yml import replace_field_in_yml, yml_load, yml_dump
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, to_snes_address, write_asm_pointer
 
 
@@ -167,7 +165,7 @@ class EnemyModule(EbModule):
             out[i] = entry
 
         with resource_open("enemy_groups", "yml") as f:
-            yaml.dump(out, f, Dumper=yaml.CSafeDumper)
+            yml_dump(out, f)
 
     def read_from_project(self, resource_open):
         with resource_open("enemy_configuration_table", "yml") as f:
@@ -224,7 +222,7 @@ class EnemyModule(EbModule):
 
         with resource_open("enemy_groups", "yml") as f:
             self.enemy_groups = []
-            enemy_groups_yml_rep = yaml.load(f, Loader=yaml.CSafeLoader)
+            enemy_groups_yml_rep = yml_load(f)
             if type(enemy_groups_yml_rep) == dict:
                 enemy_groups_yml_rep = [enemy_groups_yml_rep[x] for x in sorted(enemy_groups_yml_rep.keys())]
             for entry in enemy_groups_yml_rep:

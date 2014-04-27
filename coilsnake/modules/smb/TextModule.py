@@ -1,6 +1,5 @@
-import yaml
-
 from coilsnake.modules.smb import SmbModule
+from coilsnake.util.common.yml import yml_load, yml_dump
 
 
 class TextModule(SmbModule.SmbModule):
@@ -24,7 +23,7 @@ class TextModule(SmbModule.SmbModule):
     ]
 
     def __init__(self):
-        SmbModule.SmbModule.__init__(self)
+        super(TextModule, self).__init__()
         self._data = {}
 
     def read_from_rom(self, rom):
@@ -42,9 +41,8 @@ class TextModule(SmbModule.SmbModule):
 
     def write_to_project(self, resourceOpener):
         with resourceOpener("text", "yml") as f:
-            yaml.dump(self._data, f, default_flow_style=False,
-                      Dumper=yaml.CSafeDumper)
+            yml_dump(self._data, f, default_flow_style=False)
 
     def read_from_project(self, resourceOpener):
         with resourceOpener("text", "yml") as f:
-            self._data = yaml.load(f, Loader=yaml.CSafeLoader)
+            self._data = yml_load(f)
