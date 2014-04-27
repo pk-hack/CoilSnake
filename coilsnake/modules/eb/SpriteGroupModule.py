@@ -116,6 +116,20 @@ class SpriteGroupModule(EbModule):
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
+        elif old_version == 4:
+            with resource_open_r("sprite_groups", "yml") as f:
+                data = yaml.load(f, Loader=yaml.CSafeLoader)
+                for i in data:
+                    entry = data[i]
+                    collision_settings = entry["Collision Settings"]
+                    entry["North/South Collision Width"] = collision_settings[0]
+                    entry["North/South Collision Height"] = collision_settings[1]
+                    entry["East/West Collision Width"] = collision_settings[2]
+                    entry["East/West Collision Height"] = collision_settings[3]
+                    del entry["Collision Settings"]
+            with resource_open_w("sprite_groups", "yml") as f:
+                yaml.dump(data, f, Dumper=yaml.CSafeDumper)
+            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         elif old_version == 2:
             replace_field_in_yml(resource_name="sprite_groups",
                                  resource_open_r=resource_open_r,

@@ -2,7 +2,7 @@ from array import array
 
 from PIL import Image
 
-from coilsnake.model.common.table import EnumeratedLittleEndianIntegerTableEntry, ByteListTableEntry, RowTableEntry, \
+from coilsnake.model.common.table import EnumeratedLittleEndianIntegerTableEntry, RowTableEntry, \
     LittleEndianIntegerTableEntry
 from coilsnake.model.eb.graphics import hash_tile
 from coilsnake.util.eb.graphics import read_4bpp_graphic_from_block, write_4bpp_graphic_to_block
@@ -135,14 +135,21 @@ class EbRegularSprite:
 SPRITE_SIZES = ["16x16", "16x16 2", "24x16", "32x16", "48x16", "16x24", "24x24", "16x32", "32x32", "48x32", "24x40",
                 "16x48", "32x48", "48x48", "64x48", "64x64", "64x80"]
 SpriteGroupSizeTableEntry = EnumeratedLittleEndianIntegerTableEntry.create("Size", 1, SPRITE_SIZES)
-SpriteGroupCollisionTableEntry = ByteListTableEntry.create("Collision Settings", 4)
+SpriteGroupCollisionNSWidthEntry = LittleEndianIntegerTableEntry.create("North/South Collision Width", 1)
+SpriteGroupCollisionNSHeightEntry = LittleEndianIntegerTableEntry.create("North/South Collision Height", 1)
+SpriteGroupCollisionEWWidthEntry = LittleEndianIntegerTableEntry.create("East/West Collision Width", 1)
+SpriteGroupCollisionEWHeightEntry = LittleEndianIntegerTableEntry.create("East/West Collision Height", 1)
+
 SpriteGroupHeaderTableEntry = RowTableEntry.from_schema(
     name="Sprite Group Header Table Entry",
     schema=[LittleEndianIntegerTableEntry.create("Height", 1),
             LittleEndianIntegerTableEntry.create("Width", 1),
             SpriteGroupSizeTableEntry,
             LittleEndianIntegerTableEntry.create("Palette", 1),
-            SpriteGroupCollisionTableEntry,
+            SpriteGroupCollisionNSWidthEntry,
+            SpriteGroupCollisionNSHeightEntry,
+            SpriteGroupCollisionEWWidthEntry,
+            SpriteGroupCollisionEWHeightEntry,
             LittleEndianIntegerTableEntry.create("Bank", 1)])
 
 
@@ -152,7 +159,10 @@ class SpriteGroup:
         self.height = 0
         self.palette = 0
         self.size = 0
-        self.collision = [0, 0, 0, 0]
+        self.collision_ns_w = 0
+        self.collision_ns_h = 0
+        self.collision_ew_w = 0
+        self.collision_ew_h = 0
         self.num_sprites = max(0, num_sprites)
 
         # For writing to block
@@ -168,8 +178,11 @@ class SpriteGroup:
         self.width = header_data[1] >> 4
         self.size = header_data[2]
         self.palette = (header_data[3] >> 1) & 0x7
-        self.collision = header_data[4]
-        bank = header_data[5] << 16
+        self.collision_ns_w = header_data[4]
+        self.collision_ns_h = header_data[5]
+        self.collision_ew_w = header_data[6]
+        self.collision_ew_h = header_data[7]
+        bank = header_data[8] << 16
 
         self.sprites = [[EbRegularSprite(), False] for i in range(self.num_sprites)]
         i = offset + 9
@@ -187,7 +200,10 @@ class SpriteGroup:
             self.width << 4,
             self.size,
             self.palette << 1,
-            self.collision,
+            self.collision_ns_w,
+            self.collision_ns_h,
+            self.collision_ew_w,
+            self.collision_ew_h,
             self.bank
         ]
         SpriteGroupHeaderTableEntry.to_block(block=block, offset=offset, value=header_data)
@@ -266,7 +282,14 @@ class SpriteGroup:
 
     def yml_rep(self):
         return {SpriteGroupSizeTableEntry.name: SpriteGroupSizeTableEntry.to_yml_rep(self.size),
-                SpriteGroupCollisionTableEntry.name: SpriteGroupCollisionTableEntry.to_yml_rep(self.collision),
+                SpriteGroupCollisionNSWidthEntry.name:
+                    SpriteGroupCollisionNSWidthEntry.to_yml_rep(self.collision_ns_w),
+                SpriteGroupCollisionNSHeightEntry.name:
+                    SpriteGroupCollisionNSHeightEntry.to_yml_rep(self.collision_ns_h),
+                SpriteGroupCollisionEWWidthEntry.name:
+                    SpriteGroupCollisionEWWidthEntry.to_yml_rep(self.collision_ew_w),
+                SpriteGroupCollisionEWHeightEntry.name:
+                    SpriteGroupCollisionEWHeightEntry.to_yml_rep(self.collision_ew_h),
                 'Swim Flags': map(lambda a_x: a_x[1], self.sprites),
                 'Length': self.num_sprites}
 
@@ -274,7 +297,14 @@ class SpriteGroup:
         self.num_sprites = yml_rep['Length']
         self.sprites = [[EbRegularSprite(), False] for i in range(self.num_sprites)]
         self.size = SpriteGroupSizeTableEntry.from_yml_rep(yml_rep['Size'])
-        self.collision = SpriteGroupCollisionTableEntry.from_yml_rep(yml_rep['Collision Settings'])
+        self.collision_ns_w = SpriteGroupCollisionNSWidthEntry.from_yml_rep(
+            yml_rep[SpriteGroupCollisionNSWidthEntry.name])
+        self.collision_ns_h = SpriteGroupCollisionNSHeightEntry.from_yml_rep(
+            yml_rep[SpriteGroupCollisionNSHeightEntry.name])
+        self.collision_ew_w = SpriteGroupCollisionEWWidthEntry.from_yml_rep(
+            yml_rep[SpriteGroupCollisionEWWidthEntry.name])
+        self.collision_ew_h = SpriteGroupCollisionEWHeightEntry.from_yml_rep(
+            yml_rep[SpriteGroupCollisionEWHeightEntry.name])
         swim_flags = yml_rep['Swim Flags']
         i = 0
         try:
