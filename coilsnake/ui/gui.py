@@ -16,7 +16,6 @@ from PIL import ImageTk
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui import information, gui_util
 from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging, decompile_script
-from coilsnake.ui.fun import get_fun_title
 from coilsnake.ui.gui_preferences import CoilSnakePreferences
 from coilsnake.ui.gui_util import browse_for_rom, browse_for_project, open_folder, set_entry_text
 from coilsnake.ui.information import coilsnake_about
@@ -37,10 +36,6 @@ class CoilSnakeGui(object):
 
     # Preferences functions
 
-    def toggle_titles(self):
-        self.preferences["title"] = not self.preferences["title"]
-        self.preferences.save()
-
     def set_emulator_exe(self):
         emulator_exe = tkFileDialog.askopenfilename(
             parent=self.root,
@@ -48,6 +43,15 @@ class CoilSnakeGui(object):
             initialfile=self.preferences["emulator"])
         if emulator_exe:
             self.preferences["emulator"] = emulator_exe
+            self.preferences.save()
+
+    def set_java_exe(self):
+        java_exe = tkFileDialog.askopenfilename(
+            parent=self.root,
+            title="Select the Java Executable",
+            initialfile=self.preferences["java"])
+        if java_exe:
+            self.preferences["java"] = java_exe
             self.preferences.save()
 
     def save_default_tab(self):
@@ -70,31 +74,6 @@ class CoilSnakeGui(object):
             component["state"] = NORMAL
 
     # GUI popup functions
-
-    def about_menu(self):
-        about_menu = Toplevel(self.root)
-
-        photo = ImageTk.PhotoImage(file=asset_path(["images", "logo.png"]))
-        about_label = Label(about_menu, image=photo)
-        about_label.photo = photo
-        about_label.pack(side=LEFT, expand=1)
-
-        about_right_frame = ttk.Frame(about_menu)
-        Label(about_right_frame,
-              text=coilsnake_about(),
-              height=15,
-              anchor="w",
-              justify="left",
-              bg="white",
-              borderwidth=5,
-              relief=GROOVE).pack(fill=BOTH, expand=1, side=TOP)
-        Button(about_right_frame, text="Toggle Alternate Titles", command=self.toggle_titles).pack(fill=BOTH, expand=1)
-        Button(about_right_frame, text="Close", command=about_menu.destroy).pack(fill=BOTH, expand=1)
-
-        about_right_frame.pack(side=LEFT, fill=BOTH, expand=1)
-
-        about_menu.resizable(False, False)
-        about_menu.title("About CoilSnake {}".format(information.VERSION))
 
     def run_rom(self, entry):
         rom_filename = entry.get()
@@ -264,10 +243,7 @@ Please specify it in the Preferences menu.""")
 
     def create_gui(self):
         self.root = Tk()
-        if self.preferences["title"]:
-            self.root.wm_title(get_fun_title() + " " + information.VERSION)
-        else:
-            self.root.wm_title("CoilSnake " + information.VERSION)
+        self.root.wm_title("CoilSnake " + information.VERSION)
 
         self.create_menubar()
 
@@ -318,13 +294,42 @@ Please specify it in the Preferences menu.""")
 
         setup_logging(quiet=False, verbose=False)
 
+    def create_about_window(self):
+        self.about_menu = Toplevel(self.root, takefocus=True)
+
+        photo = ImageTk.PhotoImage(file=asset_path(["images", "logo.png"]))
+        about_label = Label(self.about_menu, image=photo)
+        about_label.photo = photo
+        about_label.pack(side=LEFT, expand=1)
+
+        about_right_frame = ttk.Frame(self.about_menu)
+        Label(about_right_frame,
+              text=coilsnake_about(),
+              height=15,
+              anchor="w",
+              justify="left",
+              bg="white",
+              borderwidth=5,
+              relief=GROOVE).pack(fill=BOTH, expand=1, side=TOP)
+
+        about_right_frame.pack(side=LEFT, fill=BOTH, expand=1)
+
+        self.about_menu.resizable(False, False)
+        self.about_menu.title("About CoilSnake {}".format(information.VERSION))
+        self.about_menu.withdraw()
+        self.about_menu.transient(self.root)
+
+        self.about_menu.protocol('WM_DELETE_WINDOW', self.about_menu.withdraw)
+
     def create_menubar(self):
         menubar = Menu(self.root)
 
         # Preferences pulldown menu
         pref_menu = Menu(menubar, tearoff=0)
-        pref_menu.add_command(label="Emulator Executable",
+        pref_menu.add_command(label="Set Emulator Executable",
                               command=self.set_emulator_exe)
+        pref_menu.add_command(label="Set Java Executable",
+                              command=self.set_java_exe)
         menubar.add_cascade(label="Preferences", menu=pref_menu)
 
         # Tools pulldown menu
@@ -333,6 +338,7 @@ Please specify it in the Preferences menu.""")
                                command=partial(gui_util.expand_rom, self.root))
         tools_menu.add_command(label="Expand ROM to 48 MBit",
                                command=partial(gui_util.expand_rom_ex, self.root))
+        tools_menu.add_separator()
         tools_menu.add_command(label="Add Header to ROM",
                                command=partial(gui_util.add_header_to_rom, self.root))
         tools_menu.add_command(label="Remove Header from ROM",
@@ -341,7 +347,14 @@ Please specify it in the Preferences menu.""")
 
         # Help menu
         help_menu = Menu(menubar, tearoff=0)
-        help_menu.add_command(label="About", command=self.about_menu)
+
+        self.create_about_window()
+
+        def show_about_window():
+            self.about_menu.deiconify()
+            self.about_menu.lift()
+
+        help_menu.add_command(label="About", command=show_about_window)
         menubar.add_cascade(label="Help", menu=help_menu)
 
         self.root.config(menu=menubar)
