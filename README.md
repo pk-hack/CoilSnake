@@ -14,44 +14,43 @@ CoilSnake supports modification of most of the data in *EarthBound*, including:
 * and more!
 
 ### Installation
+
 #### Windows
+
 Download the Windows version of CoilSnake [here](http://kiij.github.io/CoilSnake/).
 
 #### Linux
-```
-sudo apt-get install python-pip python-dev libyaml-dev python-tk g++ libboost-filesystem-dev
-make
-sudo make install
-```
+
+    sudo apt-get install python-pip python-dev libyaml-dev python-tk g++ libboost-filesystem-dev
+    make
+    sudo make install
 
 ### Usage
+
 After installing, you can start up the GUI with:
-```
-coilsnake
-```
+
+    coilsnake
 
 To use the command line interface:
-```
-coilsnake-cli
-```
+
+    coilsnake-cli
 
 ### Development
+
 If you are developing CoilSnake, you may wish to install it in “development mode”,
 which makes CoilSnake available on sys.path but also allows it to be edited directly from its source checkout.
-```
-make
-python setup.py develop
-./script/gui.py  # Launch the GUI
-./script/cli.py  # Launch the CLI
-```
 
-### Running The Tests
-To run the unit tests:
-```
-make test
-```
+    make
+    python setup.py develop
+    ./script/gui.py  # Launch the GUI
+    ./script/cli.py  # Launch the CLI
+
+#### Running the Tests
+
+    make test
 
 ### Support or Contact
+
 For information about getting started with CoilSnake, please see the
 [EB Hacking 101](http://www.lyros.net/files/EBHack101.pdf) document, created by
 [Lyrositor](https://github.com/Lyrositor).
