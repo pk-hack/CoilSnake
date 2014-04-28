@@ -82,7 +82,7 @@ class CoilSnakeGui(object):
             tkMessageBox.showerror(parent=self.root,
                                    title="Error",
                                    message="""Emulator executable not specified.
-Please specify it in the Preferences menu.""")
+Please specify it in the Settings menu.""")
         elif rom_filename:
             Popen([self.preferences["emulator"], rom_filename])
     
@@ -92,7 +92,7 @@ Please specify it in the Preferences menu.""")
             tkMessageBox.showerror(parent=self.root,
                                    title="Error",
                                    message="""Java executable not specified.
-Please specify it in the Preferences menu.""")
+Please specify it in the Settings menu.""")
         elif project_path:
             Popen([self.preferences["java"], "-jar", asset_path(["bin", "EbProjEdit.jar"]),
                    os.path.join(project_path, PROJECT_FILENAME)])
@@ -332,7 +332,7 @@ Please specify it in the Preferences menu.""")
                               command=self.set_emulator_exe)
         pref_menu.add_command(label="Set Java Executable",
                               command=self.set_java_exe)
-        menubar.add_cascade(label="Preferences", menu=pref_menu)
+        menubar.add_cascade(label="Settings", menu=pref_menu)
 
         # Tools pulldown menu
         tools_menu = Menu(menubar, tearoff=0)
@@ -528,7 +528,7 @@ Please specify it in the Preferences menu.""")
         button.pack(side=LEFT, fill=BOTH, expand=1)
         self.components.append(button)
 
-        profile_frame.pack()
+        profile_frame.pack(fill=BOTH, expand=1)
 
         def tmp_reload_options_and_select_default():
             tmp_reload_options(selected_profile_name=self.preferences.get_default_profile(tab))
@@ -561,14 +561,14 @@ Please specify it in the Preferences menu.""")
         button.pack(side=LEFT, fill=BOTH, expand=1)
         button.lower()
 
-        rom_frame.pack()
+        rom_frame.pack(fill=BOTH, expand=1)
 
         return rom_entry
 
     def add_project_fields_to_frame(self, name, frame):
         project_frame = ttk.Frame(frame)
 
-        Label(project_frame, text="{}:".format(name), width=13, justify=RIGHT).pack(side=LEFT)
+        Label(project_frame, text="{}:".format(name), width=13, justify=RIGHT).pack(side=LEFT, fill=BOTH, expand=1)
         project_entry = Entry(project_frame, width=30)
         project_entry.pack(side=LEFT, fill=BOTH, expand=1)
         self.components.append(project_entry)
@@ -594,7 +594,7 @@ Please specify it in the Preferences menu.""")
         button.pack(side=LEFT, fill=BOTH, expand=1)
         self.components.append(button)
 
-        project_frame.pack()
+        project_frame.pack(fill=BOTH, expand=1)
 
         return project_entry
 

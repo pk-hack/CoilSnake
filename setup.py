@@ -3,11 +3,10 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
-
 setup(
     name="coilsnake",
     version="2.0",
-    description="A program for modifying the EarthBound ROM.",
+    description="CoilSnake",
     url="http://kiij.github.io/CoilSnake",
     packages=find_packages(),
     include_package_data=True,
