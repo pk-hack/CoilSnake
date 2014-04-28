@@ -87,16 +87,24 @@ Please specify it in the Settings menu.""")
         elif rom_filename:
             Popen([self.preferences["emulator"], rom_filename])
     
-    def edit_project(self, entry):
-        project_path = entry.get()
+    def open_ebprojedit(self, entry=None):
+        if entry:
+            project_path = entry.get()
+        else:
+            project_path = None
+
         if not self.preferences["java"]:
             tkMessageBox.showerror(parent=self.root,
                                    title="Error",
                                    message="""Java executable not specified.
 Please specify it in the Settings menu.""")
-        elif project_path:
-            Popen([self.preferences["java"], "-jar", asset_path(["bin", "EbProjEdit.jar"]),
-                   os.path.join(project_path, PROJECT_FILENAME)])
+            return
+
+        command = [self.preferences["java"], "-jar", asset_path(["bin", "EbProjEdit.jar"])]
+        if project_path:
+            command.append(os.path.join(project_path, PROJECT_FILENAME))
+
+        Popen(command)
 
     # Actions
 
@@ -334,6 +342,9 @@ Please specify it in the Settings menu.""")
 
         # Tools pulldown menu
         tools_menu = Menu(menubar, tearoff=0)
+        tools_menu.add_command(label="EB Project Editor",
+                               command=self.open_ebprojedit)
+        tools_menu.add_separator()
         tools_menu.add_command(label="Expand ROM to 32 MBit",
                                command=partial(gui_util.expand_rom, self.root))
         tools_menu.add_command(label="Expand ROM to 48 MBit",
@@ -578,7 +589,7 @@ Please specify it in the Settings menu.""")
             open_folder(project_entry)
 
         def edit_tmp():
-            self.edit_project(project_entry)
+            self.open_ebprojedit(project_entry)
 
         button = Button(project_frame, text="Browse...", command=browse_tmp, width=6)
         button.pack(side=LEFT, fill=BOTH, expand=1)
