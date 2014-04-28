@@ -15,15 +15,15 @@ install: all
 test: coilsnake
 	python setup.py test
 
-coilsnake:
+coilsnake: coilsnake/util/eb/native_comp.so
 	python setup.py build_ext --inplace clean
 
-ccscript: coilsnake submodule
+ccscript: submodule
 	cd $(CCSCRIPT_SRC_DIR) ; \
 		make
 	cp $(CCSCRIPT_EXE) $(ASSETS_CCSCRIPT_EXE)
 
-mobile_sprout:
+mobile_sprout: submodule
 	cp -r $(MOBILE_SPROUT_LIB_DIR)/* $(ASSETS_CCSCRIPT_LIB_DIR)
 
 submodule:
