@@ -1,8 +1,13 @@
 CCSCRIPT_SRC_DIR=ccscript_legacy/src
-CCSCRIPT_BIN_DIR=$(CCSCRIPT_SRC_DIR)/bin
-ASSETS_CCSCRIPT_DIR=coilsnake/assets/ccc
+CCSCRIPT_EXE=$(CCSCRIPT_SRC_DIR)/bin/ccc
 
-all: coilsnake ccscript
+MOBILE_SPROUT_LIB_DIR=mobile-sprout/lib
+
+ASSETS_CCSCRIPT_DIR=coilsnake/assets/ccc
+ASSETS_CCSCRIPT_EXE=$(ASSETS_CCSCRIPT_DIR)/ccc
+ASSETS_CCSCRIPT_LIB_DIR=$(ASSETS_CCSCRIPT_DIR)/lib
+
+all: coilsnake ccscript mobile_sprout
 
 install: all
 	python setup.py install
@@ -13,16 +18,21 @@ test: coilsnake
 coilsnake:
 	python setup.py build_ext --inplace clean
 
-ccscript:
-	git submodule init
-	git submodule update
+ccscript: coilsnake submodule
 	cd $(CCSCRIPT_SRC_DIR) ; \
 		make
-	cp -r $(CCSCRIPT_BIN_DIR)/ccc $(CCSCRIPT_BIN_DIR)/lib $(ASSETS_CCSCRIPT_DIR)
+	cp $(CCSCRIPT_EXE) $(ASSETS_CCSCRIPT_EXE)
+
+mobile_sprout:
+	cp -r $(MOBILE_SPROUT_LIB_DIR)/* $(ASSETS_CCSCRIPT_LIB_DIR)
+
+submodule:
+	git submodule init
+	git submodule update
 
 clean:
 	python setup.py clean
-	find coilsnake/ -name \*.so | xargs rm
 	cd $(CCSCRIPT_SRC_DIR) ; \
 		make clean
-	rm -r $(ASSETS_CCSCRIPT_DIR)/ccc $(ASSETS_CCSCRIPT_DIR)/lib
+	rm -f $(ASSETS_CCSCRIPT_EXE)
+	rm -f $(ASSETS_CCSCRIPT_LIB_DIR)/*.ccs
