@@ -1,7 +1,8 @@
+from zlib import crc32
+
+
 ##### The logic for the following code that reads/writes to tile-based graphical data is borrowed from HackModule.java
 ##### in JHack, written by AnyoneEB.
-
-
 def read_1bpp_graphic_from_block(source, target, offset, x=0, y=0, height=8):
     """Reads an graphic stored in the 1 bit-per-pixel format from a block to a 2D array of pixels.
     :param source: block to read from
@@ -126,3 +127,10 @@ def write_8bpp_graphic_to_block(source, target, offset, x=0, y=0):
     for i in range(0, 4):
         write_2bpp_graphic_to_block(source, target, offset + 16 * i, x, y, 2 * i)
     return 64
+
+
+def hash_tile(tile):
+    csum = 0
+    for col in tile:
+        csum = crc32(col, csum)
+    return csum

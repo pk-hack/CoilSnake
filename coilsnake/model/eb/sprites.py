@@ -4,8 +4,7 @@ from PIL import Image
 
 from coilsnake.model.common.table import EnumeratedLittleEndianIntegerTableEntry, RowTableEntry, \
     LittleEndianIntegerTableEntry
-from coilsnake.model.eb.graphics import hash_tile
-from coilsnake.util.eb.graphics import read_4bpp_graphic_from_block, write_4bpp_graphic_to_block
+from coilsnake.util.eb.graphics import read_4bpp_graphic_from_block, write_4bpp_graphic_to_block, hash_tile
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
 
@@ -131,6 +130,9 @@ class EbRegularSprite:
     def block_size(self):
         return (self.width / 8) * (self.height / 8) * 32
 
+    def hash(self):
+        return hash_tile(self.data)
+
 
 SPRITE_SIZES = ["16x16", "16x16 2", "24x16", "32x16", "48x16", "16x24", "24x24", "16x32", "32x32", "48x32", "24x40",
                 "16x48", "32x48", "48x48", "64x48", "64x64", "64x80"]
@@ -217,37 +219,55 @@ class SpriteGroup:
             self.sprite_pointers = []
             return
 
-        tmp_sprite_pointers = []
-        # Make a set of unique sprites
-        unique_sprites = []
-        for sprite, swim_flag in self.sprites:
-            try:
-                tmp_sprite_pointers.append([unique_sprites.index(sprite), False])
-            except ValueError:
-                # Regular sprite not in uniques
-                sprite.flip_horizontally()
-                try:
-                    tmp_sprite_pointers.append((unique_sprites.index(sprite), True))
-                except ValueError:
+        unique_sprites = dict()
+        sprite_pointers_blueprint = [None] * self.num_sprites
+
+        previous_sprite_hash = None
+        for i, (sprite, _) in enumerate(self.sprites):
+            sprite_hash = sprite.hash()
+            is_mirrored = False
+
+            if i % 2 == 0 and sprite_hash in unique_sprites:
+                # Even-numbered sprites can reuse any sprite
+                sprite_pointers_blueprint[i] = (sprite_hash, is_mirrored)
+                previous_sprite_hash = sprite_hash
+                continue
+            elif i % 2 == 1 and previous_sprite_hash:
+                # Odd-numbered sprites can only reuse the previous sprite
+                if sprite_hash == previous_sprite_hash:
+                    sprite_pointers_blueprint[i] = (sprite_hash, is_mirrored)
+                    previous_sprite_hash = None
+                    continue
+                else:
                     sprite.flip_horizontally()
-                    unique_sprites.append(sprite)
-                    tmp_sprite_pointers.append((unique_sprites.index(sprite), False))
-        # Find a free block
-        offset = rom.allocate(size=sum([x.block_size() for x in unique_sprites]),
-                              can_write_to=(lambda y: (y & 15) == 0))
+                    is_mirrored = True
+                    sprite_hash = sprite.hash()
+                    if sprite_hash == previous_sprite_hash:
+                        sprite_pointers_blueprint[i] = (previous_sprite_hash, is_mirrored)
+                        previous_sprite_hash = None
+                        continue
+                previous_sprite_hash = None
+
+            unique_sprites[sprite_hash] = sprite
+            sprite_pointers_blueprint[i] = (sprite_hash, is_mirrored)
+
+        # Find a free area
+        offset = rom.allocate(size=sum([x.block_size() for x in unique_sprites.itervalues()]),
+                              can_write_to=(lambda y: (y & 0xf) == 0))
         self.bank = to_snes_address(offset) >> 16
         offset_start = offset & 0xffff
+
         # Write each sprite
-        sprite_block_size = unique_sprites[0].block_size()
-        for unique_sprite in unique_sprites:
-            unique_sprite.to_block(rom, offset)
-            offset += sprite_block_size
-        # Output a list of pointers
-        self.sprite_pointers = map(
-            lambda n_f: (offset_start + n_f[0] * sprite_block_size) | n_f[1],
-            tmp_sprite_pointers)
-        for i in range(len(tmp_sprite_pointers)):
-            self.sprite_pointers[i] |= ((self.sprites[i][1]) << 1)
+        sprite_offsets = dict()
+        for i, (sprite_hash, sprite) in enumerate(unique_sprites.iteritems()):
+            sprite.to_block(rom, offset)
+            sprite_offsets[sprite_hash] = offset
+            offset += sprite.block_size()
+
+        # Get the pointers for each sprite in the group
+        self.sprite_pointers = [None] * self.num_sprites
+        for i, (sprite_hash, is_mirrored) in enumerate(sprite_pointers_blueprint):
+            self.sprite_pointers[i] = (sprite_offsets[sprite_hash] & 0xffff) | is_mirrored | (self.sprites[i][1] << 1)
 
     def image(self, palette):
         # Image will be a 4x4 grid of sprites

@@ -1,6 +1,5 @@
 from array import array
 from copy import deepcopy
-from zlib import crc32
 
 from PIL import Image
 
@@ -10,17 +9,10 @@ from coilsnake.model.eb.palettes import EbPalette, EbColor
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
 from coilsnake.util.eb.graphics import read_2bpp_graphic_from_block, read_4bpp_graphic_from_block, \
     read_8bpp_graphic_from_block, read_1bpp_graphic_from_block, write_2bpp_graphic_to_block, \
-    write_4bpp_graphic_to_block, write_8bpp_graphic_to_block, write_1bpp_graphic_to_block
+    write_4bpp_graphic_to_block, write_8bpp_graphic_to_block, write_1bpp_graphic_to_block, hash_tile
 
 
 _EB_GRAPHIC_TILESET_SUPPORTED_BPP_FORMATS = frozenset([1, 2, 4, 8])
-
-
-def hash_tile(tile):
-    csum = 0
-    for col in tile:
-        csum = crc32(col, csum)
-    return csum
 
 
 class EbGraphicTileset(EqualityMixin):
