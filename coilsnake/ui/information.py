@@ -21,6 +21,9 @@ DEPENDENCIES = [
      "url": "https://github.com/PKHackers/EBYAML"},
     {"name": "EarthBound Compression Library",
      "author": "Goplat"},
+    {"name": "EB++",
+     "author": "Rufus",
+     "url": "http://goo.gl/BnNqUM"}
 ]
 
 

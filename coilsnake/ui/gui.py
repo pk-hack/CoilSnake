@@ -18,7 +18,8 @@ from coilsnake.model.common.blocks import Rom
 from coilsnake.ui import information, gui_util
 from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging, decompile_script
 from coilsnake.ui.gui_preferences import CoilSnakePreferences
-from coilsnake.ui.gui_util import browse_for_rom, browse_for_project, open_folder, set_entry_text
+from coilsnake.ui.gui_util import browse_for_rom, browse_for_project, open_folder, set_entry_text, \
+    TextareaStdoutRedirector
 from coilsnake.ui.information import coilsnake_about
 from coilsnake.ui.progressbar import GuiProgressBar
 from coilsnake.util.common.project import PROJECT_FILENAME
@@ -278,18 +279,15 @@ Please specify it in the Settings menu.""")
         self.console.config(yscrollcommand=scrollbar.set)
         console_frame.pack(fill=X, expand=1)
 
-        class StdoutRedirector(object):
-            def __init__(self, textarea):
-                self.textarea = textarea
+        def selectall_text(event):
+            event.widget.tag_add("sel","1.0","end")
+        self.root.bind_class("Text", "<Control-a>", selectall_text)
 
-            def write(self, str):
-                self.textarea.insert(END, str)
-                self.textarea.see(END)
+        def selectall_entry(event):
+            event.widget.selection_range(0, END)
+        self.root.bind_class("Entry", "<Control-a>", selectall_entry)
 
-            def flush(self):
-                pass
-
-        self.console_stream = StdoutRedirector(self.console)
+        self.console_stream = TextareaStdoutRedirector(self.console)
         sys.stdout = self.console_stream
         sys.stderr = self.console_stream
 
@@ -306,8 +304,8 @@ Please specify it in the Settings menu.""")
         about_right_frame = ttk.Frame(self.about_menu)
         Label(about_right_frame,
               text=coilsnake_about(),
-              font="Courier",
-              height=15,
+              font=("Courier", 11),
+              height=16,
               anchor="w",
               justify="left",
               bg="white",
