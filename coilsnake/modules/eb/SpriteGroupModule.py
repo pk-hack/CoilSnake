@@ -88,11 +88,7 @@ class SpriteGroupModule(EbModule):
                         group.palette = j
                         break
                 else:
-                    # Error, this image uses an invalid palette
-                    for k in range(8):
-                        print k, ":", self.palette_table[k, 0]
-                    raise CoilSnakeError("Sprite Group #" + str(i) + " uses an invalid palette: "
-                                         + palette.list()[0][1:])
+                    raise CoilSnakeError("Sprite Group #" + str(i).zfill(3) + " uses an invalid palette")
 
     def write_to_rom(self, rom):
         with Block(size=sum(x.block_size() for x in self.groups)) as block:
