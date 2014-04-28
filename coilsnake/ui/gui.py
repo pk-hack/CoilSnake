@@ -288,12 +288,17 @@ Please specify it in the Settings menu.""")
         console_frame.pack(fill=X, expand=1)
 
         def selectall_text(event):
-            event.widget.tag_add("sel","1.0","end")
+            event.widget.tag_add("sel", "1.0", "end")
         self.root.bind_class("Text", "<Control-a>", selectall_text)
 
         def selectall_entry(event):
             event.widget.selection_range(0, END)
         self.root.bind_class("Entry", "<Control-a>", selectall_entry)
+
+        def tab_changed(event):
+            # Do this so some random element in the tab isn't selected upon tab change
+            self.notebook.focus()
+        self.notebook.bind("<<NotebookTabChanged>>", tab_changed)
 
         self.console_stream = TextareaStdoutRedirector(self.console)
         sys.stdout = self.console_stream
@@ -334,9 +339,9 @@ Please specify it in the Settings menu.""")
 
         # Preferences pulldown menu
         pref_menu = Menu(menubar, tearoff=0)
-        pref_menu.add_command(label="Set Emulator Executable",
+        pref_menu.add_command(label="Select Emulator Executable",
                               command=self.set_emulator_exe)
-        pref_menu.add_command(label="Set Java Executable",
+        pref_menu.add_command(label="Select Java Executable",
                               command=self.set_java_exe)
         menubar.add_cascade(label="Settings", menu=pref_menu)
 
@@ -432,17 +437,23 @@ Please specify it in the Settings menu.""")
     def create_upgrade_frame(self, notebook):
         upgrade_frame = ttk.Frame(notebook)
         self.add_title_label_to_frame(text="Upgrade a project created using an older version of CoilSnake.",
-                                       frame=upgrade_frame)
+                                      frame=upgrade_frame)
 
         rom_entry = self.add_rom_fields_to_frame(name="Base ROM", frame=upgrade_frame)
         project_entry = self.add_project_fields_to_frame(name="Project", frame=upgrade_frame)
 
         def upgrade_tmp():
+            self.preferences["default upgrade rom"] = rom_entry.get()
+            self.preferences.save()
             self.do_upgrade(rom_entry, project_entry)
 
         self.upgrade_button = Button(upgrade_frame, text="Upgrade", command=upgrade_tmp)
         self.upgrade_button.pack(fill=BOTH, expand=1)
         self.components.append(self.upgrade_button)
+
+        if self.preferences["default upgrade rom"]:
+            set_entry_text(entry=rom_entry,
+                           text=self.preferences["default upgrade rom"])
 
         return upgrade_frame
 
@@ -455,11 +466,17 @@ Please specify it in the Settings menu.""")
         project_entry = self.add_project_fields_to_frame(name="Project", frame=decompile_script_frame)
 
         def decompile_script_tmp():
+            self.preferences["default decompile script rom"] = input_rom_entry.get()
+            self.preferences.save()
             self.do_decompile_script(input_rom_entry, project_entry)
 
         button = Button(decompile_script_frame, text="Decompile Script", command=decompile_script_tmp)
         button.pack(fill=BOTH, expand=1)
         self.components.append(button)
+
+        if self.preferences["default decompile script rom"]:
+            set_entry_text(entry=input_rom_entry,
+                           text=self.preferences["default decompile script rom"])
 
         return decompile_script_frame
 
