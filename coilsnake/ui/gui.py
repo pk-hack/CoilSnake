@@ -334,6 +334,9 @@ Please configure Java in the Settings menu.""")
         self.root = Tk()
         self.root.wm_title("CoilSnake " + information.VERSION)
 
+        self.icon = ImageTk.PhotoImage(file=asset_path(["images", "icon.png"]))
+        self.root.tk.call('wm', 'iconphoto', self.root._w, self.icon)
+
         self.create_menubar()
 
         self.notebook = ttk.Notebook(self.root)
@@ -388,6 +391,7 @@ Please configure Java in the Settings menu.""")
 
     def create_about_window(self):
         self.about_menu = Toplevel(self.root, takefocus=True)
+        self.about_menu.tk.call('wm', 'iconphoto', self.about_menu._w, self.icon)
 
         photo = ImageTk.PhotoImage(file=asset_path(["images", "logo.png"]))
         about_label = Label(self.about_menu, image=photo)
