@@ -130,3 +130,20 @@ def open_folder(entry):
         subprocess.check_call(['gnome-open', path])
     elif sys.platform == 'win32':
         subprocess.call(['explorer', path])
+
+
+def find_system_java_exe():
+    if "JAVA_HOME" in os.environ:
+        java_exe = os.path.join(os.environ["JAVA_HOME"], "bin", "javaw.exe")
+        if os.path.isfile(java_exe):
+            return java_exe
+
+        java_exe = os.path.join(os.environ["JAVA_HOME"], "bin", "java.exe")
+        if os.path.isfile(java_exe):
+            return java_exe
+
+        java_exe = os.path.join(os.environ["JAVA_HOME"], "bin", "java")
+        if os.path.isfile(java_exe):
+            return java_exe
+
+    return None

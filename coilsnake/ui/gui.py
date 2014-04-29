@@ -19,7 +19,7 @@ from coilsnake.ui import information, gui_util
 from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging, decompile_script
 from coilsnake.ui.gui_preferences import CoilSnakePreferences
 from coilsnake.ui.gui_util import browse_for_rom, browse_for_project, open_folder, set_entry_text, \
-    TextareaStdoutRedirector
+    TextareaStdoutRedirector, find_system_java_exe
 from coilsnake.ui.information import coilsnake_about
 from coilsnake.ui.progressbar import GuiProgressBar
 from coilsnake.util.common.project import PROJECT_FILENAME
@@ -39,6 +39,12 @@ class CoilSnakeGui(object):
     # Preferences functions
 
     def set_emulator_exe(self):
+        tkMessageBox.showinfo(
+            "Select the Emulator Executable",
+            "Select an emulator executable for CoilSnake to use.\n\n"
+            "Hint: It is probably named either zsnesw.exe, snes9x.exe, or higan-accuracy.exe"
+        )
+
         emulator_exe = tkFileDialog.askopenfilename(
             parent=self.root,
             title="Select an Emulator Executable",
@@ -47,11 +53,36 @@ class CoilSnakeGui(object):
             self.preferences["emulator"] = emulator_exe
             self.preferences.save()
 
+    def get_java_exe(self):
+        return self.preferences["java"] or find_system_java_exe()
+
     def set_java_exe(self):
+        system_java_exe = find_system_java_exe()
+
+        if system_java_exe:
+            confirm = tkMessageBox.askquestion(
+                "Configure Java",
+                "CoilSnake has detected Java at the following location:\n\n"
+                + system_java_exe + "\n\n"
+                + "To use this installation of Java, select \"Yes\".\n\n"
+                + "To override and instead use a different version of Java, select \"No\".",
+                icon="question"
+            )
+            if confirm == "yes":
+                self.preferences["java"] = None
+                self.preferences.save()
+                return
+
+        tkMessageBox.showinfo(
+            "Select the Java Executable",
+            "Select a Java executable for CoilSnake to use.\n\n"
+            "On Windows, it might be called \"javaw.exe\" or \"java.exe\"."
+        )
+
         java_exe = tkFileDialog.askopenfilename(
             parent=self.root,
             title="Select the Java Executable",
-            initialfile=self.preferences["java"])
+            initialfile=(self.preferences["java"] or system_java_exe))
         if java_exe:
             self.preferences["java"] = java_exe
             self.preferences.save()
@@ -82,8 +113,8 @@ class CoilSnakeGui(object):
         if not self.preferences["emulator"]:
             tkMessageBox.showerror(parent=self.root,
                                    title="Error",
-                                   message="""Emulator executable not specified.
-Please specify it in the Settings menu.""")
+                                   message="""CoilSnake could not find an emulator.
+Please configure your emulator in the Settings menu.""")
         elif rom_filename:
             Popen([self.preferences["emulator"], rom_filename])
     
@@ -93,14 +124,15 @@ Please specify it in the Settings menu.""")
         else:
             project_path = None
 
-        if not self.preferences["java"]:
+        java_exe = self.get_java_exe()
+        if not java_exe:
             tkMessageBox.showerror(parent=self.root,
                                    title="Error",
-                                   message="""Java executable not specified.
-Please specify it in the Settings menu.""")
+                                   message="""CoilSnake could not find Java.
+Please configure Java in the Settings menu.""")
             return
 
-        command = [self.preferences["java"], "-jar", asset_path(["bin", "EbProjEdit.jar"])]
+        command = [java_exe, "-jar", asset_path(["bin", "EbProjEdit.jar"])]
         if project_path:
             command.append(os.path.join(project_path, PROJECT_FILENAME))
 
@@ -337,14 +369,6 @@ Please specify it in the Settings menu.""")
     def create_menubar(self):
         menubar = Menu(self.root)
 
-        # Preferences pulldown menu
-        pref_menu = Menu(menubar, tearoff=0)
-        pref_menu.add_command(label="Select Emulator Executable",
-                              command=self.set_emulator_exe)
-        pref_menu.add_command(label="Select Java Executable",
-                              command=self.set_java_exe)
-        menubar.add_cascade(label="Settings", menu=pref_menu)
-
         # Tools pulldown menu
         tools_menu = Menu(menubar, tearoff=0)
         tools_menu.add_command(label="EB Project Editor",
@@ -360,6 +384,14 @@ Please specify it in the Settings menu.""")
         tools_menu.add_command(label="Remove Header from ROM",
                                command=partial(gui_util.strip_header_from_rom, self.root))
         menubar.add_cascade(label="Tools", menu=tools_menu)
+
+        # Preferences pulldown menu
+        pref_menu = Menu(menubar, tearoff=0)
+        pref_menu.add_command(label="Configure Emulator",
+                              command=self.set_emulator_exe)
+        pref_menu.add_command(label="Configure Java",
+                              command=self.set_java_exe)
+        menubar.add_cascade(label="Settings", menu=pref_menu)
 
         # Help menu
         help_menu = Menu(menubar, tearoff=0)
