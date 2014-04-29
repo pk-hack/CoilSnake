@@ -1,9 +1,11 @@
 from nose.tools import assert_dict_equal, assert_list_equal, assert_raises, assert_equal, assert_is_instance
+from nose.tools.nontrivial import raises
 
 from coilsnake.exceptions.common.exceptions import TableError, \
     TableEntryInvalidYmlRepresentationError, TableEntryMissingDataError, TableSchemaError
 from coilsnake.model.common.blocks import Block
-from coilsnake.model.common.table import Table, GenericLittleEndianRowTableEntry
+from coilsnake.model.common.table import Table, GenericLittleEndianRowTableEntry, BitfieldTableEntry
+from coilsnake.util.common.type import GenericEnum
 from tests.coilsnake_test import BaseTestCase
 
 
@@ -202,3 +204,23 @@ class TestGenericLittleEndianTable(GenericTestTable):
                     (0, "Bitfield", TableSchemaError, TableEntryInvalidYmlRepresentationError,
                      {0: dict(YML_REP[0], **{"Bitfield": [8]})}),
     ]
+
+
+class TestBitfieldTableEntry(BaseTestCase):
+    enumeration_class = GenericEnum.create(name="test", values=["a", "b", "c"])
+    entry_class = BitfieldTableEntry.create(name="test", enumeration_class=enumeration_class, size=1)
+
+    def test_from_yml_rep_legacy(self):
+        assert_equal(self.entry_class.from_yml_rep(0), set())
+        assert_equal(self.entry_class.from_yml_rep(1), set([0]))
+        assert_equal(self.entry_class.from_yml_rep(2), set([1]))
+        assert_equal(self.entry_class.from_yml_rep(3), set([0, 1]))
+        assert_equal(self.entry_class.from_yml_rep(255), set([0, 1, 2, 3, 4, 5, 6, 7]))
+
+    @raises(TableEntryInvalidYmlRepresentationError)
+    def test_from_yml_rep_legacy_too_small(self):
+        self.entry_class.from_yml_rep(-1)
+
+    @raises(TableEntryInvalidYmlRepresentationError)
+    def test_from_yml_rep_legacy_too_large(self):
+        self.entry_class.from_yml_rep(256)

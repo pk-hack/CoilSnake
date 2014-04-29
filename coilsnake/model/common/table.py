@@ -193,12 +193,20 @@ class ByteListTableEntry(TableEntry):
 
 
 class BitfieldTableEntry(TableEntry):
+    @staticmethod
+    def create(name, enumeration_class, size):
+        return type(name, (BitfieldTableEntry,), {"name": name, "enumeration_class": enumeration_class, "size": size})
+
     @classmethod
     def from_block(cls, block, offset):
-        value = set()
         block_value = block.read_multi(offset, cls.size)
-        for i in range(0, cls.size * 8):
-            if (1 << i) & block_value != 0:
+        return cls._from_int(block_value)
+
+    @classmethod
+    def _from_int(cls, int_value):
+        value = set()
+        for i in range(cls.size * 8):
+            if (1 << i) & int_value != 0:
                 value.add(i)
         return value
 
@@ -221,12 +229,18 @@ class BitfieldTableEntry(TableEntry):
                         raise TableEntryInvalidYmlRepresentationError("Could not parse string[{}] to type[{}]".format(
                             entry, cls.enumeration_class.__name__))
 
-                if entry >= cls.size * 8:
+                if not (0 <= entry < (cls.size * 8)):
                     raise TableEntryInvalidYmlRepresentationError(
-                        "Bitvalue value[{}] is too large to fit in a bitfield of size[{}]".format(entry, cls.size))
+                        "Bitvalue value[{}] is not within a range of [0,{}) for its bitfield of size[{}]".format(
+                            entry, 1 << cls.size, cls.size))
 
                 value.add(entry)
             return value
+        elif isinstance(yml_rep, int):
+            if not (0 <= yml_rep < cls.size * 0x100):
+                raise TableEntryInvalidYmlRepresentationError(
+                    "Integer[{}] is not valid for a bitfield of size[{}]".format(yml_rep, cls.size))
+            return cls._from_int(yml_rep)
         else:
             raise TableEntryInvalidYmlRepresentationError(
                 "Expected list of bitvalues but instead got value[{}] of type[{}]".format(yml_rep,
@@ -350,15 +364,10 @@ class GenericLittleEndianRowTableEntry(RowTableEntry):
                 column_specification["values"]
             )
         elif (column_specification["type"] == "bitfield") and ("bitvalues" in column_specification):
-            enumeration_class = type("{}_Enum".format(class_name),
-                                     (GenericEnum,),
-                                     dict(zip([str(x).upper() for x in column_specification["bitvalues"]],
-                                              range(len(column_specification["bitvalues"])))))
-            return type(class_name,
-                        (BitfieldTableEntry,),
-                        {"name": column_specification["name"],
-                         "size": column_specification["size"],
-                         "enumeration_class": enumeration_class})
+            enumeration_class = GenericEnum.create(name=class_name, values=column_specification["bitvalues"])
+            return BitfieldTableEntry.create(name=column_specification["name"],
+                                             size=column_specification["size"],
+                                             enumeration_class=enumeration_class)
         else:
             try:
                 entry_class, parameter_list = cls.TABLE_ENTRY_CLASS_MAP[column_specification["type"]]
@@ -419,8 +428,9 @@ class Table(object):
             try:
                 yml_rep_row = yml_rep[i]
             except KeyError as e:
-                log.exception("Row[{}] not found in table yml representation".format(i))
-                raise TableError(table_name=self.name, entry=i, field=None, cause=TableEntryMissingDataError())
+                raise TableError(table_name=self.name, entry=i, field=None,
+                                 cause=TableEntryMissingDataError(
+                                     "Row[{}] not found in table yml representation".format(i)))
 
             try:
                 self.values[i] = self.schema.from_yml_rep(yml_rep_row)

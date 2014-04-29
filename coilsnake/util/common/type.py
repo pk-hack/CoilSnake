@@ -18,6 +18,12 @@ class StringRepresentationMixin(object):
 
 
 class GenericEnum(object):
+    @staticmethod
+    def create(name, values):
+        return type("{}_GenericEnum".format(name),
+                    (GenericEnum,),
+                    dict(zip([str(x).upper() for x in values], range(len(values)))))
+
     @classmethod
     def is_valid(cls, val):
         for k, v in vars(cls).iteritems():
