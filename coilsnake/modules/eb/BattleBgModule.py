@@ -151,6 +151,8 @@ class BattleBgModule(EbModule):
         self.distortion_table.to_block(block=rom, offset=from_snes_address(DISTORTION_TABLE_OFFSET))
 
         # Write graphics and arrangements
+        self.graphics_pointer_table.recreate(num_rows=len(self.backgrounds))
+        self.arrangement_pointer_table.recreate(num_rows=len(self.backgrounds))
         for i, (tileset, arrangement) in enumerate(self.backgrounds):
             color_depth = self.bg_table[i][2]
             with EbCompressibleBlock(size=tileset.block_size(bpp=color_depth)) as compressed_block:
@@ -164,9 +166,6 @@ class BattleBgModule(EbModule):
                 compressed_block.compress()
                 arrangement_offset = rom.allocate(data=compressed_block)
                 self.arrangement_pointer_table[i] = [to_snes_address(arrangement_offset)]
-        for i in range(len(self.backgrounds), self.graphics_pointer_table.num_rows):
-            self.graphics_pointer_table[i] = [0]
-            self.arrangement_pointer_table[i] = [0]
 
         graphics_pointer_table_offset = rom.allocate(size=self.graphics_pointer_table.size)
         self.graphics_pointer_table.to_block(block=rom, offset=graphics_pointer_table_offset)
@@ -183,13 +182,12 @@ class BattleBgModule(EbModule):
                               pointer=to_snes_address(arrangement_pointer_table_offset))
 
         # Write pals
+        self.palette_pointer_table.recreate(num_rows=len(self.palettes))
         for i, palette in enumerate(self.palettes):
             with Block(32) as block:
                 palette.to_block(block=block, offset=0)
                 palette_offset = rom.allocate(data=block)
                 self.palette_pointer_table[i] = [to_snes_address(palette_offset)]
-        for i in range(len(self.palettes), self.palette_pointer_table.num_rows):
-            self.palette_pointer_table[i] = [0]
 
         palette_pointer_table_offset = rom.allocate(size=self.palette_pointer_table.size)
         self.palette_pointer_table.to_block(block=rom, offset=palette_pointer_table_offset)

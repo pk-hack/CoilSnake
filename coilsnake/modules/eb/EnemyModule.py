@@ -98,6 +98,7 @@ class EnemyModule(EbModule):
                                            offset=from_snes_address(ENEMY_GROUP_BACKGROUND_TABLE_DEFAULT_OFFSET))
 
         # Write the sprites
+        self.graphics_pointer_table.recreate(num_rows=len(self.battle_sprites))
         for i, battle_sprite in enumerate(self.battle_sprites):
             self.graphics_pointer_table[i] = [None, battle_sprite.size()]
             with EbCompressibleBlock(size=battle_sprite.block_size()) as compressed_block:

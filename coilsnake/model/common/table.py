@@ -394,6 +394,9 @@ class Table(object):
 
         self.schema = schema
 
+        self.recreate(num_rows=num_rows, size=size)
+
+    def recreate(self, num_rows=None, size=None):
         if num_rows is not None:
             self.num_rows = num_rows
         else:
