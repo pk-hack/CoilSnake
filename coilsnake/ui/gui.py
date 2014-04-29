@@ -53,6 +53,26 @@ class CoilSnakeGui(object):
             self.preferences["emulator"] = emulator_exe
             self.preferences.save()
 
+    def set_ccscript_offset(self):
+        ccscript_offset_str = tkSimpleDialog.askstring(
+            title="Input CCScript Offset",
+            prompt=("Specify the offset to which CCScript should compile text.\n"
+                    + "Input the offset in hexidecimal form.\n\n"
+                    + "(The default value is F10000)"),
+            initialvalue="{:x}".format(self.preferences.get_ccscript_offset()).upper())
+
+        if ccscript_offset_str:
+            try:
+                ccscript_offset = int(ccscript_offset_str, 16)
+            except:
+                tkMessageBox.showerror(parent=self.root,
+                                   title="Error",
+                                   message="{} is not a valid hexidecimal number.".format(ccscript_offset_str))
+                return
+
+            self.preferences.set_ccscript_offset(ccscript_offset)
+            self.preferences.save()
+
     def get_java_exe(self):
         return self.preferences["java"] or find_system_java_exe()
 
@@ -208,7 +228,9 @@ Please configure Java in the Settings menu.""")
 
     def _do_compile_help(self, project, base_rom, rom):
         try:
-            compile_project(project, base_rom, rom, progress_bar=self.progress_bar)
+            compile_project(project, base_rom, rom,
+                            ccscript_offset=self.preferences.get_ccscript_offset(),
+                            progress_bar=self.progress_bar)
         except Exception as inst:
             log.exception("Error")
 
@@ -391,6 +413,9 @@ Please configure Java in the Settings menu.""")
                               command=self.set_emulator_exe)
         pref_menu.add_command(label="Configure Java",
                               command=self.set_java_exe)
+        pref_menu.add_separator()
+        pref_menu.add_command(label="Configure CCScript",
+                              command=self.set_ccscript_offset)
         menubar.add_cascade(label="Settings", menu=pref_menu)
 
         # Help menu

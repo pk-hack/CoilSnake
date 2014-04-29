@@ -73,7 +73,7 @@ def upgrade_project(project_path, base_rom_filename, progress_bar=None):
     log.info("Upgraded {} in {:.2f}s".format(project_path, time.time() - upgrade_start_time))
 
 
-def compile_project(project_path, base_rom_filename, output_rom_filename, progress_bar=None):
+def compile_project(project_path, base_rom_filename, output_rom_filename, ccscript_offset=None, progress_bar=None):
     modules = load_modules()
 
     project_filename = os.path.join(project_path, PROJECT_FILENAME)
@@ -92,8 +92,13 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, progre
 
     if script_filenames:
         log.info("Calling CCScript compiler")
+        if not ccscript_offset:
+            ccscript_offset = "F10000"
+        elif type(ccscript_offset) == int:
+            ccscript_offset = "{:x}".format(ccscript_offset)
+
         process = Popen(
-            [ccc_file_name(), "-n", "-o", output_rom_filename, "-s", "F10000",
+            [ccc_file_name(), "-n", "-o", output_rom_filename, "-s", ccscript_offset,
              "--summary", os.path.join(project_path, "ccscript", "summary.txt")] +
             script_filenames, stdout=PIPE, stderr=STDOUT)
         process.wait()

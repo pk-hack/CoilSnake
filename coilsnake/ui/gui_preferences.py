@@ -18,6 +18,12 @@ class CoilSnakePreferences(object):
         with open(self.PREFERENCES_FILENAME, "w") as f:
             yml_dump(self.preferences, f, default_flow_style=False)
 
+    def get_ccscript_offset(self):
+        return self["ccscript offset"] or 0xF10000
+
+    def set_ccscript_offset(self, offset):
+        self["ccscript offset"] = offset
+
     def get_default_tab(self):
         if "default_tab" in self.preferences:
             return self.preferences["default_tab"]
