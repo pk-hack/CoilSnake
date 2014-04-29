@@ -58,7 +58,8 @@ MISC_TEXT_OFFSETS = {
         "Shoot": (0x04a041, 16),
         "Spy": (0x04a051, 16),
         "Run Away": (0x04a061, 16),
-        "Mirror": (0x04a071, 16)
+        "Mirror": (0x04a071, 16),
+        "Do Nothing": (0x04a081, 11)  # New in CoilSnake 2.0
     },
     "Out of Battle Menu": {
         "Talk to": (0x2fa37a, 9),
@@ -162,12 +163,15 @@ class MiscTextModule(EbModule):
         super(MiscTextModule, self).__init__()
         self.data = dict()
 
+    def read_entry_from_rom(self, rom, offset, size):
+        return TEXT_TABLE_ENTRIES[size].from_block(rom, offset)
+
     def read_from_rom(self, rom):
         for category_name, category in MISC_TEXT_OFFSETS.iteritems():
             category_data = dict()
             for item_name, item in category.iteritems():
                 offset, size = item
-                category_data[item_name] = TEXT_TABLE_ENTRIES[size].from_block(rom, offset)
+                category_data[item_name] = self.read_entry_from_rom(rom, offset, size)
             self.data[category_name] = category_data
 
     def write_to_rom(self, rom):
@@ -180,17 +184,26 @@ class MiscTextModule(EbModule):
                                     0,
                                     size - len(self.data[category_name][item_name]))
 
-    def write_to_project(self, resourceOpener):
-        with resourceOpener("text_misc", "yml") as f:
+    def write_to_project(self, resource_open):
+        with resource_open("text_misc", "yml") as f:
             yml_dump(self.data, f, default_flow_style=False)
 
-    def read_from_project(self, resourceOpener):
-        with resourceOpener("text_misc", "yml") as f:
+    def read_from_project(self, resource_open):
+        with resource_open("text_misc", "yml") as f:
             self.data = yml_load(f)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
+        elif old_version == 4:
+            self.read_from_project(resource_open_r)
+
+            offset, size = MISC_TEXT_OFFSETS["Battle Menu"]["Do Nothing"]
+            self.data["Battle Menu"]["Do Nothing"] = self.read_entry_from_rom(rom, offset, size)
+
+            self.write_to_project(resource_open_w)
+
+            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         elif old_version <= 2:
             self.read_from_rom(rom)
             self.write_to_project(resource_open_w)
