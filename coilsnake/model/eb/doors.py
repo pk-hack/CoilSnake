@@ -329,14 +329,12 @@ def door_from_yml_rep(yml_rep):
         door_type_yml_rep = yml_rep["Type"]
     except KeyError:
         message = "Door was missing \"Type\" attribute"
-        log.error(message)
         raise MissingUserDataError(message)
 
     try:
         door = DOOR_TYPE_NAME_TO_CLASS_MAP[door_type_yml_rep]()
     except KeyError:
         message = "Door had unknown \"Type\" of \"%s\"" % door_type_yml_rep
-        log.error(message)
         raise InvalidUserDataError(message)
 
     door.from_yml_rep(yml_rep)

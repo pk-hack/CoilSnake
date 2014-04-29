@@ -5,7 +5,7 @@ from coilsnake.util.eb.pointer import from_snes_address
 
 
 class MiscTablesModule(EbModule):
-    NAME = "Misc Tables"
+    NAME = "Miscellaneous Tables"
     TABLE_OFFSETS = [
         0xC3FD8D,  # Attract mode text
         0xD5F645,  # Timed Item Delivery

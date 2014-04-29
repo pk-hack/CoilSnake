@@ -35,8 +35,8 @@ class CccInterfaceModule(EbModule):
                 if compilation_start_address != 0xffffffff and compilation_end_address != 0xffffffff:
                     self.used_range = (from_snes_address(compilation_start_address),
                                        from_snes_address(compilation_end_address))
-                    log.debug("Found range[(%#06x,%#06x)] used during compilation",
-                             self.used_range[0], self.used_range[1])
+                    log.debug("Found range[({:#x},{:#x})] used during compilation".format(self.used_range[0],
+                                                                                          self.used_range[1]))
                 else:
                     log.debug("Found no space used during compilation")
 
@@ -51,16 +51,16 @@ class CccInterfaceModule(EbModule):
                             label_key = module_name + "." + line.split(' ', 1)[0]
                             label_val = int(line[-6:], 16)
                             EbPointer.label_address_map[label_key] = label_val
-                            log.debug("Adding CCScript label[%s] in with address[%06x] in module[%s]", label_key,
-                                      label_val, module_name)
+                            log.debug("Adding CCScript label[{}] with address[{:#x}] in module[{}]".format(
+                                label_key, label_val, module_name))
                     elif line.startswith("-") and module_name is not None:
                         in_module_section = True
                     elif line.startswith("Labels in module "):
                         module_name = line[17:]
-                        log.debug("Found CCScript module[%s]", module_name)
-        log.debug("Found %d CCScript labels", len(EbPointer.label_address_map))
+                        log.debug("Found CCScript module[{}]".format(module_name))
+        log.debug("Found a total of {} CCScript labels".format(len(EbPointer.label_address_map)))
 
     def write_to_rom(self, rom):
         if self.used_range:
-            log.debug("Marking (%#x,%#x) as allocated by CCScript", self.used_range[0], self.used_range[1])
+            log.debug("Marking ({:#x},{:#x}) as allocated by CCScript".format(self.used_range[0], self.used_range[1]))
             rom.mark_allocated(self.used_range)

@@ -125,7 +125,7 @@ class Block(object):
     def __setitem__(self, key, item):
         if isinstance(key, int) and isinstance(item, (int, long)):
             if item < 0 or item > 0xff:
-                raise InvalidArgumentError("Attempting to write value[%d] into a single byte" % item)
+                raise InvalidArgumentError("Could not write invalid value[%d] as a single byte" % item)
             if key >= self.size:
                 raise OutOfBoundsError("Attempted to write to offset[%#x] which is out of bounds" % key)
             else:

@@ -2,7 +2,8 @@ from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
 
 
 class CoilSnakeError(Exception):
-    pass
+    def __str__(self):
+        return "{}: {}".format(self.__class__.__name__, self.message)
 
 
 class CoilSnakeInternalError(CoilSnakeError):
@@ -70,6 +71,9 @@ class TableSchemaError(EqualityMixin, StringRepresentationMixin, CoilSnakeError)
         self.field = field
         self.cause = cause
 
+    def __str__(self):
+        return "{}: Error while parsing \"{}\":\n{}".format(self.__class__.__name__, self.field, str(self.cause))
+
 
 class TableError(EqualityMixin, StringRepresentationMixin, CoilSnakeError):
     def __init__(self, table_name, entry, field, cause):
@@ -77,3 +81,15 @@ class TableError(EqualityMixin, StringRepresentationMixin, CoilSnakeError):
         self.entry = entry
         self.field = field
         self.cause = cause
+
+    def __str__(self):
+        str_rep = "{}: Error while parsing".format(self.__class__.__name__)
+        if self.field:
+            str_rep += " in \"{}\"".format(self.field)
+        if self.entry:
+            str_rep += " in entry #{}".format(self.entry)
+        if self.table_name:
+            str_rep += " in table \"{}\"".format(self.table_name)
+        str_rep += ":\n" + str(self.cause)
+
+        return str_rep

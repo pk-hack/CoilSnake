@@ -288,16 +288,18 @@ class RowTableEntry(TableEntry):
             try:
                 column_yml_rep = yml_rep[column.name]
             except KeyError:
-                log.exception("Column[{}] not found in yml representation".format(column.name))
-                raise TableSchemaError(field=column.name, cause=TableEntryMissingDataError())
+                error_message = "Column[{}] not found in yml representation".format(column.name)
+                log.debug(error_message)
+                raise TableSchemaError(field=column.name,
+                                       cause=TableEntryMissingDataError(error_message))
 
             try:
                 row[i] = column.from_yml_rep(column_yml_rep)
             except TableEntryError as e:
-                log.exception("Error while parsing yml representation for column[{}]".format(column.name))
+                log.debug("Error while parsing yml representation for column[{}]".format(column.name))
                 raise TableSchemaError(field=column.name, cause=e)
             except Exception as e:
-                log.exception("Unexpected error while parsing yml representation for column[{}]".format(column.name))
+                log.debug("Unexpected error while parsing yml representation for column[{}]".format(column.name))
                 raise TableSchemaError(field=column.name, cause=e)
         return row
 
@@ -311,7 +313,7 @@ class RowTableEntry(TableEntry):
             try:
                 yml_rep_row[column.name] = column.to_yml_rep(value)
             except Exception as e:
-                log.exception("Error while serializing column[{}]".format(column.name))
+                log.debug("Error while serializing column[{}]".format(column.name))
                 raise TableSchemaError(field=column.name, cause=e)
         return yml_rep_row
 
@@ -322,7 +324,7 @@ class RowTableEntry(TableEntry):
             try:
                 row[i] = column.from_block(block, offset)
             except Exception as e:
-                log.exception("Error while reading column[{}]]".format(column.name))
+                log.debug("Error while reading column[{}]]".format(column.name))
                 raise TableSchemaError(field=column.name, cause=e)
             offset += column.size
         return row
@@ -333,7 +335,7 @@ class RowTableEntry(TableEntry):
             try:
                 column.to_block(block, offset, value)
             except Exception as e:
-                log.exception("Error while writing column[{}]".format(column.name))
+                log.debug("Error while writing column[{}]".format(column.name))
                 raise TableError(field=column.name, cause=e)
             offset += column.size
 

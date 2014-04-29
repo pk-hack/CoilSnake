@@ -8,6 +8,7 @@ from Tkinter import *
 import tkFileDialog
 import tkMessageBox
 import tkSimpleDialog
+from traceback import format_exc
 import ttk
 import os
 import webbrowser
@@ -37,6 +38,26 @@ class CoilSnakeGui(object):
         self.progress_bar = None
 
     # Preferences functions
+
+    def refresh_debug_logging(self):
+        if self.preferences["debug mode"]:
+            logging.root.setLevel(logging.DEBUG)
+        else:
+            logging.root.setLevel(logging.INFO)
+
+    def set_debug_mode(self):
+        confirm = tkMessageBox.askquestion(
+            "Enable Debug Mode?",
+            "Would you like to enable Debug mode? Debug mode will provide you with more detailed output while "
+            + "CoilSnake is running.\n\n"
+            + "This is generally only needed by advanced users.",
+            icon="question"
+        )
+
+        self.preferences["debug mode"] = (confirm == "yes")
+        self.preferences.save()
+
+        self.refresh_debug_logging()
 
     def set_emulator_exe(self):
         tkMessageBox.showinfo(
@@ -187,7 +208,8 @@ Please configure Java in the Settings menu.""")
         try:
             decompile_rom(rom_filename=rom, project_path=project, progress_bar=self.progress_bar)
         except Exception as inst:
-            log.exception("Error")
+            log.debug(format_exc())
+            log.error(inst)
 
         self.progress_bar.set(0)
         self.enable_all_components()
@@ -232,7 +254,8 @@ Please configure Java in the Settings menu.""")
                             ccscript_offset=self.preferences.get_ccscript_offset(),
                             progress_bar=self.progress_bar)
         except Exception as inst:
-            log.exception("Error")
+            log.debug(format_exc())
+            log.error(inst)
 
         self.progress_bar.set(0)
         self.enable_all_components()
@@ -264,7 +287,8 @@ Please configure Java in the Settings menu.""")
         try:
             upgrade_project(project_path=project, base_rom_filename=rom, progress_bar=self.progress_bar)
         except Exception as inst:
-            log.exception("Error")
+            log.debug(format_exc())
+            log.error(inst)
 
         self.progress_bar.set(0)
         self.enable_all_components()
@@ -296,7 +320,8 @@ Please configure Java in the Settings menu.""")
         try:
             decompile_script(rom_filename=rom, project_path=project, progress_bar=self.progress_bar)
         except Exception as inst:
-            log.exception("Error")
+            log.debug(format_exc())
+            log.error(inst)
 
         self.progress_bar.stop_cycle_animation()
         self.enable_all_components()
@@ -359,6 +384,7 @@ Please configure Java in the Settings menu.""")
         sys.stderr = self.console_stream
 
         setup_logging(quiet=False, verbose=False)
+        self.refresh_debug_logging()
 
     def create_about_window(self):
         self.about_menu = Toplevel(self.root, takefocus=True)
@@ -416,6 +442,9 @@ Please configure Java in the Settings menu.""")
         pref_menu.add_separator()
         pref_menu.add_command(label="Configure CCScript",
                               command=self.set_ccscript_offset)
+        pref_menu.add_separator()
+        pref_menu.add_command(label="Debug Mode",
+                              command=self.set_debug_mode)
         menubar.add_cascade(label="Settings", menu=pref_menu)
 
         # Help menu

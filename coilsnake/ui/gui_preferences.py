@@ -25,13 +25,13 @@ class CoilSnakePreferences(object):
         self["ccscript offset"] = offset
 
     def get_default_tab(self):
-        if "default_tab" in self.preferences:
-            return self.preferences["default_tab"]
+        if "default tab" in self.preferences:
+            return self.preferences["default tab"]
         else:
             return 0
 
     def set_default_tab(self, default_tab):
-        self["default_tab"] = default_tab
+        self["default tab"] = default_tab
 
     def add_profile(self, tab_name, profile_name):
         tab = self._get_preferences_profile_tab(tab_name)
