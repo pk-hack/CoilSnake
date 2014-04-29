@@ -4,13 +4,14 @@ from shutil import copyfile
 import time
 from subprocess import Popen, PIPE, STDOUT
 
+from CCScriptWriter.CCScriptWriter import CCScriptWriter
+
 from coilsnake.util.common.project import FORMAT_VERSION, PROJECT_FILENAME, get_version_name
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui.formatter import CoilSnakeFormatter
 from coilsnake.util.common.project import Project
 from coilsnake.util.common.assets import open_asset, ccc_file_name
-from CCScriptWriter.CCScriptWriter import CCScriptWriter
 
 
 log = logging.getLogger(__name__)
@@ -55,7 +56,7 @@ def upgrade_project(project_path, base_rom_filename, progress_bar=None):
     tick_amount = 1.0/len(compatible_modules)
 
     for module_name, module_class in compatible_modules:
-        log.debug("Starting upgrade of {}", module_class.NAME)
+        log.info("Upgrading {}...".format(module_class.NAME))
         start_time = time.time()
         with module_class() as module:
             module.upgrade_project(project.version, FORMAT_VERSION, rom,
@@ -64,7 +65,7 @@ def upgrade_project(project_path, base_rom_filename, progress_bar=None):
                                    lambda x: project.delete_resource(module_name, x))
             if progress_bar:
                 progress_bar.tick(tick_amount)
-        log.info("Upgraded {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
+        log.info("Finished upgrading {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
 
     project.version = FORMAT_VERSION
     project.write(project_filename)
@@ -120,17 +121,16 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, progre
         else:
             continue
 
+        log.info("Compiling {}...".format(module_class.NAME))
         start_time = time.time()
         with module_class() as module:
-            log.debug("Reading {}".format(module_class.NAME))
             module.read_from_project(lambda x, y: project.get_resource(module_name, x, y, 'rb'))
             if progress_bar:
                 progress_bar.tick(tick_amount)
-            log.debug("Writing {}".format(module_class.NAME))
             module.write_to_rom(rom)
             if progress_bar:
                 progress_bar.tick(tick_amount)
-        log.info("Compiled {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
+        log.info("Finished compiling {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
 
     log.debug("Saving ROM")
     rom.to_file(output_rom_filename)
@@ -157,17 +157,16 @@ def decompile_rom(rom_filename, project_path, progress_bar=None):
         if not module_class.is_compatible_with_romtype(rom.type):
             continue
 
+        log.info("Decompiling {}...".format(module_class.NAME))
         start_time = time.time()
         with module_class() as module:
-            log.debug("Reading {}".format(module_class.NAME))
             module.read_from_rom(rom)
             if progress_bar:
                 progress_bar.tick(tick_amount)
-            log.debug("Writing {}".format(module_class.NAME))
             module.write_to_project(lambda x, y: project.get_resource(module_name, x, y, 'wb'))
             if progress_bar:
                 progress_bar.tick(tick_amount)
-        log.info("Decompiled {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
+        log.info("Finished decompiling {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
 
     log.debug("Saving Project")
     project.write(os.path.join(project_path, PROJECT_FILENAME))
