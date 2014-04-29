@@ -33,6 +33,7 @@ setup(
     ],
 
     windows=[{"script": os.path.join("script", "gui.py"),
+              "icon_resources": [(1, os.path.join("coilsnake", "assets", "images", "exe_icon.ico"))],
               "dest_base": "CoilSnake"}],
     options={"py2exe": {"includes": include_module_list,
                         "bundle_files": 2,
