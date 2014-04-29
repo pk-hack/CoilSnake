@@ -3,7 +3,7 @@ import logging
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, IndexOutOfRangeError, \
     TableEntryInvalidYmlRepresentationError, TableError, TableEntryMissingDataError, TableEntryError, TableSchemaError
-from coilsnake.util.common.helper import getitem_with_default, in_range, not_in_range
+from coilsnake.util.common.helper import getitem_with_default, not_in_range
 from coilsnake.util.common.type import GenericEnum
 from coilsnake.util.common.yml import convert_values_to_hex_repr, yml_load, yml_dump
 
@@ -452,14 +452,14 @@ class Table(object):
 
     def __getitem__(self, index):
         row = index
-        if in_range(row, (0, self.num_rows)):
+        if 0 <= row < self.num_rows:
             return self.values[row]
         else:
             raise IndexOutOfRangeError("Cannot get row[{}] from table of size[{}]".format(row, self.num_rows))
 
     def __setitem__(self, index, value):
         row = index
-        if in_range(row, (0, self.num_rows)):
+        if 0 <= row < self.num_rows:
             self.values[row] = value
         else:
             raise IndexOutOfRangeError("Cannot set row[{}] in table of size[{}]".format(row, self.num_rows))
