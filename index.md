@@ -1,11 +1,11 @@
 ---
 layout: default
 title: CoilSnake
-version: 1.3
+version: 2.0
 tagline: A program for modifying the EarthBound ROM.
 featured-screenshot: images/screenshots/octocat-battle.png
-projects-section: |
-  ### Projects Made with CoilSnake
+short-description: |
+  **CoilSnake** is the most powerful [mod making tool](https://en.wikipedia.org/wiki/Game_mod) for the game [*EarthBound*](https://en.wikipedia.org/wiki/EarthBound). CoilSnake has been used to create several entirely original games within the *EarthBound* engine:
 projects:
 - name: MOTHER Remake
   image: images/screenshots/mother-remake.png
@@ -27,25 +27,34 @@ projects:
   image-position-x: 0
   image-position-y: 35%
   url: http://hacks.lyros.net/portfolio/holiday-hex/
-support-section: |
-  ### Support or Contact
-  For information about getting started with CoilSnake, please see the
-  [EB Hacking 101](http://www.lyros.net/files/EBHack101.pdf) document, created by
-  [Lyrositor](https://github.com/Lyrositor).
-
-  Having trouble with CoilSnake? [Create an issue](https://github.com/kiij/CoilSnake/issues/new) on GitHub or consult the
-  [PK Hack forum](http://forum.starmen.net/forum/Community/PKHack) and someone will help you sort it out.
+- name: EquestriaBound
+  image: images/screenshots/equestriabound.png
+  image-position-x: 0 
+  image-position-y: 35% 
+  url: http://forum.starmen.net/forum/Community/PKHack/EquestriaBound/page/1/ 
 
 ---
 
-**CoilSnake** is a program for modifying the ROM image of the 1995 game *EarthBound* for the Super Nintendo Entertainment System.
-It reads gameplay-related data from individual, easily modifiable files and compiles that data into the ROM image.
+<span class="version">Latest Version: {{page.version}}</span>
 
+## Installation 
+    
+On Windows, just [run the installer](#). On Linux, install from source:
 
-CoilSnake supports modification of most of the data in the game, including:
-* maps
-* sprites
-* the script and text
-* enemies and items
-* battle backgrounds
-* and more!
+    $ sudo apt-get install python-pip python-dev libyaml-dev python-tk \
+                           g++ libboost-filesystem-dev
+    $ git clone https://github.com/kiij/CoilSnake.git
+    $ cd CoilSnake
+    $ make
+    $ sudo make install
+
+## What now?
+
+The [CoilSnake tutorial](https://github.com/kiij/CoilSnake/wiki/Tutorial) is the best place to get started.
+
+## Contribute
+
+* Fork the [github repository](https://github.com/kiij/CoilSnake).
+* Add to the [wiki documentation](https://github.com/kiij/CoilSnake/wiki).
+* Submit [issues or feature  requests](https://github.com/kiij/CoilSnake/issues).
+* Show off your work on the [forum](http://forum.starmen.net/forum/Community/PKHack) or [IRC channel](irc://irc.thinstack.net/pkhax).

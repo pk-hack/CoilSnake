@@ -1,8 +1,24 @@
+.short-description {
+  font-style: italic;
+  color #444;
+}
+
 img.screenshot {
   float: right;
   border: 5px #b7b7b7 solid;
   border-radius: 30px;
   margin: 0 1em 0 1em;
+}
+
+.version {
+  float: right;
+  font-style: italic;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+#project_grid {
+  margin-bottom: 20px;
 }
 
 #project_grid .project {
@@ -66,6 +82,6 @@ img.screenshot {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fdfdfd', endColorstr='#f6f6f6',GradientType=0 ); /* IE6-9 */
 }
 
-h1, h2 {
-  margin: 0;
+header h1, header h2 {
+  text-align: center;
 }
