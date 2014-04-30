@@ -3,12 +3,10 @@
 <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen"/>
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen"/>
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print"/>
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" />
     <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.4.2/grids-min.css">
-    <link rel="stylesheet" type="text/css" href="stylesheets/custom.css"/>
-    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -20,7 +18,7 @@
     <div class="inner">
 
         <header>
-          <img src="images/coilsnake.png" />
+          <h1><span>CoilSnake</span></h1>
         </header>
 
         <section id="downloads" class="clearfix">
@@ -30,29 +28,10 @@
             <a href="https://github.com/kiij/CoilSnake" id="view-on-github" class="button"><span>GitHub</span></a>
         </section>
 
-        <div class="short-description">
-          {{page.short-description | markdownify}}
-        </div>
-
         <section id="main_content">
-            <div id="project_grid">
-                <div class="pure-g-r">
-                    {% for project in page.projects %}
-                    <div class="pure-u-1-2">
-                        <div class="project">
-                            <div class="project_button"
-                              style="background-image: url('{{ project.image }}'); background-position: {{ project.image-position-x}} {{project.image-position-y}};">
-                                <a href="{{ project.url }}">
-                                    <span>{{project.name}}</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
 
-            {{content}}
+          {{content}}
+        
         </section>
 
         <footer>
