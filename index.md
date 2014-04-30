@@ -33,18 +33,6 @@ projects:
   image-position-y: 35%
   url: http://forum.starmen.net/forum/Community/PKHack/EquestriaBound/page/1/
 
-installation-content: |
-  ## Installation
-
-  On Windows, just [run the installer](#). On Linux, install from source:
-
-      $ sudo apt-get install python-pip python-dev libyaml-dev python-tk \
-                             g++ libboost-filesystem-dev
-      $ git clone https://github.com/kiij/CoilSnake.git
-      $ cd CoilSnake
-      $ make 
-      $ sudo make install
-
 whatnow-content: |
   ## What now?
 
@@ -60,7 +48,7 @@ contribute-content: |
 
 ---
 
-<section id="introduction">
+<section id="s_introduction">
   {{page.introduction-content | markdownify}}
 
   <div class="pure-g-r">
@@ -79,16 +67,16 @@ contribute-content: |
   </div>
 </section>
 
-<section id="installation">
-  <span class="topright">Latest Version: {{page.version}}</span>
-  {{page.installation-content | markdownify}}
+<section id="s_installation">
+  {% capture download_linux %}{% include download-linux.md %}{% endcapture %}
+  {{ download_linux | markdownify }}
 </section>
 
-<section id="whatnow">
+<section id="s_whatnow">
   {{page.whatnow-content | markdownify}}
 </section>
 
-<section id="contribute">
+<section id="s_contribute">
   <div class="topright"><iframe src="http://ghbtns.com/github-btn.html?user=kiij&amp;repo=CoilSnake&amp;type=watch&amp;count=true&amp;size=large" width="160" height="35" style="border: none;"> </iframe></div>
   {{page.contribute-content | markdownify}}
 </section>
