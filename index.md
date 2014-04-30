@@ -1,7 +1,5 @@
 ---
 layout: default
-title: CoilSnake
-version: 2.0
 
 introduction-content: |
   **CoilSnake** is the most powerful [mod making tool](https://en.wikipedia.org/wiki/Game_mod) for the game [*EarthBound*](https://en.wikipedia.org/wiki/EarthBound). CoilSnake has been used to create several entirely original games using the *EarthBound* engine:

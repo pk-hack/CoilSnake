@@ -1,7 +1,5 @@
 ---
 layout: default
-title: CoilSnake
-version: 2.0
 ---
 
 <section id="s_download">
