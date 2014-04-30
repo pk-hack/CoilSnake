@@ -67,9 +67,9 @@ contribute-content: |
   </div>
 </section>
 
-<section id="s_installation">
-  {% capture download_linux %}{% include download-linux.md %}{% endcapture %}
-  {{ download_linux | markdownify }}
+<section id="s_download">
+  {% capture download_section %}{% include download_section.md %}{% endcapture %}
+  {{ download_section | markdownify }}
 </section>
 
 <section id="s_whatnow">
