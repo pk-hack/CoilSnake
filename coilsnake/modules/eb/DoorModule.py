@@ -53,7 +53,7 @@ class DoorModule(EbModule):
             s = yml_dump(
                 out,
                 default_flow_style=False)
-            convert_values_to_hex_repr(yml_str_rep=s, key="Event Flag")
+            s = convert_values_to_hex_repr(yml_str_rep=s, key="Event Flag")
             f.write(s)
 
     def read_from_project(self, resourceOpener):

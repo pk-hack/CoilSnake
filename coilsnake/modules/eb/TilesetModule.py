@@ -165,7 +165,7 @@ class TilesetModule(EbModule):
 
         with resource_open("map_palette_settings", "yml") as f:
             yml_str_rep = yml_dump(palette_settings, default_flow_style=False)
-            convert_values_to_hex_repr(yml_str_rep, "Event Flag")
+            yml_str_rep = convert_values_to_hex_repr(yml_str_rep, "Event Flag")
             f.write(yml_str_rep)
 
         # Dump the tilesets

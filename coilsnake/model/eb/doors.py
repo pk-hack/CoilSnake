@@ -3,6 +3,7 @@ import logging
 from coilsnake.exceptions.common.exceptions import InvalidUserDataError, InvalidArgumentError, MissingUserDataError
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.pointers import EbTextPointer
+from coilsnake.model.eb.table import EbEventFlagTableEntry
 from coilsnake.util.common.helper import get_from_user_dict, get_enum_from_user_dict
 from coilsnake.util.common.type import GenericEnum, StringRepresentationMixin, EqualityMixin
 
@@ -98,13 +99,13 @@ class SwitchDoor(GenericDoor):
     def yml_rep(self):
         out = super(SwitchDoor, self).yml_rep()
         out["Type"] = DoorType.tostring(DoorType.SWITCH)
-        out["Event Flag"] = self.flag
+        out["Event Flag"] = EbEventFlagTableEntry.to_yml_rep(self.flag)
         out["Text Pointer"] = self.text_pointer.yml_rep()
         return out
 
     def from_yml_rep(self, yml_rep):
         super(SwitchDoor, self).from_yml_rep(yml_rep)
-        self.flag = get_from_user_dict(yml_rep, "Event Flag", int)
+        self.flag = EbEventFlagTableEntry.from_yml_rep(get_from_user_dict(yml_rep, "Event Flag", int))
         self.text_pointer.from_yml_rep(get_from_user_dict(yml_rep, "Text Pointer", str))
 
 
@@ -185,7 +186,7 @@ class Door(GenericDoor):
         out = super(Door, self).yml_rep()
         out["Type"] = DoorType.tostring(DoorType.DOOR)
         out["Text Pointer"] = self.text_pointer.yml_rep()
-        out["Event Flag"] = self.flag
+        out["Event Flag"] = EbEventFlagTableEntry.to_yml_rep(self.flag)
         out["Destination X"] = self.destination_x
         out["Destination Y"] = self.destination_y
         try:
@@ -198,7 +199,7 @@ class Door(GenericDoor):
     def from_yml_rep(self, yml_rep):
         super(Door, self).from_yml_rep(yml_rep)
         self.text_pointer.from_yml_rep(get_from_user_dict(yml_rep, "Text Pointer", str))
-        self.flag = get_from_user_dict(yml_rep, "Event Flag", int)
+        self.flag = EbEventFlagTableEntry.from_yml_rep(get_from_user_dict(yml_rep, "Event Flag", int))
         self.destination_x = get_from_user_dict(yml_rep, "Destination X", int)
         self.destination_y = get_from_user_dict(yml_rep, "Destination Y", int)
         self.destination_direction = get_enum_from_user_dict(yml_rep, "Direction", DestinationDirection)

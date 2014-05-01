@@ -56,6 +56,6 @@ class TownMapIconModule(EbModule):
         elif old_version <= 2:
             self.read_from_rom(rom)
             self.write_to_project(resource_open_w)
-            self.upgrade_project(4, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(new_version, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         else:
             self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)

@@ -107,41 +107,34 @@ class CompressedGraphicsModule(EbModule):
         del self.gas_station_logo
 
     def read_from_rom(self, rom):
-        log.debug("Reading town maps")
         self.read_town_maps_from_rom(rom)
-        log.debug("Reading town map icons")
         self.read_town_map_icons_from_rom(rom)
-        log.debug("Reading company logos")
-        self.read_logos_from_rom(rom, self.company_logos, COMPANY_LOGO_INFOS)
-        log.debug("Reading attract mode logos")
-        self.read_logos_from_rom(rom, self.attract_mode_logos, ATTRACT_MODE_INFOS)
-        log.debug("Reading gas station logo")
-        self.read_logos_from_rom(rom, [self.gas_station_logo], [GAS_STATION_INFO])
+        self.read_company_logos_from_rom(rom)
+        self.read_attract_mode_logos_from_rom(rom)
+        self.read_gas_station_from_rom(rom)
 
     def write_to_rom(self, rom):
-        log.debug("Writing town maps")
         self.write_town_maps_to_rom(rom)
-        log.debug("Writing town map icons")
         self.write_town_map_icons_to_rom(rom)
-        log.debug("Writing company logos")
-        self.write_logos_to_rom(rom, self.company_logos, COMPANY_LOGO_INFOS)
-        log.debug("Writing attract mode logos")
-        self.write_logos_to_rom(rom, self.attract_mode_logos, ATTRACT_MODE_INFOS)
-        log.debug("Writing gas station logo")
-        self.write_logos_to_rom(rom, [self.gas_station_logo], [GAS_STATION_INFO])
+        self.write_company_logos_to_rom(rom)
+        self.write_attract_mode_logos_to_rom(rom)
+        self.write_gas_station_to_rom(rom)
 
     def read_town_maps_from_rom(self, rom):
+        log.debug("Reading town maps")
         for pointer_offset, town_map in zip(TOWN_MAP_POINTER_OFFSETS, self.town_maps):
             offset = from_snes_address(rom.read_multi(pointer_offset, size=4))
             town_map.from_block(block=rom,
                                 offset=offset)
 
     def write_town_maps_to_rom(self, rom):
+        log.debug("Writing town maps")
         for pointer_offset, town_map in zip(TOWN_MAP_POINTER_OFFSETS, self.town_maps):
             offset = town_map.to_block(rom)
             rom.write_multi(pointer_offset, to_snes_address(offset), size=4)
 
     def read_town_map_icons_from_rom(self, rom):
+        log.debug("Reading town map icons")
         graphics_offset = from_snes_address(read_asm_pointer(block=rom,
                                                              offset=TOWN_MAP_ICON_GRAPHICS_ASM_POINTER_OFFSET))
         palette_offset = from_snes_address(read_asm_pointer(block=rom,
@@ -152,6 +145,7 @@ class CompressedGraphicsModule(EbModule):
                                        palette_offsets=[palette_offset])
 
     def write_town_map_icons_to_rom(self, rom):
+        log.debug("Writing town map icons")
         graphics_offset, arrangement_offset, palette_offsets = self.town_map_icons.to_block(rom)
         write_asm_pointer(block=rom,
                           offset=TOWN_MAP_ICON_GRAPHICS_ASM_POINTER_OFFSET,
@@ -159,6 +153,30 @@ class CompressedGraphicsModule(EbModule):
         write_asm_pointer(block=rom,
                           offset=TOWN_MAP_ICON_PALETTE_ASM_POINTER_OFFSET,
                           pointer=to_snes_address(palette_offsets[0]))
+
+    def read_company_logos_from_rom(self, rom):
+        log.debug("Reading company logos")
+        self.read_logos_from_rom(rom, self.company_logos, COMPANY_LOGO_INFOS)
+
+    def write_company_logos_to_rom(self, rom):
+        log.debug("Writing company logos")
+        self.write_logos_to_rom(rom, self.company_logos, COMPANY_LOGO_INFOS)
+
+    def read_attract_mode_logos_from_rom(self, rom):
+        log.debug("Reading attract mode logos")
+        self.read_logos_from_rom(rom, self.attract_mode_logos, ATTRACT_MODE_INFOS)
+
+    def write_attract_mode_logos_to_rom(self, rom):
+        log.debug("Writing attract mode logos")
+        self.write_logos_to_rom(rom, self.attract_mode_logos, ATTRACT_MODE_INFOS)
+
+    def read_gas_station_from_rom(self, rom):
+        log.debug("Reading gas station logo")
+        self.read_logos_from_rom(rom, [self.gas_station_logo], [GAS_STATION_INFO])
+
+    def write_gas_station_to_rom(self, rom):
+        log.debug("Writing gas station logo")
+        self.write_logos_to_rom(rom, [self.gas_station_logo], [GAS_STATION_INFO])
 
     def read_logos_from_rom(self, rom, logos, infos):
         for info, logo in zip(infos, logos):
@@ -183,50 +201,60 @@ class CompressedGraphicsModule(EbModule):
                 write_asm_pointer(block=rom, offset=asm_pointer_offset, pointer=to_snes_address(offset))
 
     def read_from_project(self, resource_open):
-        log.debug("Reading town maps")
         self.read_town_maps_from_project(resource_open)
-        log.debug("Reading town map icons")
         self.read_town_map_icons_from_project(resource_open)
-        log.debug("Reading company logos")
-        self.read_logos_from_project(resource_open, self.company_logos, COMPANY_LOGO_INFOS)
-        log.debug("Reading attract mode logos")
-        self.read_logos_from_project(resource_open, self.attract_mode_logos, ATTRACT_MODE_INFOS)
-        log.debug("Reading gas station logo")
+        self.read_company_logos_from_project(resource_open)
+        self.read_attract_mode_logos_from_project(resource_open)
         self.read_gas_station_from_project(resource_open)
 
     def write_to_project(self, resource_open):
-        log.debug("Writing town maps")
         self.write_town_maps_to_project(resource_open)
-        log.debug("Writing town map icons")
         self.write_town_map_icons_to_project(resource_open)
-        log.debug("Writing company logos")
-        self.write_logos_to_project(resource_open, self.company_logos, COMPANY_LOGO_INFOS)
-        log.debug("Writing attract mode logos")
-        self.write_logos_to_project(resource_open, self.attract_mode_logos, ATTRACT_MODE_INFOS)
-        log.debug("Writing gas station logo")
+        self.write_company_logos_to_project(resource_open)
+        self.write_attract_mode_logos_to_project(resource_open)
         self.write_gas_station_to_project(resource_open)
 
     def read_town_maps_from_project(self, resource_open):
+        log.debug("Reading town maps")
         for resource_name, town_map in zip(TOWN_MAP_RESOURCE_NAMES, self.town_maps):
             with resource_open(resource_name, "png") as image_file:
                 image = open_indexed_image(image_file)
                 town_map.from_image(image)
 
     def write_town_maps_to_project(self, resource_open):
+        log.debug("Writing town maps")
         for resource_name, town_map in zip(TOWN_MAP_RESOURCE_NAMES, self.town_maps):
             image = town_map.image()
             with resource_open(resource_name, "png") as image_file:
                 image.save(image_file, "png")
 
     def read_town_map_icons_from_project(self, resource_open):
+        log.debug("Reading town map icons")
         with resource_open("TownMaps/icons", "png") as image_file:
             image = open_indexed_image(image_file)
             self.town_map_icons.from_image(image=image, arrangement=TOWN_MAP_ICON_PREVIEW_ARRANGEMENT)
 
     def write_town_map_icons_to_project(self, resource_open):
+        log.debug("Writing town map icons")
         image = self.town_map_icons.image(TOWN_MAP_ICON_PREVIEW_ARRANGEMENT)
         with resource_open("TownMaps/icons", "png") as image_file:
             image.save(image_file, "png")
+
+    def read_company_logos_from_project(self, resource_open):
+        log.debug("Reading company logos")
+        self.read_logos_from_project(resource_open, self.company_logos, COMPANY_LOGO_INFOS)
+
+    def write_company_logos_to_project(self, resource_open):
+        log.debug("Writing company logos")
+        self.write_logos_to_project(resource_open, self.company_logos, COMPANY_LOGO_INFOS)
+
+    def read_attract_mode_logos_from_project(self, resource_open):
+        log.debug("Reading attract mode logos")
+        self.read_logos_from_project(resource_open, self.attract_mode_logos, ATTRACT_MODE_INFOS)
+
+    def write_attract_mode_logos_to_project(self, resource_open):
+        log.debug("Writing attract mode logos")
+        self.write_logos_to_project(resource_open, self.attract_mode_logos, ATTRACT_MODE_INFOS)
 
     def read_logos_from_project(self, resource_open, logos, infos):
         for info, logo in zip(infos, logos):
@@ -241,6 +269,7 @@ class CompressedGraphicsModule(EbModule):
                 image.save(image_file, "png")
 
     def read_gas_station_from_project(self, resource_open):
+        log.debug("Reading gas station logo")
         with resource_open(GAS_STATION_INFO.name + "1", "png") as image1_file:
             image1 = open_image(image1_file)
             with resource_open(GAS_STATION_INFO.name + "2", "png") as image2_file:
@@ -250,6 +279,7 @@ class CompressedGraphicsModule(EbModule):
                     self.gas_station_logo.from_images([image1, image2, image3])
 
     def write_gas_station_to_project(self, resource_open):
+        log.debug("Writing gas station logo")
         images = self.gas_station_logo.images()
         with resource_open(GAS_STATION_INFO.name + "1", "png") as image_file:
             images[0].save(image_file, "png")
@@ -265,10 +295,10 @@ class CompressedGraphicsModule(EbModule):
             self.read_town_map_icons_from_rom(rom)
             self.write_town_map_icons_to_project(resource_open_w)
 
-            self.read_logos_from_project(resource_open_r, self.attract_mode_logos, ATTRACT_MODE_INFOS)
-            self.write_logos_to_project(resource_open_w, self.attract_mode_logos, ATTRACT_MODE_INFOS)
+            self.read_attract_mode_logos_from_rom(rom)
+            self.write_attract_mode_logos_to_project(resource_open_w)
 
-            self.read_gas_station_from_project(resource_open_r)
+            self.read_gas_station_from_rom(rom)
             self.write_gas_station_to_project(resource_open_w)
 
             self.upgrade_project(3, new_version, rom, resource_open_r, resource_open_w, resource_delete)

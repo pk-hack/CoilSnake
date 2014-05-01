@@ -2,7 +2,7 @@ import os
 
 from nose.tools import assert_equal
 
-from coilsnake.util.common.yml import replace_field_in_yml
+from coilsnake.util.common.yml import replace_field_in_yml, convert_values_to_hex_repr
 from tests.coilsnake_test import BaseTestCase, TemporaryWritableFileTestCase, TEST_DATA_DIR, assert_files_equal
 
 
@@ -48,3 +48,10 @@ class TestReplaceFieldInYml(BaseTestCase, TemporaryWritableFileTestCase):
             assert_files_equal(
                 open(os.path.join(TEST_DATA_DIR, "yml", "sample-replaced.yml"), "r"),
                 open(self.temporary_wo_file_name, "r"))
+
+
+def test_convert_values_to_hex_repr():
+    assert_equal(convert_values_to_hex_repr("ABC: 0", "ABC"), "ABC: 0x0")
+    assert_equal(convert_values_to_hex_repr("ABC: 55", "ABC"), "ABC: 0x37")
+    assert_equal(convert_values_to_hex_repr("ABC: 55", "ABCD"), "ABC: 55")
+    assert_equal(convert_values_to_hex_repr("A:\n  - {ABC: 16}", "ABC"), "A:\n  - {ABC: 0x10}")

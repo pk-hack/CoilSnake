@@ -32,7 +32,7 @@ def replace_field_in_yml(resource_name, resource_open_r, resource_open_w, key, n
     with resource_open_r(resource_name, "yml") as f:
         data = yml_load(f)
         for i in data:
-            if lower_if_str(data[i][key]) in value_map:
+            if value_map and (lower_if_str(data[i][key]) in value_map):
                 data[i][new_key] = value_map[lower_if_str(data[i][key])]
                 if new_key != key:
                     del data[i][key]

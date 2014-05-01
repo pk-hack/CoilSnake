@@ -24,8 +24,8 @@ class UsedRangeModule(GenericModule):
         if old_version == new_version:
             return
         if old_version == 3:
-            self.read_from_rom(rom, False)
-            self.write_to_project(resource_open_w, False)
+            self.read_from_rom(rom)
+            self.write_to_project(resource_open_w)
         self.upgrade_project(
             old_version + 1,
             new_version,
