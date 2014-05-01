@@ -84,9 +84,9 @@ class TableError(EqualityMixin, StringRepresentationMixin, CoilSnakeError):
 
     def __str__(self):
         str_rep = "{}: Error while parsing".format(self.__class__.__name__)
-        if self.field:
+        if self.field is not None:
             str_rep += " in \"{}\"".format(self.field)
-        if self.entry:
+        if self.entry is not None:
             str_rep += " in entry #{}".format(self.entry)
         if self.table_name:
             str_rep += " in table \"{}\"".format(self.table_name)

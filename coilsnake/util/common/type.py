@@ -52,6 +52,10 @@ class GenericEnum(object):
                                        % (s, cls.__name__))
         return value
 
+    @classmethod
+    def values(cls):
+        return [x for x in vars(cls).iterkeys() if not x.startswith("_")]
+
 
 def enum_class_from_name_list(names):
     return type("CustomEnum",

@@ -147,13 +147,14 @@ class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):
             try:
                 return cls.enumeration_class.fromstring(yml_rep)
             except InvalidArgumentError:
-                raise TableEntryInvalidYmlRepresentationError("Could not parse string[{}] to type[{}]".format(
-                    yml_rep, cls.enumeration_class.__name__))
+                raise TableEntryInvalidYmlRepresentationError(
+                    "Could not parse invalid string[{}] as [{}]. Valid string values are: {}".format(
+                    yml_rep, cls.name, ', '.join(cls.enumeration_class.values())))
         elif isinstance(yml_rep, int):
             return super(EnumeratedLittleEndianIntegerTableEntry, cls).from_yml_rep(yml_rep)
         else:
-            raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] to type[{}]".format(
-                yml_rep, cls.enumeration_class.__name__))
+            raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] as [{}]".format(
+                yml_rep, cls.name))
 
     @classmethod
     def to_yml_rep(cls, value):
