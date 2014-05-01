@@ -7,7 +7,7 @@ ASSETS_CCSCRIPT_DIR=coilsnake/assets/ccc
 ASSETS_CCSCRIPT_EXE=$(ASSETS_CCSCRIPT_DIR)/ccc
 ASSETS_CCSCRIPT_LIB_DIR=$(ASSETS_CCSCRIPT_DIR)/lib
 
-all: coilsnake ccscript mobile_sprout
+all: coilsnake_lib ccscript mobile_sprout
 
 install: all
 	python setup.py install
@@ -15,7 +15,7 @@ install: all
 test: coilsnake
 	python setup.py test
 
-coilsnake: coilsnake/util/eb/native_comp.so
+coilsnake_lib:
 	python setup.py build_ext --inplace clean
 
 ccscript: submodule
