@@ -11,6 +11,7 @@ all: coilsnake_lib ccscript mobile_sprout
 
 install: all
 	python setup.py install
+	python script/post_install.py
 
 test: coilsnake
 	python setup.py test

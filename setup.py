@@ -1,32 +1,7 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
-from setuptools.command.install import install
 from setuptools.extension import Extension
-import os
-import sys
-import stat
-
-
-def _post_install():
-    # Remove the current directory from the front of sys.path
-    old_sys_path = sys.path
-    sys.path.pop(0)
-
-    # Mark the installed "ccc" executable as executable by everyone
-    from coilsnake.util.common.assets import ccc_file_name
-    ccc_fname = ccc_file_name()
-    print "Making {} executable".format(ccc_fname)
-    os.chmod(ccc_fname, stat.S_IXOTH)
-
-    # Restore the old sys.path
-    sys.path = old_sys_path
-
-
-class CoilSnakeInstallCommand(install):
-    def run(self):
-        install.do_egg_install(self)
-        self.execute(_post_install, (), msg="Running post install task")
 
 
 setup(
@@ -53,9 +28,6 @@ setup(
             "coilsnake = coilsnake.ui.gui:main",
             "coilsnake-cli = coilsnake.ui.cli:main"
         ]
-    },
-    cmdclass={
-        "install": CoilSnakeInstallCommand,
     },
 
     test_suite="nose.collector",
