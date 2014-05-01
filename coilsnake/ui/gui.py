@@ -510,7 +510,7 @@ Please configure Java in the Settings menu.""")
         self.compile_fields["base_rom"] = base_rom_entry
         project_entry = self.add_project_fields_to_frame(name="Project", frame=compile_frame)
         self.compile_fields["project"] = project_entry
-        output_rom_entry = self.add_rom_fields_to_frame(name="Output ROM", frame=compile_frame)
+        output_rom_entry = self.add_rom_fields_to_frame(name="Output ROM", frame=compile_frame, save=True)
         self.compile_fields["output_rom"] = output_rom_entry
 
         profile_selector_init()
@@ -651,7 +651,7 @@ Please configure Java in the Settings menu.""")
 
         return tmp_reload_options_and_select_default
 
-    def add_rom_fields_to_frame(self, name, frame):
+    def add_rom_fields_to_frame(self, name, frame, save=False):
         rom_frame = ttk.Frame(frame)
 
         Label(rom_frame, text="{}:".format(name), width=13, justify=RIGHT).pack(side=LEFT, fill=BOTH, expand=1)
@@ -660,7 +660,7 @@ Please configure Java in the Settings menu.""")
         self.components.append(rom_entry)
 
         def browse_tmp():
-            browse_for_rom(self.root, rom_entry)
+            browse_for_rom(self.root, rom_entry, save)
 
         def run_tmp():
             self.run_rom(rom_entry)
