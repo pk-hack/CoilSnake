@@ -1,17 +1,11 @@
-## CoilSnake
+## [CoilSnake](http://kiij.github.io/CoilSnake/)
 
-**CoilSnake** is a tool for modifying the ROM image of the 1995 Super Nintendo game *EarthBound*.
-CoilSnake allows you to edit the game's assets as text and PNG files, then "build" a new ROM using those assets.
-
-CoilSnake supports modification of most of the data in *EarthBound*, including:
-
-* sprites
-* maps
-* the script
-* battle backgrounds
-* items
-* enemies
-* and more!
+**CoilSnake** is the most powerful [mod making tool](https://en.wikipedia.org/wiki/Game_mod) for the game
+[*EarthBound*](https://en.wikipedia.org/wiki/EarthBound).
+CoilSnake deconstructs the game's assets into individual text and PNG files, and then lets you "build" a new ROM
+using modified assets.
+Most of the game's data is editable by CoilSnake, making it possible to create entirely new games in the EarthBound
+engine.
 
 ### Installation
 
@@ -21,11 +15,12 @@ Download the Windows version of CoilSnake [here](http://kiij.github.io/CoilSnake
 
 #### Linux
 
-    sudo apt-get install python-pip python-dev libyaml-dev python-tk g++ libboost-filesystem-dev
+    sudo apt-get install python-pip python-dev libyaml-dev python-tk \
+                         g++ libboost-filesystem-dev
+    git clone https://github.com/kiij/CoilSnake.git
+    cd CoilSnake
     make
     sudo make install
-
-### Usage
 
 After installing, you can start up the GUI with:
 
@@ -38,22 +33,19 @@ To use the command line interface:
 ### Development
 
 If you are developing CoilSnake, you may wish to install it in “development mode”,
-which makes CoilSnake available on sys.path but also allows it to be edited directly from its source checkout.
+which makes CoilSnake available on `sys.path` but also allows it to be edited directly from its source checkout.
 
     make
     python setup.py develop
     ./script/gui.py  # Launch the GUI
     ./script/cli.py  # Launch the CLI
 
-#### Running the Tests
+### Running the Tests
 
     make test
 
 ### Support or Contact
 
-For information about getting started with CoilSnake, please see the
-[EB Hacking 101](http://www.lyros.net/files/EBHack101.pdf) document, created by
-[Lyrositor](https://github.com/Lyrositor).
-
-Having trouble with CoilSnake? Create an issue on [GitHub](https://github.com/kiij/CoilSnake/issues) or consult the
-[PK Hack forum](forum.starmen.net/forum/Community/PKHack) and someone will help you sort it out.
+* Submit [issues or feature  requests](https://github.com/kiij/CoilSnake/issues).
+* Read the [CoilSnake tutorial](https://github.com/kiij/CoilSnake/wiki/Tutorial).
+* Visit the [forum](http://forum.starmen.net/forum/Community/PKHack) or [IRC channel](irc://irc.thinstack.net/pkhax).
