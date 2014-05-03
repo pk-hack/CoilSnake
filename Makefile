@@ -13,8 +13,11 @@ install: all
 	python setup.py install
 	python script/post_install.py
 
-test: coilsnake
+test: coilsnake_lib
 	python setup.py test
+
+coverage: coilsnake_lib
+	script/coverage.sh
 
 coilsnake_lib:
 	python setup.py build_ext --inplace clean
