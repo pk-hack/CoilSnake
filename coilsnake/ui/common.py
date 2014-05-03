@@ -123,7 +123,9 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, ccscri
         if module_class.is_compatible_with_romtype(rom.type):
             for free_range in module_class.FREE_RANGES:
                 rom.deallocate(free_range)
-        else:
+
+    for module_name, module_class in modules:
+        if not module_class.is_compatible_with_romtype(rom.type):
             continue
 
         log.info("Compiling {}...".format(module_class.NAME))
