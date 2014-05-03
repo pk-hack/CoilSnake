@@ -166,6 +166,67 @@ class TestEbGraphicTileset(BaseTestCase, TilesetImageTestCase):
                                        [0, 0, 0, 1, 3, 2, 3, 3],
                                        [2, 2, 3, 2, 0, 0, 0, 1]])
 
+    def test_from_block_4bpp(self):
+        block = Block()
+        block.from_list([0b01010110,
+                         0b00001011,
+
+                         0b11001110,
+                         0b10010110,
+
+                         0b01110001,
+                         0b00111011,
+
+                         0b00001011,
+                         0b10011110,
+
+                         0b00011000,
+                         0b00000011,
+
+                         0b10000001,
+                         0b11101011,
+
+                         0b00000100,
+                         0b01000101,
+
+                         0b01010110,
+                         0b10001111,
+
+                         0b00101100,
+                         0b10110000,
+
+                         0b01010110,
+                         0b10110010,
+
+                         0b01010000,
+                         0b11000000,
+
+                         0b00111000,
+                         0b10010111,
+
+                         0b00101101,
+                         0b11111100,
+
+                         0b01111101,
+                         0b11101010,
+
+                         0b10101111,
+                         0b10110111,
+
+                         0b01100000,
+                         0b11101110])
+        tileset = EbGraphicTileset(num_tiles=1, tile_width=8, tile_height=8)
+        tileset.from_block(block, offset=0, bpp=4)
+        assert_list_equal(tileset[0], [[8, 1, 12, 9, 6, 5, 3, 2],
+                                       [11, 5, 8, 14, 1, 7, 15, 0],
+                                       [8, 13, 3, 7, 2, 0, 2, 3],
+                                       [10, 0, 4, 14, 7, 10, 11, 9],
+                                       [8, 8, 12, 9, 13, 12, 2, 6],
+                                       [11, 14, 14, 4, 14, 4, 10, 7],
+                                       [12, 2, 12, 8, 4, 15, 12, 14],
+                                       [10, 13, 12, 1, 10, 11, 11, 2]])
+
+
     def test_to_block_invalid(self):
         tileset = EbGraphicTileset(num_tiles=1, tile_width=8, tile_height=16)
         block = Block()
@@ -265,6 +326,68 @@ class TestEbGraphicTileset(BaseTestCase, TilesetImageTestCase):
                                             0b00001111,
                                             0b00100001,
                                             0b11110000])
+
+    def test_to_block_4bpp(self):
+        tileset = EbGraphicTileset(num_tiles=1, tile_width=8, tile_height=8)
+        tileset.tiles = [None]
+        tileset.tiles[0] = [[8, 1, 12, 9, 6, 5, 3, 2],
+                            [11, 5, 8, 14, 1, 7, 15, 0],
+                            [8, 13, 3, 7, 2, 0, 2, 3],
+                            [10, 0, 4, 14, 7, 10, 11, 9],
+                            [8, 8, 12, 9, 13, 12, 2, 6],
+                            [11, 14, 14, 4, 14, 4, 10, 7],
+                            [12, 2, 12, 8, 4, 15, 12, 14],
+                            [10, 13, 12, 1, 10, 11, 11, 2]]
+        block = Block()
+        block.from_list([0] * 32)
+        tileset.to_block(block, 0, 4)
+        assert_list_equal(block.to_list(), [0b01010110,
+                                            0b00001011,
+
+                                            0b11001110,
+                                            0b10010110,
+
+                                            0b01110001,
+                                            0b00111011,
+
+                                            0b00001011,
+                                            0b10011110,
+
+                                            0b00011000,
+                                            0b00000011,
+
+                                            0b10000001,
+                                            0b11101011,
+
+                                            0b00000100,
+                                            0b01000101,
+
+                                            0b01010110,
+                                            0b10001111,
+
+                                            0b00101100,
+                                            0b10110000,
+
+                                            0b01010110,
+                                            0b10110010,
+
+                                            0b01010000,
+                                            0b11000000,
+
+                                            0b00111000,
+                                            0b10010111,
+
+                                            0b00101101,
+                                            0b11111100,
+
+                                            0b01111101,
+                                            0b11101010,
+
+                                            0b10101111,
+                                            0b10110111,
+
+                                            0b01100000,
+                                            0b11101110])
 
     def test_block_size(self):
         assert_equal(EbGraphicTileset(num_tiles=2, tile_width=8, tile_height=8).block_size(2), 32)
