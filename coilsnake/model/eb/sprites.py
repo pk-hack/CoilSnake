@@ -4,6 +4,7 @@ from PIL import Image
 
 from coilsnake.model.common.table import EnumeratedLittleEndianIntegerTableEntry, RowTableEntry, \
     LittleEndianIntegerTableEntry
+from coilsnake.util.common.helper import grouped
 from coilsnake.util.eb.graphics import read_4bpp_graphic_from_block, write_4bpp_graphic_to_block, hash_tile
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
@@ -133,6 +134,12 @@ class EbRegularSprite:
     def hash(self):
         return hash_tile(self.data)
 
+    def flipped_hash(self):
+        self.flip_horizontally()
+        h = self.hash()
+        self.flip_horizontally()
+        return h
+
 
 SPRITE_SIZES = ["16x16", "16x16 2", "24x16", "32x16", "48x16", "16x24", "24x24", "16x32", "32x32", "48x32", "24x40",
                 "16x48", "32x48", "48x48", "64x48", "64x64", "64x80"]
@@ -166,6 +173,7 @@ class SpriteGroup:
         self.collision_ew_w = 0
         self.collision_ew_h = 0
         self.num_sprites = max(0, num_sprites)
+        self.sprites = None
 
         # For writing to block
         self.bank = 0
@@ -214,42 +222,93 @@ class SpriteGroup:
                               item=sprite_pointer,
                               size=2)
 
+    def calculate_unique_sprites(self):
+        unique_sprites = dict()
+        unique_sprite_usages = [None] * self.num_sprites
+
+        for i, (sprite_1, sprite_2) in enumerate(grouped([x[0] for x in self.sprites], 2)):
+            sprite_1_i = i*2
+            sprite_2_i = i*2 + 1
+
+            sprite_1_hash = sprite_1.hash()
+            sprite_1_used = sprite_1_hash in unique_sprites
+
+            sprite_1_flipped_hash = sprite_1.flipped_hash()
+            sprite_1_flipped_used = sprite_1_flipped_hash in unique_sprites
+
+            sprite_2_hash = sprite_2.hash()
+            sprite_2_used = sprite_2_hash in unique_sprites
+
+            sprite_2_flipped_hash = sprite_2.flipped_hash()
+            sprite_2_flipped_used = sprite_2_flipped_hash in unique_sprites
+
+            if sprite_1_hash == sprite_2_hash:
+                if sprite_1_flipped_used:
+                    unique_sprite_usages[sprite_1_i] = (sprite_1_flipped_hash, True)
+                    unique_sprite_usages[sprite_2_i] = (sprite_1_flipped_hash, True)
+                else:
+                    if not sprite_1_used:
+                        unique_sprites[sprite_1_hash] = sprite_1
+                    unique_sprite_usages[sprite_1_i] = (sprite_1_hash, False)
+                    unique_sprite_usages[sprite_2_i] = (sprite_1_hash, False)
+            elif sprite_1_flipped_hash == sprite_2_hash:
+                if sprite_1_flipped_used:
+                    unique_sprite_usages[sprite_1_i] = (sprite_1_flipped_hash, True)
+                    unique_sprite_usages[sprite_2_i] = (sprite_1_flipped_hash, False)
+                else:
+                    if not sprite_1_used:
+                        unique_sprites[sprite_1_hash] = sprite_1
+                    unique_sprite_usages[sprite_1_i] = (sprite_1_hash, False)
+                    unique_sprite_usages[sprite_2_i] = (sprite_1_hash, True)
+            elif sprite_1_used:
+                unique_sprite_usages[sprite_1_i] = (sprite_1_hash, False)
+                if not sprite_2_used:
+                    unique_sprites[sprite_2_hash] = sprite_2
+                unique_sprite_usages[sprite_2_i] = (sprite_2_hash, False)
+            elif sprite_1_flipped_used:
+                unique_sprite_usages[sprite_1_i] = (sprite_1_flipped_hash, True)
+                if not sprite_2_flipped_used:
+                    sprite_2.flip_horizontally()
+                    unique_sprites[sprite_2_flipped_hash] = sprite_2
+                unique_sprite_usages[sprite_2_i] = (sprite_2_flipped_hash, True)
+            elif sprite_2_used:
+                unique_sprites[sprite_1_hash] = sprite_1
+                unique_sprite_usages[sprite_1_i] = (sprite_1_hash, False)
+                unique_sprite_usages[sprite_2_i] = (sprite_2_hash, False)
+            elif sprite_2_flipped_used:
+                sprite_1.flip_horizontally()
+                unique_sprites[sprite_1_flipped_hash] = sprite_1
+                unique_sprite_usages[sprite_1_i] = (sprite_1_flipped_hash, True)
+                unique_sprite_usages[sprite_2_i] = (sprite_2_flipped_hash, True)
+            else:
+                unique_sprites[sprite_1_hash] = sprite_1
+                unique_sprites[sprite_2_hash] = sprite_2
+                unique_sprite_usages[sprite_1_i] = (sprite_1_hash, False)
+                unique_sprite_usages[sprite_2_i] = (sprite_2_hash, False)
+
+        if self.num_sprites % 2 == 1:
+            sprite_i = self.num_sprites - 1
+            sprite = self.sprites[-1][0]
+            sprite_hash = sprite.hash()
+
+            if sprite_hash in unique_sprites:
+                unique_sprite_usages[sprite_i] = (sprite_hash, False)
+            else:
+                sprite_flipped_hash = sprite.flipped_hash()
+                if sprite_flipped_hash not in unique_sprites:
+                    unique_sprites[sprite_hash] = sprite
+                    unique_sprite_usages[sprite_i] = (sprite_hash, False)
+                else:
+                    unique_sprite_usages[sprite_i] = (sprite_flipped_hash, True)
+
+        return unique_sprites, unique_sprite_usages
+
     def write_sprites_to_free(self, rom):
         if self.num_sprites == 0:
             self.sprite_pointers = []
             return
 
-        unique_sprites = dict()
-        sprite_pointers_blueprint = [None] * self.num_sprites
-
-        previous_sprite_hash = None
-        for i, (sprite, _) in enumerate(self.sprites):
-            sprite_hash = sprite.hash()
-            is_mirrored = False
-
-            if i % 2 == 0 and sprite_hash in unique_sprites:
-                # Even-numbered sprites can reuse any sprite
-                sprite_pointers_blueprint[i] = (sprite_hash, is_mirrored)
-                previous_sprite_hash = sprite_hash
-                continue
-            elif i % 2 == 1 and previous_sprite_hash:
-                # Odd-numbered sprites can only reuse the previous sprite
-                if sprite_hash == previous_sprite_hash:
-                    sprite_pointers_blueprint[i] = (sprite_hash, is_mirrored)
-                    previous_sprite_hash = None
-                    continue
-                else:
-                    sprite.flip_horizontally()
-                    is_mirrored = True
-                    sprite_hash = sprite.hash()
-                    if sprite_hash == previous_sprite_hash:
-                        sprite_pointers_blueprint[i] = (previous_sprite_hash, is_mirrored)
-                        previous_sprite_hash = None
-                        continue
-                previous_sprite_hash = None
-
-            unique_sprites[sprite_hash] = sprite
-            sprite_pointers_blueprint[i] = (sprite_hash, is_mirrored)
+        unique_sprites, unique_sprite_usages = self.calculate_unique_sprites()
 
         # Find a free area
         offset = rom.allocate(size=sum([x.block_size() for x in unique_sprites.itervalues()]),
@@ -266,7 +325,7 @@ class SpriteGroup:
 
         # Get the pointers for each sprite in the group
         self.sprite_pointers = [None] * self.num_sprites
-        for i, (sprite_hash, is_mirrored) in enumerate(sprite_pointers_blueprint):
+        for i, (sprite_hash, is_mirrored) in enumerate(unique_sprite_usages):
             self.sprite_pointers[i] = (sprite_offsets[sprite_hash] & 0xffff) | is_mirrored | (self.sprites[i][1] << 1)
 
     def image(self, palette):
@@ -286,6 +345,9 @@ class SpriteGroup:
         return image
 
     def from_image(self, image):
+        if not self.sprites and self.num_sprites is not None:
+            self.sprites = [[EbRegularSprite(), False] for i in range(self.num_sprites)]
+
         sprite_width, sprite_height = image.size
         sprite_width /= 4
         sprite_height /= 4

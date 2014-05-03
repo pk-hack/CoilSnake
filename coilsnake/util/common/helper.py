@@ -1,3 +1,5 @@
+from itertools import izip
+
 from coilsnake.exceptions.common.exceptions import MissingUserDataError, InvalidUserDataError, InvalidArgumentError
 
 
@@ -49,3 +51,6 @@ def lower_if_str(x):
     else:
         return x
 
+
+def grouped(iterable, n):
+    return izip(*[iter(iterable)]*n)

@@ -1,8 +1,8 @@
 from itertools import izip_longest
 import os
 import tempfile
-from PIL import Image
 
+from PIL import Image
 from nose.tools.trivial import eq_
 
 
@@ -51,3 +51,17 @@ class TilesetImageTestCase(object):
         del self.tile_8x8_2bpp_2_img
         self.tile_8x16_4bpp_fp.close()
         del self.tile_8x16_4bpp_img
+
+
+class SpriteGroupTestCase(object):
+    def setup(self):
+        self.spritegroup_1_f = open(os.path.join(TEST_IMAGE_DIR, "spritegroup_16x24_1.png"), 'r')
+        self.spritegroup_1_img = Image.open(self.spritegroup_1_f)
+        self.spritegroup_2_f = open(os.path.join(TEST_IMAGE_DIR, "spritegroup_16x24_2.png"), 'r')
+        self.spritegroup_2_img = Image.open(self.spritegroup_2_f)
+
+    def teardown(self):
+        self.spritegroup_1_f.close()
+        del self.spritegroup_1_img
+        self.spritegroup_2_f.close()
+        del self.spritegroup_2_img
