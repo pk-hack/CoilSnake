@@ -22,10 +22,12 @@ class TextareaStdoutRedirector(object):
     def flush(self):
         pass
 
+
 def expand_rom(root, ex=False):
     rom = Rom()
     filename = tkFileDialog.askopenfilename(
         parent=root,
+        initialdir=os.path.expanduser("~"),
         title="Select a ROM to expand",
         filetypes=ROM_FILETYPES)
     if filename:
@@ -55,6 +57,7 @@ def expand_rom_ex(root):
 def add_header_to_rom(root):
     filename = tkFileDialog.askopenfilename(
         parent=root,
+        initialdir=os.path.expanduser("~"),
         title="Select a ROM to which to add a header",
         filetypes=ROM_FILETYPES)
     if filename:
@@ -71,6 +74,7 @@ def add_header_to_rom(root):
 def strip_header_from_rom(root):
     filename = tkFileDialog.askopenfilename(
         parent=root,
+        initialdir=os.path.expanduser("~"),
         title="Select a ROM from which to remove a header",
         filetypes=ROM_FILETYPES)
     if filename:
@@ -93,7 +97,7 @@ def browse_for_rom(root, entry, save=False):
     if save:
         filename = tkFileDialog.asksaveasfilename(
             parent=root,
-            initialdir=os.path.dirname(entry.get()),
+            initialdir=os.path.dirname(entry.get()) or os.path.expanduser("~"),
             title="Select an output ROM",
             filetypes=ROM_FILETYPES)
     else:
@@ -110,7 +114,7 @@ def browse_for_rom(root, entry, save=False):
 def browse_for_project(root, entry, save=False):
     filename = tkFileDialog.askdirectory(
         parent=root,
-        initialdir=os.path.dirname(entry.get()),
+        initialdir=os.path.dirname(entry.get()) or os.path.expanduser("~"),
         title="Select a Project Directory",
         mustexist=(not save))
     if filename:

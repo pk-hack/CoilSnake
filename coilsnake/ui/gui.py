@@ -68,8 +68,8 @@ class CoilSnakeGui(object):
 
         emulator_exe = tkFileDialog.askopenfilename(
             parent=self.root,
-            title="Select an Emulator Executable",
-            initialfile=self.preferences["emulator"])
+            initialdir=os.path.expanduser("~"),
+            title="Select an Emulator Executable")
         if emulator_exe:
             self.preferences["emulator"] = emulator_exe
             self.preferences.save()
