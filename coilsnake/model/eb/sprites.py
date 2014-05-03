@@ -163,6 +163,10 @@ SpriteGroupHeaderTableEntry = RowTableEntry.from_schema(
 
 
 class SpriteGroup:
+    # The order in which sprite directions are compiled to form a sprite group, based on examining the game data.
+    # The order is: S, N, W, E, NW, SW, SE, NE
+    SPRITE_COMPILATION_ORDER = [2, 4, 1, 3, 8, 7, 6, 5]
+
     def __init__(self, num_sprites):
         self.width = 0
         self.height = 0
@@ -226,7 +230,10 @@ class SpriteGroup:
         unique_sprites = dict()
         unique_sprite_usages = [None] * self.num_sprites
 
-        for i, (sprite_1, sprite_2) in enumerate(grouped([x[0] for x in self.sprites], 2)):
+        sprite_pairs = enumerate(grouped([x[0] for x in self.sprites], 2))
+        sprite_pairs = [x for _, x in sorted(zip(SpriteGroup.SPRITE_COMPILATION_ORDER, sprite_pairs))]
+
+        for i, (sprite_1, sprite_2) in sprite_pairs:
             sprite_1_i = i*2
             sprite_2_i = i*2 + 1
 
