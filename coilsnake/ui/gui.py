@@ -529,7 +529,7 @@ Please configure Java in the Settings menu.""")
         self.add_title_label_to_frame(text="Upgrade a project created using an older version of CoilSnake.",
                                       frame=upgrade_frame)
 
-        rom_entry = self.add_rom_fields_to_frame(name="Base ROM", frame=upgrade_frame)
+        rom_entry = self.add_rom_fields_to_frame(name="Clean ROM", frame=upgrade_frame)
         project_entry = self.add_project_fields_to_frame(name="Project", frame=upgrade_frame)
 
         def upgrade_tmp():
