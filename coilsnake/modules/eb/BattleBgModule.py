@@ -1,3 +1,5 @@
+import logging
+
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangement
@@ -6,6 +8,9 @@ from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.image import open_indexed_image
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, to_snes_address, write_asm_pointer
+
+
+log = logging.getLogger(__name__)
 
 GRAPHICS_POINTER_TABLE_ASM_POINTER_OFFSETS = [0x2d1ba, 0x2d4dc, 0x2d8c3, 0x4a3ba]
 ARRANGEMENT_POINTER_TABLE_ASM_POINTER_OFFSETS = [0x2d2c1, 0x2d537, 0x2d91f, 0x4a416]
@@ -83,7 +88,7 @@ class BattleBgModule(EbModule):
                         offset=from_snes_address(self.arrangement_pointer_table[graphics_id][0]))
                     arrangement.from_block(block=compressed_block, offset=0)
 
-                self.backgrounds[graphics_id] = (tileset, arrangement)
+                self.backgrounds[graphics_id] = (tileset, color_depth, arrangement)
                 
             palette_id = self.bg_table[i][1]
             if self.palettes[palette_id] is None:
@@ -101,7 +106,7 @@ class BattleBgModule(EbModule):
 
         # Export BGs by table entry
         for i in range(self.bg_table.num_rows):
-            tileset, arrangement = self.backgrounds[self.bg_table[i][0]]
+            tileset, color_depth, arrangement = self.backgrounds[self.bg_table[i][0]]
             palette = self.palettes[self.bg_table[i][1]]
 
             with resource_open("BattleBGs/" + str(i).zfill(3), "png") as f:
@@ -119,6 +124,7 @@ class BattleBgModule(EbModule):
         self.backgrounds = []
         self.palettes = []
         for i in range(self.bg_table.num_rows):
+            new_color_depth = self.bg_table[i][2]
             with resource_open("BattleBGs/" + str(i).zfill(3), "png") as f:
                 image = open_indexed_image(f)
 
@@ -128,13 +134,15 @@ class BattleBgModule(EbModule):
 
                 new_arrangement.from_image(image, new_tileset, new_palette)
 
-                for j, (tileset, arrangement) in enumerate(self.backgrounds):
-                    if (tileset == new_tileset) and (arrangement == new_arrangement):
+                for j, (tileset, color_depth, arrangement) in enumerate(self.backgrounds):
+                    if (color_depth == new_color_depth) \
+                            and (tileset == new_tileset) \
+                            and (arrangement == new_arrangement):
                         self.bg_table[i][0] = j
                         break
                 else:
                     self.bg_table[i][0] = len(self.backgrounds)
-                    self.backgrounds.append((new_tileset, new_arrangement))
+                    self.backgrounds.append((new_tileset, new_color_depth, new_arrangement))
 
                 for j, palette in enumerate(self.palettes):
                     if palette == new_palette:
@@ -153,8 +161,7 @@ class BattleBgModule(EbModule):
         # Write graphics and arrangements
         self.graphics_pointer_table.recreate(num_rows=len(self.backgrounds))
         self.arrangement_pointer_table.recreate(num_rows=len(self.backgrounds))
-        for i, (tileset, arrangement) in enumerate(self.backgrounds):
-            color_depth = self.bg_table[i][2]
+        for i, (tileset, color_depth, arrangement) in enumerate(self.backgrounds):
             with EbCompressibleBlock(size=tileset.block_size(bpp=color_depth)) as compressed_block:
                 tileset.to_block(block=compressed_block, offset=0, bpp=color_depth)
                 compressed_block.compress()
