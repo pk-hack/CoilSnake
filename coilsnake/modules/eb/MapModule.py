@@ -1,9 +1,10 @@
 import yaml
 
-from coilsnake.model.common.table import EnumeratedLittleEndianIntegerTableEntry, LittleEndianIntegerTableEntry
+from coilsnake.model.common.table import EnumeratedLittleEndianIntegerTableEntry, LittleEndianIntegerTableEntry, \
+    RowTableEntry
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.common.yml import replace_field_in_yml, yml_load, yml_dump
+from coilsnake.util.common.yml import replace_field_in_yml, yml_load
 from coilsnake.util.eb.pointer import from_snes_address
 
 MAP_POINTERS_OFFSET = 0xa1db
@@ -16,7 +17,6 @@ SECTOR_MUSIC_TABLE_OFFSET = 0xDCD637
 SECTOR_MISC_TABLE_OFFSET = 0xD7B200
 SECTOR_TOWN_MAP_TABLE_OFFSET = 0xEFA70F
 
-INTEGER_ENTRY = LittleEndianIntegerTableEntry.create("Integer", 1)
 TELEPORT_ENTRY = EnumeratedLittleEndianIntegerTableEntry.create(
     "Teleport", 1, ["Enabled", "Disabled"]
 )
@@ -37,6 +37,23 @@ TOWNMAP_ARROW_ENTRY = EnumeratedLittleEndianIntegerTableEntry.create(
     "Town Map Arrow", 1,
     ["None", "Up", "Down", "Right", "Left"]
 )
+TOWNMAP_X = LittleEndianIntegerTableEntry.create("Town Map X", 1)
+TOWNMAP_Y = LittleEndianIntegerTableEntry.create("Town Map Y", 1)
+
+SectorYmlTable = RowTableEntry.from_schema(
+    name="Aggregate Sector Properties Table Entry",
+    schema=[LittleEndianIntegerTableEntry.create("Tileset", 1),
+            LittleEndianIntegerTableEntry.create("Palette", 1),
+            LittleEndianIntegerTableEntry.create("Music", 1),
+            TELEPORT_ENTRY,
+            TOWNMAP_ENTRY,
+            SETTING_ENTRY,
+            LittleEndianIntegerTableEntry.create("Item", 1),
+            TOWNMAP_ARROW_ENTRY,
+            TOWNMAP_IMAGE_ENTRY,
+            TOWNMAP_X,
+            TOWNMAP_Y]
+)
 
 
 class MapModule(EbModule):
@@ -45,10 +62,18 @@ class MapModule(EbModule):
     def __init__(self):
         super(MapModule, self).__init__()
         self.tiles = []
-        self.sector_tilesets_palettes_table = eb_table_from_offset(offset=SECTOR_TILESETS_PALETTES_TABLE_OFFSET)
-        self.sector_music_table = eb_table_from_offset(offset=SECTOR_MUSIC_TABLE_OFFSET)
-        self.sector_misc_table = eb_table_from_offset(offset=SECTOR_MISC_TABLE_OFFSET)
-        self.sector_town_map_table = eb_table_from_offset(offset=SECTOR_TOWN_MAP_TABLE_OFFSET)
+        self.sector_tilesets_palettes_table = eb_table_from_offset(offset=SECTOR_TILESETS_PALETTES_TABLE_OFFSET,
+                                                                   name="map_sectors")
+        self.sector_music_table = eb_table_from_offset(offset=SECTOR_MUSIC_TABLE_OFFSET,
+                                                       name="map_sectors")
+        self.sector_misc_table = eb_table_from_offset(offset=SECTOR_MISC_TABLE_OFFSET,
+                                                      name="map_sectors")
+        self.sector_town_map_table = eb_table_from_offset(offset=SECTOR_TOWN_MAP_TABLE_OFFSET,
+                                                          name="map_sectors")
+        self.sector_yml_table = eb_table_from_offset(offset=SECTOR_TILESETS_PALETTES_TABLE_OFFSET,
+                                                     single_column=SectorYmlTable,
+                                                     num_rows=self.sector_tilesets_palettes_table.num_rows,
+                                                     name="map_sectors")
 
     def read_from_rom(self, rom):
         # Read map data
@@ -118,23 +143,34 @@ class MapModule(EbModule):
                     f.write(hex(tile)[2:].zfill(3))
                 f.write("\n")
 
-        # Write sector data
-        out = dict()
-        for i in range(self.sector_tilesets_palettes_table.num_rows):
-            out[i] = {
-                "Tileset": INTEGER_ENTRY.to_yml_rep(self.sector_tilesets_palettes_table[i][0] >> 3),
-                "Palette": INTEGER_ENTRY.to_yml_rep(self.sector_tilesets_palettes_table[i][0] & 7),
-                "Music": INTEGER_ENTRY.to_yml_rep(self.sector_music_table[i][0]),
-                "Teleport": TELEPORT_ENTRY.to_yml_rep(self.sector_misc_table[i][0] >> 7),
-                "Town Map": TOWNMAP_ENTRY.to_yml_rep((self.sector_misc_table[i][0] >> 3) & 7),
-                "Setting": SETTING_ENTRY.to_yml_rep(self.sector_misc_table[i][0] & 7),
-                "Item": INTEGER_ENTRY.to_yml_rep(self.sector_misc_table[i][1]),
-                "Town Map Image": TOWNMAP_IMAGE_ENTRY.to_yml_rep(self.sector_town_map_table[i][0] & 0xf),
-                "Town Map Arrow": TOWNMAP_ARROW_ENTRY.to_yml_rep(self.sector_town_map_table[i][0] >> 4),
-                "Town Map X": INTEGER_ENTRY.to_yml_rep(self.sector_town_map_table[i][1]),
-                "Town Map Y": INTEGER_ENTRY.to_yml_rep(self.sector_town_map_table[i][2])}
+        for i in range(self.sector_yml_table.num_rows):
+            tileset = self.sector_tilesets_palettes_table[i][0] >> 3
+            palette = self.sector_tilesets_palettes_table[i][0] & 7
+            music = self.sector_music_table[i][0]
+            teleport = self.sector_misc_table[i][0] >> 7
+            townmap = (self.sector_misc_table[i][0] >> 3) & 7
+            setting = self.sector_misc_table[i][0] & 7
+            item = self.sector_misc_table[i][1]
+            townmap_arrow = self.sector_town_map_table[i][0] >> 4
+            townmap_image = self.sector_town_map_table[i][0] & 0xf
+            townmap_x = self.sector_town_map_table[i][1]
+            townmap_y = self.sector_town_map_table[i][2]
+
+            self.sector_yml_table[i] = [
+                tileset,
+                palette,
+                music,
+                teleport,
+                townmap,
+                setting,
+                item,
+                townmap_arrow,
+                townmap_image,
+                townmap_x,
+                townmap_y
+            ]
         with resource_open("map_sectors", "yml") as f:
-            yml_dump(out, f, default_flow_style=False)
+            self.sector_yml_table.to_yml_file(f)
 
     def read_from_project(self, resource_open):
         # Read map data
@@ -145,30 +181,30 @@ class MapModule(EbModule):
 
         # Read sector data
         with resource_open("map_sectors", "yml") as f:
-            input = yml_load(f)
-            for i in input:
-                entry = input[i]
+            self.sector_yml_table.from_yml_file(f)
 
-                tileset = INTEGER_ENTRY.from_yml_rep(entry["Tileset"])
-                palette = INTEGER_ENTRY.from_yml_rep(entry["Palette"])
-                self.sector_tilesets_palettes_table[i] = [(tileset << 3) | palette]
+        for i in range(self.sector_yml_table.num_rows):
+            tileset = self.sector_yml_table[i][0]
+            palette = self.sector_yml_table[i][1]
+            music = self.sector_yml_table[i][2]
+            teleport = self.sector_yml_table[i][3]
+            townmap = self.sector_yml_table[i][4]
+            setting = self.sector_yml_table[i][5]
+            item = self.sector_yml_table[i][6]
+            townmap_arrow = self.sector_yml_table[i][7]
+            townmap_image = self.sector_yml_table[i][8]
+            townmap_x = self.sector_yml_table[i][9]
+            townmap_y = self.sector_yml_table[i][10]
 
-                music = INTEGER_ENTRY.from_yml_rep(entry["Music"])
-                self.sector_music_table[i] = [music]
+            self.sector_tilesets_palettes_table[i] = [(tileset << 3) | palette]
 
-                teleport = TELEPORT_ENTRY.from_yml_rep(entry["Teleport"])
-                townmap = TOWNMAP_ENTRY.from_yml_rep(entry["Town Map"])
-                setting = SETTING_ENTRY.from_yml_rep(entry["Setting"])
-                item = INTEGER_ENTRY.from_yml_rep(entry["Item"])
-                self.sector_misc_table[i] = [(teleport << 7) | (townmap << 3) | setting, item]
+            self.sector_music_table[i] = [music]
 
-                townmap_arrow = TOWNMAP_ARROW_ENTRY.from_yml_rep(entry["Town Map Arrow"])
-                townmap_image = TOWNMAP_IMAGE_ENTRY.from_yml_rep(entry["Town Map Image"])
-                townmap_x = INTEGER_ENTRY.from_yml_rep(entry["Town Map X"])
-                townmap_y = INTEGER_ENTRY.from_yml_rep(entry["Town Map Y"])
-                self.sector_town_map_table[i] = [((townmap_arrow << 4) | (townmap_image & 0xf)),
-                                                 townmap_x,
-                                                 townmap_y]
+            self.sector_misc_table[i] = [(teleport << 7) | (townmap << 3) | setting, item]
+
+            self.sector_town_map_table[i] = [((townmap_arrow << 4) | (townmap_image & 0xf)),
+                                             townmap_x,
+                                             townmap_y]
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
@@ -187,8 +223,8 @@ class MapModule(EbModule):
                 for i in data:
                     data[i]["Town Map Image"] = TOWNMAP_IMAGE_ENTRY.to_yml_rep(self.sector_town_map_table[i][0] & 0xf)
                     data[i]["Town Map Arrow"] = TOWNMAP_ARROW_ENTRY.to_yml_rep(self.sector_town_map_table[i][0] >> 4)
-                    data[i]["Town Map X"] = INTEGER_ENTRY.to_yml_rep(self.sector_town_map_table[i][1])
-                    data[i]["Town Map Y"] = INTEGER_ENTRY.to_yml_rep(self.sector_town_map_table[i][2])
+                    data[i]["Town Map X"] = TOWNMAP_X.to_yml_rep(self.sector_town_map_table[i][1])
+                    data[i]["Town Map Y"] = TOWNMAP_Y.to_yml_rep(self.sector_town_map_table[i][2])
             with resource_open_w("map_sectors", 'yml') as f:
                 yaml.dump(data, f, Dumper=yaml.CSafeDumper, default_flow_style=False)
 

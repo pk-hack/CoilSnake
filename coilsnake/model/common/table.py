@@ -3,7 +3,7 @@ import logging
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, IndexOutOfRangeError, \
     TableEntryInvalidYmlRepresentationError, TableError, TableEntryMissingDataError, TableEntryError, TableSchemaError
-from coilsnake.util.common.helper import getitem_with_default, not_in_range
+from coilsnake.util.common.helper import getitem_with_default, not_in_inclusive_range
 from coilsnake.util.common.type import GenericEnum
 from coilsnake.util.common.yml import convert_values_to_hex_repr, yml_load, yml_dump
 
@@ -87,9 +87,9 @@ class LittleEndianIntegerTableEntry(TableEntry):
         if not isinstance(yml_rep, int):
             raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as integer".format(
                 yml_rep, type(yml_rep).__name__))
-        elif not_in_range(yml_rep, (0, (1 << (8 * cls.size)) - 1)):
-            raise TableEntryInvalidYmlRepresentationError("Value[{}] is not valid, must be between {} "
-                                                          "and {}".format(yml_rep, 0, cls.size * 8 - 1))
+        elif not_in_inclusive_range(yml_rep, (0, (1 << (8 * cls.size)) - 1)):
+            raise TableEntryInvalidYmlRepresentationError("Value[{}] is not valid, must be in range [{},{}]".format(
+                yml_rep, 0, (1 << (8 * cls.size)) - 1))
         else:
             return yml_rep
 
@@ -182,7 +182,7 @@ class ByteListTableEntry(TableEntry):
         if not (isinstance(yml_rep, list) and all(isinstance(x, int) for x in yml_rep)):
             raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] to a list of integers"
                                                           .format(yml_rep))
-        elif any(not_in_range(x, (0, 0xff)) for x in yml_rep):
+        elif any(not_in_inclusive_range(x, (0, 0xff)) for x in yml_rep):
             raise TableEntryInvalidYmlRepresentationError("Byte list[{}] contains a value less than 0 or greater "
                                                           "than 255 (0xff)".format(yml_rep))
 

@@ -211,7 +211,8 @@ with open_asset("structures", "eb.yml") as f:
             break
 
 
-def eb_table_from_offset(offset, single_column=None, matrix_dimensions=None, hidden_columns=None):
+def eb_table_from_offset(offset, single_column=None, matrix_dimensions=None, hidden_columns=None, num_rows=None,
+                         name=None):
     if hidden_columns is None:
         hidden_columns = []
 
@@ -231,10 +232,11 @@ def eb_table_from_offset(offset, single_column=None, matrix_dimensions=None, hid
         return MatrixTable(
             schema=schema,
             matrix_height=matrix_height,
-            name=schema_specification["name"],
+            name=name or schema_specification["name"],
             size=schema_specification["size"])
     else:
         return Table(
             schema=schema,
-            name=schema_specification["name"],
-            size=schema_specification["size"])
+            name=name or schema_specification["name"],
+            size=schema_specification["size"],
+            num_rows=num_rows)

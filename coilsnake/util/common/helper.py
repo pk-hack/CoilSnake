@@ -10,12 +10,12 @@ def getitem_with_default(d, key, default_value):
         return default_value
 
 
-def in_range(x, rang):
+def in_inclusive_range(x, rang):
     return rang[0] <= x <= rang[1]
 
 
-def not_in_range(x, rang):
-    return not in_range(x, rang)
+def not_in_inclusive_range(x, rang):
+    return not in_inclusive_range(x, rang)
 
 
 def get_from_user_dict(yml_rep, key, object_type):
