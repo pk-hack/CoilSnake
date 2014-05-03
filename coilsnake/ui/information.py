@@ -12,7 +12,7 @@ DEPENDENCIES = [
      "author": "Rydel"},
     {"name": "CCScript",
      "author": "Mr. Accident",
-     "url":"http://starmen.net/pkhack/ccscript"},
+     "url": "http://starmen.net/pkhack/ccscript"},
     {"name": "CCScriptWriter",
      "author": "Lyrositor",
      "url": "https://github.com/Lyrositor/CCScriptWriter"},

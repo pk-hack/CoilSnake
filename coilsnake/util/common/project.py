@@ -33,7 +33,7 @@ def get_version_name(version):
         return "Unknown Version"
 
 
-class Project:
+class Project(object):
     def __init__(self):
         self.romtype = "Unknown"
         self._resources = {}

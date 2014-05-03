@@ -16,18 +16,20 @@ if len(sys.argv) != 3:
 
 with open(sys.argv[1], "r") as f:
     with open(sys.argv[2], "w") as f2:
-        i=1
+        i = 1
         for doc in yaml.load_all(f, Loader=yaml.CSafeLoader):
             if i == 1:
-                f2.write("# This is a automatically generated trimmed version of the full EBYAML file.\n# This file only contains data block descriptions which have an \"entries\" entry.\n---\n...\n---\n")
+                f2.write("# This is a automatically generated trimmed version of the full EBYAML file.\n"
+                         + "# This file only contains data block descriptions which have an \"entries\" entry.\n"
+                         + "---\n...\n---\n")
                 i += 1
             elif i == 2:
-                newDoc = { }
+                newDoc = dict()
                 for block in doc:
                     if not (doc[block] is None
-                            or not doc[block].has_key("type")
-                            or (doc[block]["type"] != "data")
-                            or not doc[block].has_key("entries")):
+                            or not ("type" in doc[block])
+                            or ("data" in doc[block]["type"])
+                            or not ("entries" in doc[block].has_key("entries"))):
                         newDoc[block] = doc[block]
                         if newDoc[block].has_key("description"):
                             del(newDoc[block]["description"])

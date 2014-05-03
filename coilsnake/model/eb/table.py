@@ -1,4 +1,5 @@
 from functools import partial
+
 import yaml
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, TableEntryInvalidYmlRepresentationError, \
@@ -210,7 +211,10 @@ with open_asset("structures", "eb.yml") as f:
             break
 
 
-def eb_table_from_offset(offset, single_column=None, matrix_dimensions=None, hidden_columns=[]):
+def eb_table_from_offset(offset, single_column=None, matrix_dimensions=None, hidden_columns=None):
+    if hidden_columns is None:
+        hidden_columns = []
+
     try:
         schema_specification = _EB_SCHEMA_MAP[offset]
     except KeyError:

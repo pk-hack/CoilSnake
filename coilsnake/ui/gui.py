@@ -87,8 +87,8 @@ class CoilSnakeGui(object):
                 ccscript_offset = int(ccscript_offset_str, 16)
             except:
                 tkMessageBox.showerror(parent=self.root,
-                                   title="Error",
-                                   message="{} is not a valid hexidecimal number.".format(ccscript_offset_str))
+                                       title="Error",
+                                       message="{} is not a valid hexidecimal number.".format(ccscript_offset_str))
                 return
 
             self.preferences.set_ccscript_offset(ccscript_offset)
@@ -188,7 +188,7 @@ Please configure Java in the Settings menu.""")
         if rom and project:
             if os.path.isdir(project):
                 confirm = tkMessageBox.askquestion("Are You Sure?",
-                                                   "Are you sure you would like to permanently overwrite the " \
+                                                   "Are you sure you would like to permanently overwrite the "
                                                    + "contents of the selected output directory?",
                                                    icon='warning')
                 if confirm != "yes":

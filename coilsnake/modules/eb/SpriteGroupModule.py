@@ -74,8 +74,8 @@ class SpriteGroupModule(EbModule):
 
                 palette = EbPalette(1, 16)
 
-                with resource_open("SpriteGroups/" + str(i).zfill(3), "png") as f:
-                    image = open_indexed_image(f)
+                with resource_open("SpriteGroups/" + str(i).zfill(3), "png") as f2:
+                    image = open_indexed_image(f2)
                     group.from_image(image)
                     palette.from_image(image)
                     del image

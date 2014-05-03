@@ -4,12 +4,11 @@ import sys
 import argparse
 import csv
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('input', metavar='INPUT', type=argparse.FileType('rb'),
-            help="csv file")
-    parser.add_argument('output', metavar='OUTPUT', type=argparse.FileType('wb'),
-            help="yml file")
+    parser.add_argument('input', metavar='INPUT', type=argparse.FileType('rb'), help="csv file")
+    parser.add_argument('output', metavar='OUTPUT', type=argparse.FileType('wb'), help="yml file")
 
     args = parser.parse_args()
 

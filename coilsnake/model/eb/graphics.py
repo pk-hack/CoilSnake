@@ -34,8 +34,8 @@ class EbGraphicTileset(EqualityMixin):
             raise InvalidArgumentError("Couldn't create EbGraphicTileset with invalid tile_width[{}]".format(
                 tile_width))
         elif (tile_width % 8) != 0:
-            raise InvalidArgumentError("Couldn't create EbGraphicTileset with a tile_height[{}] that is not a multiple"
-                                       "of 8".format(tile_height))
+            raise InvalidArgumentError(("Couldn't create EbGraphicTileset with a tile_height[{}] that is not a "
+                                        "multiple of 8").format(tile_height))
         self.tile_width = tile_width
 
         if tile_height <= 0:
@@ -53,8 +53,8 @@ class EbGraphicTileset(EqualityMixin):
         if bpp not in _EB_GRAPHIC_TILESET_SUPPORTED_BPP_FORMATS:
             raise NotImplementedError("Don't know how to read graphical tile data of bpp[{}]".format(bpp))
         elif (bpp != 1) and (self.tile_height != 8):
-            raise NotImplementedError("Don't know how to read graphical tile data of width[{}], height[{}], "
-                                      "and bpp[{}]".format(self.tile_width, self.tile_height, bpp))
+            raise NotImplementedError(("Don't know how to read graphical tile data of width[{}], height[{}], "
+                                      "and bpp[{}]").format(self.tile_width, self.tile_height, bpp))
 
         self._num_tiles_used = 0
         self._used_tiles = dict()
@@ -113,7 +113,7 @@ class EbGraphicTileset(EqualityMixin):
         image_data = image.load()
         already_read_tiles = set()
         self.tiles = [[[0 for x in range(self.tile_width)] for y in range(self.tile_height)]
-              for n in range(self.num_tiles_maximum)]
+                      for n in range(self.num_tiles_maximum)]
         for y in range(arrangement.height):
             for x in range(arrangement.width):
                 arrangement_item = arrangement[x, y]
@@ -340,7 +340,6 @@ class EbTileArrangement(EqualityMixin):
                 arrangement_item.is_vertically_flipped = vflip
                 arrangement_item.is_horizontally_flipped = hflip
                 arrangement_item.is_priority = False
-
 
     def __getitem__(self, key):
         x, y = key

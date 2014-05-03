@@ -57,5 +57,6 @@ def _upgrade(args):
     upgrade_project(base_rom_filename=args.base_rom,
                     project_path=args.project_directory)
 
+
 def _version(args):
     print coilsnake_about()

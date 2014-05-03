@@ -216,7 +216,7 @@ def load_modules():
                 continue
             components = line.split('.')
             mod = __import__("coilsnake.modules." + line, globals(), locals(), [components[-1]])
-            all_modules.append((line, mod.__dict__[components[-1]] ))
+            all_modules.append((line, mod.__dict__[components[-1]]))
     return all_modules
 
 

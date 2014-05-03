@@ -27,6 +27,7 @@ class EbModule(GenericModule):
 def _decomp(rom, cdata):
     raise NotImplementedError("Python decomp not implemented")
 
+
 def _comp(udata):
     raise NotImplementedError("Python comp not implemented")
 

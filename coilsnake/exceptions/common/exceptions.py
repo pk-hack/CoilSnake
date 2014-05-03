@@ -76,7 +76,7 @@ class TableSchemaError(EqualityMixin, StringRepresentationMixin, CoilSnakeError)
 
 
 class TableError(EqualityMixin, StringRepresentationMixin, CoilSnakeError):
-    def __init__(self, table_name, entry, field, cause):
+    def __init__(self, table_name=None, entry=None, field=None, cause=None):
         self.table_name = table_name
         self.entry = entry
         self.field = field

@@ -140,8 +140,8 @@ class MapModule(EbModule):
         # Read map data
         with resource_open("map_tiles", "map") as f:
             self.tiles = map(lambda y:
-                              map(lambda x: int(x, 16), y.split(" ")),
-                              f.readlines())
+                             map(lambda x: int(x, 16), y.split(" ")),
+                             f.readlines())
 
         # Read sector data
         with resource_open("map_sectors", "yml") as f:

@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-import Rom
+from coilsnake.model.common.blocks import Rom
 
 
 sys.path.append('./')

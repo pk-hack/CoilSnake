@@ -85,7 +85,7 @@ class EbBattleSprite(object):
         return hash_tile(self.sprite)
 
 
-class EbRegularSprite:
+class EbRegularSprite(object):
     def __init__(self):
         self.width = 0
         self.height = 0
@@ -162,7 +162,7 @@ SpriteGroupHeaderTableEntry = RowTableEntry.from_schema(
             LittleEndianIntegerTableEntry.create("Bank", 1)])
 
 
-class SpriteGroup:
+class SpriteGroup(object):
     # The order in which sprite directions are compiled to form a sprite group, based on examining the game data.
     # The order is: S, N, W, E, NW, SW, SE, NE
     SPRITE_COMPILATION_ORDER = [2, 4, 1, 3, 8, 7, 6, 5]

@@ -29,7 +29,7 @@ def calcNewStat(statName, growthRates, newLevel, oldStatValue):
 
 def calcStats(growthVars, endLevel):
     stats = [30, 10, 2, 2, 2, 2, 2, 2, 2]
-    for i in range(2,endLevel+1):
+    for i in range(2, endLevel+1):
         # Normal stats
         stats[2] = calcNewStat("Offense", growthVars, i, stats[2])
         stats[3] = calcNewStat("Defense", growthVars, i, stats[3])
@@ -41,13 +41,13 @@ def calcStats(growthVars, endLevel):
         # HP
         newHP = 15 * stats[6]
         if (newHP - stats[0]) < 2:
-            stats[0] += random.randint(1,3)
+            stats[0] += random.randint(1, 3)
         else:
             stats[0] = newHP
         # PP
         newPP = 5 * stats[7]
         if (newPP - stats[1]) < 2:
-            stats[1] += random.randint(0,2)
+            stats[1] += random.randint(0, 2)
         else:
             stats[1] = newPP
     return stats
@@ -56,13 +56,13 @@ def calcStats(growthVars, endLevel):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('levels', type=int,
-            metavar=('PC1_Level', 'PC2_Level', 'PC3_Level', 'PC4_Level'),
-            nargs=4, help='Party levels')
+                        metavar=('PC1_Level', 'PC2_Level', 'PC3_Level', 'PC4_Level'),
+                        nargs=4, help='Party levels')
     parser.add_argument('projDir', metavar='ProjectDirectory', nargs=1,
-            help='CoilSnake project directory')
+                        help='CoilSnake project directory')
     parser.add_argument('--enemy', action='store', nargs=1,
-            metavar='Enemy_ID', type=int,
-            dest="enemyInfo", help="Enemy number")
+                        metavar='Enemy_ID', type=int,
+                        dest="enemyInfo", help="Enemy number")
     args = parser.parse_args()
 
     proj = Project.Project()
@@ -75,41 +75,36 @@ def main():
             partyStats[i] = calcStats(growthVars[i], args.levels[i])
     
     print "*** Party Stats ***"
-    print '\t'.join(map(str, ['', 'HP', 'PP', 'Off', 'Def', 'Speed', 'Guts',
-        'Vit', 'IQ', "Luck"]))
+    print '\t'.join(map(str, ['', 'HP', 'PP', 'Off', 'Def', 'Speed', 'Guts', 'Vit', 'IQ', "Luck"]))
     for i in range(4):
-        print i, '\t', '\t'.join(map(str,partyStats[i]))
+        print i, '\t', '\t'.join(map(str, partyStats[i]))
             
     if args.enemyInfo is not None:
         with proj.get_resource("eb", "enemy_configuration_table", "yml", "r") as f:
             enemyData = (yml_load(f))[args.enemyInfo[0]]
             print "\n*** Enemy Stats:", enemyData["Name"], "***"
-            print '\t'.join(map(str, ['', 'HP', 'PP', 'Off', 'Def', 'Speed',
-                'Guts', "Luck"]))
+            print '\t'.join(map(str, ['', 'HP', 'PP', 'Off', 'Def', 'Speed', 'Guts', "Luck"]))
             print '\t%d\t%d\t%d\t%d\t%d\t%d\t%d' % (enemyData["HP"], enemyData["PP"],
-                    enemyData["Offense"], enemyData["Defense"], 
-                    enemyData["Speed"], enemyData["Guts"], enemyData["Luck"])
+                                                    enemyData["Offense"], enemyData["Defense"],
+                                                    enemyData["Speed"], enemyData["Guts"], enemyData["Luck"])
             print "\n*** Damage Dealt by Enemy to Party ***"
             print "Level\tTarget\tMinDmg\tMaxDmg\tSMASH\tSmash%"
-            for i in range(1,5):
-                for j in range(0,4):
+            for i in range(1, 5):
+                for j in range(0, 4):
                     damage = i * enemyData["Offense"] - partyStats[j][3]
                     smashDamage = 4 * enemyData["Offense"] - partyStats[j][3]
                     smashOdds = enemyData["Guts"] / 5.0
-                    print "%d\t%d\t%d\t%d\t%d\t%.2f%%" % (i, j, damage*0.75,
-                            damage*1.25, smashDamage, smashOdds)
+                    print "%d\t%d\t%d\t%d\t%d\t%.2f%%" % (i, j, damage*0.75, damage*1.25, smashDamage, smashOdds)
                 print
             
             print "*** Damage Dealt by Party to Enemy ***"
             print "PC\tMinDmg\tMaxDmg\tSMASH\tSmash%"
-            for i in range(0,4):
+            for i in range(0, 4):
                 damage = 2 * partyStats[i][2] - enemyData["Defense"]
                 smashDamage = 4 * partyStats[i][2] - enemyData["Defense"]
                 smashOdds = max(partyStats[i][5] / 5.0, 5.0)
-                print "%d\t%d\t%d\t%d\t%d" % (i, damage * 0.75, damage * 1.25,
-                        smashDamage, smashOdds)
+                print "%d\t%d\t%d\t%d\t%d" % (i, damage * 0.75, damage * 1.25, smashDamage, smashOdds)
                 
-
 
 if __name__ == '__main__':
     sys.exit(main())

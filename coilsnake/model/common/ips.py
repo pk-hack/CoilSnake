@@ -1,7 +1,7 @@
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
 
 
-class IpsPatch:
+class IpsPatch(object):
     def __init__(self):
         self.instructions = []
         self.last_offset_used = 0
