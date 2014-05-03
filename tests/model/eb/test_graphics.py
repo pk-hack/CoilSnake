@@ -7,7 +7,7 @@ from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangementItem, EbTileArrangement
 from coilsnake.model.eb.palettes import EbPalette, EbColor
-from tests.coilsnake_test import BaseTestCase, TilesetImageTestCase
+from tests.coilsnake_test import BaseTestCase, TilesetImageTestCase, assert_images_equal
 
 
 class TestEbGraphicTileset(BaseTestCase, TilesetImageTestCase):
@@ -676,11 +676,8 @@ class TestEbTileArrangement(BaseTestCase, TilesetImageTestCase):
 
     def test_from_image_single_subpalette(self):
         palette = EbPalette(1, 2)
-
         tileset = EbGraphicTileset(num_tiles=6, tile_width=8, tile_height=8)
-
         arrangement = EbTileArrangement(width=6, height=1)
-
         arrangement.from_image(self.tile_8x8_2bpp_2_img, tileset=tileset, palette=palette)
 
         assert_equal(palette[0, 0], EbColor(0, 0, 0))
@@ -711,3 +708,12 @@ class TestEbTileArrangement(BaseTestCase, TilesetImageTestCase):
         assert_equal(arrangement[5, 0].is_horizontally_flipped, item.is_horizontally_flipped)
         assert_equal(arrangement[5, 0].is_vertically_flipped, item.is_vertically_flipped)
         assert_equal(arrangement[5, 0].subpalette, 0)
+
+    def test_to_image_single_subpalette(self):
+        palette = EbPalette(1, 2)
+        tileset = EbGraphicTileset(num_tiles=6, tile_width=8, tile_height=8)
+        arrangement = EbTileArrangement(width=6, height=1)
+        arrangement.from_image(self.tile_8x8_2bpp_2_img, tileset=tileset, palette=palette)
+
+        new_image = arrangement.image(tileset, palette)
+        assert_images_equal(self.tile_8x8_2bpp_2_img, new_image)

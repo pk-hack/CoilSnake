@@ -2,7 +2,8 @@ from itertools import izip_longest
 import os
 import tempfile
 
-from PIL import Image
+from PIL import Image, ImageChops
+from nose.tools import assert_is_none
 from nose.tools.trivial import eq_
 
 
@@ -13,6 +14,9 @@ TEST_IMAGE_DIR = os.path.join(TEST_DATA_DIR, "images")
 def assert_files_equal(expected, result):
     for i in izip_longest(iter(expected), iter(result)):
         eq_(i[0], i[1])
+
+def assert_images_equal(expected, result):
+    assert_is_none(ImageChops.difference(expected, result).getbbox())
 
 
 class BaseTestCase(object):
