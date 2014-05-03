@@ -10,6 +10,7 @@ SetCompress Off
 
 Name 'CoilSnake'
 OutFile ${exe}
+RequestExecutionLevel user
 SilentInstall silent
 Icon 'coilsnake\assets\images\icon.ico'
 
