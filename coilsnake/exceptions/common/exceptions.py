@@ -18,6 +18,14 @@ class OutOfBoundsError(CoilSnakeInternalError):
     pass
 
 
+class CoilSnakeUnexpectedError(CoilSnakeError):
+    def __init__(self, traceback):
+        self.traceback = traceback
+
+    def __str__(self):
+        return "{}: Unexpected error:\n{}".format(self.__class__.__name__, self.traceback)
+
+
 # For when an argument is incorrectly to a function, or if an argument is missing in a function call.
 # This should generally be caused by some bug in the code.
 class InvalidArgumentError(CoilSnakeInternalError):
@@ -47,6 +55,10 @@ class InvalidUserDataError(CoilSnakeUserError):
 
 
 class MissingUserDataError(InvalidUserDataError):
+    pass
+
+
+class InvalidYmlFileError(CoilSnakeError):
     pass
 
 

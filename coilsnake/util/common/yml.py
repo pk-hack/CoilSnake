@@ -1,9 +1,12 @@
 import logging
+import os
 import re
+import traceback
 
 import yaml
+from yaml.scanner import ScannerError
 
-from coilsnake.exceptions.common.exceptions import CoilSnakeError
+from coilsnake.exceptions.common.exceptions import CoilSnakeUnexpectedError, InvalidYmlFileError
 from coilsnake.util.common.helper import lower_if_str
 
 
@@ -61,10 +64,15 @@ def convert_values_to_hex_repr_in_yml_file(resource_name, resource_open_r, resou
 def yml_load(f):
     try:
         return yaml.load(f, Loader=yaml.CSafeLoader)
+    except ScannerError as se:
+        raise InvalidYmlFileError(
+            "File {} is not syntactically valid YML. Error on line {}, column {} of the YML file: {}".format(
+                os.path.basename(se.problem_mark.name),
+                se.problem_mark.line + 1,
+                se.problem_mark.column + 1,
+                se.problem))
     except:
-        error = "Could not load YML file " + f.name
-        log.exception(error)
-        raise CoilSnakeError(error)
+        raise CoilSnakeUnexpectedError(traceback.format_exc())
 
 
 def yml_dump(yml_rep, f=None, default_flow_style=None):
@@ -75,15 +83,11 @@ def yml_dump(yml_rep, f=None, default_flow_style=None):
                       default_flow_style=default_flow_style,
                       Dumper=yaml.CSafeDumper)
         except:
-            error = "Could not save YML to file " + f.name
-            log.exception(error)
-            raise CoilSnakeError(error)
+            raise CoilSnakeUnexpectedError(traceback.format_exc())
     else:
         try:
             return yaml.dump(yml_rep,
                              default_flow_style=default_flow_style,
                              Dumper=yaml.CSafeDumper)
         except:
-            error = "Could not save YML"
-            log.exception(error)
-            raise CoilSnakeError(error)
+            raise CoilSnakeUnexpectedError(traceback.format_exc())
