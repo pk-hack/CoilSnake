@@ -1,7 +1,7 @@
 from coilsnake.util.common import project
 
 VERSION = project.VERSION_NAMES[project.FORMAT_VERSION]
-RELEASE_DATE = "May 1, 2014"
+RELEASE_DATE = "May 4, 2014"
 
 WEBSITE = "http://kiij.github.io/CoilSnake"
 AUTHOR = "MrTenda"
