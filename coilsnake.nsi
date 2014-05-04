@@ -1,7 +1,7 @@
 !define py2exeOutputDirectory 'dist'
 !define exe 'CoilSnake.exe'
 
-CRCCheck off
+CRCCheck on
 ; Comment out the "SetCompress Off" line and uncomment
 ; the next line to enable compression. Startup times
 ; will be a little slower but the executable will be
@@ -14,14 +14,26 @@ Caption 'CoilSnake'
 
 OutFile ${exe}
 RequestExecutionLevel user
-SilentInstall normal
 Icon 'coilsnake\assets\images\icon.ico'
 
-Section
-    SetAutoClose true
+SilentInstall normal
+AutoCloseWindow true
+ShowInstDetails nevershow
 
+AddBrandingImage top 164 5
+PageEx InstFiles
+    Caption ": Loading"
+PageExEnd
+
+Section
     InitPluginsDir
     SetOutPath '$PLUGINSDIR'
+
+    File "${py2exeOutputDirectory}\coilsnake\assets\images\splash.bmp"
+    SetBrandingImage /RESIZETOFIT $PLUGINSDIR\splash.bmp
+    DetailPrint "Loading CoilSnake..."
+    SetDetailsPrint none
+
     File /r '${py2exeOutputDirectory}\*.*'
 
     GetTempFileName $0
