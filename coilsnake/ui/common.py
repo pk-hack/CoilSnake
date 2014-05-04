@@ -1,6 +1,7 @@
 import logging
 import os
 from shutil import copyfile
+import sys
 import time
 from subprocess import Popen, PIPE, STDOUT
 
@@ -106,7 +107,7 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, ccscri
             + script_filenames,
             stdout=PIPE,
             stderr=STDOUT,
-            shell=True)  # This prevents a command line window from opening in Windows
+            shell=(sys.platform == 'win32'))  # This prevents a command line window from opening in Windows
         process.wait()
         if process.returncode == 0:
             log.info("CCScript compiler finished successfully")
