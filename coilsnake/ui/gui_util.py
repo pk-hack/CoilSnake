@@ -11,18 +11,6 @@ from coilsnake.model.common.blocks import Rom
 ROM_FILETYPES = [('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')]
 
 
-class TextareaStdoutRedirector(object):
-    def __init__(self, textarea):
-        self.textarea = textarea
-
-    def write(self, str):
-        self.textarea.insert(END, str)
-        self.textarea.see(END)
-
-    def flush(self):
-        pass
-
-
 def expand_rom(root, ex=False):
     rom = Rom()
     filename = tkFileDialog.askopenfilename(

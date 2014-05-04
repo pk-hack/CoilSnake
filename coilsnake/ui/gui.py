@@ -20,9 +20,9 @@ from coilsnake.ui import information, gui_util
 from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging, decompile_script
 from coilsnake.ui.gui_preferences import CoilSnakePreferences
 from coilsnake.ui.gui_util import browse_for_rom, browse_for_project, open_folder, set_entry_text, \
-    TextareaStdoutRedirector, find_system_java_exe
+    find_system_java_exe
 from coilsnake.ui.information import coilsnake_about
-from coilsnake.ui.progressbar import GuiProgressBar
+from coilsnake.ui.widgets import ThreadSafeConsole, CoilSnakeGuiProgressBar
 from coilsnake.util.common.project import PROJECT_FILENAME
 from coilsnake.util.common.assets import asset_path
 
@@ -77,9 +77,9 @@ class CoilSnakeGui(object):
     def set_ccscript_offset(self):
         ccscript_offset_str = tkSimpleDialog.askstring(
             title="Input CCScript Offset",
-            prompt=("Specify the offset to which CCScript should compile text.\n"
-                    + "Input the offset in hexidecimal form.\n\n"
-                    + "(The default value is F10000)"),
+            prompt=("Specify the hexidecimal offset to which CCScript should compile text.\n"
+                    + "(The default value is F10000)\n\n"
+                    + "You should leave this setting alone unless if you really know what you are doing."),
             initialvalue="{:x}".format(self.preferences.get_ccscript_offset()).upper())
 
         if ccscript_offset_str:
@@ -134,11 +134,6 @@ class CoilSnakeGui(object):
         self.preferences.save()
 
     # GUI update functions
-
-    def clear_console(self):
-        self.console.delete(1.0, END)
-        self.console.see(END)
-
     def disable_all_components(self):
         for component in self.components:
             component["state"] = DISABLED
@@ -197,10 +192,10 @@ Please configure Java in the Settings menu.""")
             self.save_default_tab()
 
             # Update the GUI
-            self.clear_console()
+            self.console.clear()
             self.disable_all_components()
 
-            self.progress_bar.set(0)
+            self.progress_bar.clear()
             thread = Thread(target=self._do_decompile_help, args=(rom, project))
             thread.start()
 
@@ -211,7 +206,7 @@ Please configure Java in the Settings menu.""")
             log.debug(format_exc())
             log.error(inst)
 
-        self.progress_bar.set(0)
+        self.progress_bar.clear()
         self.enable_all_components()
 
     def do_compile(self, project_entry, base_rom_entry, rom_entry):
@@ -239,11 +234,10 @@ Please configure Java in the Settings menu.""")
             del base_rom_rom
 
             # Update the GUI
-            self.clear_console()
+            self.console.clear()
             self.disable_all_components()
 
-            # Reset the progress bar
-            self.progress_bar.set(0)
+            self.progress_bar.clear()
 
             thread = Thread(target=self._do_compile_help, args=(project, base_rom, rom))
             thread.start()
@@ -257,7 +251,7 @@ Please configure Java in the Settings menu.""")
             log.debug(format_exc())
             log.error(inst)
 
-        self.progress_bar.set(0)
+        self.progress_bar.clear()
         self.enable_all_components()
 
     def do_upgrade(self, rom_entry, project_entry):
@@ -276,10 +270,10 @@ Please configure Java in the Settings menu.""")
             self.save_default_tab()
 
             # Update the GUI
-            self.clear_console()
+            self.console.clear()
             self.disable_all_components()
 
-            self.progress_bar.set(0)
+            self.progress_bar.clear()
             thread = Thread(target=self._do_upgrade_help, args=(rom, project))
             thread.start()
 
@@ -290,7 +284,7 @@ Please configure Java in the Settings menu.""")
             log.debug(format_exc())
             log.error(inst)
 
-        self.progress_bar.set(0)
+        self.progress_bar.clear()
         self.enable_all_components()
 
     def do_decompile_script(self, rom_entry, project_entry):
@@ -309,9 +303,9 @@ Please configure Java in the Settings menu.""")
             self.save_default_tab()
 
             # Update the GUI
-            self.clear_console()
+            self.console.clear()
             self.disable_all_components()
-            self.progress_bar.cycle_animation()
+            self.progress_bar.cycle_animation_start()
 
             thread = Thread(target=self._do_decompile_script_help, args=(rom, project))
             thread.start()
@@ -323,7 +317,7 @@ Please configure Java in the Settings menu.""")
             log.debug(format_exc())
             log.error(inst)
 
-        self.progress_bar.stop_cycle_animation()
+        self.progress_bar.cycle_animation_stop()
         self.enable_all_components()
 
     def main(self):
@@ -356,14 +350,15 @@ Please configure Java in the Settings menu.""")
         self.notebook.pack(fill=BOTH, expand=1)
         self.notebook.select(self.preferences.get_default_tab())
 
-        progress_bar_component = ttk.Progressbar(self.root, orient=HORIZONTAL, mode='determinate')
-        progress_bar_component.pack(fill=BOTH, expand=1)
-        self.progress_bar = GuiProgressBar(progress_bar_component)
+        self.progress_bar = CoilSnakeGuiProgressBar(self.root, orient=HORIZONTAL, mode='determinate')
+        self.progress_bar.pack(fill=BOTH, expand=1)
 
         console_frame = Frame(self.root)
+
         scrollbar = Scrollbar(console_frame)
-        self.console = Text(console_frame, width=80, height=8)
         scrollbar.pack(side=RIGHT, fill=Y)
+
+        self.console = ThreadSafeConsole(console_frame, width=80, height=8)
         self.console.pack(fill=X)
         scrollbar.config(command=self.console.yview)
         self.console.config(yscrollcommand=scrollbar.set)
@@ -382,7 +377,7 @@ Please configure Java in the Settings menu.""")
             self.notebook.focus()
         self.notebook.bind("<<NotebookTabChanged>>", tab_changed)
 
-        self.console_stream = TextareaStdoutRedirector(self.console)
+        self.console_stream = self.console
         sys.stdout = self.console_stream
         sys.stderr = self.console_stream
 
