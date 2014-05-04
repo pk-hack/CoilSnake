@@ -173,6 +173,28 @@ class AllocatableBlock(Block):
         super(AllocatableBlock, self).reset(size)
         self.unallocated_ranges = []
 
+    def get_unallocated_portions_of_range(self, input_range):
+        check_range_validity(input_range, self.size)
+
+        input_begin, input_end = input_range
+
+        for unallocated_begin, unallocated_end in self.unallocated_ranges:
+            if unallocated_begin <= input_begin <= unallocated_end:
+                if unallocated_end >= input_end:
+                    return [input_range]
+                else:
+                    return ([(input_begin, unallocated_end)] +
+                            self.get_unallocated_portions_of_range((unallocated_end + 1, input_end)))
+            elif input_begin <= unallocated_begin <= input_end:
+                if input_end <= unallocated_end:
+                    return (self.get_unallocated_portions_of_range((input_begin, unallocated_begin - 1)) +
+                            [(unallocated_begin, input_end)])
+                else:
+                    return (self.get_unallocated_portions_of_range((input_begin, unallocated_begin - 1)) +
+                            [(unallocated_begin, unallocated_end)] +
+                            self.get_unallocated_portions_of_range((unallocated_end + 1, input_end)))
+        return []
+
     def mark_allocated(self, used_range):
         check_range_validity(used_range, self.size)
 

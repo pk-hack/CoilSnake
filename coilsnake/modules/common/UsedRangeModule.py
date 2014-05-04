@@ -1,5 +1,10 @@
+import logging
+
 from coilsnake.modules.common.GenericModule import GenericModule
 from coilsnake.util.common.yml import yml_load
+
+
+log = logging.getLogger(__name__)
 
 MODULE_COMMENT = """# List all ranges which CoilSnake should not touch
 # Example:
@@ -36,33 +41,37 @@ class UsedRangeModule(GenericModule):
 
     def write_to_project(self, resource_opener):
         """
-            Writes an empty module file, ready to be filled by the user.
+            Writes an empty file, ready to be filled by the user.
         """
         with resource_opener(self.FILE, 'yml') as f:
             f.write(MODULE_COMMENT)
 
-    def read_from_project(self, resourceOpener):
+    def read_from_project(self, resource_open):
         """
             Reads a user-written list of ranges that shouldn't be touched.
         """
-        with resourceOpener(self.FILE, 'yml') as f:
+        with resource_open(self.FILE, 'yml') as f:
             ranges = yml_load(f)
             if not ranges:
                 self.ranges = []
             else:
                 self.ranges = [tuple([int(z, 0) for z in y[1:-1].split(',')]) for y in ranges]
 
-    def read_from_rom(self, rom, u=True):
+    def read_from_rom(self, rom):
         """
             Clears the used ranges list, since used ranges should be
             user-specified.
         """
         self.ranges = []
 
-    def write_to_rom(self, rom, u=True):
+    def write_to_rom(self, rom):
         """
             Makes a note of all the ranges which shouldn't be modified when
             writing.
         """
-        for r in self.ranges:
-            rom.mark_allocated(r)
+        for used_range in self.ranges:
+            for unallocated_range in rom.get_unallocated_portions_of_range(used_range):
+                log.debug("Marking range [{:#x},{:#x}] as allocated".format(
+                    unallocated_range[0], unallocated_range[1]))
+                rom.mark_allocated(unallocated_range)
+        return

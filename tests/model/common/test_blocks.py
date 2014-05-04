@@ -226,6 +226,17 @@ class TestAllocatableBlock(TestBlock):
         assert_raises(CouldNotAllocateError, self.block.mark_allocated, (0x3f, 0x40))
         assert_raises(CouldNotAllocateError, self.block.mark_allocated, (0x31, 0x40))
 
+    def test_get_unallocated_portions_of_range(self):
+        self.block.from_list([0] * 50)
+        self.block.deallocate((0, 10))
+        assert_list_equal(self.block.get_unallocated_portions_of_range((2, 8)), [(2, 8)])
+        assert_list_equal(self.block.get_unallocated_portions_of_range((5, 20)), [(5, 10)])
+        self.block.deallocate((12, 14))
+        assert_list_equal(self.block.get_unallocated_portions_of_range((5, 20)), [(5, 10), (12, 14)])
+        self.block.deallocate((18, 30))
+        assert_list_equal(self.block.get_unallocated_portions_of_range((5, 20)), [(5, 10), (12, 14), (18, 20)])
+        assert_list_equal(self.block.get_unallocated_portions_of_range((16, 32)), [(18, 30)])
+
     def test_is_unallocated(self):
         self.block.from_list([0] * 10)
         assert_raises(InvalidArgumentError, self.block.is_unallocated, (1, 0))
