@@ -98,9 +98,15 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, ccscri
             ccscript_offset = "{:x}".format(ccscript_offset)
 
         process = Popen(
-            [ccc_file_name(), "-n", "-o", output_rom_filename, "-s", ccscript_offset,
-             "--summary", os.path.join(project_path, "ccscript", "summary.txt")] +
-            script_filenames, stdout=PIPE, stderr=STDOUT)
+            [ccc_file_name(),
+             "-n",
+             "-o", output_rom_filename,
+             "-s", ccscript_offset,
+             "--summary", os.path.join(project_path, "ccscript", "summary.txt")]
+            + script_filenames,
+            stdout=PIPE,
+            stderr=STDOUT,
+            shell=True)  # This prevents a command line window from opening in Windows
         process.wait()
         if process.returncode == 0:
             log.info("CCScript compiler finished successfully")

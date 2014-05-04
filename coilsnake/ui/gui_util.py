@@ -91,7 +91,7 @@ def browse_for_rom(root, entry, save=False):
     else:
         filename = tkFileDialog.askopenfilename(
             parent=root,
-            initialdir=os.path.dirname(entry.get()),
+            initialdir=os.path.dirname(entry.get()) or os.path.expanduser("~"),
             title="Select a ROM",
             filetypes=ROM_FILETYPES)
     if filename:
