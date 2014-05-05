@@ -2,7 +2,7 @@
 
 ## Download 
 
-On Windows, just [run the installer]({{site.windows_download_url}}). On Linux, download and install from source:
+On Windows, just [download the .exe]({{site.windows_download_url}}). Linux users may install from source:
 
     $ sudo apt-get install python-pip python-dev libyaml-dev python-tk \
                            g++ libboost-filesystem-dev
