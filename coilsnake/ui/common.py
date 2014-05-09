@@ -2,7 +2,8 @@ import logging
 import os
 from shutil import copyfile
 import time
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE
+import sys
 
 from CCScriptWriter.CCScriptWriter import CCScriptWriter
 
@@ -105,15 +106,14 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, ccscri
              "--summary", os.path.join(project_path, "ccscript", "summary.txt")]
             + script_filenames,
             stdout=PIPE,
-            stderr=STDOUT,
-            shell=False)  # Having this be "True" causes CCScript to open a command prompt window, but can cause
-                          # freezes on Windows
-        process.wait()
+            stderr=PIPE,
+            shell=(sys.platform == 'win32'))
+
+        cccStdin, cccStderr = process.communicate()
         if process.returncode == 0:
             log.info("CCScript compiler finished successfully")
         else:
-            log.error("CCScript compiler failed with the following message:")
-            log.error(process.stdout.read())
+            log.error("CCScript compiler failed with the following message:\n" + cccStderr)
             raise CoilSnakeError("CCScript compilation failed")
 
     rom = Rom()
