@@ -54,3 +54,10 @@ def lower_if_str(x):
 
 def grouped(iterable, n):
     return izip(*[iter(iterable)]*n)
+
+
+def min_max(x, low, high):
+    if x < low:
+        return low
+    else:
+        return min(x, high)
