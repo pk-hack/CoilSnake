@@ -1,7 +1,7 @@
 import abc
 import logging
 
-from coilsnake.exceptions.common.exceptions import CoilSnakeError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.util.common.type import StringRepresentationMixin
 from coilsnake.util.common.yml import yml_dump
 
@@ -12,7 +12,9 @@ log = logging.getLogger(__name__)
 class Chunk(object):
     def __init__(self, spc_address, data):
         if spc_address + len(data) > 0x10000:
-            raise CoilSnakeError("Invalid chunk, stretches past SPC memory")
+            raise InvalidArgumentError(
+                ("Could not create chunk with spc_address[{:#x}] and data of length[{}] as it would exceed "
+                 "the bounds of the SPC's memory").format(spc_address, len(data)))
 
         self.spc_address = spc_address
         self.data = data
@@ -109,8 +111,6 @@ class Subsequence(StringRepresentationMixin, Sequence):
         if self.sequence_pack_id != 1:
             possible_sequences += sequence_pack_map[1]
 
-        log.info("Possible sequences: " + str(possible_sequences))
-
         for possible_sequence in possible_sequences:
             if possible_sequence.contains_spc_address(self.spc_address):
                 offset_in_sequence = self.spc_address - possible_sequence.get_spc_address()
@@ -120,9 +120,11 @@ class Subsequence(StringRepresentationMixin, Sequence):
                            "offset": offset_in_sequence}
                 with Subsequence._resource_open_sequence(resource_open, self.bgm_id) as f:
                     yml_dump(yml_rep=yml_rep, f=f, default_flow_style=False)
-
-        # This subsequence does not match against any sequence, so it must be invalid. Don't write it to any resources.
-        log.debug("{} does not match any sequence".format(self))
+                break
+        else:
+            # This subsequence does not match against any sequence, so it must be invalid.
+            # Don't write it to any resources.
+            log.error("{} did not match any sequence, not saving it to the project".format(self))
 
     def contains_spc_address(self, spc_address):
         return False
