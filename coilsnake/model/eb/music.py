@@ -1,7 +1,9 @@
 import abc
+from array import array
 import logging
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
+from coilsnake.util.common.helper import min_max
 from coilsnake.util.common.type import StringRepresentationMixin
 from coilsnake.util.common.yml import yml_dump
 
@@ -99,7 +101,7 @@ class Subsequence(StringRepresentationMixin, Sequence):
     def _resource_open_sequence(resource_open, bgm_id):
         return resource_open("Music/sequences/{:03d}".format(bgm_id), "yml")
 
-    def to_resource(self, resource_open,  sequence_pack_map):
+    def to_resource(self, resource_open, sequence_pack_map):
         # Get a list of possible sequence which this could be a subsequence of.
         # A subsequence can be of any sequence which is loaded. Sequences will only be loaded if they are either in
         # the loaded sequence pack or the program pack (1).
@@ -131,3 +133,76 @@ class Subsequence(StringRepresentationMixin, Sequence):
 
     def get_spc_address(self):
         return self.spc_address
+
+
+def _brr_filter_1(brr_waveform, i):
+    s = brr_waveform.sampled_waveform[i]\
+        + brr_waveform.sampled_waveform[i-1] * 15/16
+    brr_waveform.sampled_waveform[i] = min_max(s, -32768, 32767)
+
+
+def _brr_filter_2(brr_waveform, i):
+    s = brr_waveform.sampled_waveform[i]\
+        + (brr_waveform.sampled_waveform[i-1] * 61/32)\
+        - (brr_waveform.sampled_waveform[i-2] * 15/16)
+    brr_waveform.sampled_waveform[i] = min_max(s, -32768, 32767)
+
+
+def _brr_filter_3(brr_waveform, i):
+    s = brr_waveform.sampled_waveform[i]\
+        + (brr_waveform.sampled_waveform[i-1] * 115/64)\
+        - (brr_waveform.sampled_waveform[i-2] * 13/16)
+    brr_waveform.sampled_waveform[i] = min_max(s, -32768, 32767)
+
+_BRR_FILTERS = [None, _brr_filter_1, _brr_filter_2, _brr_filter_3]
+
+
+class BrrWaveform(object):
+    def __init__(self):
+        self.sampled_waveform = None
+        self.is_looping = False
+
+    def from_block(self, block, offset):
+        # First, determine how many sample blocks are in the waveform
+        size_in_blocks = 0
+        while (block[offset + size_in_blocks] & 1) == 0:
+            size_in_blocks += 9
+        size_in_blocks /= 9
+        size_in_blocks += 1  # The block which included the "end" flag is also part of the waveform
+
+        # Allocate the storage for the waveform's samples
+        self.sampled_waveform = array('h', [0] * (size_in_blocks * 16))
+
+        # Set whether this waveform loops, based purely on whether the first sample block has its loop flag set.
+        # This may not work for other games, but it's sufficient for EarthBound.
+        self.is_looping = block[offset] & 2 == 1
+
+        # Read the samples
+        for block_index in xrange(size_in_blocks):
+            block_range = block[offset]
+            offset += 1
+            block_filter = (block_range >> 2) & 3
+            if block_filter != 0 and block_index == 0:
+                raise InvalidArgumentError("Can't apply filter[{}] to the first sample block in a BRR waveform".format(
+                    block_filter))
+            block_range >>= 4
+
+            for i in xrange(16):
+                s = block[offset + i/2]
+                if i & 1 == 0:
+                    s >>= 4
+                else:
+                    s &= 0xf
+
+                if s >= 8:
+                    s -= 16
+
+                s <<= block_range
+
+                self.sampled_waveform[block_index*16 + i] = s
+            offset += 8
+
+            if block_filter != 0:
+                filter_function = _BRR_FILTERS[block_filter]
+                for i in xrange(16):
+                    filter_function(self, block_index * 16)
