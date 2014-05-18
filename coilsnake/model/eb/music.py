@@ -3,6 +3,7 @@ from array import array
 import logging
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
+from coilsnake.model.common.blocks import Block
 from coilsnake.util.common.helper import min_max
 from coilsnake.util.common.type import StringRepresentationMixin
 from coilsnake.util.common.yml import yml_dump
@@ -24,11 +25,11 @@ class Chunk(object):
     @classmethod
     def create_from_block(cls, block, offset):
         size = block.read_multi(offset, 2)
-        if size == 0:
-            return None
-
         spc_address = block.read_multi(offset + 2, 2)
-        data = block[offset + 4:offset + 4 + size]
+        if size > 0:
+            data = block[offset + 4:offset + 4 + size]
+        else:
+            data = Block()
         return Chunk(spc_address=spc_address, data=data)
 
     def to_file(self, f):
@@ -102,7 +103,7 @@ class Subsequence(StringRepresentationMixin, Sequence):
         return resource_open("Music/sequences/{:03d}".format(bgm_id), "yml")
 
     def to_resource(self, resource_open, sequence_pack_map):
-        # Get a list of possible sequence which this could be a subsequence of.
+        # Get a list of possible sequences which this could be a subsequence of.
         # A subsequence can be of any sequence which is loaded. Sequences will only be loaded if they are either in
         # the loaded sequence pack or the program pack (1).
         if self.sequence_pack_id == 0xff:
@@ -110,7 +111,7 @@ class Subsequence(StringRepresentationMixin, Sequence):
         else:
             possible_sequences = sequence_pack_map[self.sequence_pack_id]
 
-        if self.sequence_pack_id != 1:
+        if self.sequence_pack_id != 1 and 1 in sequence_pack_map:
             possible_sequences += sequence_pack_map[1]
 
         for possible_sequence in possible_sequences:
@@ -205,4 +206,10 @@ class BrrWaveform(object):
             if block_filter != 0:
                 filter_function = _BRR_FILTERS[block_filter]
                 for i in xrange(16):
-                    filter_function(self, block_index * 16)
+                    filter_function(self, block_index * 16 + i)
+
+    @classmethod
+    def create_from_block(cls, block, offset):
+        brr = cls()
+        brr.from_block(block=block, offset=offset)
+        return brr

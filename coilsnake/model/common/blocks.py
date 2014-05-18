@@ -49,6 +49,12 @@ class Block(object):
         self.data = array.array('B')
         self.data.fromlist(data_list)
 
+    @classmethod
+    def create_from_list(cls, data_list):
+        block = cls()
+        block.from_list(data_list=data_list)
+        return block
+
     def from_array(self, data_array):
         self.size = len(data_array)
         del self.data
@@ -62,11 +68,11 @@ class Block(object):
             self.data = sub_block.data
 
     def to_file(self, f):
-        if type(f) == file:
-            self.data.tofile(f)
-        else:
+        if type(f) == str:
             with open(f, 'wb') as fh:
                 self.data.tofile(fh)
+        else:
+            self.data.tofile(f)
 
     def to_list(self):
         return self.data.tolist()
