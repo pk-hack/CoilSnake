@@ -124,7 +124,6 @@ class Subsequence(StringRepresentationMixin, Sequence):
         # This subsequence does not match against any sequence, so it must be invalid. Don't write it to any resources.
         log.debug("{} does not match any sequence".format(self))
 
-
     def contains_spc_address(self, spc_address):
         return False
 

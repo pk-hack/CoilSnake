@@ -20,7 +20,7 @@ def read_pack(block, offset):
 
 
 def get_sequence_pointer(bgm_id, program_chunk):
-    return program_chunk.data.read_multi(0x294a + bgm_id*2, 2)
+    return program_chunk.data.read_multi(0x2948 + bgm_id*2, 2)
 
 
 # The sizes of sequences which are embedded inside the "program" chunk. Because these sequences aren't stored as
@@ -49,7 +49,7 @@ BUILTIN_SEQUENCE_SIZES = {
 
 def create_sequence(bgm_id, sequence_pack_id, sequence_pack, program_chunk):
     sequence_pointer = get_sequence_pointer(bgm_id=bgm_id, program_chunk=program_chunk)
-    log.debug("Reading BGM {:#x}'s sequence from address[{:#x}]".format(bgm_id+1, sequence_pointer))
+    log.debug("Reading BGM {:#x}'s sequence from address[{:#x}]".format(bgm_id, sequence_pointer))
 
     # If the sequence is a chunk in the sequence_pack, return the chunk
     if sequence_pack and sequence_pointer in sequence_pack:
