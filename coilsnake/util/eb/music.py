@@ -1,6 +1,6 @@
 import logging
 
-from coilsnake.model.eb.music import Chunk
+from coilsnake.model.eb.music import Chunk, Sequence
 
 
 log = logging.getLogger(__name__)
@@ -47,22 +47,31 @@ BUILTIN_SEQUENCE_SIZES = {
 }
 
 
-def get_sequence_as_chunk(bgm_id, program_chunk, sequence_pack):
+def create_sequence(bgm_id, sequence_pack_id, sequence_pack, program_chunk):
     sequence_pointer = get_sequence_pointer(bgm_id=bgm_id, program_chunk=program_chunk)
     log.debug("Reading BGM {:#x}'s sequence from address[{:#x}]".format(bgm_id+1, sequence_pointer))
 
     # If the sequence is a chunk in the sequence_pack, return the chunk
     if sequence_pack and sequence_pointer in sequence_pack:
-        return sequence_pack[sequence_pointer]
+        return Sequence.create_from_chunk(chunk=sequence_pack[sequence_pointer],
+                                          bgm_id=bgm_id,
+                                          sequence_pack_id=sequence_pack_id)
 
-    # If the sequence is one of the sequences builtin to the program chunk, return the sequence as a new chunk
+    # If the sequence is one of the sequences builtin to the program chunk, return the builtin sequence as a new chunk
     if sequence_pointer in BUILTIN_SEQUENCE_SIZES:
         sequence_size = BUILTIN_SEQUENCE_SIZES[sequence_pointer]
         sequence_offset_in_program = sequence_pointer - program_chunk.spc_address
-        return Chunk(sequence_pointer,
-                     program_chunk.data[sequence_offset_in_program:sequence_offset_in_program + sequence_size])
+        chunk = Chunk(spc_address=sequence_pointer,
+                      data=program_chunk.data[sequence_offset_in_program:sequence_offset_in_program + sequence_size])
+        return Sequence.create_from_chunk(chunk=chunk,
+                                          bgm_id=bgm_id,
+                                          sequence_pack_id=sequence_pack_id)
 
-    # TODO read in sequences which start in the middle of a sequence chunk
-    log.error("Attempted to read invalid sequence @ {:#x}".format(sequence_pointer))
-    return None
+    # If none of the above are true, create the sequence from the address only
+    log.debug("Could not find sequence chunk for bgm_id[{}] @ spc_address[{:#x}], assuming it's a subsequence".format(
+        bgm_id, sequence_pointer
+    ))
+    return Sequence.create_from_spc_address(spc_address=sequence_pointer,
+                                            bgm_id=bgm_id,
+                                            sequence_pack_id=sequence_pack_id)
 

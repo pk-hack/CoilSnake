@@ -2,7 +2,7 @@ import logging
 
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.eb.music import read_pack, get_sequence_as_chunk
+from coilsnake.util.eb.music import read_pack, create_sequence
 from coilsnake.util.eb.pointer import from_snes_address
 
 
@@ -10,10 +10,6 @@ log = logging.getLogger(__name__)
 
 PACK_POINTER_TABLE_OFFSET = 0xC4F947
 MUSIC_DATASET_TABLE_OFFSET = 0xC4F70A
-
-
-def resource_open_sequence(resource_open, sequence_id):
-    return resource_open("Music/sequences/{:03d}".format(sequence_id), "ebm")
 
 
 class MusicModule(EbModule):
@@ -56,13 +52,20 @@ class MusicModule(EbModule):
                 sequence_pack = None
             else:
                 sequence_pack = packs[sequence_pack_id]
-            sequence_chunk = get_sequence_as_chunk(bgm_id=bgm_id,
-                                                   program_chunk=program_chunk,
-                                                   sequence_pack=sequence_pack)
-            self.sequences[bgm_id] = sequence_chunk
+            self.sequences[bgm_id] = create_sequence(bgm_id=bgm_id,
+                                                     sequence_pack_id=sequence_pack_id,
+                                                     sequence_pack=sequence_pack,
+                                                     program_chunk=program_chunk)
 
     def write_to_project(self, resource_open):
-        for bgm_id, sequence in enumerate(self.sequences):
-            with resource_open_sequence(resource_open, bgm_id) as f:
-                if sequence:
-                    sequence.to_file(f)
+        sequence_pack_map = dict()
+        for sequence in self.sequences:
+            sequence_pack_id = sequence.sequence_pack_id
+            if sequence_pack_id in sequence_pack_map:
+                sequence_pack_map[sequence_pack_id].append(sequence)
+            else:
+                sequence_pack_map[sequence_pack_id] = [sequence]
+
+        for sequence in self.sequences:
+            sequence.to_resource(resource_open=resource_open,
+                                 sequence_pack_map=sequence_pack_map)
