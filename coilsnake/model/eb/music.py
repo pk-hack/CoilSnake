@@ -3,14 +3,14 @@ from coilsnake.exceptions.common.exceptions import CoilSnakeError
 
 class Chunk(object):
     def __init__(self, spc_address, data):
-        if spc_address + len(data) >= 0x10000:
+        if spc_address + len(data) > 0x10000:
             raise CoilSnakeError("Invalid chunk, stretches past SPC memory")
 
         self.spc_address = spc_address
         self.data = data
 
     @classmethod
-    def from_block(cls, block, offset):
+    def create_from_block(cls, block, offset):
         size = block.read_multi(offset, 2)
         if size == 0:
             return None
