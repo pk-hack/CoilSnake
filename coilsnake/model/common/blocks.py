@@ -61,9 +61,12 @@ class Block(object):
             self.size = sub_block.size
             self.data = sub_block.data
 
-    def to_file(self, filename):
-        with open(filename, 'wb') as f:
+    def to_file(self, f):
+        if type(f) == file:
             self.data.tofile(f)
+        else:
+            with open(f, 'wb') as fh:
+                self.data.tofile(fh)
 
     def to_list(self):
         return self.data.tolist()
