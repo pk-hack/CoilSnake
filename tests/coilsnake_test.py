@@ -30,6 +30,9 @@ class TemporaryWritableFileTestCase(object):
         self.temporary_wo_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
         self.temporary_wo_file_name = self.temporary_wo_file.name
 
+    def resource_open_temporary_wo_file(self, resource_name, extension):
+        return open(self.temporary_wo_file_name, "w")
+
     def teardown(self):
         if not self.temporary_wo_file.closed:
             self.temporary_wo_file.close()
