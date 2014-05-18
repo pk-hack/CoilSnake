@@ -47,6 +47,27 @@ class EbPointerTableEntry(LittleEndianIntegerTableEntry):
         return "${:x}".format(value)
 
 
+class EbHilomidPointerTableEntry(LittleEndianIntegerTableEntry):
+    @staticmethod
+    def create(size):
+        if size != 3:
+            raise InvalidArgumentError(("Could not create EbHilomidPointerTableEntry with size[{}], "
+                                       + "must have a size of 3").format(size))
+        return type("EbHilomidPointerTableEntry_subclass",
+                    (EbHilomidPointerTableEntry,),
+                    {"size": size})
+
+    @classmethod
+    def from_block(cls, block, offset):
+        return (block[offset] << 16) | block[offset+1] | (block[offset+2] << 8)
+
+    @classmethod
+    def to_block(cls, block, offset, value):
+        block[offset] = value >> 16
+        block[offset+1] = value & 0xff
+        block[offset+2] = (value >> 8) & 0xff
+
+
 class EbPaletteTableEntry(TableEntry):
     @classmethod
     def from_block(cls, block, offset):
@@ -202,6 +223,7 @@ class EbRowTableEntry(GenericLittleEndianRowTableEntry):
     TABLE_ENTRY_CLASS_MAP = dict(
         GenericLittleEndianRowTableEntry.TABLE_ENTRY_CLASS_MAP,
         **{"pointer": (EbPointerTableEntry, ["name", "size"]),
+           "hilomid pointer": (EbHilomidPointerTableEntry, ["size"]),
            "palette": (EbPaletteTableEntry, ["name", "size"]),
            "standardtext": (EbStandardTextTableEntry, ["name", "size"]),
            "standardtext null-terminated": (EbStandardNullTerminatedTextTableEntry, ["name", "size"])})
