@@ -25,7 +25,7 @@ class MusicModule(EbModule):
     def read_from_rom(self, rom):
         self.pack_pointer_table.from_block(block=rom, offset=from_snes_address(PACK_POINTER_TABLE_OFFSET))
         self.music_dataset_table.from_block(block=rom, offset=from_snes_address(MUSIC_DATASET_TABLE_OFFSET))
-        self.sequences = [None] * self.music_dataset_table.num_rows
+        self.sequences = [None] * (self.music_dataset_table.num_rows + 1)
 
         # Read the packs
         pack_offsets = [from_snes_address(self.pack_pointer_table[i][0])
@@ -45,9 +45,9 @@ class MusicModule(EbModule):
             #self.instrument_sets[instrument_pack_id] =
 
         # Read the sequences
-        for bgm_id in range(self.music_dataset_table.num_rows):
-            sequence_pack_id = self.music_dataset_table[bgm_id][2]
-            log.info("Reading sequence for BGM {:#x} using sequence pack[{:#x}]".format(bgm_id+1, sequence_pack_id))
+        for bgm_id in range(1, self.music_dataset_table.num_rows+1):
+            sequence_pack_id = self.music_dataset_table[bgm_id-1][2]
+            log.info("Reading sequence for BGM {:#x} using sequence pack[{:#x}]".format(bgm_id, sequence_pack_id))
             if sequence_pack_id == 0xff:
                 sequence_pack = None
             else:
@@ -59,13 +59,13 @@ class MusicModule(EbModule):
 
     def write_to_project(self, resource_open):
         sequence_pack_map = dict()
-        for sequence in self.sequences:
+        for sequence in self.sequences[1:]:
             sequence_pack_id = sequence.sequence_pack_id
             if sequence_pack_id in sequence_pack_map:
                 sequence_pack_map[sequence_pack_id].append(sequence)
             else:
                 sequence_pack_map[sequence_pack_id] = [sequence]
 
-        for sequence in self.sequences:
+        for sequence in self.sequences[1:]:
             sequence.to_resource(resource_open=resource_open,
                                  sequence_pack_map=sequence_pack_map)
