@@ -5,24 +5,6 @@ from coilsnake.model.eb.music import Chunk, Sequence
 
 log = logging.getLogger(__name__)
 
-
-def read_pack(block, offset):
-    pack = dict()
-
-    while True:
-        chunk = Chunk.create_from_block(block, offset)
-        if chunk is None:
-            break
-        pack[chunk.spc_address] = chunk
-        offset += chunk.chunk_size()
-
-    return pack
-
-
-def get_sequence_pointer(bgm_id, program_chunk):
-    return program_chunk.data.read_multi(0x2948 + bgm_id*2, 2)
-
-
 # The sizes of sequences which are embedded inside the "program" chunk. Because these sequences aren't stored as
 # individual chunks, their sizes are not stored in the ROM, so the sizes are hardcoded here.
 # These values come from BlueStone, who documented these sequences:
@@ -45,6 +27,23 @@ BUILTIN_SEQUENCE_SIZES = {
     0x44FC: 97,   # 0x73 - Phone Call
     0x455D: 302,  # 0x7B - New Party Member
 }
+
+
+def read_pack(block, offset):
+    pack = dict()
+
+    while True:
+        chunk = Chunk.create_from_block(block, offset)
+        if chunk.data_size() == 0:
+            break
+        pack[chunk.spc_address] = chunk
+        offset += chunk.chunk_size()
+
+    return pack
+
+
+def get_sequence_pointer(bgm_id, program_chunk):
+    return program_chunk.data.read_multi(0x2948 + bgm_id*2, 2)
 
 
 def create_sequence(bgm_id, sequence_pack_id, sequence_pack, program_chunk):
@@ -74,4 +73,3 @@ def create_sequence(bgm_id, sequence_pack_id, sequence_pack, program_chunk):
     return Sequence.create_from_spc_address(spc_address=sequence_pointer,
                                             bgm_id=bgm_id,
                                             sequence_pack_id=sequence_pack_id)
-
