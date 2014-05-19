@@ -1,6 +1,6 @@
 import logging
 
-from coilsnake.model.eb.music import EbInstrumentSet
+from coilsnake.model.eb.music import EbInstrumentSet, EbNoteStyles
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.eb.music import read_pack, create_sequence
@@ -20,6 +20,8 @@ class MusicModule(EbModule):
         super(MusicModule, self).__init__()
         self.pack_pointer_table = eb_table_from_offset(offset=PACK_POINTER_TABLE_OFFSET)
         self.music_dataset_table = eb_table_from_offset(offset=MUSIC_DATASET_TABLE_OFFSET)
+
+        self.note_styles = EbNoteStyles()
         self.instrument_sets = []
         self.sequences = []
 
@@ -34,6 +36,8 @@ class MusicModule(EbModule):
                         for i in range(self.pack_pointer_table.num_rows)]
         packs = [read_pack(rom, x) for x in pack_offsets]
         program_chunk = packs[1][0x0500]
+
+        self.note_styles.read_from_packs(packs)
 
         # Read the pack ids which are used as instrument packs by BGMs
         instrument_pack_ids = reduce(lambda x, y: x.union(y),
@@ -63,6 +67,8 @@ class MusicModule(EbModule):
                                                      program_chunk=program_chunk)
 
     def write_to_project(self, resource_open):
+        self.note_styles.write_to_project(resource_open)
+
         sequence_pack_map = dict()
         for sequence in self.sequences[1:]:
             sequence_pack_id = sequence.sequence_pack_id

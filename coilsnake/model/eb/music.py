@@ -22,6 +22,8 @@ INSTRUMENT_TABLE_SPC_OFFSET = 0x6e00
 # The maximum number of instruments which can be in SPC memory at once
 MAX_NUMBER_OF_INSTRUMENTS = 0xAC
 
+NOTE_STYLE_TABLES_SPC_OFFSET = 0x6F80
+
 
 class Chunk(StringRepresentationMixin, object):
     def __init__(self, spc_address, data):
@@ -393,3 +395,33 @@ class EbInstrumentSet(object):
         if samples_yml_rep:
             with EbInstrumentSet._resource_open_samples(resource_open, instrument_set_id) as f:
                 yml_dump(samples_yml_rep, f, default_flow_style=False)
+
+
+class EbNoteStyles(object):
+    def __init__(self):
+        self.release_settings = None
+        self.volumes = None
+
+    def read_from_packs(self, packs):
+        for pack in packs:
+            if pack:
+                for chunk in pack.itervalues():
+                    if chunk.contains_spc_address(NOTE_STYLE_TABLES_SPC_OFFSET):
+                        break
+                else:
+                    continue
+                break
+        else:
+            raise InvalidArgumentError("Packs do not contain any note styles data")
+
+        offset = NOTE_STYLE_TABLES_SPC_OFFSET - chunk.spc_address
+        self.release_settings = chunk.data[offset:offset+8].to_list()
+        self.volumes = chunk.data[offset+8:offset+24].to_list()
+
+    def yml_rep(self):
+        return {"Release Settings": self.release_settings,
+                "Volumes": self.volumes}
+
+    def write_to_project(self, resource_open):
+        with resource_open("Music/note_styles", "yml") as f:
+            yml_dump(self.yml_rep(), f, default_flow_style=False)
