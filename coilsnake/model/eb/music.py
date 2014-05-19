@@ -242,12 +242,16 @@ class BrrWaveform(object):
 class EbSample(BrrWaveform):
     def __init__(self):
         super(EbSample, self).__init__()
-        self.loop_offset = 0
+        self.loop_point = 0
 
     @classmethod
     def create_from_chunk(cls, chunk, offset, loop_offset):
         sample = EbSample.create_from_block(chunk.data, offset - chunk.spc_address)
-        sample.loop_offset = loop_offset - offset
+        sample.loop_point = loop_offset - offset
+        if sample.loop_point % 9 != 0:
+            raise InvalidArgumentError("EbSample cannot have loop_point at offset[{}] which is not a multiple of 9"
+                                       .format(sample.loop_point))
+        sample.loop_point /= 9
         return sample
 
     @staticmethod
@@ -259,7 +263,7 @@ class EbSample(BrrWaveform):
             self.to_wav_file(f, sampling_rate=32000)
 
     def yml_rep(self):
-        return {"Loop Offset": self.loop_offset}
+        return {"Loop Point": self.loop_point}
 
 
 class EbInstrument(object):
@@ -324,7 +328,7 @@ class EbInstrumentSet(object):
             if sample_offset == 0xffff:
                 continue
             log.debug("Reading sample[{}] at spc_offset[{:#x}]".format(sample_id, sample_offset))
-            sample_loop_offset = sample_pointer_chunk.data.read_multi(i + 2, 2) - sample_offset
+            sample_loop_offset = sample_pointer_chunk.data.read_multi(i + 2, 2)
 
             for sample_chunk in pack.itervalues():
                 if sample_chunk.contains_spc_address(sample_offset):
