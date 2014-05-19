@@ -76,7 +76,7 @@ class TestSubsequence(BaseTestCase, TemporaryWritableFileTestCase):
                                            sequence_pack_id=1)],
         }
 
-        subsequence.to_resource(resource_open=self.resource_open_temporary_wo_file,
+        subsequence.write_to_project(resource_open=self.resource_open_temporary_wo_file,
                                 sequence_pack_map=sequence_pack_map)
         with open(self.temporary_wo_file_name, "r") as f:
             subsequence_yml = yml_load(f)
@@ -98,7 +98,7 @@ class TestSubsequence(BaseTestCase, TemporaryWritableFileTestCase):
                                            sequence_pack_id=1)],
         }
 
-        subsequence.to_resource(resource_open=self.resource_open_temporary_wo_file,
+        subsequence.write_to_project(resource_open=self.resource_open_temporary_wo_file,
                                 sequence_pack_map=sequence_pack_map)
         with open(self.temporary_wo_file_name, "r") as f:
             subsequence_yml = yml_load(f)
@@ -114,7 +114,7 @@ class TestSubsequence(BaseTestCase, TemporaryWritableFileTestCase):
         }
 
         resource_open = mock.Mock()
-        subsequence.to_resource(resource_open=resource_open,
+        subsequence.write_to_project(resource_open=resource_open,
                                 sequence_pack_map=sequence_pack_map)
         assert_false(resource_open.called)
 
