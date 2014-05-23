@@ -1,3 +1,5 @@
+from coilsnake.exceptions.common.exceptions import TableSchemaError, \
+    TableEntryError
 from coilsnake.model.common.table import LittleEndianIntegerTableEntry, \
     RowTableEntry, TableEntry
 from coilsnake.model.eb.table import EbEventFlagTableEntry
@@ -96,9 +98,22 @@ class MapEnemyGroupTableEntry(TableEntry):
     @classmethod
     def from_yml_rep(cls, yml_rep):
         group_value = MapEnemyGroupHeaderTableEntry.from_yml_rep(yml_rep)
-        subgroup_1 = [MapEnemySubGroupTableEntry.from_yml_rep(x) for x in yml_rep["Sub-Group 1"].itervalues()]
-        subgroup_2 = [MapEnemySubGroupTableEntry.from_yml_rep(x) for x in yml_rep["Sub-Group 2"].itervalues()]
+        subgroup_1 = cls._subgroup_from_yml_rep(yml_rep["Sub-Group 1"], "Sub-Group 1")
+        subgroup_2 = cls._subgroup_from_yml_rep(yml_rep["Sub-Group 2"], "Sub-Group 2")
         return group_value, subgroup_1, subgroup_2
+    
+    @classmethod
+    def _subgroup_from_yml_rep(cls, subgroup_yml_rep, field_id):
+        if not subgroup_yml_rep:
+            return []
+        subgroup = [MapEnemySubGroupTableEntry.from_yml_rep(x) for x in subgroup_yml_rep.itervalues()]
+        subgroup_sum = sum([x[0] for x in subgroup])
+        if subgroup_sum != 8:
+            raise TableSchemaError(field=field_id,
+                                   cause=TableEntryError(
+                                       ("A Map Enemy Sub-Group's probabilities have a sum exactly 8, "
+                                        "instead has a sum of {}").format(subgroup_sum)))
+        return subgroup
 
     @classmethod
     def yml_rep_hex_labels(cls):
