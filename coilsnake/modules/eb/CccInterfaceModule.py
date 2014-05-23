@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 
 class CccInterfaceModule(EbModule):
-    NAME = "CCScript"
+    NAME = "CCScript Labels"
 
     SUMMARY_RESOURCE_NAME = 'ccscript/summary'
     SUMMARY_RESOURCE_EXTENSION = 'txt'

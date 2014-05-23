@@ -7,28 +7,10 @@ using modified assets.
 Most of the game's data is editable by CoilSnake, making it possible to create entirely new games in the EarthBound
 engine.
 
-### Installation
+### Download
 
-#### Windows
-
-Download the Windows version of CoilSnake [here](http://kiij.github.io/CoilSnake/).
-
-#### Linux
-
-    sudo apt-get install python-pip python-dev libyaml-dev python-tk \
-                         g++ libboost-filesystem-dev
-    git clone https://github.com/kiij/CoilSnake.git
-    cd CoilSnake
-    make
-    sudo make install
-
-After installing, you can start up the GUI with:
-
-    coilsnake
-
-To use the command line interface:
-
-    coilsnake-cli
+Download and usage instructions for Windows and Linux can be found on the
+[CoilSnake website](http://kiij.github.io/CoilSnake/download.html).
 
 ### Development
 
@@ -40,7 +22,7 @@ which makes CoilSnake available on `sys.path` but also allows it to be edited di
     ./script/gui.py  # Launch the GUI
     ./script/cli.py  # Launch the CLI
 
-### Running the Tests
+#### Running the Tests
 
     make test
 

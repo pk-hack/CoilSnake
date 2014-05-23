@@ -12,8 +12,5 @@ def open_asset(*path):
     return open(asset_path(path), 'r')
 
 
-def ccc_file_name():
-    if sys.platform == "win32" or sys.platform == "cygwin":
-        return asset_path(["ccc", "ccc.exe"])
-    else:
-        return asset_path(["ccc", "ccc"])
+def ccscript_library_path():
+    return asset_path(["mobile-sprout", "lib"])

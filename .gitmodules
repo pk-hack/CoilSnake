@@ -1,6 +1,3 @@
-[submodule "ccscript_legacy"]
-	path = ccscript_legacy
-	url = git://github.com/mraccident/ccscript_legacy.git
-[submodule "mobile-sprout"]
-	path = mobile-sprout
-	url = git://github.com/kiij/mobile-sprout
+[submodule "coilsnake/assets/mobile-sprout"]
+	path = coilsnake/assets/mobile-sprout
+	url = git://github.com/kiij/mobile-sprout.git

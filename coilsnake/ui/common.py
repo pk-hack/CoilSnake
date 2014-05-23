@@ -2,24 +2,25 @@ import logging
 import os
 from shutil import copyfile
 import time
-from subprocess import Popen, PIPE
 import sys
 
+from ccscript import ccc
 from CCScriptWriter.CCScriptWriter import CCScriptWriter
-
 from coilsnake.util.common.project import FORMAT_VERSION, PROJECT_FILENAME, get_version_name
-from coilsnake.exceptions.common.exceptions import CoilSnakeError
+from coilsnake.exceptions.common.exceptions import CoilSnakeError, CCScriptCompilationError
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui.formatter import CoilSnakeFormatter
 from coilsnake.util.common.project import Project
-from coilsnake.util.common.assets import open_asset, ccc_file_name
+from coilsnake.util.common.assets import open_asset, ccscript_library_path
 
 
 log = logging.getLogger(__name__)
 
 
-def setup_logging(quiet=False, verbose=False):
-    handler = logging.StreamHandler()
+def setup_logging(quiet=False, verbose=False, stream=None):
+    if not stream:
+        stream = sys.stdout
+    handler = logging.StreamHandler(stream=stream)
     handler.setFormatter(CoilSnakeFormatter())
     if quiet:
         logging.root.disabled = True
@@ -92,29 +93,23 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, ccscri
                         if x.lower().endswith('.ccs')]
 
     if script_filenames:
-        log.info("Calling CCScript compiler")
+        log.info("Compiling CCScript")
         if not ccscript_offset:
             ccscript_offset = "F10000"
         elif type(ccscript_offset) == int:
             ccscript_offset = "{:x}".format(ccscript_offset)
 
-        process = Popen(
-            [ccc_file_name(),
-             "-n",
-             "-o", output_rom_filename,
-             "-s", ccscript_offset,
-             "--summary", os.path.join(project_path, "ccscript", "summary.txt")]
-            + script_filenames,
-            stdout=PIPE,
-            stderr=PIPE,
-            shell=(sys.platform == 'win32'))
+        ccc_args = ["-n",
+                    "--libs", ccscript_library_path(),
+                    "--summary", os.path.join(project_path, "ccscript", "summary.txt"),
+                    "-s", ccscript_offset,
+                    "-o", output_rom_filename] + script_filenames
+        ccc_returncode, ccc_log = ccc(ccc_args)
 
-        cccStdin, cccStderr = process.communicate()
-        if process.returncode == 0:
-            log.info("CCScript compiler finished successfully")
+        if ccc_returncode == 0:
+            log.info("Finished compiling CCScript")
         else:
-            log.error("CCScript compiler failed with the following message:\n" + cccStderr)
-            raise CoilSnakeError("CCScript compilation failed")
+            raise CCScriptCompilationError("CCScript compilation failed with output:\n" + ccc_log)
 
     rom = Rom()
     rom.from_file(output_rom_filename)

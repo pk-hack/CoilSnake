@@ -239,6 +239,8 @@ Please configure Java in the Settings menu.""")
 
             self.progress_bar.clear()
 
+            log.info("Starting compilation...")
+
             thread = Thread(target=self._do_compile_help, args=(project, base_rom, rom))
             thread.start()
 
@@ -378,10 +380,8 @@ Please configure Java in the Settings menu.""")
         self.notebook.bind("<<NotebookTabChanged>>", tab_changed)
 
         self.console_stream = self.console
-        sys.stdout = self.console_stream
-        sys.stderr = self.console_stream
 
-        setup_logging(quiet=False, verbose=False)
+        setup_logging(quiet=False, verbose=False, stream=self.console_stream)
         self.refresh_debug_logging()
 
     def create_about_window(self):

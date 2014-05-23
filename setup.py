@@ -15,10 +15,12 @@ setup(
     install_requires=[
         "Pillow>=2.4.0",
         "PyYAML>=3.11",
-        "CCScriptWriter>=1.1"
+        "CCScriptWriter>=1.1",
+        "ccscript>=1.337"
     ],
     dependency_links=[
-        "http://github.com/Lyrositor/CCScriptWriter/tarball/master#egg=CCScriptWriter-1.1"
+        "http://github.com/Lyrositor/CCScriptWriter/tarball/master#egg=CCScriptWriter-1.1",
+        "http://github.com/mraccident/ccscript_legacy/tarball/master#egg=ccscript-1.337"
     ],
     ext_modules=[
         Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c"])
