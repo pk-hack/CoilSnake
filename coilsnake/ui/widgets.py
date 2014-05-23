@@ -55,24 +55,46 @@ class AbstractProgressBar(object):
 
 
 class CoilSnakeGuiProgressBar(Progressbar):
+    COMMAND_SET, COMMAND_TICK, COMMAND_CYCLE_START, COMMAND_CYCLE_STOP = range(4)
+
     def __init__(self, master, **options):
         Progressbar.__init__(self, master, **options)
+        self.queue = Queue.Queue()
+        self.check_queue()
 
     def set(self, percentage):
-        percentage = min(max(percentage, 0.0), 1.0)
-        self["value"] = percentage * 100
+        self.queue.put((CoilSnakeGuiProgressBar.COMMAND_SET, percentage))
 
     def tick(self, percentage):
-        self["value"] += percentage * 100
+        self.queue.put((CoilSnakeGuiProgressBar.COMMAND_TICK, percentage))
 
     def clear(self):
         self.set(0)
 
     def cycle_animation_start(self):
-        self["mode"] = "indeterminate"
-        self.start()
+        self.queue.put((CoilSnakeGuiProgressBar.COMMAND_CYCLE_START, None))
 
     def cycle_animation_stop(self):
-        self.stop()
-        self["mode"] = "determinate"
-        self.clear()
+        self.queue.put((CoilSnakeGuiProgressBar.COMMAND_CYCLE_STOP, None))
+
+    def check_queue(self):
+        while True:
+            try:
+                command, argument = self.queue.get(block=False)
+            except Queue.Empty:
+                break
+            else:
+                if command == CoilSnakeGuiProgressBar.COMMAND_SET:
+                    percentage = min(max(argument, 0.0), 1.0)
+                    self["value"] = percentage * 100
+                elif command == CoilSnakeGuiProgressBar.COMMAND_TICK:
+                    self["value"] += argument * 100
+                elif command == CoilSnakeGuiProgressBar.COMMAND_CYCLE_START:
+                    self["mode"] = "indeterminate"
+                    self.start()
+                elif command == CoilSnakeGuiProgressBar.COMMAND_CYCLE_STOP:
+                    self.stop()
+                    self["mode"] = "determinate"
+                    self["value"] = 0
+
+        self.after(50, self.check_queue)
