@@ -3,7 +3,7 @@ import logging
 from coilsnake.model.eb.music import EbInstrumentSet, EbNoteStyles
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.eb.music import read_pack, create_sequence
+from coilsnake.util.eb.music import read_pack, create_sequence, remove_sequences_from_program_chunk
 from coilsnake.util.eb.pointer import from_snes_address
 
 
@@ -19,7 +19,8 @@ class MusicModule(EbModule):
     def __init__(self):
         super(MusicModule, self).__init__()
         self.pack_pointer_table = eb_table_from_offset(offset=PACK_POINTER_TABLE_OFFSET)
-        self.music_dataset_table = eb_table_from_offset(offset=MUSIC_DATASET_TABLE_OFFSET)
+        self.music_dataset_table = eb_table_from_offset(offset=MUSIC_DATASET_TABLE_OFFSET,
+                                                        hidden_columns=["Sequence Set"])
 
         self.note_styles = EbNoteStyles()
         self.instrument_sets = []
@@ -35,7 +36,7 @@ class MusicModule(EbModule):
         pack_offsets = [from_snes_address(self.pack_pointer_table[i][0])
                         for i in range(self.pack_pointer_table.num_rows)]
         packs = [read_pack(rom, x) for x in pack_offsets]
-        program_chunk = packs[1][0x0500]
+        self.program_chunk = packs[1][0x0500]
 
         self.note_styles.read_from_packs(packs)
 
@@ -64,11 +65,11 @@ class MusicModule(EbModule):
             self.sequences[bgm_id] = create_sequence(bgm_id=bgm_id,
                                                      sequence_pack_id=sequence_pack_id,
                                                      sequence_pack=sequence_pack,
-                                                     program_chunk=program_chunk)
+                                                     program_chunk=self.program_chunk)
 
-    def write_to_project(self, resource_open):
-        self.note_styles.write_to_project(resource_open)
+        remove_sequences_from_program_chunk(self.program_chunk)
 
+    def write_sequences_to_project(self, resource_open):
         sequence_pack_map = dict()
         for sequence in self.sequences[1:]:
             sequence_pack_id = sequence.sequence_pack_id
@@ -76,12 +77,21 @@ class MusicModule(EbModule):
                 sequence_pack_map[sequence_pack_id].append(sequence)
             else:
                 sequence_pack_map[sequence_pack_id] = [sequence]
-
         for sequence in self.sequences[1:]:
             sequence.write_to_project(resource_open=resource_open,
                                       sequence_pack_map=sequence_pack_map)
 
+    def write_instruments_to_project(self, resource_open):
         for instrument_set_id, instrument_set in enumerate(self.instrument_sets):
             if instrument_set is None:
                 continue
             instrument_set.write_to_project(resource_open=resource_open, instrument_set_id=instrument_set_id)
+
+    def write_to_project(self, resource_open):
+        self.note_styles.write_to_project(resource_open)
+        with resource_open("Music/songs", "yml") as f:
+            self.music_dataset_table.to_yml_file(f)
+        self.write_sequences_to_project(resource_open)
+        self.write_instruments_to_project(resource_open)
+        with resource_open("Music/program", "bin") as f:
+            self.program_chunk.to_file(f)

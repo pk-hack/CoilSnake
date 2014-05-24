@@ -73,3 +73,8 @@ def create_sequence(bgm_id, sequence_pack_id, sequence_pack, program_chunk):
     return Sequence.create_from_spc_address(spc_address=sequence_pointer,
                                             bgm_id=bgm_id,
                                             sequence_pack_id=sequence_pack_id)
+
+
+def remove_sequences_from_program_chunk(program_chunk):
+    # 0x2FDD is where the sequence data starts in the program, as shown in BUILTIN_SEQUENCE_SIZES
+    program_chunk.truncate(0x2FDD)

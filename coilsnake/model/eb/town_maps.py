@@ -1,20 +1,20 @@
 from coilsnake.model.common.table import RowTableEntry, LittleEndianIntegerTableEntry, \
     EnumeratedLittleEndianIntegerTableEntry
 from coilsnake.model.eb.table import EbPointerTableEntry, EbEventFlagTableEntry
-from coilsnake.util.common.type import enum_class_from_name_list
+from coilsnake.util.common.type import GenericEnum
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
 
 TOWN_MAP_NAMES = ["Onett", "Twoson", "Threed", "Fourside", "Scaraba", "Summers"]
 
-TownMapEnum = enum_class_from_name_list(TOWN_MAP_NAMES)
+TownMapEnum = GenericEnum.create("TownMapEnum", TOWN_MAP_NAMES)
 
 TOWN_MAP_ICON_NAMES = ["Nothing", "Hamburger Shop", "Bakery", "Hotel", "Restaurant", "Hospital", "Shop",
                        "Dept Store", "Bus Stop", "South to Twoson", "North to Onett", "South to Threed",
                        "West to Twoson", "East to Desert", "West to Desert", "East to Toto", "Hint", "Ness",
                        "Small Ness", "North", "South", "West", "East"]
 
-TownMapIconEnum = enum_class_from_name_list(TOWN_MAP_ICON_NAMES)
+TownMapIconEnum = GenericEnum.create("TownMapIconEnum", TOWN_MAP_ICON_NAMES)
 
 TownMapIconPlacementTableEntry = RowTableEntry.from_schema(
     name="Town Map Icon Placement Table Entry",
