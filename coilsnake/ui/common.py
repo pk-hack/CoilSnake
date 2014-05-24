@@ -12,7 +12,7 @@ from coilsnake.exceptions.common.exceptions import CoilSnakeError, CCScriptCompi
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui.formatter import CoilSnakeFormatter
 from coilsnake.util.common.project import Project
-from coilsnake.util.common.assets import open_asset, ccscript_library_path
+from coilsnake.util.common.assets import open_asset, ccscript_library_path, asset_exists
 
 
 log = logging.getLogger(__name__)
@@ -213,7 +213,10 @@ def decompile_script(rom_filename, project_path, progress_bar=None):
 
 def load_modules():
     all_modules = []
-    with open_asset("modulelist.txt") as f:
+    modulelist_filename = "modulelist.txt"
+    if asset_exists("modulelist-override.txt"):
+        modulelist_filename = "modulelist-override.txt"
+    with open_asset(modulelist_filename) as f:
         for line in f:
             line = line.rstrip('\n')
             if line[0] == '#':
