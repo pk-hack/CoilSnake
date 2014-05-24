@@ -3,6 +3,8 @@
 import os
 from distutils.core import setup, Extension
 
+import py2exe
+
 data_files = []
 for root, sub_folders, files in os.walk(os.path.join("coilsnake", "assets")):
     directory_file_list = []
