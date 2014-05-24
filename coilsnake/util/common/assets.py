@@ -1,5 +1,4 @@
 import os
-import sys
 
 from coilsnake.root import ASSET_PATH
 
@@ -10,6 +9,10 @@ def asset_path(path):
 
 def open_asset(*path):
     return open(asset_path(path), 'r')
+
+
+def asset_exists(*path):
+    return os.path.exists(asset_path(path))
 
 
 def ccscript_library_path():
