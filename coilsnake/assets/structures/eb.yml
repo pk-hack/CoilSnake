@@ -190,12 +190,12 @@
   type: data
 12908298: &id079
   entries:
-  - name: Sample Set 1
+  - name: Instrument Set 1
     size: 1
     type: int
     values:
       255: None
-  - name: Sample Set 2
+  - name: Instrument Set 2
     size: 1
     type: int
     values:

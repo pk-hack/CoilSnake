@@ -130,15 +130,11 @@ class LittleEndianOneBasedIntegerTableEntry(LittleEndianIntegerTableEntry):
 class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):
     @staticmethod
     def create(name, size, values):
-        enumeration_class = type("GenericEnum_{}".format(name),
-                                 (GenericEnum,),
-                                 dict(zip([unicode(x).upper() for x in values],
-                                          range(len(values)))))
         return type(name,
                     (EnumeratedLittleEndianIntegerTableEntry,),
                     {"name": name,
                      "size": size,
-                     "enumeration_class": enumeration_class})
+                     "enumeration_class": GenericEnum.create(name, values)})
 
     @classmethod
     def from_yml_rep(cls, yml_rep):

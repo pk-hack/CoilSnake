@@ -84,6 +84,9 @@ class TestGenericLittleEndianTable(GenericTestTable):
         {"name": "Enumerated Integer",
          "type": "int",
          "values": ["Zeroth", "First", "Second", "Third", "Fourth", "Fifth"]},
+        {"name": "Dict Enumerated Integer",
+         "type": "int",
+         "values": {20: "NiJu", 33: "SanJuSan"}},
         {"name": "Bitfield",
          "type": "bitfield",
          "bitvalues": ["bit0", "bit1", "bit2", "bit3", "bit4", "bit5", "bit6"]}
@@ -100,6 +103,7 @@ class TestGenericLittleEndianTable(GenericTestTable):
                   0,
                   1, 0,
                   3,
+                  20,
                   0b00001011,
                   255,  # Second row
                   0, 0, 0,
@@ -111,6 +115,7 @@ class TestGenericLittleEndianTable(GenericTestTable):
                   1,
                   0, 0,
                   6,
+                  12,
                   0b11100100]
     TABLE_VALUES = [[72,  # First row
                      0x1abcde,
@@ -122,7 +127,8 @@ class TestGenericLittleEndianTable(GenericTestTable):
                      False,
                      True,
                      3,
-                     set([0, 1, 3])],
+                     20,
+                     {0, 1, 3}],
                     [255,
                      0,
                      0xabcd,
@@ -133,7 +139,8 @@ class TestGenericLittleEndianTable(GenericTestTable):
                      True,
                      False,
                      6,
-                     set([2, 5, 6, 7])]]
+                     12,
+                     {2, 5, 6, 7}]]
     YML_REP = {0: {"Default Integer": 72,
                    "Sized Integer": 0x1abcde,
                    "Sized Typed Integer": 0xf235,
@@ -144,6 +151,7 @@ class TestGenericLittleEndianTable(GenericTestTable):
                    "Default Boolean": False,
                    "Sized Boolean": True,
                    "Enumerated Integer": "third",
+                   "Dict Enumerated Integer": "niju",
                    "Bitfield": ["bit0", "bit1", "bit3"]},
                1: {"Default Integer": 255,
                    "Sized Integer": 0,
@@ -155,6 +163,7 @@ class TestGenericLittleEndianTable(GenericTestTable):
                    "Default Boolean": True,
                    "Sized Boolean": False,
                    "Enumerated Integer": 6,
+                   "Dict Enumerated Integer": 12,
                    "Bitfield": [7, "bit2", "bit5", "bit6"]}
     }
     BAD_YML_REPS = [(0, None, TableEntryMissingDataError, None, {}),
@@ -212,10 +221,10 @@ class TestBitfieldTableEntry(BaseTestCase):
 
     def test_from_yml_rep_legacy(self):
         assert_equal(self.entry_class.from_yml_rep(0), set())
-        assert_equal(self.entry_class.from_yml_rep(1), set([0]))
-        assert_equal(self.entry_class.from_yml_rep(2), set([1]))
-        assert_equal(self.entry_class.from_yml_rep(3), set([0, 1]))
-        assert_equal(self.entry_class.from_yml_rep(255), set([0, 1, 2, 3, 4, 5, 6, 7]))
+        assert_equal(self.entry_class.from_yml_rep(1), {0})
+        assert_equal(self.entry_class.from_yml_rep(2), {1})
+        assert_equal(self.entry_class.from_yml_rep(3), {0, 1})
+        assert_equal(self.entry_class.from_yml_rep(255), {0, 1, 2, 3, 4, 5, 6, 7})
 
     @raises(TableEntryInvalidYmlRepresentationError)
     def test_from_yml_rep_legacy_too_small(self):

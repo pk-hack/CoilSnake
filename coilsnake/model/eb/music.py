@@ -59,6 +59,9 @@ class Chunk(StringRepresentationMixin, object):
     def contains_spc_address(self, spc_address):
         return self.spc_address <= spc_address < (self.spc_address + self.data_size())
 
+    def truncate(self, length):
+        self.data = self.data[0:length]
+
 
 class Sequence(object):
     __metaclass__ = abc.ABCMeta
