@@ -249,12 +249,12 @@ class EbSample(BrrWaveform):
 
     @classmethod
     def create_from_chunk(cls, chunk, offset, loop_offset):
-        sample = EbSample.create_from_block(chunk.data, offset - chunk.spc_address)
-        sample.loop_point = loop_offset - offset
-        if sample.loop_point % 9 != 0:
+        loop_offset -= offset
+        if loop_offset % 9 != 0:
             raise InvalidArgumentError("EbSample cannot have loop_point at offset[{}] which is not a multiple of 9"
-                                       .format(sample.loop_point))
-        sample.loop_point /= 9
+                                       .format(loop_offset))
+        sample = EbSample.create_from_block(chunk.data, offset - chunk.spc_address)
+        sample.loop_point = loop_offset / 9
         return sample
 
     @staticmethod
