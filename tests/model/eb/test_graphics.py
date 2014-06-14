@@ -732,7 +732,7 @@ class TestEbTileArrangement(BaseTestCase, TilesetImageTestCase):
 
         assert_equal(arrangement[1, 0].tile, 1)
         assert_equal(arrangement[1, 0].subpalette, 0)
-        assert_equal({tileset[0][0][i] for i in [-1, -2, -3, -4]}, {0, 1, 2, 3})
+        assert_equal({tileset[1][0][i] for i in [-1, -2, -3, -4]}, {0, 1, 2, 3})
 
         assert_equal(arrangement[2, 0].tile, 2)
         assert_equal(arrangement[2, 0].subpalette, 1)
