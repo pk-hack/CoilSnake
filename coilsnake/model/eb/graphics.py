@@ -282,8 +282,7 @@ class EbTileArrangement(EqualityMixin):
             rgb_image_data = rgb_image.load()
             del rgb_image
 
-            tile = [array('B', [0 for i in xrange(tileset.tile_width)])
-                    for j in xrange(tileset.tile_height)]
+            tile = [array('B', [0] * tileset.tile_width) for i in xrange(tileset.tile_height)]
 
             for arrangement_y in xrange(self.height):
                 image_y = arrangement_y * tileset.tile_height
@@ -319,8 +318,7 @@ class EbTileArrangement(EqualityMixin):
         palette.from_image(image)
         image_data = image.load()
 
-        tile = [array('B', [0 for i in xrange(tileset.tile_width)])
-                for j in xrange(tileset.tile_height)]
+        tile = [array('B', [0] * tileset.tile_width) for i in xrange(tileset.tile_height)]
 
         for arrangement_y in xrange(self.height):
             image_y = arrangement_y * tileset.tile_height

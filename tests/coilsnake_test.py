@@ -43,6 +43,8 @@ class TilesetImageTestCase(object):
         self.tile_8x8_2bpp_img = Image.open(self.tile_8x8_2bpp_fp)
         self.tile_8x8_2bpp_2_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x8_2bpp_2.png"), 'r')
         self.tile_8x8_2bpp_2_img = Image.open(self.tile_8x8_2bpp_2_fp)
+        self.tile_8x8_2bpp_3_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x8_2bpp_3.png"), 'r')
+        self.tile_8x8_2bpp_3_img = Image.open(self.tile_8x8_2bpp_3_fp)
         self.tile_8x16_4bpp_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x16_4bpp.png"), 'r')
         self.tile_8x16_4bpp_img = Image.open(self.tile_8x16_4bpp_fp)
 
@@ -53,6 +55,8 @@ class TilesetImageTestCase(object):
         del self.tile_8x8_2bpp_img
         self.tile_8x8_2bpp_2_fp.close()
         del self.tile_8x8_2bpp_2_img
+        self.tile_8x8_2bpp_3_fp.close()
+        del self.tile_8x8_2bpp_3_img
         self.tile_8x16_4bpp_fp.close()
         del self.tile_8x16_4bpp_img
 

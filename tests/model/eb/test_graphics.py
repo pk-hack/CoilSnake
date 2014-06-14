@@ -1,7 +1,7 @@
 from array import array
 
 from nose.tools import assert_equal, assert_raises, assert_list_equal, assert_false, assert_true, assert_is_instance, \
-    assert_not_equal
+    assert_not_equal, assert_set_equal
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
@@ -708,6 +708,37 @@ class TestEbTileArrangement(BaseTestCase, TilesetImageTestCase):
         assert_equal(arrangement[5, 0].is_horizontally_flipped, item.is_horizontally_flipped)
         assert_equal(arrangement[5, 0].is_vertically_flipped, item.is_vertically_flipped)
         assert_equal(arrangement[5, 0].subpalette, 0)
+
+    def test_from_image_2_subpalettes(self):
+        palette = EbPalette(2, 4)
+        tileset = EbGraphicTileset(num_tiles=4, tile_width=8, tile_height=8)
+        arrangement = EbTileArrangement(width=4, height=1)
+        arrangement.from_image(image=self.tile_8x8_2bpp_3_img, tileset=tileset, palette=palette)
+
+        img_palette = self.tile_8x8_2bpp_3_img.getpalette()
+        self.tile_8x8_2bpp_3_img.putpalette([x & 0xf8 for x in img_palette])
+        before_image_rgb = self.tile_8x8_2bpp_3_img.convert("RGB")
+        after_image_rgb = arrangement.image(tileset, palette).convert("RGB")
+        assert_images_equal(before_image_rgb, after_image_rgb)
+
+        assert_set_equal({palette[0, i] for i in range(4)},
+                         {EbColor(24, 0, 248), EbColor(0, 248, 24), EbColor(152, 0, 248), EbColor(248, 144, 0)})
+        assert_set_equal({palette[1, i] for i in range(4)},
+                         {EbColor(24, 0, 248), EbColor(0, 248, 24), EbColor(216, 248, 0), EbColor(152, 0, 248)})
+
+        assert_equal(arrangement[0, 0].tile, 0)
+        assert_equal(arrangement[0, 0].subpalette, 1)
+        assert_equal({tileset[0][0][i] for i in [-1, -2, -3, -4]}, {0, 1, 2, 3})
+
+        assert_equal(arrangement[1, 0].tile, 1)
+        assert_equal(arrangement[1, 0].subpalette, 0)
+        assert_equal({tileset[0][0][i] for i in [-1, -2, -3, -4]}, {0, 1, 2, 3})
+
+        assert_equal(arrangement[2, 0].tile, 2)
+        assert_equal(arrangement[2, 0].subpalette, 1)
+
+        assert_equal(arrangement[3, 0].tile, 3)
+        assert_equal(arrangement[3, 0].subpalette, 0)
 
     def test_to_image_single_subpalette(self):
         palette = EbPalette(1, 2)
