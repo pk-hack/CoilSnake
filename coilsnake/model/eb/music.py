@@ -284,6 +284,12 @@ class EbInstrument(object):
         self.gain = block[offset+3]
         self.frequency = block.read_multi(offset+4, 2)
 
+    @classmethod
+    def create_from_block(cls, block, offset):
+        instrument = EbInstrument()
+        instrument.from_block(block, offset)
+        return instrument
+
     def from_chunk(self, chunk, spc_offset):
         self.from_block(chunk.data, spc_offset - chunk.spc_address)
 
