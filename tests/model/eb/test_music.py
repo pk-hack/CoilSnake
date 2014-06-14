@@ -4,7 +4,7 @@ import mock
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
-from coilsnake.model.eb.music import Chunk, Sequence, BrrWaveform, EbSample
+from coilsnake.model.eb.music import Chunk, Sequence, BrrWaveform, EbSample, EbInstrument
 from coilsnake.util.common.yml import yml_load
 from tests.coilsnake_test import BaseTestCase, TemporaryWritableFileTestCase
 
@@ -191,9 +191,9 @@ class TestBrrWaveform(BaseTestCase):
         BrrWaveform.create_from_block(block, 0)
 
 
-class TestEbSample(TestBrrWaveform):
+class TestEbSample(BaseTestCase):
     def test_from_block(self):
-        for test_case in self.TEST_DATA:
+        for test_case in TestBrrWaveform.TEST_DATA:
             block_data, block_offset, expected_sample_waveform, expected_is_looping = \
                 test_case["block data"], test_case["block offset"], test_case["sampled waveform"],\
                 test_case["is looping"]
@@ -210,7 +210,7 @@ class TestEbSample(TestBrrWaveform):
 
     @raises(InvalidArgumentError)
     def test_from_block_invalid_loop_point(self):
-        test_case = self.TEST_DATA[0]
+        test_case = TestBrrWaveform.TEST_DATA[0]
 
         block_data, block_offset, expected_sample_waveform, expected_is_looping = \
             test_case["block data"], test_case["block offset"], test_case["sampled waveform"],\
@@ -220,3 +220,38 @@ class TestEbSample(TestBrrWaveform):
         chunk = Chunk.create_from_block(block, 0)
 
         EbSample.create_from_chunk(chunk, 0xa123, 0xa123 + 7)
+
+
+class TestEbInstrument(BaseTestCase):
+    TEST_DATA = [
+        {"block data": [6, 1, 2, 3, 4, 5],
+         "block offset": 0,
+         "yml rep": {"Sample": 6,
+                     "ADSR Setting 1": 1,
+                     "ADSR Setting 2": 2,
+                     "Gain": 3,
+                     "Frequency": 0x504}
+         }
+    ]
+
+    def test_create_from_block(self):
+        for test_case in TestEbInstrument.TEST_DATA:
+            block_data, block_offset, yml_rep =\
+                test_case["block data"], test_case["block offset"], test_case["yml rep"]
+            block = Block.create_from_list(block_data)
+
+            inst = EbInstrument.create_from_block(block, block_offset)
+            assert_dict_equal(inst.yml_rep(), yml_rep)
+            assert_equal(inst.block_size(), 6)
+
+    def test_create_from_chunk(self):
+        for test_case in TestEbInstrument.TEST_DATA:
+            block_data, block_offset, yml_rep =\
+                test_case["block data"], test_case["block offset"], test_case["yml rep"]
+            chunk_data = [len(block_data) & 0xff, len(block_data) >> 8, 0x23, 0xa1] + block_data
+            block = Block.create_from_list(chunk_data)
+            chunk = Chunk.create_from_block(block, 0)
+
+            inst = EbInstrument.create_from_chunk(chunk, 0xa123)
+            assert_dict_equal(inst.yml_rep(), yml_rep)
+            assert_equal(inst.block_size(), 6)
