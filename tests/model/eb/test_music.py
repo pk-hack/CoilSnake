@@ -1,10 +1,12 @@
-from nose.tools import assert_equal, assert_list_equal, assert_false, assert_dict_equal
+from nose.tools import assert_equal, assert_list_equal, assert_false, assert_dict_equal, assert_is_not_none, \
+    assert_is_none
 from nose.tools.nontrivial import raises
 import mock
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
-from coilsnake.model.eb.music import Chunk, Sequence, BrrWaveform, EbSample, EbInstrument
+from coilsnake.model.eb.music import Chunk, Sequence, BrrWaveform, EbSample, EbInstrument, EbInstrumentSet, \
+    MAX_NUMBER_OF_SAMPLES
 from coilsnake.util.common.yml import yml_load
 from tests.coilsnake_test import BaseTestCase, TemporaryWritableFileTestCase
 
@@ -255,3 +257,62 @@ class TestEbInstrument(BaseTestCase):
             inst = EbInstrument.create_from_chunk(chunk, 0xa123)
             assert_dict_equal(inst.yml_rep(), yml_rep)
             assert_equal(inst.block_size(), 6)
+
+
+class TestEbInstrumentSet(BaseTestCase):
+    TEST_DATA = [
+        {
+            # Happy case
+            "pack": {
+                0x6c04: Chunk.create_from_list(  # sample pointer table
+                    spc_address=0x6c04,
+                    data_list=[0x00, 0x80, 0x09, 0x80,
+                               0xff, 0xff, 0x00, 0x00,
+                               0x12, 0x80, 0x1b, 0x80]),
+                0x8000: Chunk.create_from_list(  # samples
+                    spc_address=0x8000,
+                    data_list=[0b00000000, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+                               0b00000001, 0x31, 0x41, 0x59, 0x26, 0x86, 0x78, 0x23, 0x45,
+                               0b11000000, 0, 0, 0, 0, 0, 0, 0, 4,
+                               0b10000101, 0x31, 0x41, 0x59, 0x26, 0x86, 0x78, 0x23, 0x45])},
+            "samples": {
+                1: EbSample.create_from_list(
+                    data_list=[0, 1, 2, 3, 4, 5, 6, 7, -8, -7, -6, -5, -4, -3, -2, -1,
+                               3, 1, 4, 1, 5, -7, 2, 6, -8, 6, 7, -8, 2, 3, 4, 5],
+                    loop_point=1),
+                3: EbSample.create_from_list(
+                    data_list=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16384,
+                               16128, 15376, 15439, 14730, 15089, 12353, 12092, 12872, 10019, 10928, 12037, 9236, 9170,
+                               9364, 9802, 10469],
+                    loop_point=1)},
+        },
+        {
+            # No samples in pack
+            "pack": {},
+            "samples": {}
+        }
+    ]
+
+    def test_read_samples_from_pack(self):
+        for test_case in TestEbInstrumentSet.TEST_DATA:
+            pack = test_case["pack"]
+            samples = test_case["samples"]
+
+            inst_set = EbInstrumentSet()
+            inst_set.read_samples_from_pack(pack)
+
+            for i in range(MAX_NUMBER_OF_SAMPLES):
+                if i in samples:
+                    assert_is_not_none(inst_set.samples[i])
+                    assert_equal(inst_set.samples[i], samples[i])
+                else:
+                    assert_is_none(inst_set.samples[i])
+
+    @raises(InvalidArgumentError)
+    def test_read_samples_from_pack_not_in_pack(self):
+        inst_set = EbInstrumentSet()
+        inst_set.read_samples_from_pack({
+            0x6c00: Chunk.create_from_list(  # sample pointer table
+                    spc_address=0x6c00,
+                    data_list=[0x00, 0x80, 0x09, 0x80]),
+        })

@@ -6,7 +6,7 @@ import wave
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
 from coilsnake.util.common.helper import min_max
-from coilsnake.util.common.type import StringRepresentationMixin
+from coilsnake.util.common.type import StringRepresentationMixin, EqualityMixin
 from coilsnake.util.common.yml import yml_dump
 
 
@@ -44,6 +44,11 @@ class Chunk(StringRepresentationMixin, object):
         else:
             data = Block()
         return Chunk(spc_address=spc_address, data=data)
+
+    @classmethod
+    def create_from_list(cls, data_list, spc_address):
+        block = Block.create_from_list(data_list)
+        return Chunk(spc_address=spc_address, data=block)
 
     def to_file(self, f):
         data_size = self.data_size()
@@ -177,7 +182,7 @@ def _brr_filter_3(brr_waveform, i):
 _BRR_FILTERS = [None, _brr_filter_1, _brr_filter_2, _brr_filter_3]
 
 
-class BrrWaveform(object):
+class BrrWaveform(EqualityMixin, StringRepresentationMixin):
     def __init__(self):
         self.sampled_waveform = None
         self.is_looping = False
@@ -257,6 +262,13 @@ class EbSample(BrrWaveform):
         sample.loop_point = loop_offset / 9
         return sample
 
+    @classmethod
+    def create_from_list(cls, data_list, loop_point):
+        sample = EbSample()
+        sample.sampled_waveform = array('l', data_list)
+        sample.loop_point = loop_point
+        return sample
+
     @staticmethod
     def _resource_open_wav(resource_open, instrument_set_id, sample_id):
         return resource_open("Music/instrument_sets/{:03d}/samples/{:03d}".format(instrument_set_id, sample_id), "wav")
@@ -331,10 +343,11 @@ class EbInstrumentSet(object):
 
         chunks_containing_samples = {sample_pointer_chunk_spc_address}
 
-        sample_id = sample_pointer_chunk_spc_address - SAMPLE_POINTER_TABLE_SPC_OFFSET
+        sample_id = (sample_pointer_chunk_spc_address - SAMPLE_POINTER_TABLE_SPC_OFFSET) / 4
         for i in range(0, sample_pointer_chunk.data_size(), 4):
             sample_offset = sample_pointer_chunk.data.read_multi(i, 2)
             if sample_offset == 0xffff:
+                sample_id += 1
                 continue
             log.debug("Reading sample[{}] at spc_offset[{:#x}]".format(sample_id, sample_offset))
             sample_loop_offset = sample_pointer_chunk.data.read_multi(i + 2, 2)
