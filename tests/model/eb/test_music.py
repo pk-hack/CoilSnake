@@ -1,10 +1,10 @@
-from nose.tools import assert_equal, assert_list_equal, assert_false
+from nose.tools import assert_equal, assert_list_equal, assert_false, assert_dict_equal
 from nose.tools.nontrivial import raises
 import mock
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
-from coilsnake.model.eb.music import Chunk, Sequence, BrrWaveform
+from coilsnake.model.eb.music import Chunk, Sequence, BrrWaveform, EbSample
 from coilsnake.util.common.yml import yml_load
 from tests.coilsnake_test import BaseTestCase, TemporaryWritableFileTestCase
 
@@ -146,9 +146,9 @@ class TestBrrWaveform(BaseTestCase):
                               7 << 8, -8 << 8, 2 << 8, 3 << 8, 4 << 8, 5 << 8],
          "is looping": True},
         # Filter 1
-        {"block data": [9, 0b11000000, 0, 0, 0, 0, 0, 0, 0, 4,
+        {"block data": [0b11000000, 0, 0, 0, 0, 0, 0, 0, 4,
                         0b10000101, 0x31, 0x41, 0x59, 0x26, 0x86, 0x78, 0x23, 0x45],
-         "block offset": 1,
+         "block offset": 0,
          "sampled waveform": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16384,
                               16128, 15376, 15439, 14730, 15089, 12353, 12092, 12872, 10019, 10928, 12037, 9236, 9170,
                               9364, 9802, 10469],
@@ -189,3 +189,34 @@ class TestBrrWaveform(BaseTestCase):
     def test_from_block_using_filter_too_early(self):
         block = Block.create_from_list([0b00001101, 0, 0, 0, 0, 0, 0, 0, 0])
         BrrWaveform.create_from_block(block, 0)
+
+
+class TestEbSample(TestBrrWaveform):
+    def test_from_block(self):
+        for test_case in self.TEST_DATA:
+            block_data, block_offset, expected_sample_waveform, expected_is_looping = \
+                test_case["block data"], test_case["block offset"], test_case["sampled waveform"],\
+                test_case["is looping"]
+            chunk_data = [len(block_data) & 0xff, len(block_data) >> 8, 0x23, 0xa1] + block_data
+            block = Block.create_from_list(chunk_data)
+            chunk = Chunk.create_from_block(block, 0)
+
+            assert_list_equal(chunk.data.to_list(), block_data)
+            assert_equal(chunk.spc_address, 0xa123)
+
+            sample = EbSample.create_from_chunk(chunk, 0xa123, 0xa123 + 9)
+            assert_list_equal(sample.sampled_waveform.tolist(), expected_sample_waveform)
+            assert_dict_equal(sample.yml_rep(), {"Loop Point": 1})
+
+    @raises(InvalidArgumentError)
+    def test_from_block_invalid_loop_point(self):
+        test_case = self.TEST_DATA[0]
+
+        block_data, block_offset, expected_sample_waveform, expected_is_looping = \
+            test_case["block data"], test_case["block offset"], test_case["sampled waveform"],\
+            test_case["is looping"]
+        chunk_data = [len(block_data) & 0xff, len(block_data) >> 8, 0x23, 0xa1] + block_data
+        block = Block.create_from_list(chunk_data)
+        chunk = Chunk.create_from_block(block, 0)
+
+        EbSample.create_from_chunk(chunk, 0xa123, 0xa123 + 7)
