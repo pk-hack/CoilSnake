@@ -12,10 +12,6 @@ engine.
 Download and usage instructions for Windows and Linux can be found on the
 [CoilSnake website](http://kiij.github.io/CoilSnake/download.html).
 
-#### Running the Tests
-
-    make test
-
 ### Support or Contact
 
 * Submit [issues or feature  requests](https://github.com/kiij/CoilSnake/issues).
