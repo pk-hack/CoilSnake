@@ -12,16 +12,6 @@ engine.
 Download and usage instructions for Windows and Linux can be found on the
 [CoilSnake website](http://kiij.github.io/CoilSnake/download.html).
 
-### Development
-
-If you are developing CoilSnake, you may wish to install it in “development mode”,
-which makes CoilSnake available on `sys.path` but also allows it to be edited directly from its source checkout.
-
-    make
-    python setup.py develop
-    ./script/gui.py  # Launch the GUI
-    ./script/cli.py  # Launch the CLI
-
 #### Running the Tests
 
     make test
@@ -30,4 +20,4 @@ which makes CoilSnake available on `sys.path` but also allows it to be edited di
 
 * Submit [issues or feature  requests](https://github.com/kiij/CoilSnake/issues).
 * Read the [CoilSnake tutorial](https://github.com/kiij/CoilSnake/wiki/Tutorial).
-* Visit the [forum](http://forum.starmen.net/forum/Community/PKHack) or [IRC channel](irc://irc.thinstack.net/pkhax).
+* Visit the [forum](http://forum.starmen.net/forum/Community/PKHack) or IRC channel (#pkhax on irc.thinstack.net).
