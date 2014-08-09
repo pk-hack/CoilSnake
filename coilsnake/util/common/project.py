@@ -1,7 +1,7 @@
 import logging
 import os
 
-from coilsnake.exceptions.common.exceptions import CoilSnakeError
+from coilsnake.exceptions.common.exceptions import CoilSnakeError, ResourceNotFoundError
 from coilsnake.util.common.yml import yml_load, yml_dump
 
 
@@ -83,20 +83,27 @@ class Project(object):
 
     def get_resource(self, module_name, resource_name, extension="dat", mode="rw"):
         if module_name not in self._resources:
+            if mode == "r":
+                raise ResourceNotFoundError("No such module {}".format(module_name))
             self._resources[module_name] = {}
         if resource_name not in self._resources[module_name]:
+            if mode == "r":
+                raise ResourceNotFoundError("No such resource {} in module {}".format(resource_name, module_name))
             self._resources[module_name][resource_name] = resource_name + "." + extension
         fname = os.path.join(self._dir_name, self._resources[module_name][resource_name])
-        if not os.path.exists(os.path.dirname(fname)):
+        if mode == "r":
+            if not os.path.isfile(fname):
+                raise ResourceNotFoundError("File does not exist: {}".format(fname))
+        elif not os.path.exists(os.path.dirname(fname)):
             os.makedirs(os.path.dirname(fname))
         f = open(fname, mode)
         return f
 
     def delete_resource(self, module_name, resource_name):
         if module_name not in self._resources:
-            raise CoilSnakeError("No such module {}".format(module_name))
+            raise ResourceNotFoundError("No such module {}".format(module_name))
         if resource_name not in self._resources[module_name]:
-            raise CoilSnakeError("No such resource {} in module {}".format(resource_name, module_name))
+            raise ResourceNotFoundError("No such resource {} in module {}".format(resource_name, module_name))
         fname = os.path.join(self._dir_name, self._resources[module_name][resource_name])
         if os.path.isfile(fname):
             os.remove(fname)

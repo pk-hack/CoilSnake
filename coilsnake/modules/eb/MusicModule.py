@@ -1,6 +1,12 @@
 import logging
+<<<<<<< Updated upstream
 
 from coilsnake.model.eb.music import EbInstrumentSet, EbNoteStyles
+=======
+from coilsnake.exceptions.common.exceptions import ResourceNotFoundError
+
+from coilsnake.model.eb.music import EbInstrumentSet, EbNoteStyles, ChunkSequence, Subsequence
+>>>>>>> Stashed changes
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.eb.music import read_pack, create_sequence, remove_sequences_from_program_chunk
@@ -25,6 +31,10 @@ class MusicModule(EbModule):
         self.note_styles = EbNoteStyles()
         self.instrument_sets = []
         self.sequences = []
+<<<<<<< Updated upstream
+=======
+        self.program_chunk = None
+>>>>>>> Stashed changes
 
     def read_from_rom(self, rom):
         self.pack_pointer_table.from_block(block=rom, offset=from_snes_address(PACK_POINTER_TABLE_OFFSET))
@@ -69,6 +79,19 @@ class MusicModule(EbModule):
 
         remove_sequences_from_program_chunk(self.program_chunk)
 
+<<<<<<< Updated upstream
+=======
+    def write_to_project(self, resource_open):
+        self.note_styles.write_to_project(resource_open)
+        with resource_open("Music/songs", "yml") as f:
+            self.music_dataset_table.to_yml_file(f)
+        with resource_open("Music/program", "bin") as f:
+            self.program_chunk.to_file(f)
+
+        self.write_sequences_to_project(resource_open)
+        self.write_instruments_to_project(resource_open)
+
+>>>>>>> Stashed changes
     def write_sequences_to_project(self, resource_open):
         sequence_pack_map = dict()
         for sequence in self.sequences[1:]:
@@ -87,6 +110,7 @@ class MusicModule(EbModule):
                 continue
             instrument_set.write_to_project(resource_open=resource_open, instrument_set_id=instrument_set_id)
 
+<<<<<<< Updated upstream
     def write_to_project(self, resource_open):
         self.note_styles.write_to_project(resource_open)
         with resource_open("Music/songs", "yml") as f:
@@ -95,3 +119,34 @@ class MusicModule(EbModule):
         self.write_instruments_to_project(resource_open)
         with resource_open("Music/program", "bin") as f:
             self.program_chunk.to_file(f)
+=======
+    def read_from_project(self, resource_open):
+        self.instrument_sets = [None] * 255
+        self.sequences = [None] * (self.music_dataset_table.num_rows + 1)
+
+        self.note_styles.read_from_project(resource_open)
+        with resource_open("Music/songs", "yml") as f:
+            self.music_dataset_table.from_yml_file(f)
+        with resource_open("Music/program", "bin") as f:
+            self.program_chunk.create_from_file(f)
+
+        self.read_sequences_from_project(resource_open)
+        self.read_instruments_from_project(resource_open)
+
+    def read_sequences_from_project(self, resource_open):
+        for bgm_id in range(1, len(self.sequences)):
+            try:
+                self.sequences[bgm_id] = ChunkSequence.create_from_project(bgm_id, resource_open)
+            except ResourceNotFoundError:
+                try:
+                    self.sequences[bgm_id] = Subsequence.create_from_project(bgm_id, resource_open)
+                except ResourceNotFoundError:
+                    pass
+
+    def read_instruments_from_project(self, resource_open):
+        for instrument_id in range(len(self.instrument_sets)):
+            try:
+                pass
+            except ResourceNotFoundError:
+                pass
+>>>>>>> Stashed changes

@@ -7,7 +7,11 @@ from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
 from coilsnake.util.common.helper import min_max
 from coilsnake.util.common.type import StringRepresentationMixin, EqualityMixin
+<<<<<<< Updated upstream
 from coilsnake.util.common.yml import yml_dump
+=======
+from coilsnake.util.common.yml import yml_dump, yml_load
+>>>>>>> Stashed changes
 
 
 log = logging.getLogger(__name__)
@@ -50,6 +54,14 @@ class Chunk(StringRepresentationMixin, object):
         block = Block.create_from_list(data_list)
         return Chunk(spc_address=spc_address, data=block)
 
+<<<<<<< Updated upstream
+=======
+    @classmethod
+    def create_from_file(cls, filename):
+        block = Block.create_from_file(filename)
+        return cls.create_from_block(block, 0)
+
+>>>>>>> Stashed changes
     def to_file(self, f):
         data_size = self.data_size()
         f.write(bytearray([data_size & 0xff, data_size >> 8, self.spc_address & 0xff, self.spc_address >> 8]))
@@ -85,6 +97,14 @@ class Sequence(object):
         return
 
     @abc.abstractmethod
+<<<<<<< Updated upstream
+=======
+    def read_from_project(self, resource_open):
+        """Read the sequence from a resource file"""
+        return
+
+    @abc.abstractmethod
+>>>>>>> Stashed changes
     def contains_spc_address(self, spc_address):
         """Returns true iff this sequence is contains data at the given address"""
         return
@@ -96,7 +116,11 @@ class Sequence(object):
 
 
 class ChunkSequence(StringRepresentationMixin, Sequence):
+<<<<<<< Updated upstream
     def __init__(self, chunk, bgm_id, sequence_pack_id):
+=======
+    def __init__(self, chunk=None, bgm_id=None, sequence_pack_id=None):
+>>>>>>> Stashed changes
         self.chunk = chunk
         self.bgm_id = bgm_id
         self.sequence_pack_id = sequence_pack_id
@@ -109,6 +133,19 @@ class ChunkSequence(StringRepresentationMixin, Sequence):
         with ChunkSequence._resource_open_sequence(resource_open, self.bgm_id) as f:
             self.chunk.to_file(f)
 
+<<<<<<< Updated upstream
+=======
+    def read_from_project(self, resource_open):
+        with ChunkSequence._resource_open_sequence(resource_open, self.bgm_id) as f:
+            self.chunk = Chunk.create_from_file(f)
+
+    @classmethod
+    def create_from_project(cls, bgm_id, resource_open):
+        sequence = cls(bgm_id=bgm_id)
+        sequence.read_from_project(resource_open)
+        return sequence
+
+>>>>>>> Stashed changes
     def contains_spc_address(self, spc_address):
         return self.chunk.contains_spc_address(spc_address)
 
@@ -121,6 +158,11 @@ class Subsequence(StringRepresentationMixin, Sequence):
         self.spc_address = spc_address
         self.bgm_id = bgm_id
         self.sequence_pack_id = sequence_pack_id
+<<<<<<< Updated upstream
+=======
+        self.source_bgm_id = None
+        self.source_bgm_offset = None
+>>>>>>> Stashed changes
 
     @staticmethod
     def _resource_open_sequence(resource_open, bgm_id):
@@ -153,6 +195,21 @@ class Subsequence(StringRepresentationMixin, Sequence):
             # Don't write it to any resources.
             log.error("{} did not match any sequence, not saving it to the project".format(self))
 
+<<<<<<< Updated upstream
+=======
+    def read_from_project(self, resource_open):
+        with Subsequence._resource_open_sequence(resource_open, self.bgm_id) as f:
+            yml_rep = yml_load(f)
+            self.source_bgm_id = yml_rep["song"]
+            self.source_bgm_offset = yml_rep["offset"]
+
+    @classmethod
+    def create_from_project(cls, bgm_id, resource_open):
+        sequence = cls(bgm_id=bgm_id)
+        sequence.read_from_project(resource_open)
+        return sequence
+
+>>>>>>> Stashed changes
     def contains_spc_address(self, spc_address):
         return False
 
@@ -281,6 +338,7 @@ class EbSample(BrrWaveform):
         return {"Loop Point": self.loop_point}
 
 
+<<<<<<< Updated upstream
 class EbInstrument(object):
     def __init__(self):
         self.sample_id = None
@@ -288,6 +346,15 @@ class EbInstrument(object):
         self.adsr_setting_2 = None
         self.gain = None
         self.frequency = None
+=======
+class EbInstrument(EqualityMixin, StringRepresentationMixin):
+    def __init__(self, sample_id=None, adsr_setting_1=None, adsr_setting_2=None, gain=None, frequency=None):
+        self.sample_id = sample_id
+        self.adsr_setting_1 = adsr_setting_1
+        self.adsr_setting_2 = adsr_setting_2
+        self.gain = gain
+        self.frequency = frequency
+>>>>>>> Stashed changes
 
     def from_block(self, block, offset):
         self.sample_id = block[offset]
@@ -298,7 +365,11 @@ class EbInstrument(object):
 
     @classmethod
     def create_from_block(cls, block, offset):
+<<<<<<< Updated upstream
         instrument = EbInstrument()
+=======
+        instrument = cls()
+>>>>>>> Stashed changes
         instrument.from_block(block, offset)
         return instrument
 
@@ -307,7 +378,11 @@ class EbInstrument(object):
 
     @classmethod
     def create_from_chunk(cls, chunk, spc_offset):
+<<<<<<< Updated upstream
         instrument = EbInstrument()
+=======
+        instrument = cls()
+>>>>>>> Stashed changes
         instrument.from_chunk(chunk, spc_offset)
         return instrument
 
@@ -318,6 +393,22 @@ class EbInstrument(object):
                 "Gain": self.gain,
                 "Frequency": self.frequency}
 
+<<<<<<< Updated upstream
+=======
+    def from_yml_rep(self, yml_rep):
+        self.sample_id = yml_rep["Sample"]
+        self.adsr_setting_1 = yml_rep["ADSR Setting 1"]
+        self.adsr_setting_2 = yml_rep["ADSR Setting 2"]
+        self.gain = yml_rep["Gain"]
+        self.frequency = yml_rep["Frequency"]
+
+    @classmethod
+    def create_from_yml_rep(cls, yml_rep):
+        instrument = cls()
+        instrument.from_yml_rep(yml_rep)
+        return instrument
+
+>>>>>>> Stashed changes
     @classmethod
     def block_size(cls):
         return 6
@@ -366,6 +457,11 @@ class EbInstrumentSet(object):
         return chunks_containing_samples
 
     def read_instruments_from_pack(self, pack, chunks_to_ignore):
+<<<<<<< Updated upstream
+=======
+        self.instruments = [None] * MAX_NUMBER_OF_INSTRUMENTS
+
+>>>>>>> Stashed changes
         for instrument_chunk_spc_address, instrument_chunk in pack.iteritems():
             if instrument_chunk_spc_address in chunks_to_ignore:
                 continue
@@ -376,7 +472,10 @@ class EbInstrumentSet(object):
             return
         log.debug("Found instrument chunk[{}]".format(instrument_chunk))
 
+<<<<<<< Updated upstream
         self.instruments = [None] * MAX_NUMBER_OF_INSTRUMENTS
+=======
+>>>>>>> Stashed changes
         instrument_id = (instrument_chunk_spc_address - INSTRUMENT_TABLE_SPC_OFFSET) / EbInstrument.block_size()
         for i in range(instrument_chunk_spc_address, instrument_chunk_spc_address + instrument_chunk.data_size(),
                        EbInstrument.block_size()):
@@ -390,14 +489,28 @@ class EbInstrumentSet(object):
         instrument_set.read_from_pack(pack)
         return instrument_set
 
+<<<<<<< Updated upstream
     def write_to_project(self, resource_open, instrument_set_id):
         self.write_instruments_to_project(resource_open, instrument_set_id)
         self.write_samples_to_project(resource_open, instrument_set_id)
 
+=======
+>>>>>>> Stashed changes
     @staticmethod
     def _resource_open_instruments(resource_open, instrument_set_id):
         return resource_open("Music/instrument_sets/{:03d}/instruments".format(instrument_set_id), "yml")
 
+<<<<<<< Updated upstream
+=======
+    @staticmethod
+    def _resource_open_samples(resource_open, instrument_set_id):
+        return resource_open("Music/instrument_sets/{:03d}/samples".format(instrument_set_id), "yml")
+
+    def write_to_project(self, resource_open, instrument_set_id):
+        self.write_instruments_to_project(resource_open, instrument_set_id)
+        self.write_samples_to_project(resource_open, instrument_set_id)
+
+>>>>>>> Stashed changes
     def write_instruments_to_project(self, resource_open, instrument_set_id):
         instruments_yml_rep = dict()
         for instrument_id, instrument in enumerate(self.instruments):
@@ -407,10 +520,13 @@ class EbInstrumentSet(object):
         with EbInstrumentSet._resource_open_instruments(resource_open, instrument_set_id) as f:
             yml_dump(instruments_yml_rep, f, default_flow_style=False)
 
+<<<<<<< Updated upstream
     @staticmethod
     def _resource_open_samples(resource_open, instrument_set_id):
         return resource_open("Music/instrument_sets/{:03d}/samples".format(instrument_set_id), "yml")
 
+=======
+>>>>>>> Stashed changes
     def write_samples_to_project(self, resource_open, instrument_set_id):
         samples_yml_rep = dict()
         for sample_id, sample in enumerate(self.samples):
@@ -422,6 +538,16 @@ class EbInstrumentSet(object):
             with EbInstrumentSet._resource_open_samples(resource_open, instrument_set_id) as f:
                 yml_dump(samples_yml_rep, f, default_flow_style=False)
 
+<<<<<<< Updated upstream
+=======
+    def read_from_project(self, resource_open, instrument_set_id):
+        self.read_instruments_from_project(resource_open, instrument_set_id)
+        self.read_samples_from_project(resource_open, instrument_set_id)
+
+    def read_instruments_from_project(self, resource_open, instrument_set_id):
+        pass
+
+>>>>>>> Stashed changes
 
 class EbNoteStyles(object):
     def __init__(self):
@@ -450,4 +576,14 @@ class EbNoteStyles(object):
 
     def write_to_project(self, resource_open):
         with resource_open("Music/note_styles", "yml") as f:
+<<<<<<< Updated upstream
             yml_dump(self.yml_rep(), f, default_flow_style=False)
+=======
+            yml_dump(self.yml_rep(), f, default_flow_style=False)
+
+    def read_from_project(self, resource_open):
+        with resource_open("Music/note_styles", "yml") as f:
+            yml_rep = yml_load(f)
+            self.release_settings = yml_rep["Release Settings"]
+            self.volumes = yml_rep["Volumes"]
+>>>>>>> Stashed changes
