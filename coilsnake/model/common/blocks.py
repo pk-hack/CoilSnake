@@ -31,17 +31,31 @@ class Block(object):
         self.data = array.array('B', [0] * size)
         self.size = size
 
-    def from_file(self, filename):
+    def from_file(self, f):
         self.reset()
 
         try:
-            self.size = int(os.path.getsize(filename))
+            if type(f) == str:
+                self.size = os.path.getsize(f)
+            else:
+                self.size = os.path.getsize(f.name)
+
             del self.data
             self.data = array.array('B')
-            with open(filename, 'rb') as file:
-                self.data.fromfile(file, self.size)
+
+            if type(f) == str:
+                with open(f, 'rb') as file:
+                    self.data.fromfile(file, self.size)
+            else:
+                self.data.fromfile(f, self.size)
         except (IOError, OSError):
-            raise FileAccessError("Could not access file[%s]" % filename)
+            raise FileAccessError("Could not access file[%s]" % f)
+
+    @classmethod
+    def create_from_file(cls, f):
+        block = cls()
+        block.from_file(f)
+        return block
 
     def from_list(self, data_list):
         self.size = len(data_list)

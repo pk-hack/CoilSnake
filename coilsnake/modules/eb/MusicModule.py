@@ -1,6 +1,7 @@
 import logging
 
-from coilsnake.model.eb.music import EbInstrumentSet, EbNoteStyles
+from coilsnake.exceptions.common.exceptions import ResourceNotFoundError
+from coilsnake.model.eb.music import EbInstrumentSet, EbNoteStyles, ChunkSequence, Subsequence, Chunk
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.eb.music import read_pack, create_sequence, remove_sequences_from_program_chunk
@@ -25,6 +26,7 @@ class MusicModule(EbModule):
         self.note_styles = EbNoteStyles()
         self.instrument_sets = []
         self.sequences = []
+        self.program_chunk = None
 
     def read_from_rom(self, rom):
         self.pack_pointer_table.from_block(block=rom, offset=from_snes_address(PACK_POINTER_TABLE_OFFSET))
@@ -69,6 +71,16 @@ class MusicModule(EbModule):
 
         remove_sequences_from_program_chunk(self.program_chunk)
 
+    def write_to_project(self, resource_open):
+        self.note_styles.write_to_project(resource_open)
+        with resource_open("Music/songs", "yml") as f:
+            self.music_dataset_table.to_yml_file(f)
+        with resource_open("Music/program", "bin") as f:
+            self.program_chunk.to_file(f)
+
+        self.write_sequences_to_project(resource_open)
+        self.write_instruments_to_project(resource_open)
+
     def write_sequences_to_project(self, resource_open):
         sequence_pack_map = dict()
         for sequence in self.sequences[1:]:
@@ -87,11 +99,43 @@ class MusicModule(EbModule):
                 continue
             instrument_set.write_to_project(resource_open=resource_open, instrument_set_id=instrument_set_id)
 
-    def write_to_project(self, resource_open):
-        self.note_styles.write_to_project(resource_open)
+    def read_from_project(self, resource_open):
+        self.instrument_sets = [None] * 255
+        self.sequences = [None] * (self.music_dataset_table.num_rows + 1)
+
+        log.debug("Reading note styles")
+        self.note_styles.read_from_project(resource_open)
+
         with resource_open("Music/songs", "yml") as f:
-            self.music_dataset_table.to_yml_file(f)
-        self.write_sequences_to_project(resource_open)
-        self.write_instruments_to_project(resource_open)
+            self.music_dataset_table.from_yml_file(f)
+
         with resource_open("Music/program", "bin") as f:
-            self.program_chunk.to_file(f)
+            self.program_chunk = Chunk.create_from_file(f)
+
+        self.read_sequences_from_project(resource_open)
+        self.read_instruments_from_project(resource_open)
+
+    def read_sequences_from_project(self, resource_open):
+        non_chunk_sequences = set()
+        for bgm_id in range(1, len(self.sequences)):
+            log.debug("Reading sequence for bgm #{}".format(bgm_id))
+            try:
+                self.sequences[bgm_id] = ChunkSequence.create_from_project(bgm_id, resource_open)
+            except ResourceNotFoundError:
+                non_chunk_sequences.add(bgm_id)
+
+        for bgm_id in non_chunk_sequences:
+            log.debug("Reading sequence for bgm #{} as subsequence".format(bgm_id))
+            try:
+                self.sequences[bgm_id] = Subsequence.create_from_project(bgm_id, resource_open)
+            except ResourceNotFoundError:
+                pass
+
+    def read_instruments_from_project(self, resource_open):
+        self.instrument_sets = [None] * 255
+        for instrument_id in range(len(self.instrument_sets)):
+            log.debug("Reading instrument set #{}".format(instrument_id))
+            try:
+                self.instrument_sets = EbInstrumentSet.create_from_project(instrument_id, resource_open)
+            except ResourceNotFoundError:
+                pass

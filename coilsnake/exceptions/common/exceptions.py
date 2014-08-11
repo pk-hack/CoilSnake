@@ -65,6 +65,10 @@ class CCScriptCompilationError(CoilSnakeError):
     pass
 
 
+class ResourceNotFoundError(CoilSnakeError):
+    pass
+
+
 # For when the data is of the expected type or form, but the content of the data itself is invalid or unexpected.
 # This should generally be caused by some error or inconsistency in the user's input.
 class InvalidUserDataError(CoilSnakeUserError):

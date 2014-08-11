@@ -6,7 +6,7 @@ import mock
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.music import Chunk, Sequence, BrrWaveform, EbSample, EbInstrument, EbInstrumentSet, \
-    MAX_NUMBER_OF_SAMPLES
+    MAX_NUMBER_OF_SAMPLES, MAX_NUMBER_OF_INSTRUMENTS
 from coilsnake.util.common.yml import yml_load
 from tests.coilsnake_test import BaseTestCase, TemporaryWritableFileTestCase
 
@@ -274,7 +274,11 @@ class TestEbInstrumentSet(BaseTestCase):
                     data_list=[0b00000000, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
                                0b00000001, 0x31, 0x41, 0x59, 0x26, 0x86, 0x78, 0x23, 0x45,
                                0b11000000, 0, 0, 0, 0, 0, 0, 0, 4,
-                               0b10000101, 0x31, 0x41, 0x59, 0x26, 0x86, 0x78, 0x23, 0x45])},
+                               0b10000101, 0x31, 0x41, 0x59, 0x26, 0x86, 0x78, 0x23, 0x45]),
+                0x6e0c: Chunk.create_from_list(  # instruments pointer table
+                    spc_address=0x6e0c,
+                    data_list=[6, 1, 2, 3, 4, 5,
+                               3, 1, 4, 1, 5, 9])},
             "samples": {
                 1: EbSample.create_from_list(
                     data_list=[0, 1, 2, 3, 4, 5, 6, 7, -8, -7, -6, -5, -4, -3, -2, -1,
@@ -285,21 +289,25 @@ class TestEbInstrumentSet(BaseTestCase):
                                16128, 15376, 15439, 14730, 15089, 12353, 12092, 12872, 10019, 10928, 12037, 9236, 9170,
                                9364, 9802, 10469],
                     loop_point=1)},
+            "instruments": {
+                2: EbInstrument(sample_id=6, adsr_setting_1=1, adsr_setting_2=2, gain=3, frequency=0x504),
+                3: EbInstrument(sample_id=3, adsr_setting_1=1, adsr_setting_2=4, gain=1, frequency=0x905)},
         },
         {
-            # No samples in pack
+            # No data in pack
             "pack": {},
-            "samples": {}
+            "samples": {},
+            "instruments": {},
         }
     ]
 
-    def test_read_samples_from_pack(self):
+    def test_read_from_pack(self):
         for test_case in TestEbInstrumentSet.TEST_DATA:
             pack = test_case["pack"]
             samples = test_case["samples"]
+            instruments = test_case["instruments"]
 
-            inst_set = EbInstrumentSet()
-            inst_set.read_samples_from_pack(pack)
+            inst_set = EbInstrumentSet.create_from_pack(pack)
 
             for i in range(MAX_NUMBER_OF_SAMPLES):
                 if i in samples:
@@ -307,6 +315,13 @@ class TestEbInstrumentSet(BaseTestCase):
                     assert_equal(inst_set.samples[i], samples[i])
                 else:
                     assert_is_none(inst_set.samples[i])
+            
+            for i in range(MAX_NUMBER_OF_INSTRUMENTS):
+                if i in instruments:
+                    assert_is_not_none(inst_set.instruments[i])
+                    assert_equal(inst_set.instruments[i], instruments[i])
+                else:
+                    assert_is_none(inst_set.instruments[i])
 
     @raises(InvalidArgumentError)
     def test_read_samples_from_pack_not_in_pack(self):

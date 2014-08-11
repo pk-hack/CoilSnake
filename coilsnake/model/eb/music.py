@@ -7,7 +7,7 @@ from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
 from coilsnake.util.common.helper import min_max
 from coilsnake.util.common.type import StringRepresentationMixin, EqualityMixin
-from coilsnake.util.common.yml import yml_dump
+from coilsnake.util.common.yml import yml_dump, yml_load
 
 
 log = logging.getLogger(__name__)
@@ -38,6 +38,7 @@ class Chunk(StringRepresentationMixin, object):
     @classmethod
     def create_from_block(cls, block, offset):
         size = block.read_multi(offset, 2)
+        log.debug("size: " + str(size))
         spc_address = block.read_multi(offset + 2, 2)
         if size > 0:
             data = block[offset + 4:offset + 4 + size]
@@ -49,6 +50,11 @@ class Chunk(StringRepresentationMixin, object):
     def create_from_list(cls, data_list, spc_address):
         block = Block.create_from_list(data_list)
         return Chunk(spc_address=spc_address, data=block)
+
+    @classmethod
+    def create_from_file(cls, filename):
+        block = Block.create_from_file(filename)
+        return cls.create_from_block(block, 0)
 
     def to_file(self, f):
         data_size = self.data_size()
@@ -85,6 +91,11 @@ class Sequence(object):
         return
 
     @abc.abstractmethod
+    def read_from_project(self, resource_open):
+        """Read the sequence from a resource file"""
+        return
+
+    @abc.abstractmethod
     def contains_spc_address(self, spc_address):
         """Returns true iff this sequence is contains data at the given address"""
         return
@@ -96,18 +107,29 @@ class Sequence(object):
 
 
 class ChunkSequence(StringRepresentationMixin, Sequence):
-    def __init__(self, chunk, bgm_id, sequence_pack_id):
+    def __init__(self, chunk=None, bgm_id=None, sequence_pack_id=None):
         self.chunk = chunk
         self.bgm_id = bgm_id
         self.sequence_pack_id = sequence_pack_id
 
     @staticmethod
     def _resource_open_sequence(resource_open, bgm_id):
+        log.debug("Opening file " + str(bgm_id))
         return resource_open("Music/sequences/{:03d}".format(bgm_id), "ebm")
 
     def write_to_project(self, resource_open, sequence_pack_map):
         with ChunkSequence._resource_open_sequence(resource_open, self.bgm_id) as f:
             self.chunk.to_file(f)
+
+    def read_from_project(self, resource_open):
+        with ChunkSequence._resource_open_sequence(resource_open, self.bgm_id) as f:
+            self.chunk = Chunk.create_from_file(f)
+
+    @classmethod
+    def create_from_project(cls, bgm_id, resource_open):
+        sequence = cls(bgm_id=bgm_id)
+        sequence.read_from_project(resource_open)
+        return sequence
 
     def contains_spc_address(self, spc_address):
         return self.chunk.contains_spc_address(spc_address)
@@ -117,10 +139,12 @@ class ChunkSequence(StringRepresentationMixin, Sequence):
 
 
 class Subsequence(StringRepresentationMixin, Sequence):
-    def __init__(self, spc_address, bgm_id, sequence_pack_id):
+    def __init__(self, spc_address, bgm_id, sequence_pack_id=None):
         self.spc_address = spc_address
         self.bgm_id = bgm_id
         self.sequence_pack_id = sequence_pack_id
+        self.source_bgm_id = None
+        self.source_bgm_offset = None
 
     @staticmethod
     def _resource_open_sequence(resource_open, bgm_id):
@@ -152,6 +176,21 @@ class Subsequence(StringRepresentationMixin, Sequence):
             # This subsequence does not match against any sequence, so it must be invalid.
             # Don't write it to any resources.
             log.error("{} did not match any sequence, not saving it to the project".format(self))
+
+    def read_from_project(self, resource_open):
+        with Subsequence._resource_open_sequence(resource_open, self.bgm_id) as f:
+            yml_rep = yml_load(f)
+
+            source_bgm_id = yml_rep["song"]
+            source_bgm_offset = yml_rep["offset"]
+        self.source_bgm_id = source_bgm_id
+        self.source_bgm_offset = source_bgm_offset
+
+    @classmethod
+    def create_from_project(cls, bgm_id, resource_open):
+        sequence = cls(spc_address=None, bgm_id=bgm_id)
+        sequence.read_from_project(resource_open)
+        return sequence
 
     def contains_spc_address(self, spc_address):
         return False
@@ -246,6 +285,11 @@ class BrrWaveform(EqualityMixin, StringRepresentationMixin):
         wav.writeframes(self.sampled_waveform)
         wav.close()
 
+    def from_wav_file(self, f):
+        wav = wave.open(f)
+        self.sampled_waveform = array('H', [])
+        self.sampled_waveform.fromstring(wav.readframes(wav.getnframes()))
+
 
 class EbSample(BrrWaveform):
     def __init__(self):
@@ -277,17 +321,28 @@ class EbSample(BrrWaveform):
         with EbSample._resource_open_wav(resource_open, instrument_set_id, sample_id) as f:
             self.to_wav_file(f, sampling_rate=32000)
 
+    def read_wav_from_project(self, resource_open, instrument_set_id, sample_id):
+        with EbSample._resource_open_wav(resource_open, instrument_set_id, sample_id) as f:
+            self.from_wav_file(f)
+
     def yml_rep(self):
         return {"Loop Point": self.loop_point}
 
+    @classmethod
+    def create_from_project(cls, resource_open, yml_rep, instrument_set_id, sample_id):
+        sample = cls()
+        sample.loop_point = yml_rep["Loop Point"]
+        sample.read_wav_from_project(resource_open, instrument_set_id, sample_id)
+        return sample
 
-class EbInstrument(object):
-    def __init__(self):
-        self.sample_id = None
-        self.adsr_setting_1 = None
-        self.adsr_setting_2 = None
-        self.gain = None
-        self.frequency = None
+
+class EbInstrument(EqualityMixin, StringRepresentationMixin):
+    def __init__(self, sample_id=None, adsr_setting_1=None, adsr_setting_2=None, gain=None, frequency=None):
+        self.sample_id = sample_id
+        self.adsr_setting_1 = adsr_setting_1
+        self.adsr_setting_2 = adsr_setting_2
+        self.gain = gain
+        self.frequency = frequency
 
     def from_block(self, block, offset):
         self.sample_id = block[offset]
@@ -298,7 +353,7 @@ class EbInstrument(object):
 
     @classmethod
     def create_from_block(cls, block, offset):
-        instrument = EbInstrument()
+        instrument = cls()
         instrument.from_block(block, offset)
         return instrument
 
@@ -307,7 +362,7 @@ class EbInstrument(object):
 
     @classmethod
     def create_from_chunk(cls, chunk, spc_offset):
-        instrument = EbInstrument()
+        instrument = cls()
         instrument.from_chunk(chunk, spc_offset)
         return instrument
 
@@ -317,6 +372,19 @@ class EbInstrument(object):
                 "ADSR Setting 2": self.adsr_setting_2,
                 "Gain": self.gain,
                 "Frequency": self.frequency}
+
+    def from_yml_rep(self, yml_rep):
+        self.sample_id = yml_rep["Sample"]
+        self.adsr_setting_1 = yml_rep["ADSR Setting 1"]
+        self.adsr_setting_2 = yml_rep["ADSR Setting 2"]
+        self.gain = yml_rep["Gain"]
+        self.frequency = yml_rep["Frequency"]
+
+    @classmethod
+    def create_from_yml_rep(cls, yml_rep):
+        instrument = cls()
+        instrument.from_yml_rep(yml_rep)
+        return instrument
 
     @classmethod
     def block_size(cls):
@@ -366,6 +434,8 @@ class EbInstrumentSet(object):
         return chunks_containing_samples
 
     def read_instruments_from_pack(self, pack, chunks_to_ignore):
+        self.instruments = [None] * MAX_NUMBER_OF_INSTRUMENTS
+
         for instrument_chunk_spc_address, instrument_chunk in pack.iteritems():
             if instrument_chunk_spc_address in chunks_to_ignore:
                 continue
@@ -376,7 +446,6 @@ class EbInstrumentSet(object):
             return
         log.debug("Found instrument chunk[{}]".format(instrument_chunk))
 
-        self.instruments = [None] * MAX_NUMBER_OF_INSTRUMENTS
         instrument_id = (instrument_chunk_spc_address - INSTRUMENT_TABLE_SPC_OFFSET) / EbInstrument.block_size()
         for i in range(instrument_chunk_spc_address, instrument_chunk_spc_address + instrument_chunk.data_size(),
                        EbInstrument.block_size()):
@@ -390,13 +459,17 @@ class EbInstrumentSet(object):
         instrument_set.read_from_pack(pack)
         return instrument_set
 
-    def write_to_project(self, resource_open, instrument_set_id):
-        self.write_instruments_to_project(resource_open, instrument_set_id)
-        self.write_samples_to_project(resource_open, instrument_set_id)
-
     @staticmethod
     def _resource_open_instruments(resource_open, instrument_set_id):
         return resource_open("Music/instrument_sets/{:03d}/instruments".format(instrument_set_id), "yml")
+
+    @staticmethod
+    def _resource_open_samples(resource_open, instrument_set_id):
+        return resource_open("Music/instrument_sets/{:03d}/samples".format(instrument_set_id), "yml")
+
+    def write_to_project(self, resource_open, instrument_set_id):
+        self.write_instruments_to_project(resource_open, instrument_set_id)
+        self.write_samples_to_project(resource_open, instrument_set_id)
 
     def write_instruments_to_project(self, resource_open, instrument_set_id):
         instruments_yml_rep = dict()
@@ -406,10 +479,6 @@ class EbInstrumentSet(object):
 
         with EbInstrumentSet._resource_open_instruments(resource_open, instrument_set_id) as f:
             yml_dump(instruments_yml_rep, f, default_flow_style=False)
-
-    @staticmethod
-    def _resource_open_samples(resource_open, instrument_set_id):
-        return resource_open("Music/instrument_sets/{:03d}/samples".format(instrument_set_id), "yml")
 
     def write_samples_to_project(self, resource_open, instrument_set_id):
         samples_yml_rep = dict()
@@ -421,6 +490,36 @@ class EbInstrumentSet(object):
         if samples_yml_rep:
             with EbInstrumentSet._resource_open_samples(resource_open, instrument_set_id) as f:
                 yml_dump(samples_yml_rep, f, default_flow_style=False)
+
+    def read_from_project(self, resource_open, instrument_set_id):
+        self.read_instruments_from_project(resource_open, instrument_set_id)
+        self.read_samples_from_project(resource_open, instrument_set_id)
+
+    def read_instruments_from_project(self, resource_open, instrument_set_id):
+        self.instruments = [None] * MAX_NUMBER_OF_INSTRUMENTS
+
+        with EbInstrumentSet._resource_open_instruments(resource_open, instrument_set_id) as f:
+            yml_rep = yml_load(f)
+
+        for instrument_id in yml_rep:
+            instrument_yml_rep = yml_rep[instrument_id]
+            self.instruments[instrument_id] = EbInstrument.create_from_yml_rep(instrument_yml_rep)
+
+    def read_samples_from_project(self, resource_open, instrument_set_id):
+        self.samples = [None] * MAX_NUMBER_OF_SAMPLES
+
+        with EbInstrumentSet._resource_open_samples(resource_open, instrument_set_id) as f:
+            yml_rep = yml_load(f)
+
+        for sample_id in yml_rep:
+            sample_yml_rep = yml_rep[sample_id]
+            self.samples[sample_id] = EbSample.create_from_project(
+                resource_open, sample_yml_rep, instrument_set_id, sample_id)
+
+    @classmethod
+    def create_from_project(cls, instrument_set_id, resource_open):
+        instrument_set = cls()
+        instrument_set.read_from_project(resource_open, instrument_set_id)
 
 
 class EbNoteStyles(object):
@@ -451,3 +550,9 @@ class EbNoteStyles(object):
     def write_to_project(self, resource_open):
         with resource_open("Music/note_styles", "yml") as f:
             yml_dump(self.yml_rep(), f, default_flow_style=False)
+
+    def read_from_project(self, resource_open):
+        with resource_open("Music/note_styles", "yml") as f:
+            yml_rep = yml_load(f)
+            self.release_settings = yml_rep["Release Settings"]
+            self.volumes = yml_rep["Volumes"]

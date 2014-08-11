@@ -26,8 +26,7 @@ class CccInterfaceModule(EbModule):
     def read_from_project(self, resource_open):
         EbPointer.label_address_map.clear()
         # Read and parse the summary file
-        with resource_open(CccInterfaceModule.SUMMARY_RESOURCE_NAME, CccInterfaceModule.SUMMARY_RESOURCE_NAME) as \
-                summary_file:
+        with resource_open(CccInterfaceModule.SUMMARY_RESOURCE_NAME, "txt") as summary_file:
             summary_file_lines = summary_file.readlines()
             if summary_file_lines:
                 compilation_start_address = int(summary_file_lines[7][30:], 16)
