@@ -15,7 +15,6 @@ class MiscTablesModule(EbModule):
         0xD5EBAB,  # Scripted Teleport Destination Table
         0xD5F2FB,  # Hotspots Table
         0xC3F2B5,  # Playable Character Graphics Control Table
-        0xD58D7A,  # PSI Names
         0xD58A50,  # PSI Abilities
         0xD57B68,  # Battle Actions Table
         0xD5EA5B,  # Statistic Growth Variables
