@@ -1,10 +1,11 @@
+from datetime import datetime
 import logging
 import os
 from shutil import copyfile
 import time
 import sys
-
 from ccscript import ccc
+
 from CCScriptWriter.CCScriptWriter import CCScriptWriter
 from coilsnake.util.common.project import FORMAT_VERSION, PROJECT_FILENAME, get_version_name
 from coilsnake.exceptions.common.exceptions import CoilSnakeError, CCScriptCompilationError
@@ -144,7 +145,8 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, ccscri
     log.debug("Saving ROM")
     rom.to_file(output_rom_filename)
 
-    log.info("Compiled to {} in {:.2f}s".format(output_rom_filename, time.time() - compile_start_time))
+    log.info("Compiled to {} in {:.2f}s, finished at {}".format(
+        output_rom_filename, time.time() - compile_start_time, datetime.now().strftime('%I:%M:%S %p')))
 
 
 def decompile_rom(rom_filename, project_path, progress_bar=None):
