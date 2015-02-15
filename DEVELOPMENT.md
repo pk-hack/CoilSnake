@@ -7,7 +7,7 @@
 1. `virtualenv CoilSnake_virtualenv --no-site-packages`
 1. `source CoilSnake_virtualenv/bin/activate`
   * The above command sets up your CoilSnake virtual development environment. When you open a new terminal for CoilSnake development, always re-run the above command in order to re-enter the virtual development environment. For more information about how this works, see [virtualenv's documentation](https://pypi.python.org/pypi/virtualenv/1.7).
-1. `git clone https://github.com/kiij/CoilSnake.git`
+1. `git clone --recursive https://github.com/kiij/CoilSnake.git`
 1. `cd CoilSnake`
 1. `make`
 1. `python setup.py develop`
