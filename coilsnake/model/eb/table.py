@@ -11,7 +11,7 @@ from coilsnake.model.eb.pointers import EbPointer
 from coilsnake.util.common.assets import open_asset
 from coilsnake.util.eb.helper import is_in_bank
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
-from coilsnake.util.eb.text import standard_text_from_block, standard_text_to_block
+from coilsnake.util.eb.text import standard_text_from_block, standard_text_to_block, standard_text_to_byte_list
 
 
 class EbPointerTableEntry(LittleEndianIntegerTableEntry):
@@ -95,9 +95,10 @@ class EbStandardTextTableEntry(TableEntry):
             raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as string".format(
                 yml_rep, type(yml_rep).__name__))
 
-        if len(yml_rep) > cls.size:
-            raise TableEntryInvalidYmlRepresentationError("Text string[{}] exceeds size limit of {} characters".format(
-                yml_rep, cls.size))
+        try:
+            byte_rep = standard_text_to_byte_list(yml_rep, cls.size)
+        except ValueError as e:
+            raise TableEntryInvalidYmlRepresentationError(e.message)
 
         return yml_rep
 
@@ -120,9 +121,10 @@ class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
             raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as string".format(
                 yml_rep, type(yml_rep).__name__))
 
-        if len(yml_rep) > cls.size - 1:
-            raise TableEntryInvalidYmlRepresentationError("Text string[{}] exceeds size limit of {} characters".format(
-                yml_rep, cls.size - 1))
+        try:
+            byte_rep = standard_text_to_byte_list(yml_rep, cls.size - 1)
+        except ValueError as e:
+            raise TableEntryInvalidYmlRepresentationError(e.message)
 
         return yml_rep
 
