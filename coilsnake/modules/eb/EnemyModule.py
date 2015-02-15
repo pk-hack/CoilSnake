@@ -125,7 +125,7 @@ class EnemyModule(EbModule):
         # Write the groups
         for i, group in enumerate(self.enemy_groups):
             offset = rom.allocate(size=(len(group) * EnemyGroupTableEntry.size + 1))
-            self.enemy_group_table[i] = [to_snes_address(offset)]
+            self.enemy_group_table[i][0] = to_snes_address(offset)
             for group_entry in group:
                 EnemyGroupTableEntry.to_block(block=rom, offset=offset, value=group_entry)
                 offset += EnemyGroupTableEntry.size
