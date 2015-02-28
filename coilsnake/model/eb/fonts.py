@@ -6,13 +6,19 @@ from coilsnake.util.common.yml import yml_load, yml_dump
 from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, write_asm_pointer, to_snes_address
 
 
-_FONT_IMAGE_PALETTE = EbPalette(1, 2)
-_FONT_IMAGE_PALETTE[0, 0].from_tuple((255, 255, 255))
-_FONT_IMAGE_PALETTE[0, 1].from_tuple((0, 0, 0))
-_FONT_IMAGE_ARRANGEMENT = EbTileArrangement(width=16, height=6)
-for y in range(_FONT_IMAGE_ARRANGEMENT.height):
-    for x in range(_FONT_IMAGE_ARRANGEMENT.width):
-        _FONT_IMAGE_ARRANGEMENT[x, y].tile = y * _FONT_IMAGE_ARRANGEMENT.width + x
+FONT_IMAGE_PALETTE = EbPalette(1, 2)
+FONT_IMAGE_PALETTE[0, 0].from_tuple((255, 255, 255))
+FONT_IMAGE_PALETTE[0, 1].from_tuple((0, 0, 0))
+FONT_IMAGE_ARRANGEMENT_WIDTH = 16
+_FONT_IMAGE_ARRANGEMENT_96 = EbTileArrangement(width=FONT_IMAGE_ARRANGEMENT_WIDTH, height=6)
+_FONT_IMAGE_ARRANGEMENT_128 = EbTileArrangement(width=FONT_IMAGE_ARRANGEMENT_WIDTH, height=8)
+
+for y in range(_FONT_IMAGE_ARRANGEMENT_96.height):
+    for x in range(_FONT_IMAGE_ARRANGEMENT_96.width):
+        _FONT_IMAGE_ARRANGEMENT_96[x, y].tile = y * _FONT_IMAGE_ARRANGEMENT_96.width + x
+for y in range(_FONT_IMAGE_ARRANGEMENT_128.height):
+    for x in range(_FONT_IMAGE_ARRANGEMENT_128.width):
+        _FONT_IMAGE_ARRANGEMENT_128[x, y].tile = y * _FONT_IMAGE_ARRANGEMENT_128.width + x
 
 
 class EbFont(object):
@@ -23,14 +29,24 @@ class EbFont(object):
 
     def from_block(self, block, tileset_offset, character_widths_offset):
         self.tileset.from_block(block=block, offset=tileset_offset, bpp=1)
+        for i in xrange(96, self.num_characters):
+            self.tileset.clear_tile(i, color=1)
         self.character_widths = block[character_widths_offset:character_widths_offset + self.num_characters].to_list()
 
-    def to_block(self, block, tileset_offset, character_widths_offset):
+    def to_block(self, block):
+        tileset_offset = block.allocate(size=self.tileset.block_size(bpp=1))
         self.tileset.to_block(block=block, offset=tileset_offset, bpp=1)
+
+        character_widths_offset = block.allocate(size=self.num_characters)
         block[character_widths_offset:character_widths_offset + self.num_characters] = self.character_widths
 
+        return tileset_offset, character_widths_offset
+
     def to_files(self, image_file, widths_file, image_format="png", widths_format="yml"):
-        image = _FONT_IMAGE_ARRANGEMENT.image(self.tileset, _FONT_IMAGE_PALETTE)
+        if self.num_characters == 96:
+            image = _FONT_IMAGE_ARRANGEMENT_96.image(self.tileset, FONT_IMAGE_PALETTE)
+        elif self.num_characters == 128:
+            image = _FONT_IMAGE_ARRANGEMENT_128.image(self.tileset, FONT_IMAGE_PALETTE)
         image.save(image_file, image_format)
         del image
 
@@ -40,7 +56,11 @@ class EbFont(object):
 
     def from_files(self, image_file, widths_file, image_format="png", widths_format="yml"):
         image = open_indexed_image(image_file)
-        self.tileset.from_image(image, _FONT_IMAGE_ARRANGEMENT, _FONT_IMAGE_PALETTE)
+
+        if self.num_characters == 96:
+            self.tileset.from_image(image, _FONT_IMAGE_ARRANGEMENT_96, FONT_IMAGE_PALETTE)
+        elif self.num_characters == 128:
+            self.tileset.from_image(image, _FONT_IMAGE_ARRANGEMENT_128, FONT_IMAGE_PALETTE)
         del image
 
         if widths_format == "yml":

@@ -169,6 +169,10 @@ class EbGraphicTileset(EqualityMixin):
 
         return tile_id, False, True
 
+    def clear_tile(self, tile_id, color=0):
+        tile = [[color for x in range(self.tile_width)] for y in range(self.tile_height)]
+        self.tiles[tile_id] = tile
+
     def __eq__(self, other):
         return (isinstance(other, self.__class__)
                 and (self.num_tiles_maximum == other.num_tiles_maximum)
