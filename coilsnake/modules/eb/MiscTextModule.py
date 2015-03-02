@@ -24,10 +24,10 @@ class EbMiscTextString(object):
 
         self.pointer = pointer
         self.default_offset = default_offset
-        if not null_terminated:
-            self.table_entry = EbStandardTextTableEntry.create(maximum_size)
-        else:
+        if null_terminated:
             self.table_entry = EbStandardNullTerminatedTextTableEntry.create(maximum_size)
+        else:
+            self.table_entry = EbStandardTextTableEntry.create(maximum_size)
 
     def from_block(self, block):
         if self.pointer:
@@ -44,6 +44,7 @@ class EbMiscTextString(object):
         else:
             loc = self.default_offset
 
+        value = self.table_entry.from_yml_rep(value)
         self.table_entry.to_block(block, loc, value)
 
 MISC_TEXT = {
@@ -53,14 +54,14 @@ MISC_TEXT = {
         "Text Speed Fast": EbMiscTextString(default_offset=0x04c07f, maximum_size=6),
         "Text Speed Medium": EbMiscTextString(default_offset=0x04c086, maximum_size=6),
         "Text Speed Slow": EbMiscTextString(default_offset=0x04c08d, maximum_size=6),
-        "Continue": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F08C), maximum_size=25, null_terminated=True),
-        "Copy": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F0C5), maximum_size=25, null_terminated=True),
-        "Delete": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F102), maximum_size=25, null_terminated=True),
-        "Set Up": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F120), maximum_size=25, null_terminated=True),
-        "Copy to where?": EbMiscTextString(default_offset=0x04c0b0, maximum_size=14),
+        "Continue": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F08C), maximum_size=25),
+        "Copy": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F0C5), maximum_size=25),
+        "Delete": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F102), maximum_size=25),
+        "Set Up": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F120), maximum_size=25),
+        "Copy to where?": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F189), maximum_size=14),
         "Confirm Delete": EbMiscTextString(default_offset=0x04c0be, maximum_size=32),
-        "Confirm Delete No": EbMiscTextString(default_offset=0x04c0de, maximum_size=2),
-        "Confirm Delete Yes": EbMiscTextString(default_offset=0x04c0e1, maximum_size=3),
+        "Confirm Delete No": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F364), maximum_size=25),
+        "Confirm Delete Yes": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F380), maximum_size=25),
         "Select Speed": EbMiscTextString(default_offset=0x04c0e5, maximum_size=25),
         "Select Sound": EbMiscTextString(default_offset=0x04c0fe, maximum_size=28),
         "Select Sound Stereo": EbMiscTextString(default_offset=0x04c11a, maximum_size=6),
@@ -73,11 +74,11 @@ MISC_TEXT = {
         "Ask Name Pet": EbMiscTextString(default_offset=0x04c234, maximum_size=40),
         "Ask Name Food": EbMiscTextString(default_offset=0x04c25c, maximum_size=40),
         "Ask Name PSI": EbMiscTextString(default_offset=0x04c284, maximum_size=40),
-        "Confirm Food": EbMiscTextString(default_offset=0x04c2ac, maximum_size=14),
-        "Confirm PSI": EbMiscTextString(default_offset=0x04c2ba, maximum_size=14),
-        "Confirm All": EbMiscTextString(default_offset=0x04c2c8, maximum_size=13),
-        "Confirm All Yes": EbMiscTextString(default_offset=0x04c2d5, maximum_size=3),
-        "Confirm All No": EbMiscTextString(default_offset=0x04c2d9, maximum_size=4)
+        "Confirm Food": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1FB05), maximum_size=14),
+        "Confirm PSI": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1FBB7), maximum_size=14),
+        "Confirm All": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1FC69), maximum_size=13),
+        "Confirm All Yes": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1FC83), maximum_size=10),
+        "Confirm All No": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1FCA1), maximum_size=10)
     },
     "Ailments": {
         "Ailment 01": EbMiscTextString(default_offset=0x045b70, maximum_size=16),
@@ -113,19 +114,19 @@ MISC_TEXT = {
         "Status": EbMiscTextString(default_offset=0x2fa3ac, maximum_size=9)
     },
     "Status Window": {
-        "Level": EbMiscTextString(default_offset=0x2fa3ba, maximum_size=6, null_terminated=True),
-        "Hit Points": EbMiscTextString(default_offset=0x2fa3c4, maximum_size=11, null_terminated=True),
-        "Psychic Points": EbMiscTextString(default_offset=0x2fa3d3, maximum_size=15, null_terminated=True),
-        "Experience Points": EbMiscTextString(default_offset=0x2fa3e6, maximum_size=18, null_terminated=True),
-        "Exp. for next level": EbMiscTextString(default_offset=0x2fa3fc, maximum_size=20, null_terminated=True),
-        "Offense": EbMiscTextString(default_offset=0x2fa414, maximum_size=8, null_terminated=True),
-        "Defense": EbMiscTextString(default_offset=0x2fa420, maximum_size=8, null_terminated=True),
-        "Speed": EbMiscTextString(default_offset=0x2fa42c, maximum_size=6, null_terminated=True),
-        "Guts": EbMiscTextString(default_offset=0x2fa436, maximum_size=5, null_terminated=True),
-        "Vitality": EbMiscTextString(default_offset=0x2fa43f, maximum_size=9, null_terminated=True),
-        "IQ": EbMiscTextString(default_offset=0x2fa44c, maximum_size=3, null_terminated=True),
-        "Luck": EbMiscTextString(default_offset=0x2fa453, maximum_size=5, null_terminated=True),
-        "PSI Prompt": EbMiscTextString(default_offset=0x045b4d, maximum_size=35, null_terminated=True)
+        "Level": EbMiscTextString(default_offset=0x2fa3ba, maximum_size=6),
+        "Hit Points": EbMiscTextString(default_offset=0x2fa3c4, maximum_size=11),
+        "Psychic Points": EbMiscTextString(default_offset=0x2fa3d3, maximum_size=15),
+        "Experience Points": EbMiscTextString(default_offset=0x2fa3e6, maximum_size=18),
+        "Exp. for next level": EbMiscTextString(default_offset=0x2fa3fc, maximum_size=20),
+        "Offense": EbMiscTextString(default_offset=0x2fa414, maximum_size=8),
+        "Defense": EbMiscTextString(default_offset=0x2fa420, maximum_size=8),
+        "Speed": EbMiscTextString(default_offset=0x2fa42c, maximum_size=6),
+        "Guts": EbMiscTextString(default_offset=0x2fa436, maximum_size=5),
+        "Vitality": EbMiscTextString(default_offset=0x2fa43f, maximum_size=9),
+        "IQ": EbMiscTextString(default_offset=0x2fa44c, maximum_size=3),
+        "Luck": EbMiscTextString(default_offset=0x2fa453, maximum_size=5),
+        "PSI Prompt": EbMiscTextString(default_offset=0x045b4d, maximum_size=35)
     },
     "Other": {
         "Player Name Prompt": EbMiscTextString(default_offset=0x03fb2b, maximum_size=36),
@@ -150,7 +151,8 @@ MISC_TEXT = {
         "To all of us": EbMiscTextString(default_offset=0x03f1c4, maximum_size=19),
         "To all of us 2": EbMiscTextString(default_offset=0x03f1d8, maximum_size=19),
         "Row To": EbMiscTextString(default_offset=0x0454f2, maximum_size=3),
-        "Row Front": EbMiscTextString(default_offset=0x0454f5, maximum_size=13),
+        # v This one could possibly have a larger max size, I haven't tested
+        "Row Front": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1219A), maximum_size=15, null_terminated=True),
         "Row Back": EbMiscTextString(default_offset=0x45502, maximum_size=15)
     },
     "Equip Menu": {
@@ -166,7 +168,8 @@ MISC_TEXT = {
         "Other Window Title": EbMiscTextString(default_offset=0x045c70, maximum_size=7),
         "No Equip": EbMiscTextString(default_offset=0x045c78, maximum_size=9),
         "Unequip": EbMiscTextString(default_offset=0x045c82, maximum_size=4),
-        "To": EbMiscTextString(default_offset=0x045c87, maximum_size=2)
+        # v This one could possibly have a larger max size, I haven't tested
+        "To": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1AB1A), maximum_size=5, null_terminated=True)
     },
     "Item Menu": {
         "Use": EbMiscTextString(default_offset=0x043550, maximum_size=5),
@@ -183,7 +186,7 @@ MISC_TEXT = {
     },
     "Window Titles": {
         "Escargo Express Window Title": EbMiscTextString(default_offset=0x045c10, maximum_size=12),
-        "Phone Window Title": EbMiscTextString(default_offset=0x045995, maximum_size=4)
+        "Phone Window Title": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1945B), maximum_size=5)
     }
 }
 

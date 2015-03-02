@@ -108,6 +108,12 @@ class EbStandardTextTableEntry(TableEntry):
 
 
 class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
+    @staticmethod
+    def create(size):
+        return type("EbStandardNullTerminatedTextTableEntry_subclass",
+                    (EbStandardNullTerminatedTextTableEntry,),
+                    {"size": size})
+
     @classmethod
     def to_block(cls, block, offset, value):
         standard_text_to_block(block, offset, value, cls.size - 1)

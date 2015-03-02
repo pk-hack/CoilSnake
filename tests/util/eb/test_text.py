@@ -21,7 +21,7 @@ def test_standard_text_to_block():
 def test_standard_text_to_block_too_long():
     b = Block()
     b.from_list([0] * 10)
-    standard_text_to_block(block=b, offset=0, text="TestTestTest", max_length=10)
+    standard_text_to_block(block=b, offset=0, text="12345678901", max_length=10)
 
 
 def test_standard_text_to_block_with_brackets():
