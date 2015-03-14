@@ -4,15 +4,16 @@ from functools import partial
 import logging
 from subprocess import Popen
 from threading import Thread
-from Tkinter import *
 import tkFileDialog
 import tkMessageBox
 import tkSimpleDialog
 from traceback import format_exc
 import ttk
-import os
 import webbrowser
+from Tkinter import *
+from ttk import *
 
+import os
 from PIL import ImageTk
 
 from coilsnake.model.common.blocks import Rom
@@ -397,10 +398,8 @@ Please configure Java in the Settings menu.""")
         Label(about_right_frame,
               text=coilsnake_about(),
               font=("Courier", 11),
-              height=16,
               anchor="w",
               justify="left",
-              bg="white",
               borderwidth=5,
               relief=GROOVE).pack(fill=BOTH, expand=1, side=TOP)
 
@@ -566,7 +565,7 @@ Please configure Java in the Settings menu.""")
         return decompile_script_frame
 
     def add_title_label_to_frame(self, text, frame):
-        Label(frame, text=text, justify=CENTER, height=2).pack(fill=BOTH, expand=1)
+        Label(frame, text=text, justify=CENTER).pack(fill=BOTH, expand=1)
 
     def add_profile_selector_to_frame(self, frame, tab, fields):
         profile_frame = ttk.Frame(frame)
@@ -668,7 +667,7 @@ Please configure Java in the Settings menu.""")
         button.pack(side=LEFT, fill=BOTH, expand=1)
         self.components.append(button)
 
-        button = Button(rom_frame, text="", width=5, state=DISABLED, takefocus=False, border=0)
+        button = Button(rom_frame, text="", width=5, state=DISABLED, takefocus=False)
         button.pack(side=LEFT, fill=BOTH, expand=1)
         button.lower()
 

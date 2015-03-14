@@ -1,13 +1,15 @@
 import Queue
-from Tkconstants import END
-from Tkinter import Text
+from Tkinter import *
+from ttk import *
+
 from abc import abstractmethod
-from ttk import Progressbar
 
 
 class ThreadSafeConsole(Text):
     def __init__(self, master, **options):
         Text.__init__(self, master, **options)
+        self["bg"] = "white"
+        self["fg"] = "black"
         self.queue = Queue.Queue()
         self.check_queue()
 
