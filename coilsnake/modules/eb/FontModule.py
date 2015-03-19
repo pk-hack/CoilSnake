@@ -4,10 +4,10 @@ from PIL import Image
 
 from coilsnake.model.eb.fonts import EbFont, EbCreditsFont, FONT_IMAGE_PALETTE
 from coilsnake.modules.eb.EbModule import EbModule
-from model.eb.table import eb_table_from_offset
-from util.common.image import open_indexed_image
-from util.common.yml import yml_load, yml_dump
-from util.eb.pointer import from_snes_address, to_snes_address
+from coilsnake.model.eb.table import eb_table_from_offset
+from coilsnake.util.common.image import open_indexed_image
+from coilsnake.util.common.yml import yml_load, yml_dump
+from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
 
 log = logging.getLogger(__name__)

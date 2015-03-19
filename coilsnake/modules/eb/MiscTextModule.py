@@ -1,7 +1,7 @@
-from model.eb.table import EbStandardNullTerminatedTextTableEntry, EbStandardTextTableEntry
-from modules.eb.EbModule import EbModule
-from util.common.yml import yml_load, yml_dump
-from util.eb.pointer import read_asm_pointer, from_snes_address, write_asm_pointer, to_snes_address
+from coilsnake.model.eb.table import EbStandardNullTerminatedTextTableEntry, EbStandardTextTableEntry
+from coilsnake.modules.eb.EbModule import EbModule
+from coilsnake.util.common.yml import yml_load, yml_dump
+from coilsnake.util.eb.pointer import read_asm_pointer, from_snes_address, write_asm_pointer, to_snes_address
 
 
 class EbMiscTextAsmPointer(object):
@@ -151,8 +151,7 @@ MISC_TEXT = {
         "To all of us": EbMiscTextString(default_offset=0x03f1c4, maximum_size=19),
         "To all of us 2": EbMiscTextString(default_offset=0x03f1d8, maximum_size=19),
         "Row To": EbMiscTextString(default_offset=0x0454f2, maximum_size=3),
-        # v This one could possibly have a larger max size, I haven't tested
-        "Row Front": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1219A), maximum_size=15, null_terminated=True),
+        "Row Front": EbMiscTextString(default_offer=0x454f5, maximum_size=13),
         "Row Back": EbMiscTextString(default_offset=0x45502, maximum_size=15)
     },
     "Equip Menu": {

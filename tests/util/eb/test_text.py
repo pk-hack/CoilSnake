@@ -2,7 +2,7 @@ from nose.tools import assert_list_equal
 from nose.tools.nontrivial import raises
 
 from coilsnake.util.eb.text import standard_text_to_block
-from model.common.blocks import Block
+from coilsnake.model.common.blocks import Block
 
 
 def test_standard_text_to_block():
