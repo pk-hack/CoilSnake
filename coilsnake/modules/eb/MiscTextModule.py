@@ -151,7 +151,7 @@ MISC_TEXT = {
         "To all of us": EbMiscTextString(default_offset=0x03f1c4, maximum_size=19),
         "To all of us 2": EbMiscTextString(default_offset=0x03f1d8, maximum_size=19),
         "Row To": EbMiscTextString(default_offset=0x0454f2, maximum_size=3),
-        "Row Front": EbMiscTextString(default_offer=0x454f5, maximum_size=13),
+        "Row Front": EbMiscTextString(default_offset=0x454f5, maximum_size=13),
         "Row Back": EbMiscTextString(default_offset=0x45502, maximum_size=15)
     },
     "Equip Menu": {
