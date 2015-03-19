@@ -6,7 +6,7 @@ from setuptools.extension import Extension
 
 setup(
     name="coilsnake",
-    version="2.0.3",
+    version="2.1",
     description="CoilSnake",
     url="http://kiij.github.io/CoilSnake",
     packages=find_packages(),

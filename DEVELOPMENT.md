@@ -21,7 +21,7 @@ CoilSnake is now installed in development mode in its own virtualenv, so it does
 ## Windows
 
 1. Install:
-  1. [Python 2.7](https://python.org/download/releases/2.7.9) (32-bit version)
+  1. [Python 2.7](https://www.python.org/downloads/release/python-279/) (32-bit version)
   1. [Microsoft Visual C++ 2008 Express Edition](https://go.microsoft.com/?linkid=7729279)
   1. [boost](http://sourceforge.net/projects/boost/files/boost-binaries/) (32-bit vc90 version)
   1. [SetupTools](https://pypi.python.org/pypi/setuptools#windows-7-or-graphical-install)
@@ -37,7 +37,7 @@ CoilSnake is now installed in development mode. After making code changes to the
 
 ### Creating a standalone Windows executable
 1. Install:
-  1. [Python 2.7](https://python.org/download/releases/2.7.8) (32-bit version)
+  1. [Python 2.7](https://www.python.org/downloads/release/python-279/) (32-bit version)
   1. [Microsoft Visual C++ 2008 Express Edition](https://go.microsoft.com/?linkid=7729279)
   1. [boost](http://sourceforge.net/projects/boost/files/boost-binaries/) (32-bit vc90 version)
   1. [SetupTools](https://pypi.python.org/pypi/setuptools#windows-7-or-graphical-install)
