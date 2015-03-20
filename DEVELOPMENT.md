@@ -2,7 +2,7 @@
 
 ## Linux
 
-1. `apt-get install` any system dependencies requried by CoilSnake. These are listed in the official [CoilSnake installation instructions](http://kiij.github.io/CoilSnake/download.html).
+1. `apt-get install` any system dependencies requried by CoilSnake. These are listed in the official [CoilSnake installation instructions](https://kiij.github.io/CoilSnake/download.html).
 1. `sudo pip install virtualenv`
 1. `virtualenv CoilSnake_virtualenv --no-site-packages`
 1. `source CoilSnake_virtualenv/bin/activate`

@@ -1,4 +1,4 @@
-## [CoilSnake](http://kiij.github.io/CoilSnake/)
+## [CoilSnake](https://kiij.github.io/CoilSnake/)
 
 **CoilSnake** is the most powerful [mod making tool](https://en.wikipedia.org/wiki/Game_mod) for the game
 [*EarthBound*](https://en.wikipedia.org/wiki/EarthBound).
@@ -10,10 +10,10 @@ engine.
 ### Download
 
 Download and usage instructions for Windows and Linux can be found on the
-[CoilSnake website](http://kiij.github.io/CoilSnake/download.html).
+[CoilSnake website](https://kiij.github.io/CoilSnake/download.html).
 
 ### Support or Contact
 
 * Submit [issues or feature  requests](https://github.com/kiij/CoilSnake/issues).
 * Read the [CoilSnake tutorial](https://github.com/kiij/CoilSnake/wiki/Tutorial).
-* Visit the [forum](http://forum.starmen.net/forum/Community/PKHack) or IRC channel (#pkhax on irc.thinstack.net).
+* Visit the [forum](https://forum.starmen.net/forum/Community/PKHack) or IRC channel (#pkhax on irc.thinstack.net).
