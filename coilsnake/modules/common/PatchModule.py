@@ -8,6 +8,9 @@ from coilsnake.util.common.yml import yml_load, yml_dump
 
 
 IPS_DIRECTORY = os.path.join(ASSET_PATH, "ips")
+REMOVED_PATCHES = {
+    "Earthbound": ["Battle Font Width Hack"]
+}
 
 
 def get_ips_directory(romtype):
@@ -82,6 +85,12 @@ class PatchModule(GenericModule):
             self.write_to_project(resource_open_w)
         elif old_version < new_version:
             self.read_from_project(resource_open_r)
+
+            # Remove all patches that should not exist
+            if rom.type in REMOVED_PATCHES:
+                for patch_name in REMOVED_PATCHES[rom.type]:
+                    if patch_name in self.patches:
+                        del self.patches[patch_name]
 
             # Add in all the new patches
             for ip_desc_filename in [s for s in os.listdir(get_ips_directory(rom.type)) if s.lower().endswith(".yml")]:

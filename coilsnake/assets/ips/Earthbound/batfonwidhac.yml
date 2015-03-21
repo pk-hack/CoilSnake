@@ -1,8 +1,0 @@
-Title: Battle Font Width Hack
-Header: 0x200
-Auto-Apply: False
-Ranges:
-- (0x2ff540, 0x2ff5af)
-- (0x2ff5f0, 0x2ff61e)
-- (0x2ff630, 0x2ff664)
-- (0x2ff680, 0x2ff6a1)
