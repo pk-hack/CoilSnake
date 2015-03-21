@@ -67,6 +67,14 @@ class EbFont(object):
             widths_dict = yml_load(widths_file)
             self.character_widths = map(lambda i: widths_dict[i], range(self.tileset.num_tiles_maximum))
 
+    def image_size(self):
+        if self.num_characters == 96:
+            arr = _FONT_IMAGE_ARRANGEMENT_96
+        elif self.num_characters == 128:
+            arr = _FONT_IMAGE_ARRANGEMENT_128
+
+        return arr.width * self.tileset.tile_width, arr.height * self.tileset.tile_height
+
 
 _CREDITS_PREVIEW_SUBPALETTES = [
     [1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1],

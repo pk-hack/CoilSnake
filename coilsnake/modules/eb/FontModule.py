@@ -33,8 +33,8 @@ class FontModule(EbModule):
         self.fonts = [
             EbFont(num_characters=128, tile_width=16, tile_height=16),
             EbFont(num_characters=128, tile_width=16, tile_height=16),
-            EbFont(num_characters=96, tile_width=8, tile_height=16),
-            EbFont(num_characters=96, tile_width=8, tile_height=8),
+            EbFont(num_characters=128, tile_width=8, tile_height=16),
+            EbFont(num_characters=128, tile_width=8, tile_height=8),
             EbFont(num_characters=128, tile_width=16, tile_height=16)
         ]
         self.credits_font = EbCreditsFont()
@@ -105,19 +105,21 @@ class FontModule(EbModule):
         if old_version == new_version:
             return
         elif old_version == 5:
-            # Expand fonts 0, 1, and 4 from 96 characters to 128 characters
-            for i in [0, 1, 4]:
+            # Expand all the fonts from 96 characters to 128 characters
+            for i, font in enumerate(self.fonts):
+                log.debug("Expanding font #{}".format(FONT_FILENAMES[i]))
                 image_resource_name = "Fonts/" + FONT_FILENAMES[i]
                 widths_resource_name = "Fonts/" + FONT_FILENAMES[i] + "_widths"
+                new_image_w, new_image_h = font.image_size()
 
                 # Expand the image
 
                 with resource_open_r(image_resource_name, 'png') as image_file:
                     image = open_indexed_image(image_file)
 
-                    expanded_image = Image.new("P", (256, 128), None)
-                    for y in xrange(128):
-                        for x in xrange(256):
+                    expanded_image = Image.new("P", (new_image_w, new_image_h), None)
+                    for y in xrange(new_image_h):
+                        for x in xrange(new_image_w):
                             expanded_image.putpixel((x, y), 1)
                     FONT_IMAGE_PALETTE.to_image(expanded_image)
                     expanded_image.paste(image, (0, 0))
