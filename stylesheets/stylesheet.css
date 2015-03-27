@@ -169,12 +169,8 @@ section#s_introduction p {
   font-style: italic;
 }
 
-.project {
-  width: 100%;
-  height: 100%
-}
-
-.project .project_button {
+.project_button {
+  display: inline-block;
   position: relative;
   width: 256px;
   height: 112px;
@@ -183,17 +179,17 @@ section#s_introduction p {
   border-radius: 30px;
 }
 
-.project .project_button:hover {
+.project_button:hover {
   border-color: #b3b3b3;
 }
 
-.project .project_button a {
+.project_button a {
   display: block;
   width: 100%;
   height: 100%;
 }
 
-.project .project_button span {
+.project_button span {
   position: absolute;
   right: 0;
   top: 0;
@@ -219,7 +215,7 @@ section#s_introduction p {
   text-shadow: none;
 }
 
-.project .project_button:hover span {
+.project_button:hover span {
   background: #fafafa; /* Old browsers */
   background: -moz-linear-gradient(top,  #fdfdfd 0%, #f6f6f6 100%); /* FF3.6+ */
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fdfdfd), color-stop(100%,#f6f6f6)); /* Chrome,Safari4+ */

@@ -49,18 +49,14 @@ contribute-content: |
 <section id="s_introduction">
   {{page.introduction-content | markdownify}}
 
-  <div class="pure-g-r">
+  <div>
     {% for project in page.projects %}
-    <div class="pure-u-1-2">
-      <div class="project">
-        <div class="project_button"
-             style="background-image: url('{{ project.image }}'); background-position: {{ project.image-position-x}} {{project.image-position-y}};">
-          <a href="{{ project.url }}">
-            <span>{{project.name}}</span>
-          </a>
-        </div>
+      <div class="project_button"
+           style="background-image: url('{{ project.image }}'); background-position: {{ project.image-position-x}} {{project.image-position-y}};">
+        <a href="{{ project.url }}">
+          <span>{{project.name}}</span>
+        </a>
       </div>
-    </div>
     {% endfor %}
   </div>
 </section>
