@@ -2,7 +2,7 @@
 layout: default
 
 introduction-content: |
-  **CoilSnake** is the most powerful [mod making tool](https://en.wikipedia.org/wiki/Game_mod) for the game [*EarthBound*](https://en.wikipedia.org/wiki/EarthBound). CoilSnake has been used to create several entirely original games using the *EarthBound* engine:
+  **CoilSnake** is the most powerful [mod making tool](https://en.wikipedia.org/wiki/Game_mod) for the game [*EarthBound*](https://en.wikipedia.org/wiki/EarthBound). CoilSnake has been used to create original games in the *EarthBound* engine, as well as translate *EarthBound*:
 
 projects:
 - name: MOTHER Remake
@@ -20,6 +20,11 @@ projects:
   image-position-x: 0
   image-position-y: 20%
   url: http://hacks.lyros.net/portfolio/hallows-end/
+- name: Portuguese EB
+  image: images/screenshots/eb-portuguese.png
+  image-position-x: 0
+  image-position-y: 10%
+  url: http://www.earthboundbrasil.com/p/download.html
 - name: Holiday Hex
   image: images/screenshots/holiday-hex.png
   image-position-x: 0
