@@ -1,10 +1,12 @@
 ## [CoilSnake](https://kiij.github.io/CoilSnake/)
 
+![You engage the OctoCat.](https://kiij.github.io/CoilSnake/images/screenshots/octocat-battle.png)
+
 **CoilSnake** is the most powerful [mod making tool](https://en.wikipedia.org/wiki/Game_mod) for the game
 [*EarthBound*](https://en.wikipedia.org/wiki/EarthBound).
 CoilSnake deconstructs the game's assets into individual text and PNG files, and then lets you "build" a new ROM
 using modified assets.
-Most of the game's data is editable by CoilSnake, making it possible to create entirely new games in the EarthBound
+Most of the game's data is editable by CoilSnake, making it possible to create entirely new games in the *EarthBound*
 engine.
 
 ### Download
