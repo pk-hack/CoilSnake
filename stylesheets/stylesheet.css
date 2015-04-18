@@ -169,6 +169,11 @@ section#s_introduction p {
   font-style: italic;
 }
 
+.projects {
+  width: 542px;
+  margin: 0 auto;
+}
+
 .project_button {
   display: inline-block;
   position: relative;

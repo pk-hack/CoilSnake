@@ -2,7 +2,7 @@
 layout: default
 
 introduction-content: |
-  **CoilSnake** is the most powerful [mod making tool](https://en.wikipedia.org/wiki/Game_mod) for the game [*EarthBound*](https://en.wikipedia.org/wiki/EarthBound). CoilSnake has been used to create original games in the *EarthBound* engine, as well as translate *EarthBound*:
+  **CoilSnake** is the most powerful [mod making tool](https://en.wikipedia.org/wiki/Game_mod) for the game [*EarthBound*](https://en.wikipedia.org/wiki/EarthBound). CoilSnake has been used to create several original games in the *EarthBound* engine, as well as a translation of *EarthBound*:
 
 projects:
 - name: MOTHER Remake
@@ -54,7 +54,7 @@ contribute-content: |
 <section id="s_introduction">
   {{page.introduction-content | markdownify}}
 
-  <div>
+  <div class="projects">
     {% for project in page.projects %}
       <div class="project_button"
            style="background-image: url('{{ project.image }}'); background-position: {{ project.image-position-x}} {{project.image-position-y}};">
