@@ -1,7 +1,7 @@
 from itertools import izip_longest
-import os
 import tempfile
 
+import os
 from PIL import Image, ImageChops
 from nose.tools import assert_is_none
 from nose.tools.trivial import eq_
@@ -14,6 +14,7 @@ TEST_IMAGE_DIR = os.path.join(TEST_DATA_DIR, "images")
 def assert_files_equal(expected, result):
     for i in izip_longest(iter(expected), iter(result)):
         eq_(i[0], i[1])
+
 
 def assert_images_equal(expected, result):
     assert_is_none(ImageChops.difference(expected, result).getbbox())
@@ -73,3 +74,13 @@ class SpriteGroupTestCase(object):
         del self.spritegroup_1_img
         self.spritegroup_2_f.close()
         del self.spritegroup_2_img
+
+
+class SwirlTestCase(object):
+    def setup(self):
+        self.swirl_1_f = open(os.path.join(TEST_IMAGE_DIR, "swirl_1.png"), 'r')
+        self.swirl_1_img = Image.open(self.swirl_1_f)
+
+    def teardown(self):
+        self.swirl_1_f.close()
+        del self.swirl_1_img

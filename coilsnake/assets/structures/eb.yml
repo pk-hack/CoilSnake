@@ -510,6 +510,18 @@
   offset: 13556805
   size: 252
   type: data
+0xCEDD41:
+  entries:
+  - name: Speed
+    size: 1
+  - name: First Animation
+    size: 1
+  - name: Number of Animations
+    size: 2
+  name: SWIRL_ANIMATION_PRIMARY_TABLE
+  offset: 0xCEDD41
+  size: 28
+  type: data
 13563910: &id099
   entries:
   - name: Palette

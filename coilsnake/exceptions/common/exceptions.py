@@ -14,6 +14,15 @@ class CoilSnakeUserError(CoilSnakeError):
     pass
 
 
+class CoilSnakeTraceableError(CoilSnakeError):
+    def __init__(self, message, cause):
+        self.message = message
+        self.cause = cause
+
+    def __str__(self):
+        return "{}\nCaused by: {}".format(self.message, self.cause)
+
+
 class OutOfBoundsError(CoilSnakeInternalError):
     pass
 

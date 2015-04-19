@@ -40,7 +40,9 @@ class PatchModule(GenericModule):
                 ips_desc = yml_load(ips_desc_file)
                 ips_desc_title = ips_desc["Title"]
 
-                if ips_desc["Auto-Apply"]:
+                if "Hidden" in ips_desc and ips_desc["Hidden"]:
+                    continue
+                elif ips_desc["Auto-Apply"]:
                     self.patches[ips_desc_title] = "enabled"
                 else:
                     self.patches[ips_desc_title] = "disabled"
@@ -50,7 +52,9 @@ class PatchModule(GenericModule):
             patch_name = ips_desc_filename[:-4]
             with open(os.path.join(get_ips_directory(rom.type), ips_desc_filename)) as ips_desc_file:
                 ips_desc = yml_load(ips_desc_file)
-                if (ips_desc["Title"] in self.patches) and (self.patches[ips_desc["Title"]].lower() == "enabled"):
+                if "Hidden" in ips_desc and ips_desc["Hidden"]:
+                    continue
+                elif (ips_desc["Title"] in self.patches) and (self.patches[ips_desc["Title"]].lower() == "enabled"):
                     # First, check that we can apply this
                     ranges = map(lambda y: tuple(map(lambda z: int(z, 0), y[1:-1].split(','))), ips_desc["Ranges"])
                     for range in ranges:
