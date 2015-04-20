@@ -3,6 +3,7 @@
 from distutils.core import setup, Extension
 
 import os
+import py2exe
 
 
 data_files = []
