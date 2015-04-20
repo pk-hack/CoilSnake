@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import os
 from distutils.core import setup, Extension
 
-import py2exe
+import os
+
 
 data_files = []
 for root, sub_folders, files in os.walk(os.path.join("coilsnake", "assets")):
@@ -22,9 +22,9 @@ with open(os.path.join("coilsnake", "assets", "modulelist.txt"), "r") as f:
 
 setup(
     name="coilsnake",
-    version="2.1",
+    version="2.2",
     description="CoilSnake",
-    url="http://kiij.github.io/CoilSnake",
+    url="https://kiij.github.io/CoilSnake",
     packages=["coilsnake"],
     data_files=data_files,
 
