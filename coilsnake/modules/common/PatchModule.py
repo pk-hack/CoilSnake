@@ -101,8 +101,9 @@ class PatchModule(GenericModule):
                 with open(os.path.join(get_ips_directory(rom.type), ip_desc_filename)) as ips_desc_file:
                     ips_desc = yml_load(ips_desc_file)
                     ips_desc_title = ips_desc["Title"]
+                    ips_is_hidden = ("Hidden" in ips_desc) and ips_desc["Hidden"]
 
-                    if ips_desc_title not in self.patches:
+                    if (not ips_is_hidden) and (ips_desc_title not in self.patches):
                         self.patches[ips_desc_title] = "disabled"
 
             self.write_to_project(resource_open_w)
