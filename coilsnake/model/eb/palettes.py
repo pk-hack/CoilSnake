@@ -5,6 +5,9 @@ from coilsnake.exceptions.common.exceptions import InvalidArgumentError, Invalid
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
 
 
+CHARACTERS = "0123456789abcdefghijklmnopqrstuv"
+
+
 class EbColor(EqualityMixin, StringRepresentationMixin):
     """A class representing a color which adheres to the EarthBound format.
     An EarthBound color is simply a grouping of three values: red, green, and blue.
@@ -162,6 +165,26 @@ class EbPalette(EqualityMixin):
         for subpalette in self.subpalettes:
             for color in subpalette:
                 color.from_yml_rep(yml_rep[i])
+                i += 1
+
+    def __str__(self):
+        out = str()
+        for subpalette in self.subpalettes:
+            for color in subpalette:
+                out += CHARACTERS[color.r >> 3]
+                out += CHARACTERS[color.g >> 3]
+                out += CHARACTERS[color.b >> 3]
+        return out
+
+    def from_string(self, string_rep):
+        i = 0
+        for subpalette in self.subpalettes:
+            for color in subpalette:
+                color.r = int(string_rep[i], 32) << 3
+                i += 1
+                color.g = int(string_rep[i], 32) << 3
+                i += 1
+                color.b = int(string_rep[i], 32) << 3
                 i += 1
 
     def add_colors_to_subpalette(self, colors):

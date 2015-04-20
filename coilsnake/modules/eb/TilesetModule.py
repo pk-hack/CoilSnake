@@ -121,11 +121,7 @@ class TilesetModule(EbModule):
 
             # Write the event palettes
             for map_palette_id, palette in palettes:
-                if palette.flag != 0:
-                    flag_palette_offset = rom.allocate(size=palette.block_size(),
-                                                       can_write_to=partial(is_in_bank, 0x1a))
-                    palette.flag_palette.to_block(block=rom, offset=flag_palette_offset)
-                    palette.flag_palette_pointer = flag_palette_offset
+                palette.flag_palette_to_block(rom)
 
             # Write the standard palettes
             palette_offset = rom.allocate(size=0xc0 * len(palettes), can_write_to=partial(is_in_bank, 0x1a))
@@ -145,6 +141,12 @@ class TilesetModule(EbModule):
         self.graphics_pointer_table.to_block(block=rom, offset=from_snes_address(GRAPHICS_POINTER_TABLE_OFFSET))
         self.arrangements_pointer_table.to_block(block=rom, offset=from_snes_address(ARRANGEMENTS_POINTER_TABLE_OFFSET))
 
+    def write_map_palette_settings(self, palette_settings, resource_open):
+        with resource_open("map_palette_settings", "yml") as f:
+            yml_str_rep = yml_dump(palette_settings, default_flow_style=False)
+            yml_str_rep = convert_values_to_hex_repr(yml_str_rep, "Event Flag")
+            f.write(yml_str_rep)
+
     def write_to_project(self, resource_open):
         # Dump an additional YML with color0 data
         palette_settings = dict()
@@ -163,10 +165,7 @@ class TilesetModule(EbModule):
                 entry[palette_id] = palette.settings_yml_rep()
             palette_settings[i] = entry
 
-        with resource_open("map_palette_settings", "yml") as f:
-            yml_str_rep = yml_dump(palette_settings, default_flow_style=False)
-            yml_str_rep = convert_values_to_hex_repr(yml_str_rep, "Event Flag")
-            f.write(yml_str_rep)
+        self.write_map_palette_settings(palette_settings, resource_open)
 
         # Dump the tilesets
         for i, tileset in enumerate(self.tilesets):
@@ -196,3 +195,26 @@ class TilesetModule(EbModule):
                 for palette_id, palette in palettes:
                     entry = yml_rep[map_tileset][palette_id]
                     palette.settings_from_yml_rep(entry)
+
+    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+        if old_version == new_version:
+            return
+        elif old_version <= 6:
+            with resource_open_r("map_palette_settings", "yml") as f:
+                yml_rep = yml_load(f)
+                for map_tileset in yml_rep.itervalues():
+                    for map_palette in map_tileset.itervalues():
+                        if "Event Palette" in map_palette:
+                            map_palette["Event Palette"] = {
+                                "Colors": map_palette["Event Palette"],
+                                "Event Flag": 0,
+                                "Flash Effect": 0,
+                                "Sprite Palette": map_palette["Sprite Palette"]
+                            }
+            self.write_map_palette_settings(yml_rep, resource_open_w)
+
+            self.upgrade_project(
+                7, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+        else:
+            self.upgrade_project(
+                old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)

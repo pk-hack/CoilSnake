@@ -1,8 +1,12 @@
+from functools import partial
+
 from coilsnake.model.common.table import LittleEndianIntegerTableEntry
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbGraphicTileset
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.table import EbEventFlagTableEntry
+from coilsnake.util.eb.helper import is_in_bank
+
 
 CHARACTERS = "0123456789abcdefghijklmnopqrstuv"
 
@@ -15,7 +19,7 @@ class EbMapPalette(EbPalette):
         super(EbMapPalette, self).__init__(num_subpalettes=6, subpalette_length=16)
         self.flag = 0
         self.flag_palette = None
-        self.flag_palette_pointer = 0
+        self.flag_palette_pointer = None
         self.sprite_palette_id = 0
         self.flash_effect = 0
 
@@ -38,47 +42,44 @@ class EbMapPalette(EbPalette):
         super(EbMapPalette, self).to_block(block, offset)
 
         block.write_multi(key=offset, item=self.flag, size=2)
-        block.write_multi(key=offset + 0x20, item=self.flag_palette_pointer, size=2)
+        if self.flag_palette is not None:
+            if self.flag_palette_pointer is None:
+                self.flag_palette_to_block(block)
+            block.write_multi(key=offset + 0x20, item=self.flag_palette_pointer, size=2)
+        else:
+            block[offset + 0x20] = 0
+            block[offset + 0x21] = 0
         block[offset + 0x40] = self.sprite_palette_id
         block[offset + 0x60] = self.flash_effect
 
-    def __str__(self):
-        out = str()
-        for subpalette in self.subpalettes:
-            for color in subpalette:
-                out += CHARACTERS[color.r >> 3]
-                out += CHARACTERS[color.g >> 3]
-                out += CHARACTERS[color.b >> 3]
-        return out
+    def flag_palette_to_block(self, block):
+        if self.flag_palette is not None:
+            self.flag_palette_pointer = block.allocate(
+                size=self.flag_palette.block_size(),
+                can_write_to=partial(is_in_bank, 0x1a))
+            self.flag_palette.to_block(block, self.flag_palette_pointer)
 
-    def from_string(self, string_rep):
-        i = 0
-        for subpalette in self.subpalettes:
-            for color in subpalette:
-                color.r = int(string_rep[i], 32) << 3
-                i += 1
-                color.g = int(string_rep[i], 32) << 3
-                i += 1
-                color.b = int(string_rep[i], 32) << 3
-                i += 1
-
-    def settings_yml_rep(self):
+    def settings_yml_rep(self, include_colors=False):
         out = {EbEventFlagTableEntry.name: EbEventFlagTableEntry.to_yml_rep(self.flag),
                SpritePaletteIdTableEntry.name: SpritePaletteIdTableEntry.to_yml_rep(self.sprite_palette_id),
                FlashEffectTableEntry.name: FlashEffectTableEntry.to_yml_rep(self.flash_effect)}
+        if include_colors:
+            out["Colors"] = str(self)
         if self.flag != 0:
-            out["Event Palette"] = str(self.flag_palette)
+            out["Event Palette"] = self.flag_palette.settings_yml_rep(include_colors=True)
         return out
 
-    def settings_from_yml_rep(self, yml_rep):
+    def settings_from_yml_rep(self, yml_rep, include_colors=False):
         self.flag = EbEventFlagTableEntry.from_yml_rep(yml_rep[EbEventFlagTableEntry.name])
         self.sprite_palette_id = SpritePaletteIdTableEntry.from_yml_rep(yml_rep[SpritePaletteIdTableEntry.name])
         self.flash_effect = FlashEffectTableEntry.from_yml_rep(yml_rep[FlashEffectTableEntry.name])
 
+        if include_colors:
+            self.from_string(yml_rep["Colors"])
+
         if self.flag != 0:
             self.flag_palette = EbMapPalette()
-            self.flag_palette.from_string(yml_rep["Event Palette"])
-            self.flag_palette.sprite_palette_id = self.sprite_palette_id
+            self.flag_palette.settings_from_yml_rep(yml_rep["Event Palette"], include_colors=True)
 
 
 class EbTileset(object):
