@@ -28,7 +28,7 @@ def apply_relocation_patch(rom):
 
 
 class SwirlModule(EbModule):
-    NAME = "Battle Swirls"
+    NAME = "Swirls"
     FREE_RANGES = [(0xE6914, 0xEDD40)]  # Swirl frame data and animation pointer table
 
     def __init__(self):
