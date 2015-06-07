@@ -430,6 +430,9 @@ class Table(object):
         return original_offset
 
     def from_yml_rep(self, yml_rep):
+        if yml_rep is None:
+            raise TableError(table_name=self.name, entry=None, field=None,
+                             cause=TableEntryMissingDataError("No data found, please check the file"))
         for i in range(self.num_rows):
             try:
                 yml_rep_row = yml_rep[i]

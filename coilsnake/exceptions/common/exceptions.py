@@ -113,7 +113,7 @@ class TableError(EqualityMixin, StringRepresentationMixin, CoilSnakeError):
             str_rep += " in \"{}\"".format(self.field)
         if self.entry is not None:
             str_rep += " in entry #{}".format(self.entry)
-        if self.table_name:
+        if self.table_name is not None:
             str_rep += " in table \"{}\"".format(self.table_name)
         str_rep += ":\n" + str(self.cause)
 

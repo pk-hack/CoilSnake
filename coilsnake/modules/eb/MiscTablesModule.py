@@ -1,7 +1,11 @@
+import logging
+
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.yml import convert_values_to_hex_repr, replace_field_in_yml, yml_load, yml_dump
 from coilsnake.util.eb.pointer import from_snes_address
+
+log = logging.getLogger(__name__)
 
 
 class MiscTablesModule(EbModule):
@@ -45,6 +49,7 @@ class MiscTablesModule(EbModule):
     def read_from_project(self, resource_open):
         for _, table in self.tables:
             with resource_open(table.name.lower(), "yml") as f:
+                log.debug("Reading {}.yml".format(table.name.lower()))
                 table.from_yml_file(f)
 
     def write_to_project(self, resource_open):
