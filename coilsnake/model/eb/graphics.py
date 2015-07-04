@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from PIL import Image
 
-from coilsnake.exceptions.common.exceptions import InvalidArgumentError, OutOfBoundsError
+from coilsnake.exceptions.common.exceptions import InvalidArgumentError, OutOfBoundsError, InvalidUserDataError
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.palettes import EbPalette, EbColor
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
@@ -281,8 +281,9 @@ class EbTileArrangement(EqualityMixin):
             self._from_image_with_single_subpalette(image, tileset, palette)
         else:
             # Multiple subpalettes, so we have to figure out which tile should use which subpalette
+            palette.from_image(image)
             rgb_image = image.convert("RGB")
-            del image
+            del(image)
             rgb_image_data = rgb_image.load()
             del rgb_image
 
@@ -300,7 +301,14 @@ class EbTileArrangement(EqualityMixin):
                             r, g, b = rgb_image_data[image_x + tile_x, image_tile_y]
                             tile_colors.add(EbColor(r=r & 0xf8, g=g & 0xf8, b=b & 0xf8))
 
-                    subpalette_id = palette.add_colors_to_subpalette(tile_colors)
+                    try:
+                        subpalette_id = palette.get_subpalette_for_colors(tile_colors)
+                    except InvalidArgumentError as e:
+                        raise InvalidUserDataError(
+                            "Could not fit all colors in {}x{} square at ({},{}) into a single {}-color subpalette\nColors: {}\nPalette: {}".format(
+                                tileset.tile_width, tileset.tile_height, image_x, image_y, palette.subpalette_length,
+                                list(tile_colors), palette.subpalettes
+                            ))
 
                     for tile_y in xrange(tileset.tile_height):
                         image_tile_y = image_y + tile_y

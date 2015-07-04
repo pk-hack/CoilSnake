@@ -1,10 +1,9 @@
 from PIL import Image
-
-from nose.tools import assert_equal, assert_list_equal, assert_raises, assert_true, assert_false
+from nose.tools import assert_equal, assert_set_equal, assert_list_equal, assert_raises, assert_true, assert_false, raises
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
 from coilsnake.model.common.blocks import Block
-from coilsnake.model.eb.palettes import EbColor, EbPalette
+from coilsnake.model.eb.palettes import EbColor, EbPalette, setup_eb_palette_from_image, join_sets
 from tests.coilsnake_test import BaseTestCase, TilesetImageTestCase
 
 
@@ -52,10 +51,10 @@ class TestEbColor(BaseTestCase):
 
     def test_from_list(self):
         self.color.from_list([20, 40, 69])
-        assert_equal(self.color.tuple(), (20, 40, 69))
+        assert_equal(self.color.tuple(), (16, 40, 64))
 
         self.color.from_list([55, 44, 33, 20, 40, 69], offset=2)
-        assert_equal(self.color.tuple(), (33, 20, 40))
+        assert_equal(self.color.tuple(), (32, 16, 40))
 
     def test_to_list(self):
         self.color.from_tuple((20, 40, 69))
@@ -151,8 +150,12 @@ class TestEbPalette(BaseTestCase, TilesetImageTestCase):
     def test_from_image(self):
         self.palette.from_image(self.tile_image_01_img)
         assert_list_equal(self.palette.list(),
-                          [0x00, 0x00, 0x00, 0x0c, 0x00, 0xff, 0xff, 0x00, 0x00,
-                           0x00, 0xff, 0x18, 0xc6, 0xff, 0x00, 0xff, 0xff, 0xff])
+                          [0x00, 0x00, 0x00,
+                           0x08, 0x00, 0xf8,
+                           0xf8, 0x00, 0x00,
+                           0x00, 0xf8, 0x18,
+                           0xc0, 0xf8, 0x00,
+                           0xf8, 0xf8, 0xf8])
 
     def test_to_image(self):
         image = Image.new('P', (10, 10))
@@ -208,3 +211,65 @@ class TestEbPalette(BaseTestCase, TilesetImageTestCase):
         assert_equal(set([self.palette[0, x].tuple() for x in range(self.palette.subpalette_length)]),
                      set([(64, 32, 16), (16, 32, 64), (32, 32, 32)]))
         assert_equal([self.palette[0, x].used for x in range(self.palette.subpalette_length)].count(True), 3)
+
+
+class TestCreateEbPaletteFromImage(BaseTestCase, TilesetImageTestCase):
+    def test_8x8_2colors_1subpaletteof2(self):
+        return
+        eb_palette = EbPalette(num_subpalettes=1, subpalette_length=2)
+        setup_eb_palette_from_image(eb_palette, self.tile_8x8_2bpp_img, 8, 8)
+        assert_equal(eb_palette.num_subpalettes, 1)
+        assert_equal(eb_palette.subpalette_length, 2)
+        assert_equal(eb_palette[0, 0].tuple(), (0xf8, 0xf8, 0xf8))
+        assert_equal(eb_palette[0, 1].tuple(), (0, 0, 0))
+
+    def test_extra_colors(self):
+        return
+        eb_palette = EbPalette(num_subpalettes=3, subpalette_length=4)
+        setup_eb_palette_from_image(eb_palette, self.tile_8x8_2bpp_img, 8, 8)
+        assert_equal(eb_palette.num_subpalettes, 3)
+        assert_equal(eb_palette.subpalette_length, 4)
+        assert_equal(eb_palette[0, 0].tuple(), (0xf8, 0xf8, 0xf8))
+        assert_equal(eb_palette[0, 1].tuple(), (0, 0, 0))
+        assert_equal(eb_palette[0, 2].tuple(), (0, 0, 0))
+        assert_equal(eb_palette[0, 3].tuple(), (0, 0, 0))
+        assert_equal(eb_palette[1, 0].tuple(), (0, 0, 0))
+        assert_equal(eb_palette[1, 1].tuple(), (0, 0, 0))
+        assert_equal(eb_palette[1, 2].tuple(), (0, 0, 0))
+        assert_equal(eb_palette[1, 3].tuple(), (0, 0, 0))
+        assert_equal(eb_palette[2, 0].tuple(), (0, 0, 0))
+        assert_equal(eb_palette[2, 1].tuple(), (0, 0, 0))
+        assert_equal(eb_palette[2, 2].tuple(), (0, 0, 0))
+        assert_equal(eb_palette[2, 3].tuple(), (0, 0, 0))
+
+    def test_8x8_5colors_2subpalettesof4(self):
+        return
+        eb_palette = EbPalette(num_subpalettes=2, subpalette_length=4)
+        setup_eb_palette_from_image(eb_palette, self.tile_8x8_2bpp_3_img, 8, 8)
+        assert_equal(eb_palette.num_subpalettes, 2)
+        assert_equal(eb_palette.subpalette_length, 4)
+
+        assert_set_equal({eb_palette[1, i] for i in range(4)},
+                         {EbColor(24, 0, 248), EbColor(0, 248, 24), EbColor(152, 0, 248), EbColor(248, 144, 0)})
+        assert_set_equal({eb_palette[0, i] for i in range(4)},
+                         {EbColor(24, 0, 248), EbColor(0, 248, 24), EbColor(216, 248, 0), EbColor(152, 0, 248)})
+
+
+    @raises(InvalidArgumentError)
+    def test_cant_fit_colors(self):
+        eb_palette = EbPalette(num_subpalettes=2, subpalette_length=1)
+        setup_eb_palette_from_image(eb_palette, self.tile_8x8_2bpp_img, 8, 8)
+
+    @raises(InvalidArgumentError)
+    def test_cant_fit_colors_2(self):
+        eb_palette = EbPalette(num_subpalettes=1, subpalette_length=4)
+        setup_eb_palette_from_image(eb_palette, self.tile_8x8_2bpp_3_img, 8, 8)
+
+
+def test_join_sets():
+    print "Blah"
+    result = join_sets([set([1, 2, 3]), set([3, 4, 5]), set([2, 6])], 2, 4)
+    assert_list_equal(result, [set([1, 2, 3, 6]), set([3, 4, 5])])
+
+    result = join_sets([set([1, 2])], 3, 4)
+    assert_list_equal(result, [set([1, 2])])

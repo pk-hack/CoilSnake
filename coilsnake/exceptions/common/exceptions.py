@@ -11,7 +11,11 @@ class CoilSnakeInternalError(CoilSnakeError):
 
 
 class CoilSnakeUserError(CoilSnakeError):
-    pass
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return "User input error: {}".format(self.message)
 
 
 class CoilSnakeTraceableError(CoilSnakeError):

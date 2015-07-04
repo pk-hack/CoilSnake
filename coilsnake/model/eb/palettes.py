@@ -58,9 +58,9 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
 
     def from_list(self, rgb_list, offset=0):
         self.used = True
-        self.r = rgb_list[offset]
-        self.g = rgb_list[offset + 1]
-        self.b = rgb_list[offset + 2]
+        self.r = rgb_list[offset] & 0xf8
+        self.g = rgb_list[offset + 1] & 0xf8
+        self.b = rgb_list[offset + 2] & 0xf8
 
     def to_list(self, rgb_list, offset=0):
         rgb_list[offset] = self.r
@@ -79,6 +79,9 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
             self.r, self.g, self.b = map(int, yml_rep[1:-1].split(','))
         except:
             raise InvalidYmlRepresentationError("Could not parse value[{}] as an (R, G, B) color".format(yml_rep))
+
+    def __repr__(self):
+        return "#{:02x}{:02x}{:02x}".format(self.r, self.g, self.b)
 
 
 class EbPalette(EqualityMixin):
@@ -218,13 +221,19 @@ class EbPalette(EqualityMixin):
 
         return subpalette_id
 
+    def get_subpalette_for_colors(self, colors):
+        for i, subpalette in enumerate(self.subpalettes):
+            if colors.issubset(set(subpalette)):
+                return i
+        raise InvalidArgumentError("Colors do not match a subpalette")
+
     def get_color_id(self, rgb, subpalette_id):
         r, g, b = rgb
         r &= 0xf8
         g &= 0xf8
         b &= 0xf8
         subpalette = self.subpalettes[subpalette_id]
-        for i, c in enumerate(subpalette):
+        for i, c in reversed(list(enumerate(subpalette))):
             if c.r == r and c.g == g and c.b == b:
                 return i
         # TODO Handle this error better
@@ -241,3 +250,77 @@ class EbPalette(EqualityMixin):
     def hash(self):
         a = array('B', self.list())
         return crc32(a)
+
+
+def setup_eb_palette_from_image(palette, img, tile_width, tile_height):
+    num_subpalettes = palette.num_subpalettes
+    subpalette_length = palette.subpalette_length
+
+    width, height = img.size
+    rgb_image = img.convert("RGB")
+    rgb_image_data = rgb_image.load()
+    del rgb_image
+
+    # First, get a list of all the unique sets of colors in each tile
+    color_sets = []
+
+    for x in xrange(0, width, tile_width):
+        for y in xrange(0, height, tile_height):
+            new_color_set = set()
+
+            for tile_x in xrange(x, x + tile_width):
+                for tile_y in xrange(y, y+tile_height):
+                    r, g, b = rgb_image_data[tile_x, tile_y]
+                    r &= 0xf8
+                    g &= 0xf8
+                    b &= 0xf8
+                    new_color_set.add((r, g, b))
+
+            if len(new_color_set) > subpalette_length:
+                raise InvalidArgumentError(
+                    "Too many unique colors in the {}x{} box at ({},{}) in the image to fit into {} subpalettes,"
+                    " each having {} colors".format(
+                        tile_width, tile_height, x, y, num_subpalettes, subpalette_length))
+
+            for i, color_set in enumerate(color_sets):
+                if new_color_set.issubset(color_set):
+                    break
+                elif new_color_set.issuperset(color_set):
+                    color_sets[i] = new_color_set
+                    break
+            else:
+                color_sets.append(new_color_set)
+
+    # Next, find a way to fit all the sets of colors into a palette
+    color_sets = join_sets(color_sets, num_subpalettes, subpalette_length)
+    if color_sets is None:
+        raise InvalidArgumentError(
+                "Too many unique colors in the image to fit into {} subpalettes, each having {} colors".format(
+                    num_subpalettes, subpalette_length))
+
+    for subpalette_id, color_set in enumerate(color_sets):
+        for color_id, rgb in enumerate(color_set):
+            palette[subpalette_id, color_id].from_tuple(rgb)
+
+    return palette
+
+
+def join_sets(sets, num_sets_to_output, set_length):
+    if len(sets) <= num_sets_to_output:
+        return sets
+
+    for i, set1 in enumerate(sets):
+        sets_in_order_of_shared_elements = [(len(set1.intersection(x)), j+i+1, x) for (j, x) in enumerate(sets[i+1:])]
+        sets_in_order_of_shared_elements.sort(reverse=True)
+        sets_in_order_of_shared_elements = [(j, x) for (_shared, j, x) in sets_in_order_of_shared_elements]
+        for j, set2 in sets_in_order_of_shared_elements:
+            combined_set = set1.union(set2)
+            if len(combined_set) <= set_length:
+                new_set_list = sets[:]
+                new_set_list[i] = combined_set
+                new_set_list.pop(j)
+                result = join_sets(new_set_list, num_sets_to_output, set_length)
+                if result is not None:
+                    return result
+
+    return None
