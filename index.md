@@ -5,6 +5,11 @@ introduction-content: |
   **CoilSnake** is the most powerful [mod making tool](https://en.wikipedia.org/wiki/Game_mod) for the game [*EarthBound*](https://en.wikipedia.org/wiki/EarthBound). CoilSnake has been used to create several original games in the *EarthBound* engine, as well as to translate *EarthBound*:
 
 projects:
+- name: Edwin & Jones
+  image: images/screenshots/eaj.png
+  image-position-x: 0
+  image-position-y: 20%
+  url: http://edwinandjones.com
 - name: MOTHER Remake
   image: images/screenshots/mother-remake.png
   image-position-x: 0
@@ -30,11 +35,6 @@ projects:
   image-position-x: 0
   image-position-y: 10%
   url: http://www.earthboundbrasil.com/p/download.html
-- name: French EB
-  image: images/screenshots/eb-french.png
-  image-position-x: 0
-  image-position-y: 4%
-  url: http://www.ultimate-consoles.fr/page/index.html/_/super-nintendo/les-news-snes/trad-earthbound-le-patch-fr-v11-r199
 
 whatnow-content: |
   ## What now?
