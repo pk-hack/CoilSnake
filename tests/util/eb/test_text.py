@@ -1,7 +1,8 @@
+# coding: utf-8
 from nose.tools import assert_list_equal
 from nose.tools.nontrivial import raises
 
-from coilsnake.util.eb.text import standard_text_to_block
+from coilsnake.util.eb.text import standard_text_to_block, CharacterSubstitutions, standard_text_to_byte_list
 from coilsnake.model.common.blocks import Block
 
 
@@ -73,3 +74,15 @@ def test_standard_text_to_block_with_brackets_too_long2():
     b = Block()
     b.from_list([0] * 10)
     standard_text_to_block(block=b, offset=0, text="abcd[01 02 03 04 05 06 07]", max_length=10)
+
+
+def test_standard_text_to_byte_list_replacement():
+    CharacterSubstitutions.character_substitutions = {'A': 'B'}
+    assert_list_equal([114, 114, 115, 116, 114, 117, 118, 119, 114],
+                      standard_text_to_byte_list("ABCDAEFGA", 9))
+
+
+def test_standard_text_to_byte_list_replacement_unicode():
+    CharacterSubstitutions.character_substitutions = {'я': 'B'}
+    assert_list_equal([114, 114, 115, 116, 114, 117, 118, 119, 114],
+                      standard_text_to_byte_list("яBCDяEFGя", 9))

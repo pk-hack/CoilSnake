@@ -215,8 +215,8 @@ class CompressedGraphicsModule(EbModule):
         self.write_gas_station_to_project(resource_open)
 
     def read_town_maps_from_project(self, resource_open):
-        log.debug("Reading town maps")
         for resource_name, town_map in zip(TOWN_MAP_RESOURCE_NAMES, self.town_maps):
+            log.info("- Reading {}".format(resource_name))
             with resource_open(resource_name, "png") as image_file:
                 image = open_indexed_image(image_file)
                 town_map.from_image(image)
@@ -229,7 +229,7 @@ class CompressedGraphicsModule(EbModule):
                 image.save(image_file, "png")
 
     def read_town_map_icons_from_project(self, resource_open):
-        log.debug("Reading town map icons")
+        log.info("- Reading town map icons")
         with resource_open("TownMaps/icons", "png") as image_file:
             image = open_indexed_image(image_file)
             self.town_map_icons.from_image(image=image, arrangement=TOWN_MAP_ICON_PREVIEW_ARRANGEMENT)
@@ -241,7 +241,6 @@ class CompressedGraphicsModule(EbModule):
             image.save(image_file, "png")
 
     def read_company_logos_from_project(self, resource_open):
-        log.debug("Reading company logos")
         self.read_logos_from_project(resource_open, self.company_logos, COMPANY_LOGO_INFOS)
 
     def write_company_logos_to_project(self, resource_open):
@@ -249,7 +248,6 @@ class CompressedGraphicsModule(EbModule):
         self.write_logos_to_project(resource_open, self.company_logos, COMPANY_LOGO_INFOS)
 
     def read_attract_mode_logos_from_project(self, resource_open):
-        log.debug("Reading attract mode logos")
         self.read_logos_from_project(resource_open, self.attract_mode_logos, ATTRACT_MODE_INFOS)
 
     def write_attract_mode_logos_to_project(self, resource_open):
@@ -258,6 +256,7 @@ class CompressedGraphicsModule(EbModule):
 
     def read_logos_from_project(self, resource_open, logos, infos):
         for info, logo in zip(infos, logos):
+            log.info("- Reading " + info.name)
             with resource_open(info.name, "png") as image_file:
                 image = open_indexed_image(image_file)
                 logo.from_image(image)
@@ -269,7 +268,7 @@ class CompressedGraphicsModule(EbModule):
                 image.save(image_file, "png")
 
     def read_gas_station_from_project(self, resource_open):
-        log.debug("Reading gas station logo")
+        log.info("- Reading gas station logo")
         with resource_open(GAS_STATION_INFO.name + "1", "png") as image1_file:
             image1 = open_image(image1_file)
             with resource_open(GAS_STATION_INFO.name + "2", "png") as image2_file:

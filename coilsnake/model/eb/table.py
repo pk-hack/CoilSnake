@@ -91,7 +91,7 @@ class EbStandardTextTableEntry(TableEntry):
     def from_yml_rep(cls, yml_rep):
         if isinstance(yml_rep, int):
             yml_rep = str(yml_rep)
-        elif not isinstance(yml_rep, str):
+        elif not isinstance(yml_rep, basestring):
             raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as string".format(
                 yml_rep, type(yml_rep).__name__))
 
@@ -123,7 +123,7 @@ class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
     def from_yml_rep(cls, yml_rep):
         if isinstance(yml_rep, int):
             yml_rep = str(yml_rep)
-        elif not isinstance(yml_rep, str):
+        elif not isinstance(yml_rep, basestring):
             raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] of type[{}] as string".format(
                 yml_rep, type(yml_rep).__name__))
 

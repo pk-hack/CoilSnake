@@ -1,3 +1,7 @@
+class CharacterSubstitutions:
+    character_substitutions = dict()
+
+
 def standard_text_from_block(block, offset, max_length):
     str = ''
     for i in range(offset, offset + max_length):
@@ -10,6 +14,11 @@ def standard_text_from_block(block, offset, max_length):
 
 
 def standard_text_to_byte_list(text, max_length):
+    # First, substitute all of the characters
+    if CharacterSubstitutions.character_substitutions:
+        for k, v in CharacterSubstitutions.character_substitutions.iteritems():
+            text = text.replace(k, v)
+
     byte_list = []
     text_pos = 0
     while text_pos < len(text):

@@ -7,7 +7,6 @@ from coilsnake.util.common.helper import getitem_with_default, not_in_inclusive_
 from coilsnake.util.common.type import GenericEnum
 from coilsnake.util.common.yml import convert_values_to_hex_repr, yml_load, yml_dump
 
-
 log = logging.getLogger(__name__)
 
 
@@ -133,7 +132,7 @@ class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):
     def create(name, size, values):
         enumeration_class = type("GenericEnum_{}".format(name),
                                  (GenericEnum,),
-                                 dict(zip([str(x).upper() for x in values],
+                                 dict(zip([unicode(x).upper() for x in values],
                                           range(len(values)))))
         return type(name,
                     (EnumeratedLittleEndianIntegerTableEntry,),
