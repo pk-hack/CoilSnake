@@ -1,8 +1,5 @@
 import logging
 
-from coilsnake.model.eb.music import Chunk, Sequence
-
-
 log = logging.getLogger(__name__)
 
 # The sizes of sequences which are embedded inside the "program" chunk. Because these sequences aren't stored as
@@ -33,6 +30,7 @@ def read_pack(block, offset):
     pack = dict()
 
     while True:
+        from coilsnake.model.eb.music import Chunk
         chunk = Chunk.create_from_block(block, offset)
         if chunk.data_size() == 0:
             break
@@ -42,11 +40,37 @@ def read_pack(block, offset):
     return pack
 
 
+def write_pack(block, pack):
+    pack_size = 2
+    for chunk in pack.itervalues():
+        pack_size += chunk.chunk_size()
+
+    pack_offset = block.allocate(size=pack_size)
+
+    i = pack_offset
+    for chunk in pack.itervalues():
+        chunk.write_to_block(block=block, offset=i)
+        i += chunk.chunk_size()
+    block[i] = 0
+    block[i+1] = 0
+
+    return pack_offset
+
+
+# Returns an offset where a chunk of size "data_size" can be safely inserted into a specified pack without
+# - overwriting any other data in the pack
+# - conflicting with the space used by other chunks in any "partner packs"
+def find_free_offset_in_pack(packs, pack_id, partner_pack_ids, data_size):
+    # TODO
+    return None
+
+
 def get_sequence_pointer(bgm_id, program_chunk):
     return program_chunk.data.read_multi(0x2948 + bgm_id*2, 2)
 
 
 def create_sequence(bgm_id, sequence_pack_id, sequence_pack, program_chunk):
+    from coilsnake.model.eb.music import Sequence
     sequence_pointer = get_sequence_pointer(bgm_id=bgm_id, program_chunk=program_chunk)
     log.debug("Reading BGM {:#x}'s sequence from address[{:#x}]".format(bgm_id, sequence_pointer))
 
@@ -54,7 +78,8 @@ def create_sequence(bgm_id, sequence_pack_id, sequence_pack, program_chunk):
     if sequence_pack and sequence_pointer in sequence_pack:
         return Sequence.create_from_chunk(chunk=sequence_pack[sequence_pointer],
                                           bgm_id=bgm_id,
-                                          sequence_pack_id=sequence_pack_id)
+                                          sequence_pack_id=sequence_pack_id,
+                                          is_always_loaded=False)
 
     # If the sequence is one of the sequences builtin to the program chunk, return the builtin sequence as a new chunk
     if sequence_pointer in BUILTIN_SEQUENCE_SIZES:
@@ -64,7 +89,8 @@ def create_sequence(bgm_id, sequence_pack_id, sequence_pack, program_chunk):
                       data=program_chunk.data[sequence_offset_in_program:sequence_offset_in_program + sequence_size])
         return Sequence.create_from_chunk(chunk=chunk,
                                           bgm_id=bgm_id,
-                                          sequence_pack_id=sequence_pack_id)
+                                          sequence_pack_id=sequence_pack_id,
+                                          is_always_loaded=True)
 
     # If none of the above are true, create the sequence from the address only
     log.debug("Could not find sequence chunk for bgm_id[{}] @ spc_address[{:#x}], assuming it's a subsequence".format(
@@ -72,7 +98,8 @@ def create_sequence(bgm_id, sequence_pack_id, sequence_pack, program_chunk):
     ))
     return Sequence.create_from_spc_address(spc_address=sequence_pointer,
                                             bgm_id=bgm_id,
-                                            sequence_pack_id=sequence_pack_id)
+                                            sequence_pack_id=sequence_pack_id,
+                                            is_always_loaded=False)
 
 
 def remove_sequences_from_program_chunk(program_chunk):

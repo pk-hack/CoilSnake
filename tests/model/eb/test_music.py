@@ -65,17 +65,21 @@ class TestChunk(BaseTestCase, TemporaryWritableFileTestCase):
 
 class TestSubsequence(BaseTestCase, TemporaryWritableFileTestCase):
     def test_to_resource(self):
-        subsequence = Sequence.create_from_spc_address(spc_address=0x1001, bgm_id=52, sequence_pack_id=2)
+        subsequence = Sequence.create_from_spc_address(
+            spc_address=0x1001, bgm_id=52, sequence_pack_id=2, is_always_loaded=False)
         sequence_pack_map = {
             2: [Sequence.create_from_chunk(chunk=Chunk(spc_address=0x3000, data=[1, 2, 3]),
                                            bgm_id=49,
-                                           sequence_pack_id=2),
+                                           sequence_pack_id=2,
+                                           is_always_loaded=False),
                 Sequence.create_from_chunk(chunk=Chunk(spc_address=0x1000, data=[1, 2]),
                                            bgm_id=51,
-                                           sequence_pack_id=2)],
+                                           sequence_pack_id=2,
+                                           is_always_loaded=False)],
             1: [Sequence.create_from_chunk(chunk=Chunk(spc_address=0x2000, data=[1, 2]),
                                            bgm_id=32,
-                                           sequence_pack_id=1)],
+                                           sequence_pack_id=1,
+                                           is_always_loaded=False)],
         }
 
         subsequence.write_to_project(resource_open=self.resource_open_temporary_wo_file,
@@ -87,17 +91,21 @@ class TestSubsequence(BaseTestCase, TemporaryWritableFileTestCase):
             assert_equal(subsequence_yml["offset"], 1)
 
     def test_to_resource_no_sequence_pack(self):
-        subsequence = Sequence.create_from_spc_address(spc_address=0x1001, bgm_id=52, sequence_pack_id=0xff)
+        subsequence = Sequence.create_from_spc_address(
+            spc_address=0x1001, bgm_id=52, sequence_pack_id=0xff, is_always_loaded=False)
         sequence_pack_map = {
             1: [Sequence.create_from_chunk(chunk=Chunk(spc_address=0x3000, data=[1, 2, 3]),
                                            bgm_id=49,
-                                           sequence_pack_id=2),
+                                           sequence_pack_id=2,
+                                           is_always_loaded=False),
                 Sequence.create_from_chunk(chunk=Chunk(spc_address=0x1000, data=[1, 2]),
                                            bgm_id=51,
-                                           sequence_pack_id=2)],
+                                           sequence_pack_id=2,
+                                           is_always_loaded=False)],
             2: [Sequence.create_from_chunk(chunk=Chunk(spc_address=0x2000, data=[1, 2]),
                                            bgm_id=32,
-                                           sequence_pack_id=1)],
+                                           sequence_pack_id=1,
+                                           is_always_loaded=False)],
         }
 
         subsequence.write_to_project(resource_open=self.resource_open_temporary_wo_file,
@@ -109,7 +117,8 @@ class TestSubsequence(BaseTestCase, TemporaryWritableFileTestCase):
             assert_equal(subsequence_yml["offset"], 1)
 
     def test_to_resource_no_match(self):
-        subsequence = Sequence.create_from_spc_address(spc_address=0x1001, bgm_id=52, sequence_pack_id=2)
+        subsequence = Sequence.create_from_spc_address(
+            spc_address=0x1001, bgm_id=52, sequence_pack_id=2, is_always_loaded=False)
         sequence_pack_map = {
             1: [],
             2: []
@@ -121,11 +130,13 @@ class TestSubsequence(BaseTestCase, TemporaryWritableFileTestCase):
         assert_false(resource_open.called)
 
     def test_contains_spc_address(self):
-        subsequence = Sequence.create_from_spc_address(spc_address=0x1001, bgm_id=52, sequence_pack_id=2)
+        subsequence = Sequence.create_from_spc_address(
+            spc_address=0x1001, bgm_id=52, sequence_pack_id=2, is_always_loaded=False)
         assert_false(subsequence.contains_spc_address(0x1000))
 
     def test_get_spc_address(self):
-        subsequence = Sequence.create_from_spc_address(spc_address=0x1001, bgm_id=52, sequence_pack_id=2)
+        subsequence = Sequence.create_from_spc_address(
+            spc_address=0x1001, bgm_id=52, sequence_pack_id=2, is_always_loaded=False)
         assert_equal(subsequence.get_spc_address(), 0x1001)
 
 

@@ -8,7 +8,7 @@ from coilsnake.model.common.blocks import Block
 from coilsnake.util.common.helper import min_max
 from coilsnake.util.common.type import StringRepresentationMixin, EqualityMixin
 from coilsnake.util.common.yml import yml_dump, yml_load
-
+from coilsnake.util.eb.music import find_free_offset_in_pack
 
 log = logging.getLogger(__name__)
 
@@ -38,7 +38,6 @@ class Chunk(StringRepresentationMixin, object):
     @classmethod
     def create_from_block(cls, block, offset):
         size = block.read_multi(offset, 2)
-        log.debug("size: " + str(size))
         spc_address = block.read_multi(offset + 2, 2)
         if size > 0:
             data = block[offset + 4:offset + 4 + size]
@@ -52,9 +51,19 @@ class Chunk(StringRepresentationMixin, object):
         return Chunk(spc_address=spc_address, data=block)
 
     @classmethod
+    def create_blank_chunk(cls, size, spc_address):
+        return cls.create_from_list([0] * size, spc_address)
+
+    @classmethod
     def create_from_file(cls, filename):
         block = Block.create_from_file(filename)
         return cls.create_from_block(block, 0)
+
+    def write_to_block(self, block, offset):
+        data_size = self.data_size()
+        block.write_multi(offset, data_size, 2)
+        block.write_multi(offset + 2, self.spc_address, 2)
+        block[offset + 4:offset + 4 + data_size] = self.data
 
     def to_file(self, f):
         data_size = self.data_size()
@@ -78,12 +87,12 @@ class Sequence(object):
     __metaclass__ = abc.ABCMeta
 
     @classmethod
-    def create_from_chunk(cls, chunk, bgm_id, sequence_pack_id):
-        return ChunkSequence(chunk=chunk, bgm_id=bgm_id, sequence_pack_id=sequence_pack_id)
+    def create_from_chunk(cls, chunk, bgm_id, sequence_pack_id, is_always_loaded):
+        return ChunkSequence(chunk=chunk, bgm_id=bgm_id, sequence_pack_id=sequence_pack_id, is_always_loaded=is_always_loaded)
 
     @classmethod
-    def create_from_spc_address(cls, spc_address, bgm_id, sequence_pack_id):
-        return Subsequence(spc_address=spc_address, bgm_id=bgm_id, sequence_pack_id=sequence_pack_id)
+    def create_from_spc_address(cls, spc_address, bgm_id, sequence_pack_id, is_always_loaded):
+        return Subsequence(spc_address=spc_address, bgm_id=bgm_id, sequence_pack_id=sequence_pack_id, is_always_loaded=is_always_loaded)
 
     @abc.abstractmethod
     def write_to_project(self, resource_open, sequence_pack_map):
@@ -107,15 +116,16 @@ class Sequence(object):
 
 
 class ChunkSequence(StringRepresentationMixin, Sequence):
-    def __init__(self, chunk=None, bgm_id=None, sequence_pack_id=None):
+    def __init__(self, chunk=None, bgm_id=None, sequence_pack_id=None, is_always_loaded=False):
         self.chunk = chunk
         self.bgm_id = bgm_id
         self.sequence_pack_id = sequence_pack_id
+        self.is_always_loaded = is_always_loaded
 
     @staticmethod
     def _resource_open_sequence(resource_open, bgm_id):
         log.debug("Opening file " + str(bgm_id))
-        return resource_open("Music/sequences/{:03d}".format(bgm_id), "ebm")
+        return resource_open("Music/sequences/{:02X}".format(bgm_id), "ebm")
 
     def write_to_project(self, resource_open, sequence_pack_map):
         with ChunkSequence._resource_open_sequence(resource_open, self.bgm_id) as f:
@@ -137,18 +147,27 @@ class ChunkSequence(StringRepresentationMixin, Sequence):
     def get_spc_address(self):
         return self.chunk.spc_address
 
+    def write_to_pack(self, packs, pack_id, partner_pack_ids):
+        sequence_offset = find_free_offset_in_pack(packs=packs, pack_id=pack_id, partner_pack_ids=partner_pack_ids,
+                                                   data_size=self.chunk)
+        packs[pack_id][sequence_offset] = self.chunk
+        return sequence_offset
+
 
 class Subsequence(StringRepresentationMixin, Sequence):
-    def __init__(self, spc_address, bgm_id, sequence_pack_id=None):
+    def __init__(self, spc_address, bgm_id, sequence_pack_id=None, is_always_loaded=False):
+        if is_always_loaded:
+            raise InvalidArgumentError("Always loaded subsequences are unsupported")
         self.spc_address = spc_address
         self.bgm_id = bgm_id
         self.sequence_pack_id = sequence_pack_id
         self.source_bgm_id = None
         self.source_bgm_offset = None
+        self.is_always_loaded = is_always_loaded
 
     @staticmethod
     def _resource_open_sequence(resource_open, bgm_id):
-        return resource_open("Music/sequences/{:03d}".format(bgm_id), "yml")
+        return resource_open("Music/sequences/{:02X}".format(bgm_id), "yml")
 
     def write_to_project(self, resource_open, sequence_pack_map):
         # Get a list of possible sequences which this could be a subsequence of.
@@ -221,6 +240,7 @@ def _brr_filter_3(brr_waveform, i):
 _BRR_FILTERS = [None, _brr_filter_1, _brr_filter_2, _brr_filter_3]
 
 
+# Documentation: http://wiki.superfamicom.org/snes/show/Bit+Rate+Reduction+%28BRR%29
 class BrrWaveform(EqualityMixin, StringRepresentationMixin):
     def __init__(self):
         self.sampled_waveform = None
@@ -232,7 +252,7 @@ class BrrWaveform(EqualityMixin, StringRepresentationMixin):
         while (block[offset + size_in_blocks] & 1) == 0:
             size_in_blocks += 9
         size_in_blocks /= 9
-        size_in_blocks += 1  # The block which included the "end" flag is also part of the waveform
+        size_in_blocks += 1  # The block which includes the "end" flag is also part of the waveform
 
         # Allocate the storage for the waveform's samples
         self.sampled_waveform = array('l', [0] * (size_in_blocks * 16))
@@ -270,6 +290,13 @@ class BrrWaveform(EqualityMixin, StringRepresentationMixin):
                 filter_function = _BRR_FILTERS[block_filter]
                 for i in xrange(16):
                     filter_function(self, block_index * 16 + i)
+
+    def to_block(self, block, offset):
+        # TODO
+        pass
+
+    def block_size(self):
+        return (len(self.sampled_waveform) / 16) * 9
 
     @classmethod
     def create_from_block(cls, block, offset):
@@ -315,7 +342,7 @@ class EbSample(BrrWaveform):
 
     @staticmethod
     def _resource_open_wav(resource_open, instrument_set_id, sample_id):
-        return resource_open("Music/instrument_sets/{:03d}/samples/{:03d}".format(instrument_set_id, sample_id), "wav")
+        return resource_open("Music/instrument_sets/{:02X}/samples/{:02X}".format(instrument_set_id, sample_id), "wav")
 
     def write_wav_to_project(self, resource_open, instrument_set_id, sample_id):
         with EbSample._resource_open_wav(resource_open, instrument_set_id, sample_id) as f:
@@ -453,6 +480,65 @@ class EbInstrumentSet(object):
             self.instruments[instrument_id] = EbInstrument.create_from_chunk(instrument_chunk, i)
             instrument_id += 1
 
+    def write_to_pack(self, packs, pack_id, partner_pack_ids):
+        self.write_samples_to_pack(packs, pack_id, partner_pack_ids)
+        self.write_instruments_to_pack(packs, pack_id, partner_pack_ids)
+
+    def write_samples_to_pack(self, packs, pack_id, partner_pack_ids):
+        sample_id = 0
+        while sample_id < len(self.samples):
+            sample = self.samples[sample_id]
+            if not sample:
+                continue
+
+            # Figure out how big the pointer table and data chunks are going to be
+            num_samples_in_chunk = 1
+            total_samples_size = sample.block_size()
+            while True:
+                next_sample = self.samples[sample_id + num_samples_in_chunk]
+                if not next_sample:
+                    break
+                num_samples_in_chunk += 1
+                total_samples_size += next_sample.block_size()
+
+            # Locate an offset in the pack for the sample data
+            sample_data_spc_offset = find_free_offset_in_pack(packs=packs, pack_id=pack_id,
+                                                              partner_pack_ids=partner_pack_ids,
+                                                              data_size=total_samples_size)
+
+            # Write the sample pointers and sample data to chunks
+            pointer_table_chunk = Chunk.create_blank_chunk(
+                size=2 * num_samples_in_chunk,
+                spc_address=SAMPLE_POINTER_TABLE_SPC_OFFSET + (4 * sample_id))
+            data_chunk = Chunk.create_blank_chunk(
+                size=total_samples_size,
+                spc_address=sample_data_spc_offset)
+            for next_sample_id in range(sample_id, sample_id + num_samples_in_chunk):
+                # Write the pointer
+                pointer_table_chunk.data.write_multi(
+                    key=next_sample_id * 2,
+                    item=sample_data_spc_offset,
+                    size=2)
+                # Write the data
+                next_sample = self.samples[next_sample_id]
+                next_sample.to_block(
+                    block=data_chunk.data,
+                    offset=sample_data_spc_offset - data_chunk.spc_address)
+                # Continue the loop to the next sample in the group
+                sample_data_spc_offset += next_sample.block_size()
+
+            # Write the chunks to the pack
+            packs[pack_id][pointer_table_chunk.spc_address] = pointer_table_chunk
+            packs[pack_id][data_chunk.spc_address] = data_chunk
+
+            # Continue the loop to the next group of samples
+            sample_id += num_samples_in_chunk
+
+
+    def write_instruments_to_pack(self, pack):
+        # TODO
+        pass
+
     @classmethod
     def create_from_pack(cls, pack):
         instrument_set = EbInstrumentSet()
@@ -461,11 +547,11 @@ class EbInstrumentSet(object):
 
     @staticmethod
     def _resource_open_instruments(resource_open, instrument_set_id):
-        return resource_open("Music/instrument_sets/{:03d}/instruments".format(instrument_set_id), "yml")
+        return resource_open("Music/instrument_sets/{:02X}/instruments".format(instrument_set_id), "yml")
 
     @staticmethod
     def _resource_open_samples(resource_open, instrument_set_id):
-        return resource_open("Music/instrument_sets/{:03d}/samples".format(instrument_set_id), "yml")
+        return resource_open("Music/instrument_sets/{:02X}/samples".format(instrument_set_id), "yml")
 
     def write_to_project(self, resource_open, instrument_set_id):
         self.write_instruments_to_project(resource_open, instrument_set_id)
@@ -542,6 +628,12 @@ class EbNoteStyles(object):
         offset = NOTE_STYLE_TABLES_SPC_OFFSET - chunk.spc_address
         self.release_settings = chunk.data[offset:offset+8].to_list()
         self.volumes = chunk.data[offset+8:offset+24].to_list()
+
+    def write_to_pack(self, pack):
+        chunk = Chunk.create_from_list(
+            data_list=(self.release_settings + self.volumes),
+            spc_address=NOTE_STYLE_TABLES_SPC_OFFSET)
+        pack[NOTE_STYLE_TABLES_SPC_OFFSET] = chunk
 
     def yml_rep(self):
         return {"Release Settings": self.release_settings,

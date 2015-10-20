@@ -1,7 +1,8 @@
 import array
 import copy
-import os
 from zlib import crc32
+
+import os
 
 from coilsnake.exceptions.common.exceptions import OutOfBoundsError, InvalidArgumentError, \
     NotEnoughUnallocatedSpaceError, FileAccessError, CouldNotAllocateError
@@ -157,23 +158,23 @@ class Block(object):
                 (isinstance(item, list) or isinstance(item, array.array) or isinstance(item, Block)):
             if key.start > key.stop:
                 raise InvalidArgumentError("Second argument of slice %s must be greater than  the first" % key)
-            elif (key.start < 0) or (key.stop - 1 >= self.size):
+            if (key.start < 0) or (key.stop - 1 >= self.size):
                 raise OutOfBoundsError("Attempted to write to range (%#x,%#x) which is out of bounds" % (key.start,
                                                                                                          key.stop - 1))
-            elif len(item) != (key.stop - key.start):
+            if len(item) != (key.stop - key.start):
                 raise InvalidArgumentError("Attempted to write data of size %d to range of length %d" % (
                     len(item), key.stop - key.start))
-            elif (key.stop - key.start) == 0:
+            if (key.stop - key.start) == 0:
                 raise InvalidArgumentError("Attempted to write data of size 0")
+
+            if isinstance(item, list):
+                self.data[key] = array.array('B', item)
+            elif isinstance(item, array.array):
+                self.data[key] = item
+            elif isinstance(item, Block):
+                self.data[key] = item.data
             else:
-                if isinstance(item, list):
-                    self.data[key] = array.array('B', item)
-                elif isinstance(item, array.array):
-                    self.data[key] = item
-                elif isinstance(item, Block):
-                    self.data[key] = item.data
-                else:
-                    raise InvalidArgumentError("Can not write value of type[{}]".format(type(item)))
+                raise InvalidArgumentError("Can not write value of type[{}]".format(type(item)))
         else:
             raise TypeError("Arguments \"key\" and \"item\" had invalid types of %s and %s" % (type(key).__name__,
                                                                                                type(item).__name__))
