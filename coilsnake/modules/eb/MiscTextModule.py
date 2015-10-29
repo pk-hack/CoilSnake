@@ -59,7 +59,7 @@ MISC_TEXT = {
         "Delete": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F102), maximum_size=25),
         "Set Up": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F120), maximum_size=25),
         "Copy to where?": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F189), maximum_size=14),
-        "Confirm Delete": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F2C8), maximum_size=32),
+        "Confirm Delete": EbMiscTextString(default_offset=0x04c0be, maximum_size=32),
         "Confirm Delete No": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F364), maximum_size=25),
         "Confirm Delete Yes": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F380), maximum_size=25),
         "Select Speed": EbMiscTextString(default_offset=0x04c0e5, maximum_size=25),
