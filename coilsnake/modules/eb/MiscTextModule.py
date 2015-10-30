@@ -98,12 +98,12 @@ MISC_TEXT = {
         "Auto Fight": EbMiscTextString(default_offset=0x04a001, maximum_size=16),
         "PSI": EbMiscTextString(default_offset=0x04a011, maximum_size=16),
         "Defend": EbMiscTextString(default_offset=0x04a021, maximum_size=16),
-        "Pray": EbMiscTextString(default_offset=0x04a031, maximum_size=16),
-        "Shoot": EbMiscTextString(default_offset=0x04a041, maximum_size=16),
-        "Spy": EbMiscTextString(default_offset=0x04a051, maximum_size=16),
+        "Pray": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x237E0), maximum_size=25, null_terminated=True),
+        "Shoot": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x23616), maximum_size=20, null_terminated=True),
+        "Spy": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x2378B), maximum_size=25, null_terminated=True),
         "Run Away": EbMiscTextString(default_offset=0x04a061, maximum_size=16),
-        "Mirror": EbMiscTextString(default_offset=0x04a071, maximum_size=16),
-        "Do Nothing": EbMiscTextString(default_offset=0x04a081, maximum_size=11)  # New in CoilSnake 2.0
+        "Mirror": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x23808), maximum_size=25, null_terminated=True),
+        "Do Nothing": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x23637), maximum_size=25, null_terminated=True)  # New in CoilSnake 2.0
     },
     "Out of Battle Menu": {
         "Talk to": EbMiscTextString(default_offset=0x2fa37a, maximum_size=9),
@@ -165,8 +165,8 @@ MISC_TEXT = {
         "Body Window Title": EbMiscTextString(default_offset=0x045c60, maximum_size=7),
         "Arms Window Title": EbMiscTextString(default_offset=0x045c68, maximum_size=7),
         "Other Window Title": EbMiscTextString(default_offset=0x045c70, maximum_size=7),
-        "No Equip": EbMiscTextString(default_offset=0x045c78, maximum_size=9),
-        "Unequip": EbMiscTextString(default_offset=0x045c82, maximum_size=4),
+        "No Equip": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1A163), maximum_size=10, null_terminated=True),
+        "Unequip": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1A912), maximum_size=12, null_terminated=True),
         # v This one could possibly have a larger max size, I haven't tested
         "To": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1AB1A), maximum_size=5, null_terminated=True)
     },
