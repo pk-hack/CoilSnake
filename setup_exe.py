@@ -3,8 +3,6 @@
 from distutils.core import setup, Extension
 
 import os
-import py2exe
-
 
 data_files = []
 for root, sub_folders, files in os.walk(os.path.join("coilsnake", "assets")):
@@ -23,7 +21,7 @@ with open(os.path.join("coilsnake", "assets", "modulelist.txt"), "r") as f:
 
 setup(
     name="coilsnake",
-    version="2.2",
+    version="2.3",
     description="CoilSnake",
     url="https://kiij.github.io/CoilSnake",
     packages=["coilsnake"],
