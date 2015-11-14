@@ -2,6 +2,10 @@
 
 ## Linux
 
+Because Python is notorious for being difficult to maintain a clean installation of, I recommend developing either in a Python virtualenv or in an actual virtual machine.
+
+### Using a virtualenv
+
 1. `apt-get install` any system dependencies requried by CoilSnake. These are listed in the official [CoilSnake installation instructions](https://kiij.github.io/CoilSnake/download.html).
 1. `sudo pip install virtualenv`
 1. `virtualenv CoilSnake_virtualenv --no-site-packages`
@@ -17,6 +21,21 @@ CoilSnake is now installed in development mode in its own virtualenv, so it does
     python script/gui.py
     # or...
     python script/cli.py
+
+### Using a virtual machine
+
+1. `git clone --recursive https://github.com/kiij/CoilSnake.git`
+1. `cd CoilSnake`
+1. `vagrant up`
+1. `vagrant ssh`
+1. `cd /vagrant`
+1. `sudo python setup.py develop`
+
+CoilSnake is now installed in development mode on the virtual machine. After making code changes to the source, you can test it by running CoilSnake's CLI interface.
+
+    python script/cli.py
+    
+Please note that the included Vagrant configuration does not run a GUI, meaning that you won't be able to test CoilSnake's GUI with it.
 
 ## Windows
 
