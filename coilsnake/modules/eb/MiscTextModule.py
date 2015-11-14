@@ -165,7 +165,7 @@ MISC_TEXT = {
         "Body Window Title": EbMiscTextString(default_offset=0x045c60, maximum_size=7),
         "Arms Window Title": EbMiscTextString(default_offset=0x045c68, maximum_size=7),
         "Other Window Title": EbMiscTextString(default_offset=0x045c70, maximum_size=7),
-        "No Equip": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1A163), maximum_size=10, null_terminated=True),
+        "No Equip": EbMiscTextString(default_offset=0x045c78, maximum_size=10),
         "Unequip": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1A912), maximum_size=12, null_terminated=True),
         # v This one could possibly have a larger max size, I haven't tested
         "To": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1AB1A), maximum_size=5, null_terminated=True)
