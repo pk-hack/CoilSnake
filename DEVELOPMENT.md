@@ -26,8 +26,8 @@ CoilSnake is now installed in development mode in its own virtualenv, so it does
 
 1. `git clone --recursive https://github.com/kiij/CoilSnake.git`
 1. `cd CoilSnake`
-1. `vagrant up`
-1. `vagrant ssh`
+1. `vagrant up ubuntu`
+1. `vagrant ssh ubuntu`
 1. `cd /vagrant`
 1. `sudo python setup.py develop`
 
@@ -55,6 +55,9 @@ CoilSnake is now installed in development mode. After making code changes to the
     python.exe .\script\gui.py
 
 ### Creating a standalone Windows executable
+
+You'll probably want to follow these steps from a fresh virtual machine. You can start up a new Windows 7 VM by the following command: `vagrant up windows`
+
 1. Install:
   1. [Python 2.7](https://www.python.org/downloads/release/python-279/) (32-bit version)
   1. [Microsoft Visual C++ 2008 Express Edition](https://go.microsoft.com/?linkid=7729279)

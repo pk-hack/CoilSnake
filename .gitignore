@@ -4,6 +4,7 @@
 /*.egg-info
 /.coverage
 /*/*/build
+/.vagrant
 *.so
 *.zo
 *.pyc

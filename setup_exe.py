@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from distutils.core import setup, Extension
+import py2exe
 
 import os
 
