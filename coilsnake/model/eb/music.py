@@ -534,7 +534,6 @@ class EbInstrumentSet(object):
             # Continue the loop to the next group of samples
             sample_id += num_samples_in_chunk
 
-
     def write_instruments_to_pack(self, pack):
         # TODO
         pass
