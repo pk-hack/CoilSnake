@@ -22,7 +22,7 @@ with open(os.path.join("coilsnake", "assets", "modulelist.txt"), "r") as f:
 
 setup(
     name="coilsnake",
-    version="2.3",
+    version="2.3.1",
     description="CoilSnake",
     url="https://kiij.github.io/CoilSnake",
     packages=["coilsnake"],

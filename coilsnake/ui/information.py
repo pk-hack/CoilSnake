@@ -1,7 +1,7 @@
 from coilsnake.util.common import project
 
 VERSION = project.VERSION_NAMES[project.FORMAT_VERSION]
-RELEASE_DATE = "November 11, 2015"
+RELEASE_DATE = "November 15, 2015"
 
 WEBSITE = "http://kiij.github.io/CoilSnake"
 AUTHOR = "MrTenda"
@@ -29,7 +29,7 @@ DEPENDENCIES = [
 
 def coilsnake_about():
     description = """CoilSnake {version} - {website}
-Written by {author}
+Created by {author}
 Released on {release_date}
 """.format(version=VERSION, author=AUTHOR, release_date=RELEASE_DATE, website=WEBSITE)
 

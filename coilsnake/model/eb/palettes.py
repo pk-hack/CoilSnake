@@ -77,6 +77,9 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
         try:
             self.used = True
             self.r, self.g, self.b = map(int, yml_rep[1:-1].split(','))
+            self.r &= 0xf8
+            self.g &= 0xf8
+            self.b &= 0xf8
         except:
             raise InvalidYmlRepresentationError("Could not parse value[{}] as an (R, G, B) color".format(yml_rep))
 
