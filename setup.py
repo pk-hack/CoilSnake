@@ -13,7 +13,7 @@ setup(
     include_package_data=True,
 
     install_requires=[
-        "Pillow>=2.4.0",
+        "Pillow>=3.0.0",
         "PyYAML>=3.11",
         "CCScriptWriter>=1.1",
         "ccscript>=1.337"

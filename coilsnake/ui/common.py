@@ -19,6 +19,9 @@ log = logging.getLogger(__name__)
 
 
 def setup_logging(quiet=False, verbose=False, stream=None):
+    # Disable the weird "STREAM" logging messages in Pillow 3.0.0
+    logging.getLogger("PIL.PngImagePlugin").setLevel(logging.CRITICAL)
+
     if not stream:
         stream = sys.stdout
     handler = logging.StreamHandler(stream=stream)
