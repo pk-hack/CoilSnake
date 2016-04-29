@@ -1,4 +1,4 @@
-from Tkconstants import END
+#from Tkconstants import END
 import os
 import subprocess
 import tkFileDialog
@@ -76,9 +76,9 @@ def strip_header_from_rom(root):
 
 
 def set_entry_text(entry, text):
-    entry.delete(0, END)
+    entry.delete(0, )
     entry.insert(0, text)
-    entry.xview(END)
+    entry.xview()
 
 
 def browse_for_rom(root, entry, save=False):
@@ -96,7 +96,7 @@ def browse_for_rom(root, entry, save=False):
             filetypes=ROM_FILETYPES)
     if filename:
         set_entry_text(entry, filename)
-        entry.xview(END)
+        entry.xview()
 
 
 def browse_for_project(root, entry, save=False):
@@ -107,7 +107,7 @@ def browse_for_project(root, entry, save=False):
         mustexist=(not save))
     if filename:
         set_entry_text(entry, filename)
-        entry.xview(END)
+        entry.xview()
 
 
 def open_folder(entry):
