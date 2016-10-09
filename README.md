@@ -1,6 +1,6 @@
-## [CoilSnake](https://kiij.github.io/CoilSnake/)
+## [CoilSnake](https://mrtenda.github.io/CoilSnake/)
 
-![You engage the OctoCat.](https://kiij.github.io/CoilSnake/images/screenshots/octocat-battle.png)
+![You engage the OctoCat.](https://mrtenda.github.io/CoilSnake/images/screenshots/octocat-battle.png)
 
 **CoilSnake** is the most powerful [mod making tool](https://en.wikipedia.org/wiki/Game_mod) for the game
 [*EarthBound*](https://en.wikipedia.org/wiki/EarthBound).
@@ -12,10 +12,10 @@ engine.
 ### Download
 
 Download and usage instructions for Windows and Linux can be found on the
-[CoilSnake website](https://kiij.github.io/CoilSnake/download.html).
+[CoilSnake website](https://mrtenda.github.io/CoilSnake/download.html).
 
 ### Support or Contact
 
-* Submit [issues or feature  requests](https://github.com/kiij/CoilSnake/issues).
-* Read the [CoilSnake tutorial](https://github.com/kiij/CoilSnake/wiki/Tutorial).
-* Visit the [forum](https://forum.starmen.net/forum/Community/PKHack) or IRC channel (#pkhax on irc.thinstack.net).
+* Submit [issues or feature  requests](https://github.com/mrtenda/CoilSnake/issues).
+* Read the [CoilSnake tutorial](https://github.com/mrtenda/CoilSnake/wiki/Tutorial).
+* Visit the [forum](https://forum.starmen.net/forum/Community/PKHack).
