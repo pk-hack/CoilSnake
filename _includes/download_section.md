@@ -8,7 +8,7 @@ On Windows, just [download the .exe]({{site.windows_download_url}}). Linux users
                            libboost-filesystem-dev libboost-python-dev \
                            python-tk python-imaging-tk \
                            libjpeg-dev zlib1g-dev tk8.6-dev tcl8.6-dev \
-    $ git clone https://github.com/kiij/CoilSnake.git
+    $ git clone https://github.com/mrtenda/CoilSnake.git
     $ cd CoilSnake
     $ make
     $ sudo make install
