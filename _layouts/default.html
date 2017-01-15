@@ -17,6 +17,12 @@
     <div class="inner">
 
         <header>
+
+          <div id="social-media">
+            <a href="{{site.social_media_links.twitter}}"><img class="social-media-icon" src="images/twitter-48x48.png"></a>
+            <a href="{{site.social_media_links.github}}"><img class="social-media-icon" src="images/github-48x48.png"></a>
+          </div>
+
           <a href="index.html"><h1><span>{{site.title}}</span></h1></a>
         </header>
 
@@ -24,7 +30,6 @@
           <a href="{{site.windows_download_url}}" id="download-windows" class="button"><span>Download</span></a>
           <a href="download.html" id="download-linux" class="button"><span>Download</span></a>
           <a href="https://github.com/mrtenda/CoilSnake/wiki/Tutorial" id="view-documentation" class="button"><span>Tutorial</span></a>
-          <a href="https://github.com/mrtenda/CoilSnake" id="view-on-github" class="button"><span>GitHub</span></a>
         </section>
 
         <section id="main_content">
@@ -32,10 +37,6 @@
           {{content}}
         
         </section>
-
-        <footer>
-            © Copyright 2014 by <a href="https://github.com/mrtenda">MrTenda</a>
-        </footer>
 
         <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");

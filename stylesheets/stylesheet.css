@@ -11,6 +11,15 @@ header {
   padding-bottom: 25px;
 }
 
+div#social-media {
+  position:absolute;
+  right: 0;
+}
+
+img.social-media-icon {
+  margin-left: 5px;
+}
+
 h1 {
   margin: 0;
   background: url(../images/coilsnake.png) no-repeat center;
@@ -72,7 +81,7 @@ a.button {
   padding: 12px 8px 12px 8px;
   display: block;
   float: left;
-  width: 126px;
+  width: 168px;
   margin-right: 14px;
   background: #fdfdfd; /* Old browsers */
   background: -moz-linear-gradient(top,  #fdfdfd 0%, #f2f2f2 100%); /* FF3.6+ */
@@ -103,8 +112,10 @@ a.button:hover {
 
 a.button span {
   padding-left: 45px;
+  padding-right: 20px;
   display: block;
   height: 26px;
+  text-align: center;
 }
 
 a.button span.disabled {
@@ -156,6 +167,7 @@ div#container {
 }
 
 div#container .inner {
+  position: relative;
   width: 620px;
   margin: 0 auto;
 }

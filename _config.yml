@@ -2,3 +2,6 @@ markdown: kramdown
 title: "CoilSnake"
 latest_version: "2.3.1"
 windows_download_url: "https://bit.ly/1HN69sd"
+social_media_links:
+  twitter: https://twitter.com/realmrtenda
+  github: https://github.com/mrtenda/CoilSnake
