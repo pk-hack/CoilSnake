@@ -38,15 +38,15 @@ class TemporaryWritableFileTestCase(object):
 
 class TilesetImageTestCase(object):
     def setup(self):
-        self.tile_image_01_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_image_01.png"), 'r')
+        self.tile_image_01_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_image_01.png"), 'rb')
         self.tile_image_01_img = Image.open(self.tile_image_01_fp)
-        self.tile_8x8_2bpp_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x8_2bpp.png"), 'r')
+        self.tile_8x8_2bpp_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x8_2bpp.png"), 'rb')
         self.tile_8x8_2bpp_img = Image.open(self.tile_8x8_2bpp_fp)
-        self.tile_8x8_2bpp_2_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x8_2bpp_2.png"), 'r')
+        self.tile_8x8_2bpp_2_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x8_2bpp_2.png"), 'rb')
         self.tile_8x8_2bpp_2_img = Image.open(self.tile_8x8_2bpp_2_fp)
-        self.tile_8x8_2bpp_3_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x8_2bpp_3.png"), 'r')
+        self.tile_8x8_2bpp_3_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x8_2bpp_3.png"), 'rb')
         self.tile_8x8_2bpp_3_img = Image.open(self.tile_8x8_2bpp_3_fp)
-        self.tile_8x16_4bpp_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x16_4bpp.png"), 'r')
+        self.tile_8x16_4bpp_fp = open(os.path.join(TEST_IMAGE_DIR, "tile_8x16_4bpp.png"), 'rb')
         self.tile_8x16_4bpp_img = Image.open(self.tile_8x16_4bpp_fp)
 
     def teardown(self):
@@ -64,9 +64,9 @@ class TilesetImageTestCase(object):
 
 class SpriteGroupTestCase(object):
     def setup(self):
-        self.spritegroup_1_f = open(os.path.join(TEST_IMAGE_DIR, "spritegroup_16x24_1.png"), 'r')
+        self.spritegroup_1_f = open(os.path.join(TEST_IMAGE_DIR, "spritegroup_16x24_1.png"), 'rb')
         self.spritegroup_1_img = Image.open(self.spritegroup_1_f)
-        self.spritegroup_2_f = open(os.path.join(TEST_IMAGE_DIR, "spritegroup_16x24_2.png"), 'r')
+        self.spritegroup_2_f = open(os.path.join(TEST_IMAGE_DIR, "spritegroup_16x24_2.png"), 'rb')
         self.spritegroup_2_img = Image.open(self.spritegroup_2_f)
 
     def teardown(self):
@@ -78,7 +78,7 @@ class SpriteGroupTestCase(object):
 
 class SwirlTestCase(object):
     def setup(self):
-        self.swirl_1_f = open(os.path.join(TEST_IMAGE_DIR, "swirl_1.png"), 'r')
+        self.swirl_1_f = open(os.path.join(TEST_IMAGE_DIR, "swirl_1.png"), 'rb')
         self.swirl_1_img = Image.open(self.swirl_1_f)
 
     def teardown(self):

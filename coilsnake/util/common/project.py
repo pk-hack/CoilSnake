@@ -85,7 +85,7 @@ class Project(object):
         yml_dump(tmp, f)
         f.close()
 
-    def get_resource(self, module_name, resource_name, extension="dat", mode="rw"):
+    def get_resource(self, module_name, resource_name, extension="dat", mode="r+"):
         if module_name not in self._resources:
             self._resources[module_name] = {}
         if resource_name not in self._resources[module_name]:
