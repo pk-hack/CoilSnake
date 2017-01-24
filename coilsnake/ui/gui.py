@@ -18,9 +18,10 @@ from PIL import ImageTk
 
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui import information, gui_util
-from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging, decompile_script
+from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging, decompile_script, \
+    patch_rom
 from coilsnake.ui.gui_preferences import CoilSnakePreferences
-from coilsnake.ui.gui_util import browse_for_rom, browse_for_project, open_folder, set_entry_text, \
+from coilsnake.ui.gui_util import browse_for_patch, browse_for_rom, browse_for_project, open_folder, set_entry_text, \
     find_system_java_exe
 from coilsnake.ui.information import coilsnake_about
 from coilsnake.ui.widgets import ThreadSafeConsole, CoilSnakeGuiProgressBar
@@ -323,6 +324,33 @@ Please configure Java in the Settings menu.""")
         self.progress_bar.cycle_animation_stop()
         self.enable_all_components()
 
+    def do_patch_rom(self, clean_rom_entry, patched_rom_entry, patch_entry, headered_var):
+        clean_rom = clean_rom_entry.get()
+        patched_rom = patched_rom_entry.get()
+        patch = patch_entry.get()
+        headered = headered_var.get()
+
+        if clean_rom and patched_rom and patch:
+            self.save_default_tab()
+
+            # Update the GUI
+            self.console.clear()
+            self.disable_all_components()
+            self.progress_bar.cycle_animation_start()
+
+            thread = Thread(target=self._do_patch_rom_help, args=(clean_rom, patched_rom, patch, headered))
+            thread.start()
+
+    def _do_patch_rom_help(self, clean_rom, patched_rom, patch, headered):
+        try:
+            patch_rom(clean_rom, patched_rom, patch, headered, progress_bar=self.progress_bar)
+        except Exception as inst:
+            log.debug(format_exc())
+            log.error(inst)
+
+        self.progress_bar.cycle_animation_stop()
+        self.enable_all_components()
+
     def main(self):
         self.create_gui()
         self.root.mainloop()
@@ -349,6 +377,12 @@ Please configure Java in the Settings menu.""")
 
         decompile_script_frame = self.create_decompile_script_frame(self.notebook)
         self.notebook.add(decompile_script_frame, text="Decompile Script")
+
+        patcher_patch_frame = self.create_patcher_patch_frame(self.notebook)
+        self.notebook.add(patcher_patch_frame, text="Patch ROM")
+
+        #patcher_create_frame = self.create_patcher_create_frame(self.notebook)
+        #self.notebook.add(patcher_create_frame, text="Create Patch")
 
         self.notebook.pack(fill=BOTH, expand=1)
         self.notebook.select(self.preferences.get_default_tab())
@@ -564,6 +598,67 @@ Please configure Java in the Settings menu.""")
 
         return decompile_script_frame
 
+    def create_patcher_patch_frame(self, notebook):
+        patcher_patch_frame = ttk.Frame(notebook)
+        self.add_title_label_to_frame("Apply an EBP or IPS patch to a ROM", patcher_patch_frame)
+
+        clean_rom_entry = self.add_rom_fields_to_frame(name="Clean ROM", frame=patcher_patch_frame, padding_buttons=0)
+        patched_rom_entry = self.add_rom_fields_to_frame(name="Patched ROM", frame=patcher_patch_frame, save=True,
+                                                         padding_buttons=0)
+        patch_entry = self.add_patch_fields_to_frame(name="Patch", frame=patcher_patch_frame)
+        headered_var = self.add_headered_field_to_frame(name="ROM Header (IPS only)", frame=patcher_patch_frame)
+
+        def patch_rom_tmp():
+            self.preferences["default clean rom"] = clean_rom_entry.get()
+            self.preferences["default patched rom"] = patched_rom_entry.get()
+            self.preferences["default patch"] = patch_entry.get()
+            self.preferences.save()
+            self.do_patch_rom(clean_rom_entry, patched_rom_entry, patch_entry, headered_var)
+
+        button = Button(patcher_patch_frame, text="Patch ROM", command=patch_rom_tmp)
+        button.pack(fill=BOTH, expand=1)
+        self.components.append(button)
+
+        if self.preferences["default clean rom"]:
+            set_entry_text(entry=clean_rom_entry,
+                           text=self.preferences["default clean rom"])
+        if self.preferences["default patched rom"]:
+            set_entry_text(entry=patched_rom_entry,
+                           text=self.preferences["default patched rom"])
+        if self.preferences["default patch"]:
+            set_entry_text(entry=patch_entry,
+                           text=self.preferences["default patch"])
+
+        return patcher_patch_frame
+
+    def create_patcher_create_frame(self, notebook):
+        patcher_create_frame = ttk.Frame(notebook)
+        self.add_title_label_to_frame("Create EBP patch from a ROM", patcher_create_frame)
+
+        clean_rom_entry = self.add_rom_fields_to_frame(name="Clean ROM", frame=patcher_create_frame, padding_buttons=0)
+        modified_rom_entry = self.add_rom_fields_to_frame(name="Modified ROM", frame=patcher_create_frame,
+                                                          padding_buttons=0)
+        patch_entry = self.add_patch_fields_to_frame(name="Patch", frame=patcher_create_frame, save=True)
+
+        def create_patch_tmp():
+            self.preferences["default clean rom"] = clean_rom_entry.get()
+            self.preferences["default modified rom"] = modified_rom_entry.get()
+            self.preferences.save()
+            self.do_create_patch(clean_rom_entry, modified_rom_entry, patch_entry)
+
+        button = Button(patcher_create_frame, text="Create Patch", command=create_patch_tmp)
+        button.pack(fill=BOTH, expand=1)
+        self.components.append(button)
+
+        if self.preferences["default clean rom"]:
+            set_entry_text(entry=clean_rom_entry,
+                           text=self.preferences["default clean rom"])
+        if self.preferences["default modified rom"]:
+            set_entry_text(entry=modified_rom_entry,
+                           text=self.preferences["default patched rom"])
+
+        return patcher_create_frame
+
     def add_title_label_to_frame(self, text, frame):
         Label(frame, text=text, justify=CENTER).pack(fill=BOTH, expand=1)
 
@@ -645,7 +740,7 @@ Please configure Java in the Settings menu.""")
 
         return tmp_reload_options_and_select_default
 
-    def add_rom_fields_to_frame(self, name, frame, save=False):
+    def add_rom_fields_to_frame(self, name, frame, save=False, padding_buttons=1):
         rom_frame = ttk.Frame(frame)
 
         Label(rom_frame, text="{}:".format(name), width=13, justify=RIGHT).pack(side=LEFT, fill=BOTH, expand=1)
@@ -667,9 +762,10 @@ Please configure Java in the Settings menu.""")
         button.pack(side=LEFT, fill=BOTH, expand=1)
         self.components.append(button)
 
-        button = Button(rom_frame, text="", width=5, state=DISABLED, takefocus=False)
-        button.pack(side=LEFT, fill=BOTH, expand=1)
-        button.lower()
+        for i in range(padding_buttons):
+            button = Button(rom_frame, text="", width=5, state=DISABLED, takefocus=False)
+            button.pack(side=LEFT, fill=BOTH, expand=1)
+            button.lower()
 
         rom_frame.pack(fill=BOTH, expand=1)
 
@@ -707,6 +803,44 @@ Please configure Java in the Settings menu.""")
         project_frame.pack(fill=BOTH, expand=1)
 
         return project_entry
+
+    def add_patch_fields_to_frame(self, name, frame, save=False):
+        patch_frame = ttk.Frame(frame)
+
+        Label(
+            patch_frame, text="{}:".format(name), width=13, justify=RIGHT
+        ).pack(side=LEFT, fill=BOTH, expand=1)
+        patch_entry = Entry(patch_frame, width=30)
+        patch_entry.pack(side=LEFT, fill=BOTH, expand=1)
+        self.components.append(patch_entry)
+
+        def browse_tmp():
+            browse_for_patch(self.root, patch_entry, save)
+
+        button = Button(patch_frame, text="Browse...", command=browse_tmp, width=6)
+        button.pack(side=LEFT, fill=BOTH, expand=1)
+        self.components.append(button)
+
+        button = Button(patch_frame, text="", width=5, state=DISABLED, takefocus=False)
+        button.pack(side=LEFT, fill=BOTH, expand=1)
+        button.lower()
+
+        patch_frame.pack(fill=BOTH, expand=1)
+
+        return patch_entry
+
+    def add_headered_field_to_frame(self, name, frame):
+        patch_frame = ttk.Frame(frame)
+
+        headered_var = BooleanVar()
+        headered_check = Checkbutton(patch_frame, text=name, variable=headered_var)
+        headered_check.pack(
+            side=LEFT, fill=BOTH, expand=1
+        )
+        self.components.append(headered_check)
+        patch_frame.pack(fill=BOTH, expand=1)
+
+        return headered_var
 
 
 def main():

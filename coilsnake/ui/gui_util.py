@@ -8,6 +8,7 @@ import sys
 from coilsnake.model.common.blocks import Rom
 
 
+PATCH_FILETYPES = [('IPS patches', '*.ips'), ('EBP patches', '*.ebp'), ('All files', '*.*')]
 ROM_FILETYPES = [('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')]
 
 
@@ -79,6 +80,24 @@ def set_entry_text(entry, text):
     entry.delete(0, END)
     entry.insert(0, text)
     entry.xview(END)
+
+
+def browse_for_patch(root, entry, save=False):
+    if save:
+        filename = tkFileDialog.asksaveasfilename(
+            parent=root,
+            initialdir=os.path.dirname(entry.get()) or os.path.expanduser("~"),
+            title="Select an output patch",
+            filetypes=PATCH_FILETYPES)
+    else:
+        filename = tkFileDialog.askopenfilename(
+            parent=root,
+            initialdir=os.path.dirname(entry.get()) or os.path.expanduser("~"),
+            title="Select a patch",
+            filetypes=PATCH_FILETYPES)
+    if filename:
+        set_entry_text(entry, filename)
+        entry.xview(END)
 
 
 def browse_for_rom(root, entry, save=False):
