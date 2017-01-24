@@ -8,6 +8,7 @@
 *.so
 *.zo
 *.py[cd]
+/tests/test_data/roms/variants
 /tests/test_data/roms/real_EarthBound.smc
 /TODO.txt
 /coilsnake/assets/ccc/ccc
