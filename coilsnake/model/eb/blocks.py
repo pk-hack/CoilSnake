@@ -37,13 +37,11 @@ class EbRom(Rom):
         "cc9fa297e7bf9af21f7f179e657f1aa1": "fix6.ips"
     }
 
-    def add_header(self):
-        super(EbRom, self).add_header()
+    def _setup_rom_post_load(self):
+        super(EbRom, self)._setup_rom_post_load()
+        self._clean()
 
-    def expand(self, desired_size):
-        super(EbRom, self).expand(desired_size)
-
-    def clean(self):
+    def _clean(self):
         """If this is a clean version of one of the variants of the
         EarthBound ROM, patch it so that it becomes a clean version of
         the reference ROM.
@@ -89,7 +87,7 @@ class EbRom(Rom):
         raise CoilSnakeError("Not a valid clean EarthBound ROM.")
 
     def _calc_hash(self):
-        """Checks if this ROM's MD5 hash is equal to the provided value.
+        """Calculates the MD5 hash of this ROM's data.
         """
 
         return hashlib.md5(self.data.tostring()).hexdigest()

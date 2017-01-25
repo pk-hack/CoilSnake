@@ -27,7 +27,6 @@ class TestEbRom(BaseTestCase):
             if is_rom_filename(f):
                 variant = EbRom()
                 variant.from_file(join(TEST_DATA_DIR, "roms", "variants", f))
-                variant.clean()
 
                 assert_equal(self.reference_rom.data, variant.data)
                 assert_equal(self.reference_rom.size, variant.size)

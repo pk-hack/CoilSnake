@@ -232,7 +232,6 @@ def patch_rom(clean_rom_filename, patched_rom_filename, patch_filename, headered
     elif patch_filename.endswith(".ebp"):
         output_rom = EbRom()
         output_rom.from_file(clean_rom_filename)
-        output_rom.clean()
         patch = EbpPatch()
     else:
         raise CoilSnakeError("Unknown patch format.")

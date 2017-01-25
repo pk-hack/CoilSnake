@@ -378,10 +378,10 @@ Please configure Java in the Settings menu.""")
         decompile_script_frame = self.create_decompile_script_frame(self.notebook)
         self.notebook.add(decompile_script_frame, text="Decompile Script")
 
-        patcher_patch_frame = self.create_patcher_patch_frame(self.notebook)
-        self.notebook.add(patcher_patch_frame, text="Patch ROM")
+        patcher_patch_frame = self.create_apply_patch_frame(self.notebook)
+        self.notebook.add(patcher_patch_frame, text="Apply Patch")
 
-        #patcher_create_frame = self.create_patcher_create_frame(self.notebook)
+        #patcher_create_frame = self.create_create_patch_frame(self.notebook)
         #self.notebook.add(patcher_create_frame, text="Create Patch")
 
         self.notebook.pack(fill=BOTH, expand=1)
@@ -598,7 +598,7 @@ Please configure Java in the Settings menu.""")
 
         return decompile_script_frame
 
-    def create_patcher_patch_frame(self, notebook):
+    def create_apply_patch_frame(self, notebook):
         patcher_patch_frame = ttk.Frame(notebook)
         self.add_title_label_to_frame("Apply an EBP or IPS patch to a ROM", patcher_patch_frame)
 
@@ -631,7 +631,7 @@ Please configure Java in the Settings menu.""")
 
         return patcher_patch_frame
 
-    def create_patcher_create_frame(self, notebook):
+    def create_create_patch_frame(self, notebook):
         patcher_create_frame = ttk.Frame(notebook)
         self.add_title_label_to_frame("Create EBP patch from a ROM", patcher_create_frame)
 
