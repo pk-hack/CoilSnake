@@ -73,3 +73,6 @@ class IpsPatch(object):
                 if rom[offset:offset + size] != data:
                     return False
         return True
+
+    def create(self, clean_rom, modified_rom):
+        raise NotImplementedError("IPS patch creation is not implemented yet.")

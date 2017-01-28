@@ -7,9 +7,13 @@ import sys
 from ccscript import ccc
 
 from CCScriptWriter.CCScriptWriter import CCScriptWriter
+
+from coilsnake.model.common.ips import IpsPatch
+from coilsnake.model.eb.blocks import EbRom
+from coilsnake.model.eb.ebp import EbpPatch
 from coilsnake.util.common.project import FORMAT_VERSION, PROJECT_FILENAME, get_version_name
 from coilsnake.exceptions.common.exceptions import CoilSnakeError, CCScriptCompilationError
-from coilsnake.model.common.blocks import Rom
+from coilsnake.model.common.blocks import Rom, ROM_TYPE_NAME_UNKNOWN
 from coilsnake.ui.formatter import CoilSnakeFormatter
 from coilsnake.util.common.project import Project
 from coilsnake.util.common.assets import open_asset, ccscript_library_path
@@ -212,6 +216,55 @@ def decompile_script(rom_filename, project_path, progress_bar=None):
         log.info("Decompiled script to {} in {:.2f}s".format(project_path, time.time() - start_time))
     finally:
         rom_file.close()
+
+
+def patch_rom(clean_rom_filename, patched_rom_filename, patch_filename, headered, progress_bar=None):
+    if clean_rom_filename != patched_rom_filename:
+        copyfile(clean_rom_filename, patched_rom_filename)
+
+    log.info("Patching ROM {} with patch {}".format(patched_rom_filename, patch_filename))
+    patching_start_time = time.time()
+
+    if patch_filename.endswith(".ips"):
+        output_rom = Rom()
+        output_rom.from_file(clean_rom_filename)
+        patch = IpsPatch()
+    elif patch_filename.endswith(".ebp"):
+        output_rom = EbRom()
+        output_rom.from_file(clean_rom_filename)
+        patch = EbpPatch()
+    else:
+        raise CoilSnakeError("Unknown patch format.")
+
+    # Load the patch and expand the ROM as needed
+    add_header = headered and not isinstance(patch, EbpPatch)
+    extra = int(add_header)*0x200  # 0x200 if a header will be added, 0 otherwise
+    patch.load(patch_filename)
+    if isinstance(patch, EbpPatch):
+        log.info("Patch: {title} by {author}".format(**patch.metadata))
+    if patch.last_offset_used > len(output_rom) + extra:
+        if patch.last_offset_used < 0x400000 + extra:
+            output_rom.expand(0x400000)
+        elif patch.last_offset_used < 0x600000 + extra:
+            output_rom.expand(0x600000)
+        else:
+            output_rom.expand(patch.last_offset_used)
+
+    # If the user specified the patch was made for a headered ROM, add a header
+    # to the ROM
+    if add_header:
+        output_rom.add_header()
+
+    # Apply the patch and write out the patched ROM
+    patch.apply(output_rom)
+    if add_header:
+        # Remove the header that was added, so that we're always dealing with
+        # unheadered ROMs in the end
+        output_rom.data = output_rom.data[0x200:]
+        output_rom.size -= 0x200
+    output_rom.to_file(patched_rom_filename)
+
+    log.info("Patched to {} in {:.2f}s".format(patched_rom_filename, time.time() - patching_start_time))
 
 
 def load_modules():

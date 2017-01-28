@@ -41,8 +41,8 @@ Please note that the included Vagrant configuration does not run a GUI, meaning 
 
 1. Install:
   1. [Python 2.7](https://www.python.org/downloads/release/python-279/) (32-bit version)
-  1. [Microsoft Visual C++ 2008 Express Edition](https://go.microsoft.com/?linkid=7729279)
-  1. [boost](http://sourceforge.net/projects/boost/files/boost-binaries/) (32-bit vc90 version)
+  1. [Microsoft Visual C++ Compiler for Python 2.7](https://www.microsoft.com/download/details.aspx?id=44266)
+  1. [boost 1.55](http://sourceforge.net/projects/boost/files/boost-binaries/) (32-bit vc90 version)
   1. [SetupTools](https://pypi.python.org/pypi/setuptools#windows-7-or-graphical-install)
 1. Using your favorite git client, clone the [CoilSnake](https://github.com/kiij/CoilSnake) repository.
   1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/kiij/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
@@ -60,8 +60,8 @@ You'll probably want to follow these steps from a fresh virtual machine. You can
 
 1. Install:
   1. [Python 2.7](https://www.python.org/downloads/release/python-279/) (32-bit version)
-  1. [Microsoft Visual C++ 2008 Express Edition](https://go.microsoft.com/?linkid=7729279)
-  1. [boost](http://sourceforge.net/projects/boost/files/boost-binaries/) (32-bit vc90 version)
+  1. [Microsoft Visual C++ Compiler for Python 2.7](https://www.microsoft.com/download/details.aspx?id=44266)
+  1. [boost 1.55](http://sourceforge.net/projects/boost/files/boost-binaries/) (32-bit vc90 version)
   1. [SetupTools](https://pypi.python.org/pypi/setuptools#windows-7-or-graphical-install)
   1. [Pillow](http://pypi.python.org/pypi/Pillow)
   1. [PyYAML](http://pyyaml.org/wiki/PyYAML)
