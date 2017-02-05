@@ -1,17 +1,19 @@
 import logging
 
+from coilsnake.model.common.blocks import Block
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangement
 from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer
+from coilsnake.util.eb.pointer import from_snes_address, read_asm_pointer, \
+    write_asm_pointer, to_snes_address
 
 log = logging.getLogger(__name__)
 
-BG_TILESET_POINTER = 0xebf2
-BG_ARRANGEMENT_POINTER = 0xec1d
-BG_ANIM_PALETTE_POINTER = 0xec9d
-BG_PALETTE_POINTER = 0xecc6
+BG_TILESET_POINTER = 0xEBF2
+BG_ARRANGEMENT_POINTER = 0xEC1D
+BG_ANIM_PALETTE_POINTER = 0xEC9D
+BG_PALETTE_POINTER = 0xECC6
 
 BG_ARRANGEMENT_WIDTH = 32
 BG_ARRANGEMENT_HEIGHT = 28
@@ -21,7 +23,7 @@ BG_NUM_TILES = 256
 BG_TILESET_BPP = 8
 
 CHARS_TILESET_POINTER = 0xEC49
-CHARS_ANIM_PALETTES_POINTER = 0xEC83
+CHARS_ANIM_PALETTE_POINTER = 0xEC83
 CHARS_PALETTE_POINTER = 0x3F492
 
 CHARS_SUBPALETTE_LENGTH = 16
@@ -35,20 +37,16 @@ NUM_ANIM_FRAMES = BG_NUM_ANIM_SUBPALETTES + CHARS_NUM_ANIM_SUBPALETTES
 NUM_CHARS = 9
 NUM_SUBPALETTES = 1
 
-ANIM_DATA_TABLE_POINTER = 0x21CF9D
+ANIM_DATA_BANK = 0xA0FE
+ANIM_DATA_TABLE = 0x21CF9D
 ANIM_DATA_POINTER_OFFSET = 0x210000
-
-
-def decompress_block(rom, block, pointer):
-    block.from_compressed_block(
-        block=rom,
-        offset=from_snes_address(read_asm_pointer(rom, pointer))
-    )
 
 
 class TitleScreenModule(EbModule):
     NAME = "Title Screen"
-    FREE_RANGES = []
+    FREE_RANGES = [
+        (0x21CE08, 0x21CF9C)  # Animation Data
+    ]
 
     def __init__(self):
         super(TitleScreenModule, self).__init__()
@@ -97,42 +95,42 @@ class TitleScreenModule(EbModule):
     def read_background_data_from_rom(self, rom):
         with EbCompressibleBlock() as block:
             # Read the background tileset data
-            decompress_block(rom, block, BG_TILESET_POINTER)
+            self._decompress_block(rom, block, BG_TILESET_POINTER)
             self.bg_tileset.from_block(
                 block=block, offset=0, bpp=BG_TILESET_BPP
             )
 
             # Read the background tile arrangement data
-            decompress_block(rom, block, BG_ARRANGEMENT_POINTER)
+            self._decompress_block(rom, block, BG_ARRANGEMENT_POINTER)
             self.bg_arrangement.from_block(block=block, offset=0)
 
             # Read the background palette data
             # The decompressed data is smaller than the expected value,
             # so it is extended with black entries.
-            decompress_block(rom, block, BG_PALETTE_POINTER)
+            self._decompress_block(rom, block, BG_PALETTE_POINTER)
             block.from_array(block.to_array() + [0] * (0x200 - len(block)))
             self.bg_palette.from_block(block=block, offset=0)
 
             # Read the background animated palette data
             # Each subpalette corresponds to an animation frame.
-            decompress_block(rom, block, BG_ANIM_PALETTE_POINTER)
+            self._decompress_block(rom, block, BG_ANIM_PALETTE_POINTER)
             self.bg_anim_palette.from_block(block=block, offset=0)
 
     def read_chars_data_from_rom(self, rom):
         with EbCompressibleBlock() as block:
             # Read the background tileset data
-            decompress_block(rom, block, CHARS_TILESET_POINTER)
+            self._decompress_block(rom, block, CHARS_TILESET_POINTER)
             self.chars_tileset.from_block(
                 block=block, offset=0, bpp=CHARS_TILESET_BPP
             )
 
             # Read the background palette data
-            decompress_block(rom, block, CHARS_PALETTE_POINTER)
+            self._decompress_block(rom, block, CHARS_PALETTE_POINTER)
             self.chars_palette.from_block(block=block, offset=0)
 
             # Read the background animated palette data
             # Each subpalette corresponds to an animation frame.
-            decompress_block(rom, block, CHARS_ANIM_PALETTES_POINTER)
+            self._decompress_block(rom, block, CHARS_ANIM_PALETTE_POINTER)
             self.chars_anim_palette.from_block(block=block, offset=0)
 
     def read_anim_data_from_rom(self, rom):
@@ -140,7 +138,7 @@ class TitleScreenModule(EbModule):
         for char in xrange(NUM_CHARS):
             char_data = []
             offset = ANIM_DATA_POINTER_OFFSET + rom.read_multi(
-                ANIM_DATA_TABLE_POINTER + char*2, 2
+                ANIM_DATA_TABLE + char * 2, 2
             )
             while True:
                 entry = TitleScreenAnimEntry()
@@ -152,7 +150,92 @@ class TitleScreenModule(EbModule):
             self.anim_data.append(char_data)
 
     def write_to_rom(self, rom):
-        pass
+        self.read_from_rom(rom)
+        self.write_background_data_to_rom(rom)
+        self.write_chars_data_to_rom(rom)
+        self.write_anim_data_to_rom(rom)
+
+    def write_background_data_to_rom(self, rom):
+        block_size = self.bg_tileset.block_size(bpp=BG_TILESET_BPP)
+        with EbCompressibleBlock(block_size) as block:
+            self.bg_tileset.to_block(block=block, offset=0, bpp=BG_TILESET_BPP)
+            self._write_compressed_block(rom, block, BG_TILESET_POINTER)
+
+        block_size = self.bg_arrangement.block_size()
+        with EbCompressibleBlock(block_size) as block:
+            self.bg_arrangement.to_block(block=block, offset=0)
+            self._write_compressed_block(rom, block, BG_ARRANGEMENT_POINTER)
+
+        block_size = self.bg_palette.block_size()
+        with EbCompressibleBlock(block_size) as block:
+            self.bg_palette.to_block(block=block, offset=0)
+            self._write_compressed_block(rom, block, BG_PALETTE_POINTER)
+
+        block_size = self.bg_anim_palette.block_size()
+        with EbCompressibleBlock(block_size) as block:
+            self.bg_anim_palette.to_block(block=block, offset=0)
+            self._write_compressed_block(rom, block, BG_ANIM_PALETTE_POINTER)
+
+    def write_chars_data_to_rom(self, rom):
+        block_size = self.chars_tileset.block_size(bpp=CHARS_TILESET_BPP)
+        with EbCompressibleBlock(block_size) as block:
+            self.chars_tileset.to_block(
+                block=block, offset=0, bpp=CHARS_TILESET_BPP
+            )
+            self._write_compressed_block(rom, block, CHARS_TILESET_POINTER)
+
+        block_size = self.chars_palette.block_size()
+        with EbCompressibleBlock(block_size) as block:
+            self.chars_palette.to_block(block=block, offset=0)
+            self._write_compressed_block(rom, block, CHARS_PALETTE_POINTER)
+
+        block_size = self.chars_anim_palette.block_size()
+        with EbCompressibleBlock(block_size) as block:
+            self.chars_anim_palette.to_block(block=block, offset=0)
+            self._write_compressed_block(
+                rom, block, CHARS_ANIM_PALETTE_POINTER
+            )
+
+    def write_anim_data_to_rom(self, rom):
+        block_size = sum(
+            [TitleScreenAnimEntry.block_size()*len(c) for c in self.anim_data]
+        )
+
+        def can_write_to(begin):
+            return begin >> 16 == (begin + block_size) >> 16
+
+        with Block(block_size) as block:
+            # Write the character animation data to the ROM
+            offset = 0
+            for char_data in self.anim_data:
+                for entry in char_data:
+                    entry.to_block(block=block, offset=offset)
+                    offset += entry.block_size()
+            new_offset = to_snes_address(rom.allocate(
+                data=block,
+                size=block_size,
+                can_write_to=can_write_to
+            ))
+
+            # Write the offsets to the character animation data to the ROM
+            new_bank = new_offset >> 16
+            new_data_start = new_offset & 0xFFFF
+            data_offset = new_data_start
+            for c, char_data in enumerate(self.anim_data):
+                rom[ANIM_DATA_TABLE+c*2:ANIM_DATA_TABLE+c*2+2] = [
+                    data_offset & 0xFF, data_offset >> 8
+                ]
+                data_offset += len(char_data)*TitleScreenAnimEntry.block_size()
+
+            # Change the offset for the character animation data
+            # The way this normally works is that EarthBound stores the address
+            # of the bank holding the data (0xE1 by default, hence the 0x210000
+            # offset); the offsets in the table are then prefixed with that
+            # address. However, reallocating the data may have changed its
+            # bank, so we need to manually set it to the new bank address.
+            rom[ANIM_DATA_BANK:ANIM_DATA_BANK + 2] = [
+                0xA9, new_bank
+            ]
 
     def read_from_project(self, resource_open):
         pass
@@ -204,7 +287,7 @@ class TitleScreenModule(EbModule):
                 x = (entry.x+16)/8
                 y = (entry.y+24)/8
                 arrangement[x, y].tile = tile
-                if entry.is_border():
+                if not entry.is_single():
                     arrangement[x+1, y].tile = tile + 1
                     arrangement[x, y+1].tile = tile + 16
                     arrangement[x+1, y+1].tile = tile + 17
@@ -224,6 +307,22 @@ class TitleScreenModule(EbModule):
             resource_open_w, resource_delete):
         pass
 
+    @staticmethod
+    def _decompress_block(rom, block, pointer):
+        block.from_compressed_block(
+            block=rom,
+            offset=from_snes_address(read_asm_pointer(rom, pointer))
+        )
+
+    @staticmethod
+    def _write_compressed_block(rom, compressed_block, pointer):
+        compressed_block.compress()
+        new_offset = rom.allocate(data=compressed_block)
+        write_asm_pointer(
+            block=rom, offset=pointer,
+            pointer=to_snes_address(new_offset)
+        )
+
 
 class TitleScreenAnimEntry(object):
 
@@ -241,8 +340,19 @@ class TitleScreenAnimEntry(object):
         self.x = x if x < 128 else -(256-x)
         self.flags = block[offset+4]
 
-    def is_border(self):
-        return (self.flags & 0x01) != 0
+    def to_block(self, block, offset=0):
+        block[offset] = self.y if self.y >= 0 else self.y+256
+        block.write_multi(offset+1, self.tile, 2)
+        block[offset+3] = self.x if self.x >= 0 else self.x+256
+        block[offset+4] = self.flags
+
+
+    @staticmethod
+    def block_size():
+        return 5
+
+    def is_single(self):
+        return (self.flags & 0x01) == 0
 
     def is_final(self):
         return (self.flags & 0x80) != 0
