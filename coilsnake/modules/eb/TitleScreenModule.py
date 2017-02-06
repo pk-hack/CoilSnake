@@ -14,9 +14,10 @@ BG_TILESET_POINTER = 0xEBF2
 BG_ARRANGEMENT_POINTER = 0xEC1D
 BG_ANIM_PALETTE_POINTER = 0xEC9D
 BG_PALETTE_POINTER = 0xECC6
+BG_PALETTE_POINTER_SECONDARY = 0xED6B
 
 BG_ARRANGEMENT_WIDTH = 32
-BG_ARRANGEMENT_HEIGHT = 28
+BG_ARRANGEMENT_HEIGHT = 32
 BG_SUBPALETTE_LENGTH = 256
 BG_NUM_ANIM_SUBPALETTES = 20
 BG_NUM_TILES = 256
@@ -45,6 +46,15 @@ ANIM_DATA_POINTER_OFFSET = 0x210000
 class TitleScreenModule(EbModule):
     NAME = "Title Screen"
     FREE_RANGES = [
+        (0x21B211, 0x21C6E4),  # Background Tileset
+        (0x21AF7D, 0x21B210),  # Background Arrangement
+        (0x21CDE1, 0x21CE07),  # Background Palette
+        (0x21AEFD, 0x21AF7C),  # Background Animated Palette
+
+        (0x21C6E5, 0x21CDE0),  # Characters Tileset
+        (0x21AE7C, 0x21AE82),  # Characters Palette
+        (0x21AE83, 0x21AEFC),  # Characters Animated Palette
+
         (0x21CE08, 0x21CF9C)  # Animation Data
     ]
 
@@ -108,7 +118,9 @@ class TitleScreenModule(EbModule):
             # The decompressed data is smaller than the expected value,
             # so it is extended with black entries.
             self._decompress_block(rom, block, BG_PALETTE_POINTER)
-            block.from_array(block.to_array() + [0] * (0x200 - len(block)))
+            block.from_array(
+                block.to_array() + [0] * (BG_SUBPALETTE_LENGTH*2 - len(block))
+            )
             self.bg_palette.from_block(block=block, offset=0)
 
             # Read the background animated palette data
@@ -169,7 +181,13 @@ class TitleScreenModule(EbModule):
         block_size = self.bg_palette.block_size()
         with EbCompressibleBlock(block_size) as block:
             self.bg_palette.to_block(block=block, offset=0)
-            self._write_compressed_block(rom, block, BG_PALETTE_POINTER)
+            new_offset = self._write_compressed_block(
+                rom, block, BG_PALETTE_POINTER
+            )
+            write_asm_pointer(
+                block=rom, offset=BG_PALETTE_POINTER_SECONDARY,
+                pointer=to_snes_address(new_offset)
+            )
 
         block_size = self.bg_anim_palette.block_size()
         with EbCompressibleBlock(block_size) as block:
@@ -319,9 +337,9 @@ class TitleScreenModule(EbModule):
         compressed_block.compress()
         new_offset = rom.allocate(data=compressed_block)
         write_asm_pointer(
-            block=rom, offset=pointer,
-            pointer=to_snes_address(new_offset)
+            block=rom, offset=pointer, pointer=to_snes_address(new_offset)
         )
+        return new_offset
 
 
 class TitleScreenAnimEntry(object):
@@ -345,7 +363,6 @@ class TitleScreenAnimEntry(object):
         block.write_multi(offset+1, self.tile, 2)
         block[offset+3] = self.x if self.x >= 0 else self.x+256
         block[offset+4] = self.flags
-
 
     @staticmethod
     def block_size():
