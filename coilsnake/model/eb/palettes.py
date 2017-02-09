@@ -245,9 +245,7 @@ class EbPalette(EqualityMixin):
     def __getitem__(self, key):
         subpalette_number, color_number = key
         if subpalette_number < 0 or subpalette_number >= self.num_subpalettes \
-                or (isinstance(color_number, int) and (color_number < 0 or color_number >= self.subpalette_length)) \
-                or (isinstance(color_number, slice) and (color_number.start < 0 or color_number.start >= self.subpalette_length
-                    or color_number.stop < 0 or color_number.stop >= self.subpalette_length)):
+                or (isinstance(color_number, int) and (color_number < 0 or color_number >= self.subpalette_length)):
             raise InvalidArgumentError("Could not get color[{},{}] from palette of size[{},{}]".format(
                 subpalette_number, color_number, self.num_subpalettes, self.subpalette_length))
         return self.subpalettes[subpalette_number][color_number]
@@ -255,9 +253,7 @@ class EbPalette(EqualityMixin):
     def __setitem__(self, key, item):
         subpalette_number, color_number = key
         if subpalette_number < 0 or subpalette_number >= self.num_subpalettes \
-                or (isinstance(color_number, int) and (color_number < 0 or color_number >= self.subpalette_length)) \
-                or (isinstance(color_number, slice) and (color_number.start < 0 or color_number.start >= self.subpalette_length
-                    or color_number.stop < 0 or color_number.stop >= self.subpalette_length)):
+                or (isinstance(color_number, int) and (color_number < 0 or color_number >= self.subpalette_length)):
             raise InvalidArgumentError("Could not set color[{},{}] of palette of size[{},{}]".format(
                 subpalette_number, color_number, self.num_subpalettes, self.subpalette_length))
 

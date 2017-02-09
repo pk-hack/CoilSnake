@@ -43,6 +43,12 @@ ANIM_SUBPALETTE_LENGTH = 16
 NUM_ANIM_FRAMES = BG_NUM_ANIM_SUBPALETTES + CHARS_NUM_ANIM_SUBPALETTES
 NUM_CHARS = 9
 NUM_SUBPALETTES = 1
+TILE_WIDTH = 8
+TILE_HEIGHT = 8
+
+# Special palette slices
+CHARS_ANIM_SLICE = slice(0x80, 0x80 + ANIM_SUBPALETTE_LENGTH)
+BG_ANIM_SLICE = slice(0x70, 0x70 + ANIM_SUBPALETTE_LENGTH)
 
 # Animation data bank offsets
 CHARS_LAYOUT_BANK = 0xA0FE
@@ -54,11 +60,20 @@ BG_REFERENCE_PATH = "TitleScreen/Background/Reference"
 BG_FRAMES_PATH = "TitleScreen/Background/{:02d}"
 BG_INITIAL_FLASH_PATH = "TitleScreen/Background/InitialFlash"
 CHARS_FRAMES_PATH = "TitleScreen/Chars/{:02d}"
-CHARS_INITIAL_PALETTE_PATH = "TitleScreen/Chars/initial_palette"
+CHARS_INITIAL_PATH = "TitleScreen/Chars/Initial"
 CHARS_POSITIONS_PATH = "TitleScreen/Chars/positions"
 
 
 class TitleScreenModule(EbModule):
+    """Extracts the title screen data from EarthBound.
+
+    This module allows for the editing of the background and characters
+    of the title screen. The slide-in animation for the characters is
+    controlled through assembly, while the rest of the animation works
+    by changing between several palettes (one for each new frame of
+    animation) and keeping the same tileset for each frame.
+    """
+
     NAME = "Title Screen"
     FREE_RANGES = [
         (0x21B211, 0x21C6E4),  # Background Tileset
@@ -78,7 +93,10 @@ class TitleScreenModule(EbModule):
 
         # Background data (includes the central "B", the copyright
         # notice and the glow around the letters)
-        self.bg_tileset = EbGraphicTileset(num_tiles=BG_NUM_TILES)
+        self.bg_tileset = EbGraphicTileset(
+            num_tiles=BG_NUM_TILES, tile_width=TILE_WIDTH,
+            tile_height=TILE_HEIGHT
+        )
         self.bg_arrangement = EbTileArrangement(
             width=BG_ARRANGEMENT_WIDTH, height=BG_ARRANGEMENT_HEIGHT
         )
@@ -92,7 +110,10 @@ class TitleScreenModule(EbModule):
         )
 
         # Characters data (the title screen's animated letters)
-        self.chars_tileset = EbGraphicTileset(num_tiles=CHARS_NUM_TILES)
+        self.chars_tileset = EbGraphicTileset(
+            num_tiles=CHARS_NUM_TILES, tile_width=TILE_WIDTH,
+            tile_height=TILE_HEIGHT
+        )
         self.chars_anim_palette = EbPalette(
             num_subpalettes=CHARS_NUM_ANIM_SUBPALETTES,
             subpalette_length=ANIM_SUBPALETTE_LENGTH
@@ -101,7 +122,7 @@ class TitleScreenModule(EbModule):
             num_subpalettes=NUM_SUBPALETTES,
             subpalette_length=CHARS_SUBPALETTE_LENGTH
         )
-        self.chars_layouts = [[] for c in xrange(NUM_CHARS)]
+        self.chars_layouts = [[] for _ in xrange(NUM_CHARS)]
 
     def read_from_rom(self, rom):
         self.read_background_data_from_rom(rom)
@@ -109,12 +130,10 @@ class TitleScreenModule(EbModule):
         self.read_chars_layouts_from_rom(rom)
 
         # Add the characters palette to the background data.
-        bg_palette = self.bg_palette.list()
-        bg_palette[0x80 * 3:(0x80 + ANIM_SUBPALETTE_LENGTH) * 3] = \
+        self.bg_palette[0, CHARS_ANIM_SLICE] =\
             self.chars_anim_palette.get_subpalette(
                 CHARS_NUM_ANIM_SUBPALETTES - 1
-            ).list()
-        self.bg_palette.from_list(bg_palette)
+            )[0, :]
 
     def read_background_data_from_rom(self, rom):
         with EbCompressibleBlock() as block:
@@ -130,15 +149,15 @@ class TitleScreenModule(EbModule):
 
             # Read the background palette data
             # The decompressed data is smaller than the expected value,
-            # so it is extended with black entries
+            # so it is extended with black entries.
             self._decompress_block(rom, block, BG_PALETTE_POINTER)
             block.from_array(
-                block.to_array() + [0] * (BG_SUBPALETTE_LENGTH*2 - len(block))
+                block.to_array() + [0]*(BG_SUBPALETTE_LENGTH*2 - len(block))
             )
             self.bg_palette.from_block(block=block, offset=0)
 
             # Read the background animated palette data
-            # Each subpalette corresponds to an animation frame
+            # Each subpalette corresponds to an animation frame.
             self._decompress_block(rom, block, BG_ANIM_PALETTE_POINTER)
             self.bg_anim_palette.from_block(block=block, offset=0)
 
@@ -160,11 +179,11 @@ class TitleScreenModule(EbModule):
             self.chars_anim_palette.from_block(block=block, offset=0)
 
     def read_chars_layouts_from_rom(self, rom):
-        self.chars_layouts = [[] for c in xrange(NUM_CHARS)]
+        self.chars_layouts = [[] for _ in xrange(NUM_CHARS)]
         for char in xrange(NUM_CHARS):
             # Get the location of a character's data
             offset = CHARS_LAYOUT_POINTER_OFFSET + rom.read_multi(
-                CHARS_LAYOUT_TABLE + char * 2, 2
+                CHARS_LAYOUT_TABLE + char*2, 2
             )
 
             # Read entries until a final entry is encountered
@@ -239,7 +258,7 @@ class TitleScreenModule(EbModule):
 
     def write_chars_layouts_to_rom(self, rom):
         block_size = sum(
-            TitleScreenLayoutEntry.block_size() * len(c)
+            TitleScreenLayoutEntry.block_size()*len(c)
             for c in self.chars_layouts
         )
 
@@ -277,11 +296,13 @@ class TitleScreenModule(EbModule):
             # offset); the offsets in the table are then prefixed with that
             # address. However, reallocating the data may have changed its
             # bank, so we need to manually set it to the new bank address.
-            rom[CHARS_LAYOUT_BANK:CHARS_LAYOUT_BANK + 2] = [
-                0xA9, new_bank
-            ]
+            rom[CHARS_LAYOUT_BANK:CHARS_LAYOUT_BANK + 2] = [0xA9, new_bank]
 
     def read_from_project(self, resource_open):
+        self.read_background_data_from_project(resource_open)
+        self.read_chars_data_from_project(resource_open)
+
+    def read_background_data_from_project(self, resource_open):
         # Load the background reference image
         # The image's arrangement, tileset and palette will be used for the
         # animation frames
@@ -295,16 +316,16 @@ class TitleScreenModule(EbModule):
         for frame in xrange(NUM_ANIM_FRAMES):
             # Create temporary structures used to check consistency between
             # frames
-            tmp_tileset = EbGraphicTileset(BG_NUM_TILES)
-            tmp_arrangement = EbTileArrangement(
+            tileset = EbGraphicTileset(BG_NUM_TILES, TILE_WIDTH, TILE_HEIGHT)
+            arrangement = EbTileArrangement(
                 BG_ARRANGEMENT_WIDTH, BG_ARRANGEMENT_HEIGHT
             )
-            tmp_palette = EbPalette(NUM_SUBPALETTES, BG_SUBPALETTE_LENGTH)
+            palette = EbPalette(NUM_SUBPALETTES, BG_SUBPALETTE_LENGTH)
 
             # Read one frame's image data
             with resource_open(BG_FRAMES_PATH.format(frame), "png") as f:
                 image = open_indexed_image(f)
-                tmp_arrangement.from_image(image, tmp_tileset, tmp_palette)
+                arrangement.from_image(image, tileset, palette)
 
             # Make sure each frame's tileset and arrangement is identical
             # The background palette is checked only if it isn't the fake
@@ -312,31 +333,30 @@ class TitleScreenModule(EbModule):
             if frame >= CHARS_NUM_ANIM_SUBPALETTES:
                 # Get the background animated subpalette from the background
                 # palette
-                colors = tmp_palette[0, 0x70:0x70 + ANIM_SUBPALETTE_LENGTH]
+                colors = palette[0, BG_ANIM_SLICE]
                 self.bg_anim_palette.subpalettes[
                     frame - CHARS_NUM_ANIM_SUBPALETTES
                 ] = colors
-                tmp_palette[0, 0x70:0x70 + ANIM_SUBPALETTE_LENGTH] = \
-                    self.bg_palette[0, 0x70:0x70 + ANIM_SUBPALETTE_LENGTH]
-                if self.bg_palette != tmp_palette:
+                palette[0, BG_ANIM_SLICE] = self.bg_palette[
+                    0, BG_ANIM_SLICE
+                ]
+                if self.bg_palette != palette:
                     log.warn(
                         "Palette from background frame {} does not match "
                         "reference.".format(frame)
                     )
-            if self.bg_tileset != tmp_tileset:
+            if self.bg_tileset != tileset:
                 log.warn(
                     "Tileset from background frame {} does not match "
                     "reference.".format(frame)
                 )
-            if self.bg_arrangement != tmp_arrangement:
+            if self.bg_arrangement != arrangement:
                 log.warn(
                     "Arrangement from background frame {} does not match "
                     "reference.".format(frame)
                 )
 
-        # Read the palette for the initial white characters intro
-        with resource_open(CHARS_INITIAL_PALETTE_PATH, "yml") as f:
-            self.chars_palette.from_yml_rep(yml_load(f))
+    def read_chars_data_from_project(self, resource_open):
 
         # Read the characters positions
         with resource_open(CHARS_POSITIONS_PATH, "yml") as f:
@@ -347,45 +367,57 @@ class TitleScreenModule(EbModule):
         self.chars_anim_palette = EbPalette(
             CHARS_NUM_ANIM_SUBPALETTES, ANIM_SUBPALETTE_LENGTH
         )
+        original_tileset = None
         for p in xrange(CHARS_NUM_ANIM_SUBPALETTES):
             # Read one of the animation frames
             with resource_open(CHARS_FRAMES_PATH.format(p), "png") as f:
                 # Create temporary structures to hold the data
                 image = open_indexed_image(f)
-                tmp_arrangement = EbTileArrangement(
-                    image.width / 8, image.height / 8
+                arrangement = EbTileArrangement(
+                    image.width/TILE_WIDTH, image.height/TILE_HEIGHT
                 )
-                tmp_tileset = EbGraphicTileset(CHARS_NUM_TILES)
-                tmp_anim_subpalette = EbPalette(
+                tileset = EbGraphicTileset(
+                    CHARS_NUM_TILES, TILE_WIDTH, TILE_HEIGHT
+                )
+                anim_subpalette = EbPalette(
                     NUM_SUBPALETTES, ANIM_SUBPALETTE_LENGTH
                 )
-                tmp_arrangement.from_image(
-                    image, tmp_tileset, tmp_anim_subpalette, True
-                )
+                arrangement.from_image(image, tileset, anim_subpalette, True)
 
             # Add the characters animation subpalette
             for i in xrange(ANIM_SUBPALETTE_LENGTH):
-                self.chars_anim_palette[p, i] = tmp_anim_subpalette[0, i]
+                self.chars_anim_palette[p, i] = anim_subpalette[0, i]
 
             # Add the characters tileset if not already set, otherwise
             # ensure that it the current tileset is identical
             if not self.chars_tileset:
-                self.chars_tileset = EbGraphicTileset(CHARS_NUM_TILES)
+                original_tileset = tileset
+                self.chars_tileset = EbGraphicTileset(
+                    CHARS_NUM_TILES, TILE_WIDTH, TILE_HEIGHT
+                )
                 self.chars_tileset.tiles = [
-                    [[0 for x in xrange(8)] for y in xrange(8)]
-                    for n in xrange(CHARS_NUM_TILES)
+                    [[0 for _ in xrange(TILE_HEIGHT)]
+                        for _ in xrange(TILE_WIDTH)]
+                    for _ in xrange(CHARS_NUM_TILES)
                 ]
                 unused_tiles = set(xrange(CHARS_NUM_TILES))
 
                 # Set the new character layouts
-                self.chars_layouts = [[] for c in xrange(NUM_CHARS)]
+                self.chars_layouts = [[] for _ in xrange(NUM_CHARS)]
                 for c, data in chars_positions.items():
-                    x = int(data['x']/8)
-                    y = int(data['y']/8)
-                    width = int(data['width']/8)
-                    height = int(data['height']/8)
-                    x_offset = int(data['top_left_offset']['x'])
-                    y_offset = int(data['top_left_offset']['y'])
+                    # Get the data from the YAML file
+                    x = int(data['x']/TILE_WIDTH)
+                    y = int(data['y']/TILE_HEIGHT)
+                    width = int(data['width']/TILE_WIDTH)
+                    height = int(data['height']/TILE_HEIGHT)
+                    x_offset = data['top_left_offset']['x']
+                    y_offset = data['top_left_offset']['y']
+                    unknown = data['unknown']
+
+                    # Generate a list of all tiles must be visited
+                    # Where possible, we try to generate a multi tile (4 tiles
+                    # stored as one); otherwise, bordering tiles that are
+                    # visited will all be single tiles.
                     l = [
                         (i, j) for i in xrange(0, width, 2)
                         for j in xrange(0, height, 2)
@@ -394,44 +426,65 @@ class TitleScreenModule(EbModule):
                         l.extend([(width-1, j) for j in xrange(1, height, 2)])
                     if height % 2 == 1:
                         l.extend([(i, height-1) for i in xrange(1, width, 2)])
+
+                    # Generate the new reduced tileset
                     for i, j in l:
                         # Put the tile in the new tileset
-                        o_tile = tmp_arrangement[x + i, y + j].tile
+                        o_tile = arrangement[x + i, y + j].tile
                         n_tile = unused_tiles.pop()
-                        self.chars_tileset.tiles[n_tile] = tmp_tileset[o_tile]
+                        self.chars_tileset.tiles[n_tile] = tileset[o_tile]
 
-                        rel_x = i*8 + x_offset
-                        rel_y = j*8 + y_offset
-                        t = n_tile | (12 << 10)
-                        entry = TitleScreenLayoutEntry(rel_x, rel_y, t)
+                        entry = TitleScreenLayoutEntry(
+                            i*8 + x_offset, j*8 + y_offset, n_tile, 0, unknown
+                        )
 
                         # Create a multi entry if possible to save space
                         if i < width - 1 and j < height - 1:
-                            entry.flags = 0x01
-                            o_tile_r = tmp_arrangement[x+i+1, y+j].tile
-                            o_tile_d = tmp_arrangement[x+i, y+j+1].tile
-                            o_tile_dr = tmp_arrangement[x+i+1, y+j+1].tile
+                            entry.set_single(True)
+                            o_tile_r = arrangement[x+i+1, y+j].tile
+                            o_tile_d = arrangement[x+i, y+j+1].tile
+                            o_tile_dr = arrangement[x+i+1, y+j+1].tile
                             n_tile_r = n_tile + 1
                             n_tile_d = n_tile + 16
                             n_tile_dr = n_tile + 17
                             unused_tiles.difference_update(
                                 (n_tile_r, n_tile_d, n_tile_dr)
                             )
-                            self.chars_tileset.tiles[n_tile_r] = tmp_tileset[o_tile_r]
-                            self.chars_tileset.tiles[n_tile_d] = tmp_tileset[o_tile_d]
-                            self.chars_tileset.tiles[n_tile_dr] = tmp_tileset[o_tile_dr]
+                            self.chars_tileset.tiles[n_tile_r] = \
+                                tileset[o_tile_r]
+                            self.chars_tileset.tiles[n_tile_d] = \
+                                tileset[o_tile_d]
+                            self.chars_tileset.tiles[n_tile_dr] = \
+                                tileset[o_tile_dr]
 
                         self.chars_layouts[c].append(entry)
-                    self.chars_layouts[c] = self.chars_layouts[c][:14]
-                    self.chars_layouts[c][-1].flags |= 0x80
+                    self.chars_layouts[c][-1].set_final(True)
 
-            elif self.chars_tileset != tmp_tileset:
+            elif original_tileset != tileset:
                 log.warn(
                     "Tileset from characters frame {} does not match "
                     "tileset from characters frame 0.".format(p)
                 )
 
+        # Read the initial characters palette
+        with resource_open(CHARS_INITIAL_PATH, "png") as f:
+            image = open_indexed_image(f)
+            arrangement = EbTileArrangement(
+                image.width / TILE_WIDTH, image.height / TILE_HEIGHT
+            )
+            tileset = EbGraphicTileset(
+                CHARS_NUM_TILES, TILE_WIDTH, TILE_HEIGHT
+            )
+            self.chars_palette = EbPalette(
+                NUM_SUBPALETTES, ANIM_SUBPALETTE_LENGTH
+            )
+            arrangement.from_image(image, tileset, self.chars_palette)
+
     def write_to_project(self, resource_open):
+        self.write_background_data_to_project(resource_open)
+        self.write_chars_data_to_project(resource_open)
+
+    def write_background_data_to_project(self, resource_open):
         # Write out the reference background image
         # This image is used to get the arrangement, tileset and static palette
         # that will be used by all background images.
@@ -445,27 +498,22 @@ class TitleScreenModule(EbModule):
         for frame in xrange(NUM_ANIM_FRAMES):
             palette = EbPalette(NUM_SUBPALETTES, BG_SUBPALETTE_LENGTH)
             if frame < CHARS_NUM_ANIM_SUBPALETTES:
-                colors = [0] * BG_SUBPALETTE_LENGTH * 3
-                colors[0x80 * 3:(0x80 + ANIM_SUBPALETTE_LENGTH) * 3] = \
-                    self.chars_anim_palette.get_subpalette(frame).list()
+                palette[0, CHARS_ANIM_SLICE] = \
+                    self.chars_anim_palette.get_subpalette(frame)[0, :]
             else:
-                colors = self.bg_palette.list()
-                colors[0x70 * 3:(0x70 + ANIM_SUBPALETTE_LENGTH) * 3] = \
+                palette[0, :] = self.bg_palette.get_subpalette(0)[0, :]
+                palette[0, BG_ANIM_SLICE] = \
                     self.bg_anim_palette.get_subpalette(
                         frame - CHARS_NUM_ANIM_SUBPALETTES
-                    ).list()
-            palette.from_list(colors)
+                    )[0, :]
             with resource_open(BG_FRAMES_PATH.format(frame), "png") as f:
                 image = self.bg_arrangement.image(self.bg_tileset, palette)
                 image.save(f)
 
-        # Write out the palette for the initial white characters intro
-        with resource_open(CHARS_INITIAL_PALETTE_PATH, "yml") as f:
-            yml_dump(self.chars_palette.yml_rep(), f, False)
-
+    def write_chars_data_to_project(self, resource_open):
         # Build an arrangement combining every character for convenience
         chars_positions = {}
-        arrangement = EbTileArrangement(3 * 9, 6)
+        arrangement = EbTileArrangement(3*9, 6)
         for c, layout in enumerate(self.chars_layouts):
             top_left = {'x': 128, 'y': 128}
             for e, entry in enumerate(layout):
@@ -484,19 +532,26 @@ class TitleScreenModule(EbModule):
                 'y': 0,
                 'width': 3*8,
                 'height': 6*8,
-                'top_left_offset': top_left
+                'top_left_offset': top_left,
+                'unknown': layout[0].unknown
             }
 
-        # Write the animation frames
+        # Write the characters animation frames
         for p in xrange(CHARS_NUM_ANIM_SUBPALETTES):
-            with resource_open(
-                CHARS_FRAMES_PATH.format(p), "png"
-            ) as f:
+            with resource_open(CHARS_FRAMES_PATH.format(p), "png") as f:
                 image = arrangement.image(
                     self.chars_tileset,
                     self.chars_anim_palette.get_subpalette(p)
                 )
                 image.save(f)
+
+        # Write out the initial characters palette
+        with resource_open(CHARS_INITIAL_PATH, "png") as f:
+            image = arrangement.image(
+                self.chars_tileset,
+                self.chars_palette
+            )
+            image.save(f)
 
         # Write out the positions of the characters
         with resource_open(CHARS_POSITIONS_PATH, "yml") as f:
@@ -528,23 +583,32 @@ class TitleScreenModule(EbModule):
 
 class TitleScreenLayoutEntry(object):
 
-    def __init__(self, x=0, y=0, tile=0, flags=0):
+    SINGLE_FLAG = 0x01
+    FINAL_FLAG = 0x80
+
+    def __init__(self, x=0, y=0, tile=0, flags=0, unknown=12):
         self.x = x
         self.y = y
         self.tile = tile
         self.flags = flags
+        self.unknown = unknown
 
     def from_block(self, block, offset=0):
         y = block[offset]
         self.y = y if y < 128 else -(256-y)  # Read signed value
-        self.tile = block.read_multi(offset+1, 2)
+        tile_bytes = block.read_multi(offset+1, 2)
+        self.tile = tile_bytes & (CHARS_NUM_TILES - 1)
+        self.unknown = tile_bytes >> (CHARS_NUM_TILES - 1).bit_length()
         x = block[offset+3]
         self.x = x if x < 128 else -(256-x)  # Read signed value
         self.flags = block[offset+4]
 
     def to_block(self, block, offset=0):
         block[offset] = self.y if self.y >= 0 else self.y+256
-        block.write_multi(offset+1, self.tile, 2)
+        block.write_multi(
+            offset+1,
+            self.tile | self.unknown << (CHARS_NUM_TILES - 1).bit_length(), 2
+        )
         block[offset+3] = self.x if self.x >= 0 else self.x+256
         block[offset+4] = self.flags
 
@@ -553,13 +617,25 @@ class TitleScreenLayoutEntry(object):
         return 5
 
     def is_single(self):
-        return (self.flags & 0x01) == 0
+        return (self.flags & self.SINGLE_FLAG) == 0
+
+    def set_single(self, single=True):
+        if single:
+            self.flags |= self.SINGLE_FLAG
+        else:
+            self.flags &= ~self.SINGLE_FLAG
 
     def is_final(self):
-        return (self.flags & 0x80) != 0
+        return (self.flags & self.FINAL_FLAG) != 0
+
+    def set_final(self, final=True):
+        if final:
+            self.flags |= self.FINAL_FLAG
+        else:
+            self.flags &= ~self.FINAL_FLAG
 
     def __str__(self):
         return "<tile={}, x={}, y={}, flags={}, unknown={}>".format(
             self.tile & (CHARS_NUM_TILES - 1), self.x, self.y,
-            bin(self.flags)[2:], self.tile >> 10
+            bin(self.flags)[2:], self.unknown
         )
