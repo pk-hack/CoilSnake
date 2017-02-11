@@ -127,10 +127,11 @@ class EbGraphicTileset(EqualityMixin):
                         image_y += 1
                     already_read_tiles.add(arrangement_item.tile)
 
-    def add_tile(self, tile):
+    def add_tile(self, tile, no_flip=False):
         """Adds a tile into this tileset if the tileset does not already contain it.
 
         :param tile: the tile to add, as a two-dimensional list
+        :param no_flip: don't store any flips of this tile
         :return: a tuple containing the tile's id in this tileset, whether the tile is stored as vertically flipped,
         and whether the tile is stored as horizontally flipped"""
 
@@ -150,6 +151,10 @@ class EbGraphicTileset(EqualityMixin):
         tile_id = self._num_tiles_used
         self.tiles.append(tile_copy)
         self._num_tiles_used += 1
+
+        if no_flip:
+            self._used_tiles[tile_hash] = tile_id, False, False
+            return tile_id, False, False
 
         # The tile will be stored as horizontally flipped
         self._used_tiles[tile_hash] = tile_id, False, True
@@ -276,9 +281,9 @@ class EbTileArrangement(EqualityMixin):
         self.to_image(image, tileset, palette)
         return image
 
-    def from_image(self, image, tileset, palette):
+    def from_image(self, image, tileset, palette, no_flip=False):
         if palette.num_subpalettes == 1:
-            self._from_image_with_single_subpalette(image, tileset, palette)
+            self._from_image_with_single_subpalette(image, tileset, palette, no_flip)
         else:
             # Multiple subpalettes, so we have to figure out which tile should use which subpalette
             palette.from_image(image)
@@ -317,7 +322,7 @@ class EbTileArrangement(EqualityMixin):
                             tile[tile_y][tile_x] = palette.get_color_id(rgb_image_data[image_tile_x, image_tile_y],
                                                                         subpalette_id)
 
-                    tile_id, vflip, hflip = tileset.add_tile(tile)
+                    tile_id, vflip, hflip = tileset.add_tile(tile, no_flip)
                     arrangement_item = self.arrangement[arrangement_y][arrangement_x]
                     arrangement_item.tile = tile_id
                     arrangement_item.subpalette = subpalette_id
@@ -325,7 +330,7 @@ class EbTileArrangement(EqualityMixin):
                     arrangement_item.is_horizontally_flipped = hflip
                     arrangement_item.is_priority = False
 
-    def _from_image_with_single_subpalette(self, image, tileset, palette):
+    def _from_image_with_single_subpalette(self, image, tileset, palette, no_flip=False):
         # Don't need to do any subpalette fitting because there's only one subpalette
         palette.from_image(image)
         image_data = image.load()
@@ -343,7 +348,7 @@ class EbTileArrangement(EqualityMixin):
                     for tile_x in xrange(tileset.tile_width):
                         tile_row[tile_x] = image_data[image_x + tile_x, image_tile_y]
 
-                tile_id, vflip, hflip = tileset.add_tile(tile)
+                tile_id, vflip, hflip = tileset.add_tile(tile, no_flip)
                 arrangement_item = self.arrangement[arrangement_y][arrangement_x]
                 arrangement_item.tile = tile_id
                 arrangement_item.subpalette = 0

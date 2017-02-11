@@ -21,6 +21,7 @@ eb.WindowGraphicsModule
 eb.BattleBgModule
 eb.CompressedGraphicsModule
 eb.EnemyModule
+eb.TitleScreenModule
 eb.TilesetModule
 smb.TextModule
 common.LunarIpsCompatibilityModule
