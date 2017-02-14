@@ -358,7 +358,6 @@ class TitleScreenModule(EbModule):
                 )
 
     def read_chars_data_from_project(self, resource_open):
-
         # Read the characters positions
         with resource_open(CHARS_POSITIONS_PATH, "yml") as f:
             chars_positions = yml_load(f)

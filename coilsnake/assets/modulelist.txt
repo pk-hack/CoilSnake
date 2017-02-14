@@ -21,6 +21,7 @@ eb.WindowGraphicsModule
 eb.BattleBgModule
 eb.CompressedGraphicsModule
 eb.EnemyModule
+eb.DeathScreenModule
 eb.TitleScreenModule
 eb.TilesetModule
 smb.TextModule
