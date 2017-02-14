@@ -32,7 +32,11 @@ class DeathScreenModule(EbModule):
     """Extracts the death screen data from EarthBound."""
 
     NAME = "Death Screen"
-    FREE_RANGES = []
+    FREE_RANGES = [
+        (0x21cfaf, 0x21d4f3),  # Tileset
+        (0x21d4f4, 0x21d5e7),  # Palette
+        (0x21d5e8, 0x21d6e1)  # Arrangement
+    ]
 
     def __init__(self):
         super(DeathScreenModule, self).__init__()
