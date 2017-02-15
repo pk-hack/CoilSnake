@@ -103,7 +103,7 @@ class DeathScreenModule(EbModule):
         with resource_open(DEATH_SCREEN_PATH, "png") as f:
             image = open_indexed_image(f)
             self.arrangement.from_image(image, self.tileset, self.palette)
-        with resource_open(DEATH_SCREEN_SUBPALETTES_PATH, "yaml") as f:
+        with resource_open(DEATH_SCREEN_SUBPALETTES_PATH, "yml") as f:
             subpalettes = yml_load(f)
             for subpalette, tiles in subpalettes.items():
                 for x, y in tiles:
@@ -113,7 +113,7 @@ class DeathScreenModule(EbModule):
         with resource_open(DEATH_SCREEN_PATH, "png") as f:
             image = self.arrangement.image(self.tileset, self.palette, True)
             image.save(f)
-        with resource_open(DEATH_SCREEN_SUBPALETTES_PATH, "yaml") as f:
+        with resource_open(DEATH_SCREEN_SUBPALETTES_PATH, "yml") as f:
             subpalettes = {}
             for x in range(ARRANGEMENT_WIDTH):
                 for y in range(ARRANGEMENT_HEIGHT):
