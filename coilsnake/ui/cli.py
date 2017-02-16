@@ -77,7 +77,7 @@ def _scriptdump(args):
 
 def _patchrom(args):
 	patch_rom(clean_rom_filename=args.clean_rom,
-			  patched_rom_filename=args.patched_rom,
+			  patched_rom_filename=args.output_rom,
 			  patch_filename=args.patch,
 			  headered=args.headered)
 
