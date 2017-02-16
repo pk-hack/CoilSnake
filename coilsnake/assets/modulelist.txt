@@ -11,6 +11,7 @@ eb.MiscTablesModule
 eb.ExpandedTablesModule
 eb.SwirlModule
 eb.TownMapIconModule
+eb.DeathScreenModule
 eb.SoundStoneModule
 eb.MapModule
 eb.MapEnemyModule

@@ -254,7 +254,7 @@ class EbTileArrangement(EqualityMixin):
     def block_size(self):
         return 2 * sum([len(x) for x in self.arrangement])
 
-    def to_image(self, image, tileset, palette):
+    def to_image(self, image, tileset, palette, ignore_subpalettes=False):
         palette.to_image(image)
         image_data = image.load()
         offset_y = 0
@@ -262,7 +262,10 @@ class EbTileArrangement(EqualityMixin):
             offset_x = 0
             for item in row:
                 tile = tileset[item.tile]
-                palette_offset = item.subpalette * palette.subpalette_length
+                if ignore_subpalettes:
+                    palette_offset = 0
+                else:
+                    palette_offset = item.subpalette*palette.subpalette_length
                 for tile_y in xrange(tileset.tile_height):
                     for tile_x in xrange(tileset.tile_width):
                         pixel_x, pixel_y = tile_x, tile_y
@@ -274,11 +277,11 @@ class EbTileArrangement(EqualityMixin):
                 offset_x += tileset.tile_width
             offset_y += tileset.tile_height
 
-    def image(self, tileset, palette):
+    def image(self, tileset, palette, ignore_subpalettes=False):
         image = Image.new("P", (self.width * tileset.tile_width,
                                 self.height * tileset.tile_height),
                           None)
-        self.to_image(image, tileset, palette)
+        self.to_image(image, tileset, palette, ignore_subpalettes)
         return image
 
     def from_image(self, image, tileset, palette, no_flip=False):
