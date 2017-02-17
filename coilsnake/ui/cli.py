@@ -2,7 +2,7 @@
 import argparse
 import logging
 
-from coilsnake.ui.common import compile_project, decompile_rom, upgrade_project, setup_logging
+from coilsnake.ui.common import compile_project, decompile_rom, upgrade_project, decompile_script, patch_rom, setup_logging
 from coilsnake.ui.information import coilsnake_about
 
 
@@ -31,6 +31,20 @@ def main():
     upgrade_parser.add_argument("base_rom")
     upgrade_parser.add_argument("project_directory")
     upgrade_parser.set_defaults(func=_upgrade)
+    
+    decomp_script_parser = subparsers.add_parser("scriptdump", help="Decompile a ROM's script to an already existing project.")
+    
+    decomp_script_parser.add_argument("rom_filename")
+    decomp_script_parser.add_argument("project_directory")
+    decomp_script_parser.set_defaults(func=_scriptdump)
+    
+    patch_rom_parser = subparsers.add_parser("patchrom", help="Apply an EBP or IPS patch to a ROM (for headered give true or false)")
+    
+    patch_rom_parser.add_argument("clean_rom")
+    patch_rom_parser.add_argument("output_rom")
+    patch_rom_parser.add_argument("patch")
+    patch_rom_parser.add_argument("headered")
+    patch_rom_parser.set_defaults(func=_patchrom)
 
     version_parser = subparsers.add_parser("version", help="display version information")
     version_parser.set_defaults(func=_version)
@@ -56,6 +70,16 @@ def _decompile(args):
 def _upgrade(args):
     upgrade_project(base_rom_filename=args.base_rom,
                     project_path=args.project_directory)
+
+def _scriptdump(args):
+	decompile_script(rom_filename=args.rom_filename, 
+					 project_path=args.project_directory)
+
+def _patchrom(args):
+	patch_rom(clean_rom_filename=args.clean_rom,
+			  patched_rom_filename=args.output_rom,
+			  patch_filename=args.patch,
+			  headered=args.headered)
 
 
 def _version(args):
