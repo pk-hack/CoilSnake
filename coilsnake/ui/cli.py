@@ -45,6 +45,16 @@ def main():
     patch_rom_parser.add_argument("patch")
     patch_rom_parser.add_argument("headered")
     patch_rom_parser.set_defaults(func=_patchrom)
+    
+    expand32_parser = subparsers.add_parser("expand32", help="Expand a ROM's size to 32 MBits (4MB)")
+    
+    expand32_parser.add_argument("rom")
+    expand32.set_defaults(func=_expand32)
+    
+    expand48_parser = subparsers.add_parser("expand48", help="Expand a ROM's size to 48 MBits (6MB)")
+    
+    expand48_parser.add_argument("rom")
+    expand48_parser.set_defaults(func=_expand48)
 
     version_parser = subparsers.add_parser("version", help="display version information")
     version_parser.set_defaults(func=_version)
@@ -80,6 +90,28 @@ def _patchrom(args):
 			  patched_rom_filename=args.output_rom,
 			  patch_filename=args.patch,
 			  headered=args.headered)
+
+def _expand32(args):
+	_expand(Rom=args.rom,
+			ex=False)
+
+def _expand48(args):
+	_expand(Rom=args.rom,
+			ex=True)
+
+
+def _expand(Rom, ex):
+	rom.from_file(filename)
+	if (not ex and len(rom) >= 0x400000) or (ex and (len(rom) >= 0x600000)):
+		print "Error: This ROM is already expanded."
+	else:
+		if ex:
+			rom.expand(0x600000)
+		else:
+			rom.expand(0x400000)
+		rom.to_file(filename)
+		del rom
+		print "Expansion Successful: Your ROM was expanded."
 
 
 def _version(args):
