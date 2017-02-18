@@ -3,7 +3,6 @@ import argparse
 import logging
 
 from coilsnake.ui.common import compile_project, decompile_rom, upgrade_project, decompile_script, patch_rom, expand, add_header, strip_header, setup_logging
-from coilsnake.model.common.blocks import Rom
 from coilsnake.ui.information import coilsnake_about
 
 
