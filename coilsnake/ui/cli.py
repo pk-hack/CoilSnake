@@ -3,6 +3,7 @@ import argparse
 import logging
 
 from coilsnake.ui.common import compile_project, decompile_rom, upgrade_project, decompile_script, patch_rom, setup_logging
+from coilsnake.model.common.blocks import Rom
 from coilsnake.ui.information import coilsnake_about
 
 
@@ -49,12 +50,22 @@ def main():
     expand32_parser = subparsers.add_parser("expand32", help="Expand a ROM's size to 32 MBits (4MB)")
     
     expand32_parser.add_argument("rom")
-    expand32.set_defaults(func=_expand32)
+    expand32_parser.set_defaults(func=_expand32)
     
     expand48_parser = subparsers.add_parser("expand48", help="Expand a ROM's size to 48 MBits (6MB)")
     
     expand48_parser.add_argument("rom")
     expand48_parser.set_defaults(func=_expand48)
+    
+    addheader_parser = subparsers.add_parser("addheader", help="Add a header to a ROM.")
+    
+    addheader_parser.add_argument("rom")
+    addheader_parser.set_defaults(func=_addheader)
+    
+    stripheader_parser = subparsers.add_parser("stripheader", help="Remove a header from a ROM.")
+    
+    stripheader_parser.add_argument("rom")
+    stripheader_parser.set_defaults(func=_stripheader)
 
     version_parser = subparsers.add_parser("version", help="display version information")
     version_parser.set_defaults(func=_version)
@@ -92,16 +103,23 @@ def _patchrom(args):
 			  headered=args.headered)
 
 def _expand32(args):
-	_expand(Rom=args.rom,
+	_expand(romfile=args.rom,
 			ex=False)
 
 def _expand48(args):
-	_expand(Rom=args.rom,
+	_expand(romfile=args.rom,
 			ex=True)
 
+def _addheader(args):
+	_add_header(romfile=args.rom)
 
-def _expand(Rom, ex):
-	rom.from_file(filename)
+def _stripheader(args):
+	_strip_header(romfile=args.rom)
+
+
+def _expand(romfile, ex):
+	rom = Rom()
+	rom.from_file(romfile)
 	if (not ex and len(rom) >= 0x400000) or (ex and (len(rom) >= 0x600000)):
 		print "Error: This ROM is already expanded."
 	else:
@@ -109,9 +127,29 @@ def _expand(Rom, ex):
 			rom.expand(0x600000)
 		else:
 			rom.expand(0x400000)
-		rom.to_file(filename)
+		rom.to_file(romfile)
 		del rom
-		print "Expansion Successful: Your ROM was expanded."
+		outputstring = "Expansion Successful: Your ROM was expanded."
+		if ex:
+			outputstring += " (48MBits/6MB)"
+		else:
+			outputstring += " (32MBits/4MB)"
+		print outputstring
+
+def _add_header(romfile):
+    if romfile:
+        with Rom() as rom:
+            rom.from_file(romfile)
+            rom.add_header()
+            rom.to_file(romfile)
+        print "Header Addition Successful: Your ROM was given a header."
+
+def _strip_header(romfile):
+    if romfile:
+        with Rom() as rom:
+            rom.from_file(romfile)
+            rom.to_file(romfile)
+        print "Header Removal Successful: Your ROM's header was removed."
 
 
 def _version(args):
