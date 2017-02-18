@@ -2,7 +2,7 @@
 import argparse
 import logging
 
-from coilsnake.ui.common import compile_project, decompile_rom, upgrade_project, decompile_script, patch_rom, setup_logging
+from coilsnake.ui.common import compile_project, decompile_rom, upgrade_project, decompile_script, patch_rom, expand, add_header, strip_header, setup_logging
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui.information import coilsnake_about
 
@@ -103,53 +103,34 @@ def _patchrom(args):
 			  headered=args.headered)
 
 def _expand32(args):
-	_expand(romfile=args.rom,
-			ex=False)
+	returntest = expand(romfile=args.rom,
+						 ex=False)
+	if returntest:
+		print "Expansion Successful: Your ROM was expanded. (32Mbits/4MB)"
+	else:
+		print "Error: This ROM is already expanded."
 
 def _expand48(args):
-	_expand(romfile=args.rom,
-			ex=True)
+	returntest = expand(romfile=args.rom,
+						 ex=True)
+	if returntest:
+		print "Expansion Successful: Your ROM was expanded. (48Mbits/6MB)"
+	else:
+		print "Error: This ROM is already expanded."
 
 def _addheader(args):
-	_add_header(romfile=args.rom)
+	returntest = add_header(romfile=args.rom)
+	if returntest:
+		print "Header Addition Successful: Your ROM was given a header."
+	else:
+		print "Error: Invalid ROM."
 
 def _stripheader(args):
-	_strip_header(romfile=args.rom)
-
-
-def _expand(romfile, ex):
-	rom = Rom()
-	rom.from_file(romfile)
-	if (not ex and len(rom) >= 0x400000) or (ex and (len(rom) >= 0x600000)):
-		print "Error: This ROM is already expanded."
+	returntest = strip_header(romfile=args.rom)
+	if returntest:
+		print "Header Removal Successful: Your ROM's header was removed."
 	else:
-		if ex:
-			rom.expand(0x600000)
-		else:
-			rom.expand(0x400000)
-		rom.to_file(romfile)
-		del rom
-		outputstring = "Expansion Successful: Your ROM was expanded."
-		if ex:
-			outputstring += " (48MBits/6MB)"
-		else:
-			outputstring += " (32MBits/4MB)"
-		print outputstring
-
-def _add_header(romfile):
-    if romfile:
-        with Rom() as rom:
-            rom.from_file(romfile)
-            rom.add_header()
-            rom.to_file(romfile)
-        print "Header Addition Successful: Your ROM was given a header."
-
-def _strip_header(romfile):
-    if romfile:
-        with Rom() as rom:
-            rom.from_file(romfile)
-            rom.to_file(romfile)
-        print "Header Removal Successful: Your ROM's header was removed."
+		print "Error: Invalid ROM."
 
 
 def _version(args):
