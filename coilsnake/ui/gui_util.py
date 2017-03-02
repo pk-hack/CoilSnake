@@ -76,7 +76,7 @@ def strip_header_from_rom(root):
     filename = tkFileDialog.askopenfilename(
         parent=root,
         initialdir=os.path.expanduser("~"),
-        title="Select a ROM to which to add a header",
+        title="Select a ROM from which to remove a header",
         filetypes=ROM_FILETYPES)
     if filename:
         returntest = strip_header(filename)
