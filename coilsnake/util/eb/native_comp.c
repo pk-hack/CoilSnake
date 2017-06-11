@@ -222,27 +222,50 @@ static PyObject* comp(PyObject* self, PyObject* args) {
 	return clist;
 }
 
+// Given a reference to a Block object, returns a PyByteArray containing its data
+// Caches the data from the most recent Block object passed in in order to reduce allocations and marshalling costs
+PyObject* get_rom_bytes(PyObject* rom) {
+        static PyObject *s_cachedRomArr, *s_cachedRomByteArr;
+        PyObject *romArr, *romByteArr;
+        int size;
+
+	romArr = PyObject_GetAttr(rom, PyString_FromString("data"));
+        
+        // If rom.data array reference hasn't changed, return the cached byte buffer
+        if(s_cachedRomArr && PyObject_RichCompareBool(romArr, s_cachedRomArr, Py_EQ) == 1) {
+                Py_DECREF(romArr);
+                return s_cachedRomByteArr;
+        }
+
+	romByteArr = PyByteArray_FromObject(romArr);
+
+        if (!PyByteArray_Check(romByteArr))
+                return PyErr_Format(PyExc_TypeError, "bytearray of numbers expected ('%s') given", romArr->ob_type->tp_name);
+
+        size = PyByteArray_Size(romByteArr);
+
+        if (size < 1)
+                return PyErr_Format(PyExc_TypeError, "rom's data attribute was empty");
+
+        
+        // Because this reference to the array is cached, there will always be an extra reference
+        // to the rom's data until the program ends
+        s_cachedRomArr = romArr;
+        s_cachedRomByteArr = romByteArr;
+        
+        return romByteArr;
+}
+
 static PyObject* decomp(PyObject* self, PyObject* args) {
-        PyObject *rom, *romArr, *ulist, *o;
-	PyByteArrayObject *romByteArr;
-	int addr, size, new_size, i;
+        PyObject *rom, *ulist, *o, *romByteArr;
+	int addr, new_size, i;
 	uchar *romBuffer, *buffer;
 
         if (!PyArg_ParseTuple(args, "Oi", &rom, &addr))
                 return NULL;
 
-	romArr = PyObject_GetAttr(rom, PyString_FromString("data"));
-	romByteArr = PyByteArray_FromObject(romArr);
-
-        if (!PyByteArray_Check(romByteArr))
-                return PyErr_Format(PyExc_TypeError, "bytearray of numbers expected ('%s') given", romArr->ob_type->tp_name), NULL;
-
-        size = PyByteArray_Size(romByteArr);
-
-        if (size < 1)
-                return PyErr_Format(PyExc_TypeError, "rom's data attribute was empty"), NULL;
-
-	romBuffer = (uchar*) PyByteArray_AsString(romByteArr);
+        romByteArr = get_rom_bytes(rom);
+        romBuffer = (uchar*) PyByteArray_AsString(romByteArr);
 
         // Allocate a buffer
         buffer = (uchar*) malloc(sizeof(uchar) * 65536);
@@ -254,9 +277,6 @@ static PyObject* decomp(PyObject* self, PyObject* args) {
                 PyList_SetItem(ulist, i, o);
         }
         free(buffer);
-	//free(romBuffer);
-	Py_DECREF(romBuffer);
-	Py_DECREF(romByteArr);
         return ulist;
 }
 
