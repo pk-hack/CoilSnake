@@ -266,6 +266,39 @@ def patch_rom(clean_rom_filename, patched_rom_filename, patch_filename, headered
 
     log.info("Patched to {} in {:.2f}s".format(patched_rom_filename, time.time() - patching_start_time))
 
+def expand(romfile, ex=False):
+    rom = Rom()
+    rom.from_file(romfile)
+    if (not ex and len(rom) >= 0x400000) or (ex and (len(rom) >= 0x600000)):
+        return False
+    else:
+        if ex:
+            rom.expand(0x600000)
+        else:
+            rom.expand(0x400000)
+        rom.to_file(romfile)
+        del rom
+        return True
+
+def add_header(romfile):
+    if romfile:
+        with Rom() as rom:
+            rom.from_file(romfile)
+            rom.add_header()
+            rom.to_file(romfile)
+        return True
+    else:
+        return False
+
+def strip_header(romfile):
+    if romfile:
+        with Rom() as rom:
+            rom.from_file(romfile)
+            rom.to_file(romfile)
+        return True
+    else:
+        return False
+
 
 def load_modules():
     all_modules = []

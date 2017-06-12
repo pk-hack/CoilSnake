@@ -6,41 +6,51 @@ import tkMessageBox
 import sys
 
 from coilsnake.model.common.blocks import Rom
+from coilsnake.ui.common import expand, add_header, strip_header
 
 
 PATCH_FILETYPES = [('IPS patches', '*.ips'), ('EBP patches', '*.ebp'), ('All files', '*.*')]
 ROM_FILETYPES = [('SNES ROMs', '*.smc'), ('SNES ROMs', '*.sfc'), ('All files', '*.*')]
 
 
-def expand_rom(root, ex=False):
-    rom = Rom()
+def expand_rom(root):
     filename = tkFileDialog.askopenfilename(
         parent=root,
         initialdir=os.path.expanduser("~"),
         title="Select a ROM to expand",
         filetypes=ROM_FILETYPES)
     if filename:
-        rom.from_file(filename)
-        if (not ex and len(rom) >= 0x400000) or (ex and (len(rom) >= 0x600000)):
+        returntest = expand(filename)
+        if not returntest:
             tkMessageBox.showerror(
                 parent=root,
                 title="Error",
                 message="This ROM is already expanded.")
         else:
-            if ex:
-                rom.expand(0x600000)
-            else:
-                rom.expand(0x400000)
-            rom.to_file(filename)
-            del rom
             tkMessageBox.showinfo(
                 parent=root,
                 title="Expansion Successful",
-                message="Your ROM was expanded.")
+                message="Your ROM was expanded. (32MBits/4MB)")
 
 
 def expand_rom_ex(root):
-    expand_rom(root=root, ex=True)
+    filename = tkFileDialog.askopenfilename(
+        parent=root,
+        initialdir=os.path.expanduser("~"),
+        title="Select a ROM to expand",
+        filetypes=ROM_FILETYPES)
+    if filename:
+        returntest = expand(filename, ex=True)
+        if not returntest:
+            tkMessageBox.showerror(
+                parent=root,
+                title="Error",
+                message="This ROM is already expanded.")
+        else:
+            tkMessageBox.showinfo(
+                parent=root,
+                title="Expansion Successful",
+                message="Your ROM was expanded. (48MBits/6MB)")
 
 
 def add_header_to_rom(root):
@@ -50,15 +60,17 @@ def add_header_to_rom(root):
         title="Select a ROM to which to add a header",
         filetypes=ROM_FILETYPES)
     if filename:
-        with Rom() as rom:
-            rom.from_file(filename)
-            rom.add_header()
-            rom.to_file(filename)
-        tkMessageBox.showinfo(
-            parent=root,
-            title="Header Addition Successful",
-            message="Your ROM was given a header.")
-
+        returntest = add_header(filename)
+        if returntest:
+            tkMessageBox.showinfo(
+                parent=root,
+                title="Header Addition Successful",
+                message="Your ROM was given a header.")
+        else:
+            tkMessageBox.showinfo(
+                parent=root,
+                title="Header Addition Failed",
+                message="Invalid ROM.")
 
 def strip_header_from_rom(root):
     filename = tkFileDialog.askopenfilename(
@@ -67,13 +79,17 @@ def strip_header_from_rom(root):
         title="Select a ROM from which to remove a header",
         filetypes=ROM_FILETYPES)
     if filename:
-        with Rom() as rom:
-            rom.from_file(filename)
-            rom.to_file(filename)
-        tkMessageBox.showinfo(
-            parent=root,
-            title="Header Removal Successful",
-            message="Your ROM's header was removed.")
+        returntest = strip_header(filename)
+        if returntest:
+            tkMessageBox.showinfo(
+                parent=root,
+                title="Header Removal Successful",
+                message="Your ROM's header was removed.")
+        else:
+            tkMessageBox.showinfo(
+                parent=root,
+                title="Header Removal Failed",
+                message="Invalid ROM.")
 
 
 def set_entry_text(entry, text):
