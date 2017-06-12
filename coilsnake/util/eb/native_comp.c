@@ -230,15 +230,17 @@ PyObject* get_rom_bytes(PyObject* rom) {
         int size;
 
 	romArr = PyObject_GetAttr(rom, PyString_FromString("data"));
+        if (!romArr)
+                return NULL;
         
         // If rom.data array reference hasn't changed, return the cached byte buffer
-        if(romArr == s_cachedRomArr) {
+        if (romArr == s_cachedRomArr) {
                 Py_DECREF(romArr);
                 return s_cachedRomByteArr;
         }
 
 	romByteArr = PyByteArray_FromObject(romArr);
-        if(!romByteArr)
+        if (!romByteArr)
                 return NULL;
 
         if (!PyByteArray_Check(romByteArr))
