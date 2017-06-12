@@ -1,9 +1,9 @@
 from coilsnake.util.common import project
 
 VERSION = project.VERSION_NAMES[project.FORMAT_VERSION]
-RELEASE_DATE = "November 15, 2015"
+RELEASE_DATE = "June 12, 2017"
 
-WEBSITE = "http://kiij.github.io/CoilSnake"
+WEBSITE = "http://mrtenda.github.io/CoilSnake"
 AUTHOR = "MrTenda"
 ADDITIONAL_CREDITS = """- Some portions based on JHack, created by AnyoneEB
 - Contributions by H.S, Michael1, and many others"""

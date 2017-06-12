@@ -22,9 +22,9 @@ with open(os.path.join("coilsnake", "assets", "modulelist.txt"), "r") as f:
 
 setup(
     name="coilsnake",
-    version="2.3.1",
+    version="3.0",
     description="CoilSnake",
-    url="https://kiij.github.io/CoilSnake",
+    url="https://mrtenda.github.io/CoilSnake",
     packages=["coilsnake"],
     data_files=data_files,
 
