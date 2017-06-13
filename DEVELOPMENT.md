@@ -62,7 +62,6 @@ You'll probably want to follow these steps from a fresh virtual machine. You can
     1. [Python 2.7](https://www.python.org/downloads/release/python-279/) (32-bit version)
     1. [Microsoft Visual C++ Compiler for Python 2.7](https://www.microsoft.com/download/details.aspx?id=44266)
     1. [boost 1.55](http://sourceforge.net/projects/boost/files/boost-binaries/) (32-bit vc90 version)
-    1. [SetupTools](https://pypi.python.org/pypi/setuptools#windows-7-or-graphical-install)
     1. [Pillow](http://pypi.python.org/pypi/Pillow)
     1. [PyYAML](http://pyyaml.org/wiki/PyYAML)
     1. [py2exe](http://www.py2exe.org/)
