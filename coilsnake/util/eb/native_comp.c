@@ -230,14 +230,18 @@ PyObject* get_rom_bytes(PyObject* rom) {
         int size;
 
 	romArr = PyObject_GetAttr(rom, PyString_FromString("data"));
+        if (!romArr)
+                return NULL;
         
         // If rom.data array reference hasn't changed, return the cached byte buffer
-        if(s_cachedRomArr && PyObject_RichCompareBool(romArr, s_cachedRomArr, Py_EQ) == 1) {
+        if (romArr == s_cachedRomArr) {
                 Py_DECREF(romArr);
                 return s_cachedRomByteArr;
         }
 
 	romByteArr = PyByteArray_FromObject(romArr);
+        if (!romByteArr)
+                return NULL;
 
         if (!PyByteArray_Check(romByteArr))
                 return PyErr_Format(PyExc_TypeError, "bytearray of numbers expected ('%s') given", romArr->ob_type->tp_name);
@@ -247,6 +251,9 @@ PyObject* get_rom_bytes(PyObject* rom) {
         if (size < 1)
                 return PyErr_Format(PyExc_TypeError, "rom's data attribute was empty");
 
+        // We are replacing the cached references, so release them before we do
+        Py_XDECREF(s_cachedRomArr);
+        Py_XDECREF(s_cachedRomByteArr);
         
         // Because this reference to the array is cached, there will always be an extra reference
         // to the rom's data until the program ends
@@ -265,7 +272,10 @@ static PyObject* decomp(PyObject* self, PyObject* args) {
                 return NULL;
 
         romByteArr = get_rom_bytes(rom);
-        romBuffer = (uchar*) PyByteArray_AsString(romByteArr);
+        if (!romByteArr)
+                return NULL;
+
+        romBuffer = (uchar*) PyByteArray_AS_STRING(romByteArr);
 
         // Allocate a buffer
         buffer = (uchar*) malloc(sizeof(uchar) * 65536);
