@@ -677,8 +677,9 @@ Please configure Java in the Settings menu.""")
         profile_var = StringVar(profile_frame)
 
         profile = OptionMenu(profile_frame, profile_var, "", command=tmp_select)
-        profile["width"] = 26
-        profile.pack(side=LEFT, fill=BOTH, expand=1)
+        profile["width"] = 25
+        profile.pack(side=LEFT, fill=BOTH, expand=1, ipadx=1)
+        
         self.components.append(profile)
 
         def tmp_reload_options(selected_profile_name=None):
@@ -721,7 +722,7 @@ Please configure Java in the Settings menu.""")
                 tmp_reload_options()
                 self.preferences.save()
 
-        button = Button(profile_frame, text="Save", width=5, command=tmp_save)
+        button = Button(profile_frame, text="Save", width=6, command=tmp_save)
         button.pack(side=LEFT, fill=BOTH, expand=1)
         self.components.append(button)
 
