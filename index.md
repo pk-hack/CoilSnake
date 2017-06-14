@@ -5,16 +5,11 @@ introduction-content: |
   **CoilSnake** is the most powerful [mod making tool](https://en.wikipedia.org/wiki/Game_mod) for the game [*EarthBound*](https://en.wikipedia.org/wiki/EarthBound). CoilSnake has been used to create several original games in the *EarthBound* engine, as well as to translate *EarthBound*:
 
 projects:
-- name: Edwin & Jones
-  image: images/screenshots/eaj.png
-  image-position-x: 0
-  image-position-y: 20%
-  url: http://edwinandjones.com
 - name: MOTHER Remake
   image: images/screenshots/mother-remake.png
   image-position-x: 0
   image-position-y: 20%
-  url: http://forum.starmen.net/forum/Community/PKHack/Mother-Remake/page/1/
+  url: http://forum.starmen.net/forum/Community/PKHack/Mother-Remake/
 - name: Unearthed
   image: images/screenshots/unearthed.png
   image-position-x: 0
@@ -30,6 +25,11 @@ projects:
   image-position-x: 0
   image-position-y: 35%
   url: http://hacks.lyros.net/portfolio/holiday-hex/
+- name: Spanish EB
+  image: images/screenshots/eb-spanish.png
+  image-position-x: 0
+  image-position-y: -15%
+  url: https://forum.starmen.net/forum/Community/PKHack/EarthBound-Spanish-translation/
 - name: Portuguese EB
   image: images/screenshots/eb-portuguese.png
   image-position-x: 0
