@@ -43,6 +43,7 @@ int comp_(uchar *udata, uchar *buffer, int length) {
                 /*printf("%d\t%d\n", pos - udata, bpos - buffer);*/
                 /* Look for patterns */
                 for(pos2 = pos; pos2 < limit && pos2 < pos + 1024; pos2++) {
+
                         for(pos3 = pos2; pos3 < limit && pos3 < pos2 + 1024 && *pos2 == *pos3; pos3++);
                         if(pos3 - pos2 >= 3) {
                                 rencode(&bpos, pos, pos2 - pos);
@@ -51,6 +52,7 @@ int comp_(uchar *udata, uchar *buffer, int length) {
                                 pos = pos3;
                                 break;
                         }
+                        
                         for(pos3 = pos2; pos3 < limit && pos3 < pos2 + 2048 && *pos3 == *pos2 && pos3[1] == pos2[1]; pos3 += 2);
                         if(pos3 - pos2 >= 6) {
                                 rencode(&bpos, pos, pos2 - pos);
@@ -68,9 +70,11 @@ int comp_(uchar *udata, uchar *buffer, int length) {
                                 pos = pos3;
                                 break;
                         }
+
                         for(pos3 = udata; pos3 < pos2; pos3++) {
-                                for(tmp = 0, pos4 = pos3; pos4 < pos2 && tmp < 1024 && *pos4 == pos2[tmp]; pos4++, tmp++);
-                            if(tmp >= 5) {
+                                
+                                for(tmp = 0, pos4 = pos3; pos4 < pos2 && tmp < 1024 && pos2 + tmp < limit && *pos4 == pos2[tmp]; pos4++, tmp++);
+                                if(tmp >= 5) {
                                         rencode(&bpos, pos, pos2 - pos);
                                         encode(&bpos, tmp, 4);
                                         *bpos++ = (pos3 - udata) >> 8;
@@ -78,7 +82,8 @@ int comp_(uchar *udata, uchar *buffer, int length) {
                                         pos = pos2 + tmp;
                                         goto DONE;
                                 }
-                                for(tmp = 0, pos4 = pos3; pos4 < pos2 && tmp < 1024 && *pos4 == bitrevs[pos2[tmp]]; pos4++, tmp++);
+                                
+                                for(tmp = 0, pos4 = pos3; pos4 < pos2 && tmp < 1024 && pos2 + tmp < limit && *pos4 == bitrevs[pos2[tmp]]; pos4++, tmp++);
                                 if(tmp >= 5) {
                                         rencode(&bpos, pos, pos2 - pos);
                                         encode(&bpos, tmp, 5);
@@ -87,7 +92,8 @@ int comp_(uchar *udata, uchar *buffer, int length) {
                                         pos = pos2 + tmp;
                                         goto DONE;
                                 }
-                                for(tmp = 0, pos4 = pos3; pos4 >= udata && tmp < 1024 && *pos4 == pos2[tmp]; pos4--, tmp++);
+                                
+                                for(tmp = 0, pos4 = pos3; pos4 >= udata && tmp < 1024 && pos2 + tmp < limit && *pos4 == pos2[tmp]; pos4--, tmp++);
                                 if(tmp >= 5) {
                                         rencode(&bpos, pos, pos2 - pos);
                                         encode(&bpos, tmp, 6);
@@ -196,16 +202,23 @@ static PyObject* comp(PyObject* self, PyObject* args) {
 		return PyErr_Format(PyExc_TypeError, "got empty list"), NULL;
 
 	udata = (uchar*) malloc(sizeof(uchar) * size);
+
 	for (i=0; i<size; ++i) {
 		o = PyList_GetItem(list, i);
-		if (!PyInt_Check(o))
+		if (!PyInt_Check(o)) {
+                        free(udata);
 			return PyErr_Format(PyExc_TypeError, "list of ints expected ('%s') given", o->ob_type->tp_name), NULL;
-		n = PyInt_AsLong(o);
-		if (n == -1 && PyErr_Occurred())
+                }
+                n = PyInt_AsLong(o);
+		if (n == -1 && PyErr_Occurred()) {
+                        free(udata);
 			return NULL;
-		if (n < 0)
+                }
+		if (n < 0) {
+                        free(udata);
 			return PyErr_Format(PyExc_TypeError, "list of positive ints expected (negative found)"), NULL;
-		udata[i] = (uchar) n;
+                }
+                udata[i] = (uchar) n;
 	}
 
 	// Allocate a buffer
