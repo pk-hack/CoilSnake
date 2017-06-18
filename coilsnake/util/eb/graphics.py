@@ -132,5 +132,7 @@ def write_8bpp_graphic_to_block(source, target, offset, x=0, y=0):
 def hash_tile(tile):
     csum = 0
     for col in tile:
-        csum = crc32(col, csum)
+        # Generate same crc across python versions
+        # https://docs.python.org/3/library/zlib.html#zlib.crc32
+        csum = crc32(col, csum) & 0xffffffff
     return csum

@@ -3,7 +3,6 @@ from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.yml import yml_load, yml_dump
 from coilsnake.util.eb.pointer import read_asm_pointer, from_snes_address, write_asm_pointer, to_snes_address
 
-
 class EbMiscTextAsmPointer(object):
     def __init__(self, asm_pointer_loc):
         self.asm_pointer_loc = asm_pointer_loc
@@ -205,8 +204,8 @@ class MiscTextModule(EbModule):
             self.data[category_name] = category_data
 
     def write_to_rom(self, rom):
-        for category_name, category in MISC_TEXT.iteritems():
-            for item_name, item in category.iteritems():
+        for category_name, category in sorted(MISC_TEXT.iteritems()):
+            for item_name, item in sorted(category.iteritems()):
                 item.to_block(rom, self.data[category_name][item_name])
 
     def read_from_project(self, resource_open):
