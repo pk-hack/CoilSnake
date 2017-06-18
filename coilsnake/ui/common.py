@@ -1,6 +1,7 @@
 from datetime import datetime
 import logging
 import os
+import json
 from shutil import copyfile
 import time
 import sys
@@ -265,6 +266,35 @@ def patch_rom(clean_rom_filename, patched_rom_filename, patch_filename, headered
     output_rom.to_file(patched_rom_filename)
 
     log.info("Patched to {} in {:.2f}s".format(patched_rom_filename, time.time() - patching_start_time))
+    
+def create_patch(clean_rom, hacked_rom, patch_path, author, description, title, progress_bar=None):
+        """Starts creating the patch in its own thread."""
+
+        creating_patch_start_time = time.time()
+        # Prepare the metadata.
+        metadata = json.dumps({"patcher": "EBPatcher", "author": author,
+                               "title": title, "description": description})
+        
+
+        # Try to create the patch; if it fails, display an error message.
+        try:
+            if patch_path.endswith(".ebp"):
+                patch = EbpPatch()
+                patch.create(clean_rom, hacked_rom, patch_path, metadata)
+            if patch_path.endswith(".ips"):
+                patch = IpsPatch()
+                patch.create(clean_rom, hacked_rom, patch_path)
+        except OSError as e:
+            log.info("There was an error creating the patch:" + e)
+            return
+
+        # Display a success message.
+        patch_name = ""
+        if patch_path.rfind("/") != -1:
+            patch_name = patch_path[patch_path.rfind("/") + 1:len(patch_path)]
+        else:
+            patch_name = patch_path[patch_path.rfind("\\") + 1:len(patch_path)]
+        log.info("The patch {} was successfully created in {:.2f}s.".format(patch_name, time.time() - creating_patch_start_time))
 
 def expand(romfile, ex=False):
     rom = Rom()

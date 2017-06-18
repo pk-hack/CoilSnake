@@ -2,7 +2,7 @@
 import argparse
 import logging
 
-from coilsnake.ui.common import compile_project, decompile_rom, upgrade_project, decompile_script, patch_rom, expand, add_header, strip_header, setup_logging
+from coilsnake.ui.common import compile_project, decompile_rom, upgrade_project, decompile_script, create_patch, patch_rom, expand, add_header, strip_header, setup_logging
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui.information import coilsnake_about
 
@@ -46,6 +46,16 @@ def main():
     patch_rom_parser.add_argument("patch")
     patch_rom_parser.add_argument("headered")
     patch_rom_parser.set_defaults(func=_patchrom)
+    
+    createpatch_parser = subparsers.add_parser("createpatch", help="Create a patch from a clean ROM and a hacked ROM.")
+    
+    createpatch_parser.add_argument("clean_rom")
+    createpatch_parser.add_argument("hacked_rom")
+    createpatch_parser.add_argument("output_path")
+    createpatch_parser.add_argument("author")
+    createpatch_parser.add_argument("description")
+    createpatch_parser.add_argument("title")
+    createpatch_parser.set_defaults(func=_createpatch)
     
     expand_parser = subparsers.add_parser("expand", help="Expand a ROM's size to 32 MBits (4MB) or 48 MBits (6MB). exhi is false for 4MB, and true for 6MB.")
     
@@ -101,6 +111,14 @@ def _patchrom(args):
               patched_rom_filename=args.output_rom,
               patch_filename=args.patch,
               headered=header)
+
+def _createpatch(args):
+    create_patch(clean_rom=args.clean_rom,
+              hacked_rom=args.hacked_rom,
+              patch_path=args.output_path,
+              author=args.author,
+              description=args.description,
+              title=args.title)
 
 def _expand(args):
     if args.exhi == "true":

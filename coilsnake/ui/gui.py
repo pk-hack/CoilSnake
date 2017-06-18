@@ -19,7 +19,7 @@ from PIL import ImageTk
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui import information, gui_util
 from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging, decompile_script, \
-    patch_rom
+    patch_rom, create_patch
 from coilsnake.ui.gui_preferences import CoilSnakePreferences
 from coilsnake.ui.gui_util import browse_for_patch, browse_for_rom, browse_for_project, open_folder, set_entry_text, \
     find_system_java_exe
@@ -351,6 +351,38 @@ Please configure Java in the Settings menu.""")
         self.progress_bar.cycle_animation_stop()
         self.enable_all_components()
 
+    def do_create_patch(self, clean_rom_entry, hacked_rom_entry, patch_path_entry, author, description, title):
+        clean_rom = clean_rom_entry.get()
+        hacked_rom = hacked_rom_entry.get()
+        patch_path = patch_path_entry.get()
+
+        if clean_rom and hacked_rom and patch_path:
+            self.save_default_tab()
+
+            # Update the GUI
+            self.console.clear()
+            self.disable_all_components()
+            self.progress_bar.cycle_animation_start()
+
+            thread = Thread(target=self._do_create_patch_help, args=(clean_rom, hacked_rom, patch_path, author, description, title))
+            thread.start()
+
+    def _do_create_patch_help(self, clean_rom, hacked_rom, patch_path, author, description, title):
+        try:
+            if patch_path.endswith(".ebp"):
+                create_patch(clean_rom, hacked_rom, patch_path, author, description, title, progress_bar=self.progress_bar)
+            elif patch_path.endswith(".ips"):
+                create_patch(clean_rom, hacked_rom, patch_path, "", "", "", progress_bar=self.progress_bar)
+            else:
+                log.info("Could not patch ROM: Invalid patch format. Please end patchfile with either .ebp or .ips.")
+                return
+        except Exception as inst:
+            log.debug(format_exc())
+            log.error(inst)
+
+        self.progress_bar.cycle_animation_stop()
+        self.enable_all_components()
+
     def main(self):
         self.create_gui()
         self.root.mainloop()
@@ -381,8 +413,8 @@ Please configure Java in the Settings menu.""")
         patcher_patch_frame = self.create_apply_patch_frame(self.notebook)
         self.notebook.add(patcher_patch_frame, text="Apply Patch")
 
-        #patcher_create_frame = self.create_create_patch_frame(self.notebook)
-        #self.notebook.add(patcher_create_frame, text="Create Patch")
+        patcher_create_frame = self.create_create_patch_frame(self.notebook)
+        self.notebook.add(patcher_create_frame, text="Create Patch")
 
         self.notebook.pack(fill=BOTH, expand=1)
         self.notebook.select(self.preferences.get_default_tab())
@@ -636,28 +668,73 @@ Please configure Java in the Settings menu.""")
         self.add_title_label_to_frame("Create EBP patch from a ROM", patcher_create_frame)
 
         clean_rom_entry = self.add_rom_fields_to_frame(name="Clean ROM", frame=patcher_create_frame, padding_buttons=0)
-        modified_rom_entry = self.add_rom_fields_to_frame(name="Modified ROM", frame=patcher_create_frame,
+        hacked_rom_entry = self.add_rom_fields_to_frame(name="Modified ROM", frame=patcher_create_frame,
                                                           padding_buttons=0)
         patch_entry = self.add_patch_fields_to_frame(name="Patch", frame=patcher_create_frame, save=True)
 
-        def create_patch_tmp():
+        def create_patch_tmp(author, description, title):
             self.preferences["default clean rom"] = clean_rom_entry.get()
-            self.preferences["default modified rom"] = modified_rom_entry.get()
+            self.preferences["default hacked rom"] = hacked_rom_entry.get()
+            self.preferences["default created patch"] = patch_entry.get()
             self.preferences.save()
-            self.do_create_patch(clean_rom_entry, modified_rom_entry, patch_entry)
+            self.do_create_patch(clean_rom_entry, hacked_rom_entry, patch_entry, author, description, title)
+        
+        def create_patch_do_first():
+            if patch_entry.get().endswith(".ebp"):
+                popup_ebp_patch_info(self, notebook)
+            elif patch_entry.get().endswith(".ips"):
+                create_patch_tmp("", "", "")
+            else:
+                exc = Exception("Could not create patch because patch does not end in .ips or .ebp")
+                log.error(exc)
+        
+        def popup_ebp_patch_info(self, notebook):
+            author = ""
+            description = ""
+            title = ""
+            top = self.top = Toplevel(notebook)
+            top.wm_title("EBP Patch")
+            l = Label(top,text="Input EBP Patch Info.")
+            l.pack()
+            auth = Entry(top)
+            auth.delete(0,)
+            auth.insert(0,"Author")
+            auth.pack()
+            desc = Entry(top)
+            desc.delete(0,)
+            desc.insert(0,"Description")
+            desc.pack()
+            titl = Entry(top)
+            titl.delete(0,)
+            titl.insert(0,"Title")
+            titl.pack()
+            
+            def cleanup():
+                author = auth.get()
+                description = desc.get()
+                title = titl.get()
+                self.top.destroy()
+                create_patch_tmp(author, description, title)
+        
+            self.b=Button(top,text='OK',command=cleanup)
+            self.b.pack()
 
-        button = Button(patcher_create_frame, text="Create Patch", command=create_patch_tmp)
+        button = Button(patcher_create_frame, text="Create Patch", command=create_patch_do_first)
         button.pack(fill=BOTH, expand=1)
         self.components.append(button)
 
         if self.preferences["default clean rom"]:
             set_entry_text(entry=clean_rom_entry,
                            text=self.preferences["default clean rom"])
-        if self.preferences["default modified rom"]:
-            set_entry_text(entry=modified_rom_entry,
-                           text=self.preferences["default patched rom"])
-
+        if self.preferences["default hacked rom"]:
+            set_entry_text(entry=hacked_rom_entry,
+                           text=self.preferences["default hacked rom"])
+        if self.preferences["default created patch"]:
+            set_entry_text(entry=patch_entry,
+                           text=self.preferences["default created patch"])
+        
         return patcher_create_frame
+
 
     def add_title_label_to_frame(self, text, frame):
         Label(frame, text=text, justify=CENTER).pack(fill=BOTH, expand=1)
