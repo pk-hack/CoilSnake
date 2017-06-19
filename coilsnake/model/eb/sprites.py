@@ -325,7 +325,7 @@ class SpriteGroup(object):
 
         # Write each sprite
         sprite_offsets = dict()
-        for i, (sprite_hash, sprite) in enumerate(unique_sprites.iteritems()):
+        for i, (sprite_hash, sprite) in enumerate(sorted(unique_sprites.iteritems())):
             sprite.to_block(rom, offset)
             sprite_offsets[sprite_hash] = offset
             offset += sprite.block_size()
