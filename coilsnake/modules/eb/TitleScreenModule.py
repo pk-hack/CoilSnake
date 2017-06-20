@@ -54,7 +54,7 @@ BG_ANIM_SLICE = slice(0x70, 0x70 + ANIM_SUBPALETTE_LENGTH)
 # Animation data bank offsets
 CHARS_LAYOUT_BANK = 0xA0FE
 CHARS_LAYOUT_TABLE = 0x21CF9D
-CHARS_LAYOUT_POINTER_OFFSET = 0x210000
+CHARS_LAYOUT_POINTER_OFFSET_DEFAULT = 0x210000
 
 # Project file paths
 BG_REFERENCE_PATH = "TitleScreen/Background/Reference"
@@ -180,10 +180,20 @@ class TitleScreenModule(EbModule):
             self.chars_anim_palette.from_block(block=block, offset=0)
 
     def read_chars_layouts_from_rom(self, rom):
+        lda_instruction = rom[CHARS_LAYOUT_BANK]
+        chars_layout_pointer_offset = CHARS_LAYOUT_POINTER_OFFSET_DEFAULT
+
+        # Check if we are dealing with the modified Rom,
+        # If we are, we need to recalculate the offset to the
+        # character layouts
+        if lda_instruction == 0xA9:
+            bank = rom[CHARS_LAYOUT_BANK + 1]
+            chars_layout_pointer_offset = from_snes_address(bank << 16)
+
         self.chars_layouts = [[] for _ in xrange(NUM_CHARS)]
         for char in xrange(NUM_CHARS):
             # Get the location of a character's data
-            offset = CHARS_LAYOUT_POINTER_OFFSET + rom.read_multi(
+            offset = chars_layout_pointer_offset + rom.read_multi(
                 CHARS_LAYOUT_TABLE + char*2, 2
             )
 
@@ -297,6 +307,11 @@ class TitleScreenModule(EbModule):
             # offset); the offsets in the table are then prefixed with that
             # address. However, reallocating the data may have changed its
             # bank, so we need to manually set it to the new bank address.
+
+            # In order to change the offset, we are replacing a LDA instruction 
+            # which addresses a direct page (0xA5) with a LDA instruction
+            # that treats its operand as the constant to load (0xA9)
+            # See https://wiki.superfamicom.org/snes/show/65816+Reference#instructions.
             rom[CHARS_LAYOUT_BANK:CHARS_LAYOUT_BANK + 2] = [0xA9, new_bank]
 
     def read_from_project(self, resource_open):
