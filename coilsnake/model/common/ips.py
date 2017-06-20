@@ -81,33 +81,33 @@ class IpsPatch(object):
         # Create the records.
         i = None
         records = {}
-        cr = open(clean_rom, "rb")
-        hr = open(hacked_rom, "rb")
-        cr.seek(0)
-        hr.seek(0)
-        s = cr.read(1)
-        t = hr.read(1)
-        while t:
-            if t == s and i is not None:
-                i = None
-            elif t != s:
-                if i is not None:
-                    # Check that the record's size can fit in 2 bytes.
-                    if hr.tell() - 1 - i == 0xFFFF:
-                        i = None
-                        continue
-                    records[i] += t
-                else:
-                    i = hr.tell() - 1
-                    # Check that the offset isn't EOF. If it is, go back one
-                    # byte to work around this IPS limitation.
-                    if to_bytes(i, 3) != b"EOF":
-                        records[i] = t
-                    else:
-                        i -= 1
-                        records[i] = hacked_rom.getvalue()[i]
+        with open(clean_rom, "rb") as cr, open(hacked_rom, "rb") as hr:
+        # do stuff with `cr` and `hr`
+            cr.seek(0)
+            hr.seek(0)
             s = cr.read(1)
             t = hr.read(1)
+            while t:
+                if t == s and i is not None:
+                    i = None
+                elif t != s:
+                    if i is not None:
+                        # Check that the record's size can fit in 2 bytes.
+                        if hr.tell() - 1 - i == 0xFFFF:
+                            i = None
+                            continue
+                        records[i] += t
+                    else:
+                        i = hr.tell() - 1
+                        # Check that the offset isn't EOF. If it is, go back one
+                        # byte to work around this IPS limitation.
+                        if to_bytes(i, 3) != b"EOF":
+                            records[i] = t
+                        else:
+                            i -= 1
+                            records[i] = hacked_rom.getvalue()[i]
+                s = cr.read(1)
+                t = hr.read(1)
 
         # Write the patch.
         pfile = open(patch_path, "wb")
