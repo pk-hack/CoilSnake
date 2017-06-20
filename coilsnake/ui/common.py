@@ -281,7 +281,7 @@ def create_patch(clean_rom, hacked_rom, patch_path, author, description, title, 
             if patch_path.endswith(".ebp"):
                 patch = EbpPatch()
                 patch.create(clean_rom, hacked_rom, patch_path, metadata)
-            if patch_path.endswith(".ips"):
+            elif patch_path.endswith(".ips"):
                 patch = IpsPatch()
                 patch.create(clean_rom, hacked_rom, patch_path)
         except OSError as e:
