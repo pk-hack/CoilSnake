@@ -26,6 +26,10 @@ def apply_relocation_patch(rom):
     ips.load(get_ips_filename(rom.type, "swirl_relocate"), 0x200)
     ips.apply(rom)
 
+def test_swirl_relocated(rom):
+    ips = IpsPatch()
+    ips.load(get_ips_filename(rom.type, "swirl_relocate"), 0x200)
+    return ips.is_applied(rom)
 
 class SwirlModule(EbModule):
     NAME = "Swirls"
@@ -42,15 +46,21 @@ class SwirlModule(EbModule):
         self.swirls = []
 
     def read_from_rom(self, rom):
+        self.is_swirl_relocated = test_swirl_relocated(rom)
+
         self.swirl_table.from_block(
             rom, offset=from_snes_address(SWIRL_TABLE_DEFAULT_OFFSET))
-        self.pointer_table.from_block(
-            rom, offset=from_snes_address(SWIRL_ANIMATION_POINTER_TABLE_DEFAULT_OFFSET))
 
-        all_animation_pointers = [
-            from_snes_address(self.pointer_table[i][0] | SWIRL_ANIMATION_POINTER_TABLE_BASE)
-            for i in xrange(self.pointer_table.num_rows)
-        ]
+        if self.is_swirl_relocated:
+            all_animation_pointers = [entry[0] for entry in RELOCATED_SWIRL_ANIMATION_POINTER_TABLE_POINTER]
+        else:
+            self.pointer_table.from_block(
+                rom, offset=from_snes_address(SWIRL_ANIMATION_POINTER_TABLE_DEFAULT_OFFSET))
+
+            all_animation_pointers = [
+                from_snes_address(self.pointer_table[i][0] | SWIRL_ANIMATION_POINTER_TABLE_BASE)
+                for i in xrange(self.pointer_table.num_rows)
+            ]
 
         self.swirls = [None] * self.swirl_table.num_rows
         for i in xrange(self.swirl_table.num_rows):
@@ -63,7 +73,8 @@ class SwirlModule(EbModule):
             self.swirls[i].frames_from_block(rom, animation_pointers)
 
     def write_to_rom(self, rom):
-        apply_relocation_patch(rom)
+        if not self.is_swirl_relocated:
+            apply_relocation_patch(rom)
 
         # Write frames and populate swirl table
         frame_hashes = {}
