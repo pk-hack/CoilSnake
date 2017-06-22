@@ -103,6 +103,10 @@ class TilesetModule(EbModule):
 
         # Palettes need to be in the 0xDA bank
         rom.deallocate((0x1a0000, 0x1afaa6))  # Not sure if this can go farther
+
+        map_tileset_palettes = {}
+        number_of_palettes = 0
+
         # Write maps/drawing tilesets associations and map tset pals
         log.debug("Writing palettes")
         for map_tileset_id in range(32):  # For each map tileset
@@ -119,14 +123,23 @@ class TilesetModule(EbModule):
             palettes = tileset.get_palettes_by_map_tileset(map_tileset_id)
             palettes.sort()
 
-            # Write the event palettes
-            for map_palette_id, palette in palettes:
+            map_tileset_palettes[map_tileset_id] = palettes
+            number_of_palettes += len(palettes)
+
+        # Write the event palettes.
+        # These are written first because the standard palettes each potentially contain a pointer
+        # to the location of an event palette
+        for map_tileset_id in range(32):
+            for map_palette_id, palette in map_tileset_palettes[map_tileset_id]:
                 palette.flag_palette_to_block(rom)
 
-            # Write the standard palettes
-            palette_offset = rom.allocate(size=0xc0 * len(palettes), can_write_to=partial(is_in_bank, 0x1a))
+        # Write the standard palettes
+        # Allocate space for the standard palettes contiguously
+        palette_offset = rom.allocate(size=0xc0 * number_of_palettes, can_write_to=partial(is_in_bank, 0x1a))
+        for map_tileset_id in range(32):
             self.palette_pointer_table[map_tileset_id] = [to_snes_address(palette_offset)]
-            for map_palette_id, palette in palettes:
+
+            for map_palette_id, palette in map_tileset_palettes[map_tileset_id]:
                 palette.to_block(block=rom, offset=palette_offset)
                 palette_offset += palette.block_size()
 
