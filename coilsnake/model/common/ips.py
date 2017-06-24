@@ -70,7 +70,7 @@ class IpsPatch(object):
                         return False
             elif instruction == 'RECORD':
                 offset, size, data = args
-                if rom[offset:offset + size] != data:
+                if rom[offset:offset + size].to_list() != data:
                     return False
         return True
 

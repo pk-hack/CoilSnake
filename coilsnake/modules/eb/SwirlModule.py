@@ -46,13 +46,26 @@ class SwirlModule(EbModule):
         self.swirls = []
 
     def read_from_rom(self, rom):
-        self.is_swirl_relocated = test_swirl_relocated(rom)
-
         self.swirl_table.from_block(
             rom, offset=from_snes_address(SWIRL_TABLE_DEFAULT_OFFSET))
 
-        if self.is_swirl_relocated:
-            all_animation_pointers = [entry[0] for entry in RELOCATED_SWIRL_ANIMATION_POINTER_TABLE_POINTER]
+        if test_swirl_relocated(rom):
+            # The modified Rom uses a animation pointer size of 4 instead of 2
+            # TODO: Can we assume the same number of rows? How does the Rom determine this?
+            self.pointer_table.schema.size = 4
+            self.pointer_table.schema.schema[0].size = 4
+            self.pointer_table.recreate(num_rows=self.pointer_table.num_rows)
+
+            # Read in the offset of the relocated table
+            offset = rom.read_multi(RELOCATED_SWIRL_ANIMATION_POINTER_TABLE_POINTERS[0][0], 3)
+
+            self.pointer_table.from_block(
+                rom, offset=from_snes_address(offset))
+
+            all_animation_pointers = [
+                from_snes_address(self.pointer_table[i][0])
+                for i in xrange(self.pointer_table.num_rows)
+            ]
         else:
             self.pointer_table.from_block(
                 rom, offset=from_snes_address(SWIRL_ANIMATION_POINTER_TABLE_DEFAULT_OFFSET))
@@ -73,7 +86,7 @@ class SwirlModule(EbModule):
             self.swirls[i].frames_from_block(rom, animation_pointers)
 
     def write_to_rom(self, rom):
-        if not self.is_swirl_relocated:
+        if not test_swirl_relocated(rom):
             apply_relocation_patch(rom)
 
         # Write frames and populate swirl table
