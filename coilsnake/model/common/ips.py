@@ -110,12 +110,12 @@ class IpsPatch(object):
                 t = hr.read(1)
 
         # Write the patch.
-        pfile = open(patch_path, "wb")
-        pfile.seek(0)
-        pfile.write(b"PATCH")
-        for r in sorted(records):
-            pfile.write(to_bytes(r, 3))
-            pfile.write(to_bytes(len(records[r]), 2))
-            pfile.write(records[r])
-        pfile.write(b"EOF")
-        pfile.close()
+        with open(patch_path, "wb") as pfile:
+            pfile.seek(0)
+            pfile.write(b"PATCH")
+            for r in sorted(records):
+                pfile.write(to_bytes(r, 3))
+                pfile.write(to_bytes(len(records[r]), 2))
+                pfile.write(records[r])
+            pfile.write(b"EOF")
+            pfile.close()

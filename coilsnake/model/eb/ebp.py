@@ -47,6 +47,6 @@ class EbpPatch(object):
 
         self.patch.create(clean_rom, modified_rom, patch_path)
         
-        pfile = open(patch_path, "ab")
-        pfile.write(bytes(metadata))
-        pfile.close()
+        with open(patch_path, "wb") as pfile:
+            pfile.write(bytes(metadata))
+            pfile.close()
