@@ -50,21 +50,18 @@ class SwirlModule(EbModule):
             rom, offset=from_snes_address(SWIRL_TABLE_DEFAULT_OFFSET))
 
         if test_swirl_relocated(rom):
-            # The modified Rom uses a animation pointer size of 4 instead of 2
-            # TODO: Can we assume the same number of rows? How does the Rom determine this?
-            self.pointer_table.schema.size = 4
-            self.pointer_table.schema.schema[0].size = 4
-            self.pointer_table.recreate(num_rows=self.pointer_table.num_rows)
+            # Calculate total number of animations from the swirl table
+            total_animations = 0        
+            for i in xrange(self.swirl_table.num_rows):
+                total_animations += self.swirl_table[i][2]
 
-            # Read in the offset of the relocated table
+            # Read in the offset of the relocated animation table
             offset = rom.read_multi(RELOCATED_SWIRL_ANIMATION_POINTER_TABLE_POINTERS[0][0], 3)
 
-            self.pointer_table.from_block(
-                rom, offset=from_snes_address(offset))
-
+            # Pointer size is now 4, so read in 4 bytes at a time
             all_animation_pointers = [
-                from_snes_address(self.pointer_table[i][0])
-                for i in xrange(self.pointer_table.num_rows)
+                from_snes_address(rom.read_multi(from_snes_address(offset + (i * 4)), 4))
+                for i in xrange(total_animations)
             ]
         else:
             self.pointer_table.from_block(
