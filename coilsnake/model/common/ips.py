@@ -1,3 +1,5 @@
+from array import array
+
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
 
 
@@ -36,7 +38,8 @@ class IpsPatch(object):
                             self.last_offset_used = max(self.last_offset_used, offset_int + rle_size - 1)
                     else:
                         # Record data
-                        data = map(lambda x: ord(x), list(ips.read(size)))
+                        data = array('B', ips.read(size))
+
                         if offset_int >= 0:
                             # This happens if we're trying to write to before the global_offset.
                             # IE: If the IPS was writing to the header
@@ -70,7 +73,7 @@ class IpsPatch(object):
                         return False
             elif instruction == 'RECORD':
                 offset, size, data = args
-                if rom[offset:offset + size].to_list() != data:
+                if rom[offset:offset + size].to_array() != data:
                     return False
         return True
 
