@@ -102,7 +102,7 @@ class EbTileset(object):
     def arrangements_from_block(self, block, offset):
         with EbCompressibleBlock() as compressed_block:
             compressed_block.from_compressed_block(block=block, offset=offset)
-            num_arrangements = len(compressed_block) / 32
+            num_arrangements = len(compressed_block) // 32
 
             j = 0
             for i in range(num_arrangements):

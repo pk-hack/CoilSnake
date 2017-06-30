@@ -100,7 +100,7 @@ class EbGraphicTileset(EqualityMixin):
     def block_size(self, bpp=2):
         """Returns the size required to represent this tileset in a block.
         :param bpp: The number of bits used to represent each pixel by the block representation."""
-        return self.tile_height * bpp * (self.tile_width / 8) * self.num_tiles_maximum
+        return self.tile_height * bpp * (self.tile_width // 8) * self.num_tiles_maximum
 
     def from_image(self, image, arrangement, palette):
         """Reads in a tileset from an image, given a known arrangement and palette which were used to construct the

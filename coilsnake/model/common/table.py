@@ -403,7 +403,7 @@ class Table(object):
             if size % self.schema.size != 0:
                 raise InvalidArgumentError("Cannot create table[{}] with rows of size[{}] and total size[{}]".format(
                     self.name, self.schema.size, size))
-            self.num_rows = size / self.schema.size
+            self.num_rows = size // self.schema.size
 
         self.size = self.schema.size * self.num_rows
         self.values = [None for i in range(self.num_rows)]
@@ -491,7 +491,7 @@ class MatrixTable(Table):
             raise InvalidArgumentError("Could not create MatrixTable with num_rows[{}] not evenly divisible "
                                        "by matrix_height[{}]".format(self.num_rows, matrix_height))
         self.matrix_height = matrix_height
-        self.matrix_width = self.num_rows / matrix_height
+        self.matrix_width = self.num_rows // matrix_height
 
     def from_yml_rep(self, yml_rep):
         yml_rep_unmatrixed = dict()

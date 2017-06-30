@@ -63,7 +63,7 @@ class TilesetModule(EbModule):
                 k = 8
             else:
                 k = self.palette_pointer_table[i + 1][0] - self.palette_pointer_table[i][0]
-                k /= 0xc0
+                k //= 0xc0
 
             # Add the palettes to the tileset
             palette_offset = from_snes_address(self.palette_pointer_table[i][0])

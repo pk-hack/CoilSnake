@@ -389,7 +389,7 @@ class TitleScreenModule(EbModule):
                 # Create temporary structures to hold the data
                 image = open_indexed_image(f)
                 arrangement = EbTileArrangement(
-                    image.width/TILE_WIDTH, image.height/TILE_HEIGHT
+                    image.width // TILE_WIDTH, image.height // TILE_HEIGHT
                 )
                 tileset = EbGraphicTileset(
                     CHARS_NUM_TILES, TILE_WIDTH, TILE_HEIGHT
@@ -421,10 +421,10 @@ class TitleScreenModule(EbModule):
                 self.chars_layouts = [[] for _ in xrange(NUM_CHARS)]
                 for c, data in chars_positions.items():
                     # Get the data from the YAML file
-                    x = int(data['x']/TILE_WIDTH)
-                    y = int(data['y']/TILE_HEIGHT)
-                    width = int(data['width']/TILE_WIDTH)
-                    height = int(data['height']/TILE_HEIGHT)
+                    x = int(data['x'] // TILE_WIDTH)
+                    y = int(data['y'] // TILE_HEIGHT)
+                    width = int(data['width'] // TILE_WIDTH)
+                    height = int(data['height'] // TILE_HEIGHT)
                     x_offset = data['top_left_offset']['x']
                     y_offset = data['top_left_offset']['y']
                     unknown = data['unknown']
@@ -485,7 +485,7 @@ class TitleScreenModule(EbModule):
         with resource_open(CHARS_INITIAL_PATH, "png") as f:
             image = open_indexed_image(f)
             arrangement = EbTileArrangement(
-                image.width / TILE_WIDTH, image.height / TILE_HEIGHT
+                image.width // TILE_WIDTH, image.height // TILE_HEIGHT
             )
             tileset = EbGraphicTileset(
                 CHARS_NUM_TILES, TILE_WIDTH, TILE_HEIGHT
@@ -535,8 +535,8 @@ class TitleScreenModule(EbModule):
                 tile = entry.tile & (CHARS_NUM_TILES - 1)
                 top_left['x'] = min(top_left['x'], int(entry.x))
                 top_left['y'] = min(top_left['y'], int(entry.y))
-                x = c*3 + (entry.x+16)/8
-                y = (entry.y+24)/8
+                x = c*3 + (entry.x + 16) // 8
+                y = (entry.y + 24) // 8
                 arrangement[x, y].tile = tile
                 if not entry.is_single():
                     arrangement[x+1, y].tile = tile + 1

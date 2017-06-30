@@ -50,7 +50,7 @@ class EbPointerTableEntry(LittleEndianIntegerTableEntry):
 class EbPaletteTableEntry(TableEntry):
     @classmethod
     def from_block(cls, block, offset):
-        palette = EbPalette(num_subpalettes=1, subpalette_length=(cls.size / 2))
+        palette = EbPalette(num_subpalettes=1, subpalette_length=(cls.size // 2))
         palette.from_block(block, offset)
         return palette
 
@@ -60,7 +60,7 @@ class EbPaletteTableEntry(TableEntry):
 
     @classmethod
     def from_yml_rep(cls, yml_rep):
-        palette = EbPalette(num_subpalettes=1, subpalette_length=(cls.size / 2))
+        palette = EbPalette(num_subpalettes=1, subpalette_length=(cls.size // 2))
         try:
             palette.from_yml_rep(yml_rep)
         except InvalidYmlRepresentationError as e:
