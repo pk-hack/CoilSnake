@@ -64,7 +64,7 @@ class EbPaletteTableEntry(TableEntry):
         try:
             palette.from_yml_rep(yml_rep)
         except InvalidYmlRepresentationError as e:
-            raise TableEntryInvalidYmlRepresentationError(e.message)
+            raise TableEntryInvalidYmlRepresentationError(str(e))
         return palette
 
     @classmethod
@@ -98,7 +98,7 @@ class EbStandardTextTableEntry(TableEntry):
         try:
             byte_rep = standard_text_to_byte_list(yml_rep, cls.size)
         except ValueError as e:
-            raise TableEntryInvalidYmlRepresentationError(e.message)
+            raise TableEntryInvalidYmlRepresentationError(str(e))
 
         return yml_rep
 
@@ -130,7 +130,7 @@ class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
         try:
             byte_rep = standard_text_to_byte_list(yml_rep, cls.size - 1)
         except ValueError as e:
-            raise TableEntryInvalidYmlRepresentationError(e.message)
+            raise TableEntryInvalidYmlRepresentationError(str(e))
 
         return yml_rep
 

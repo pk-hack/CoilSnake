@@ -254,7 +254,11 @@ class BitfieldTableEntry(TableEntry):
                 yml_rep.append(cls.enumeration_class.tostring(bitvalue))
             except InvalidArgumentError:
                 yml_rep.append(bitvalue)
-        yml_rep.sort()
+
+        # yml_rep can contain mixed types, so sort by the the string representation
+        # of the values
+        yml_rep.sort(key=str)
+
         return yml_rep
 
 

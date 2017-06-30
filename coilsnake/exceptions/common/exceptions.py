@@ -3,7 +3,7 @@ from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin
 
 class CoilSnakeError(Exception):
     def __str__(self):
-        return "{}: {}".format(self.__class__.__name__, self.message)
+        return "{}: {}".format(self.__class__.__name__, self.args[0])
 
 
 class CoilSnakeInternalError(CoilSnakeError):
