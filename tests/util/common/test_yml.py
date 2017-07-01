@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 
 from nose.tools import assert_equal
@@ -43,7 +44,7 @@ class TestReplaceFieldInYml(BaseTestCase, TemporaryWritableFileTestCase):
                                  value_map={"party": "back at ya",
                                             "enemy": "at them"})
 
-            print (open(self.temporary_wo_file_name, "r")).read()
+            print((open(self.temporary_wo_file_name, "r")).read())
 
             assert_files_equal(
                 open(os.path.join(TEST_DATA_DIR, "yml", "sample-replaced.yml"), "r"),

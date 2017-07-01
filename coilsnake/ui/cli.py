@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from __future__ import print_function
 import argparse
 import logging
 
@@ -110,26 +111,26 @@ def _expand(args):
     returntest = expand(romfile=args.rom,
                          ex=exval)
     if returntest and exval:
-        print "Expansion Successful: Your ROM was expanded. (48Mbits/6MB)"
+        print("Expansion Successful: Your ROM was expanded. (48Mbits/6MB)")
     if returntest and (not exval):
-        print "Expansion Successful: Your ROM was expanded. (32Mbits/4MB)"
+        print("Expansion Successful: Your ROM was expanded. (32Mbits/4MB)")
     if not returntest:
-        print "Error: This ROM is already expanded."
+        print("Error: This ROM is already expanded.")
 
 def _addheader(args):
     returntest = add_header(romfile=args.rom)
     if returntest:
-        print "Header Addition Successful: Your ROM was given a header."
+        print("Header Addition Successful: Your ROM was given a header.")
     else:
-        print "Error: Invalid ROM."
+        print("Error: Invalid ROM.")
 
 def _stripheader(args):
     returntest = strip_header(romfile=args.rom)
     if returntest:
-        print "Header Removal Successful: Your ROM's header was removed."
+        print("Header Removal Successful: Your ROM's header was removed.")
     else:
-        print "Error: Invalid ROM."
+        print("Error: Invalid ROM.")
 
 
 def _version(args):
-    print coilsnake_about()
+    print(coilsnake_about())

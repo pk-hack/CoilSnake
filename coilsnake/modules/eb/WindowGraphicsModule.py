@@ -1,3 +1,4 @@
+from __future__ import print_function
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangement
 from coilsnake.model.eb.palettes import EbPalette
@@ -132,7 +133,7 @@ class WindowGraphicsModule(EbModule):
         # Write names
         with resource_open("WindowGraphics/flavor_names", "txt") as f:
             for asm_pointer_offset in FLAVOR_NAME_ASM_POINTER_OFFSETS:
-                print >> f, self.flavor_names[asm_pointer_offset]
+                print(self.flavor_names[asm_pointer_offset], file=f)
 
     def read_from_project(self, resource_open):
         # Read graphics. Just use the first of each image.
