@@ -84,7 +84,7 @@ class SpriteGroupModule(EbModule):
 
                 # Assign the palette number to the sprite
                 for j in range(8):
-                    if palette.list()[3:] == self.palette_table[j][0].list()[3:]:
+                    if palette.list() == self.palette_table[j][0].list():
                         group.palette = j
                         break
                 else:
