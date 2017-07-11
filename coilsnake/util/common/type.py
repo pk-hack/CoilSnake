@@ -6,6 +6,8 @@ class EqualityMixin(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    __hash__ = None
+
 
 class StringRepresentationMixin(object):
     def __repr__(self):

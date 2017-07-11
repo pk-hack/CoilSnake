@@ -50,7 +50,7 @@ class EbPointerTableEntry(LittleEndianIntegerTableEntry):
 class EbPaletteTableEntry(TableEntry):
     @classmethod
     def from_block(cls, block, offset):
-        palette = EbPalette(num_subpalettes=1, subpalette_length=(cls.size / 2))
+        palette = EbPalette(num_subpalettes=1, subpalette_length=(cls.size // 2))
         palette.from_block(block, offset)
         return palette
 
@@ -60,11 +60,11 @@ class EbPaletteTableEntry(TableEntry):
 
     @classmethod
     def from_yml_rep(cls, yml_rep):
-        palette = EbPalette(num_subpalettes=1, subpalette_length=(cls.size / 2))
+        palette = EbPalette(num_subpalettes=1, subpalette_length=(cls.size // 2))
         try:
             palette.from_yml_rep(yml_rep)
         except InvalidYmlRepresentationError as e:
-            raise TableEntryInvalidYmlRepresentationError(e.message)
+            raise TableEntryInvalidYmlRepresentationError(str(e))
         return palette
 
     @classmethod
@@ -98,7 +98,7 @@ class EbStandardTextTableEntry(TableEntry):
         try:
             byte_rep = standard_text_to_byte_list(yml_rep, cls.size)
         except ValueError as e:
-            raise TableEntryInvalidYmlRepresentationError(e.message)
+            raise TableEntryInvalidYmlRepresentationError(str(e))
 
         return yml_rep
 
@@ -130,7 +130,7 @@ class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
         try:
             byte_rep = standard_text_to_byte_list(yml_rep, cls.size - 1)
         except ValueError as e:
-            raise TableEntryInvalidYmlRepresentationError(e.message)
+            raise TableEntryInvalidYmlRepresentationError(str(e))
 
         return yml_rep
 

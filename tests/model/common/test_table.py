@@ -1,3 +1,4 @@
+from __future__ import print_function
 from nose.tools import assert_dict_equal, assert_list_equal, assert_raises, assert_equal, assert_is_instance
 from nose.tools.nontrivial import raises
 
@@ -46,7 +47,7 @@ class GenericTestTable(BaseTestCase):
         table = Table(num_rows=1,
                       schema=self.TABLE_SCHEMA)
         for row, column_name, expected_error, expected_error_cause, yml_rep in self.BAD_YML_REPS:
-            print row, column_name, expected_error
+            print(row, column_name, expected_error)
             with assert_raises(TableError) as cm:
                 table.from_yml_rep(yml_rep)
             e = cm.exception

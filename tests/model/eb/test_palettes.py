@@ -1,3 +1,4 @@
+from __future__ import print_function
 from PIL import Image
 from nose.tools import assert_equal, assert_set_equal, assert_list_equal, assert_raises, assert_true, assert_false, raises
 
@@ -267,7 +268,7 @@ class TestCreateEbPaletteFromImage(BaseTestCase, TilesetImageTestCase):
 
 
 def test_join_sets():
-    print "Blah"
+    print("Blah")
     result = join_sets([set([1, 2, 3]), set([3, 4, 5]), set([2, 6])], 2, 4)
     assert_list_equal(result, [set([1, 2, 3, 6]), set([3, 4, 5])])
 

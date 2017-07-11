@@ -313,7 +313,7 @@ class Rom(AllocatableBlock):
         if self.type != ROM_TYPE_NAME_UNKNOWN and 'free ranges' in ROM_TYPE_MAP[self.type]:
             self.unallocated_ranges = map(lambda y: tuple(map(lambda z: int(z, 0), y[1:-1].split(','))),
                                           ROM_TYPE_MAP[self.type]['free ranges'])
-            self.unallocated_ranges = filter(lambda (begin, end): end < self.size, self.unallocated_ranges)
+            self.unallocated_ranges = filter(lambda begin_end: begin_end[1] < self.size, self.unallocated_ranges)
             self.unallocated_ranges.sort()
 
     def _detect_type(self):

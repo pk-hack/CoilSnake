@@ -19,7 +19,7 @@ class EbBattleSprite(object):
         self.height = None
 
     def block_size(self):
-        return (self.width / 32) * (self.height / 32) * 4 * 4 * 32
+        return (self.width // 32) * (self.height // 32) * 4 * 4 * 32
 
     def from_block(self, block, offset=0, size=0):
         width, height = BATTLE_SPRITE_SIZES[size]
@@ -28,8 +28,8 @@ class EbBattleSprite(object):
             self.height = height
             self.sprite = [array('B', [0] * self.width) for y in range(self.height)]
 
-        for q in range(0, height / 32):
-            for r in range(0, width / 32):
+        for q in range(0, height // 32):
+            for r in range(0, width // 32):
                 for a in range(0, 4):
                     for j in range(0, 4):
                         offset += read_4bpp_graphic_from_block(
@@ -41,8 +41,8 @@ class EbBattleSprite(object):
                         )
 
     def to_block(self, block, offset=0):
-        for q in range(0, self.height / 32):
-            for r in range(0, self.width / 32):
+        for q in range(0, self.height // 32):
+            for r in range(0, self.width // 32):
                 for a in range(0, 4):
                     for j in range(0, 4):
                         offset += write_4bpp_graphic_to_block(
@@ -95,18 +95,20 @@ class EbRegularSprite(object):
         return ((self.width == other.width)
                 and (self.height == other.height)
                 and (self.data == other.data))
+    
+    __hash__ = None
 
     def from_block(self, block, width, height, offset=0):
         self.width = width
         self.height = height
         self.data = [array('B', [0] * self.width) for i in range(self.height)]
-        for i in range(self.height / 8):
-            for j in range(self.width / 8):
+        for i in range(self.height // 8):
+            for j in range(self.width // 8):
                 offset += read_4bpp_graphic_from_block(target=self.data, source=block, offset=offset, x=j*8, y=i*8)
 
     def to_block(self, block, offset=0):
-        for i in range(self.height / 8):
-            for j in range(self.width / 8):
+        for i in range(self.height // 8):
+            for j in range(self.width // 8):
                 offset += write_4bpp_graphic_to_block(source=self.data, target=block, offset=offset, x=j*8, y=i*8)
 
     def draw(self, image, x, y):
@@ -129,7 +131,7 @@ class EbRegularSprite(object):
             row.reverse()
 
     def block_size(self):
-        return (self.width / 8) * (self.height / 8) * 32
+        return (self.width // 8) * (self.height // 8) * 32
 
     def hash(self):
         return hash_tile(self.data)
@@ -356,9 +358,9 @@ class SpriteGroup(object):
             self.sprites = [[EbRegularSprite(), False] for i in range(self.num_sprites)]
 
         sprite_width, sprite_height = image.size
-        sprite_width /= 4
-        sprite_height /= 4
-        self.width, self.height = sprite_width / 8, sprite_height / 8
+        sprite_width //= 4
+        sprite_height //= 4
+        self.width, self.height = sprite_width // 8, sprite_height // 8
 
         x = 0
         y = 0

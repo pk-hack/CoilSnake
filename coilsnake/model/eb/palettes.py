@@ -1,5 +1,6 @@
 from zlib import crc32
 from array import array
+from functools import reduce
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError, InvalidYmlRepresentationError
 from coilsnake.util.common.type import EqualityMixin, StringRepresentationMixin

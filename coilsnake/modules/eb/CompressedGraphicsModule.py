@@ -77,7 +77,7 @@ TOWN_MAP_ICON_PREVIEW_SUBPALETTES = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 TOWN_MAP_ICON_PREVIEW_ARRANGEMENT = EbTileArrangement(width=16, height=18)
 for i in range(16 * 18):
-    item = TOWN_MAP_ICON_PREVIEW_ARRANGEMENT[i % 16, i / 16]
+    item = TOWN_MAP_ICON_PREVIEW_ARRANGEMENT[i % 16, i // 16]
     item.is_priority = False
     item.is_horizontally_flipped = False
     item.is_vertically_flipped = False

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 
 from coilsnake.modules.common.GenericModule import GenericModule
@@ -10,7 +11,7 @@ except ImportError:
     hasNativeComp = False
 
 if not hasNativeComp:
-    print "WARNING: Could not load native EarthBound compression library"
+    print("WARNING: Could not load native EarthBound compression library")
     raise NotImplementedError("WARNING: Could not load native EarthBound compression library")
 
 address_labels = dict()
@@ -41,7 +42,7 @@ def decomp(rom, cdata):
         else:
             return _decomp(rom, cdata)
     except SystemError:
-        print >> sys.stderr, "Could not decompress data @ " + hex(cdata)
+        print("Could not decompress data @ " + hex(cdata), file=sys.stderr)
         raise
 
 

@@ -39,7 +39,7 @@ class SpriteGroupModule(EbModule):
             num_sprites = 8
             # Assume that the last group only has 8 sprites
             if i < self.group_pointer_table.num_rows - 1:
-                num_sprites = (self.group_pointer_table[i + 1][0] - self.group_pointer_table[i][0] - 9) / 2
+                num_sprites = (self.group_pointer_table[i + 1][0] - self.group_pointer_table[i][0] - 9) // 2
 
             group = SpriteGroup(num_sprites)
             group.from_block(rom, from_snes_address(self.group_pointer_table[i][0]))
