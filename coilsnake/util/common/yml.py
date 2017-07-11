@@ -33,7 +33,7 @@ def replace_field_in_yml(resource_name, resource_open_r, resource_open_w, key, n
         value_map = dict()
     if new_key is None:
         new_key = key
-    value_map = dict((lower_if_str(k), lower_if_str(v)) for k, v in value_map.iteritems())
+    value_map = dict((lower_if_str(k), lower_if_str(v)) for k, v in value_map.items())
     with resource_open_r(resource_name, "yml") as f:
         data = yml_load(f)
         for i in data:

@@ -84,7 +84,7 @@ class MapModule(EbModule):
             offset = map_addrs[row_number % 8] + ((row_number >> 3) << 8)
             return rom[offset:offset + MAP_WIDTH].to_list()
 
-        self.tiles = map(read_row_data, range(MAP_HEIGHT))
+        self.tiles = list(map(read_row_data, range(MAP_HEIGHT)))
         k = LOCAL_TILESETS_OFFSET
         for i in range(MAP_HEIGHT >> 3):
             for j in range(MAP_WIDTH):
@@ -175,9 +175,7 @@ class MapModule(EbModule):
     def read_from_project(self, resource_open):
         # Read map data
         with resource_open("map_tiles", "map") as f:
-            self.tiles = map(lambda y:
-                             map(lambda x: int(x, 16), y.split(" ")),
-                             f.readlines())
+            self.tiles = [[int(x, 16) for x in y.split(" ")] for y in f.readlines()]
 
         # Read sector data
         with resource_open("map_sectors", "yml") as f:

@@ -1,3 +1,4 @@
+from builtins import object
 from abc import abstractmethod
 import logging
 
@@ -132,8 +133,8 @@ class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):
     def create(name, size, values):
         enumeration_class = type("GenericEnum_{}".format(name),
                                  (GenericEnum,),
-                                 dict(zip([unicode(x).upper() for x in values],
-                                          range(len(values)))))
+                                 dict(list(zip([str(x).upper() for x in values],
+                                          range(len(values))))))
         return type(name,
                     (EnumeratedLittleEndianIntegerTableEntry,),
                     {"name": name,
@@ -148,7 +149,7 @@ class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):
             except InvalidArgumentError:
                 raise TableEntryInvalidYmlRepresentationError(
                     "Could not parse invalid string[{}] as [{}]. Valid string values are: {}".format(
-                    yml_rep, cls.name, ', '.join(cls.enumeration_class.values())))
+                    yml_rep, cls.name, ', '.join(list(cls.enumeration_class.values()))))
         elif isinstance(yml_rep, int):
             return super(EnumeratedLittleEndianIntegerTableEntry, cls).from_yml_rep(yml_rep)
         else:
@@ -278,7 +279,7 @@ class RowTableEntry(TableEntry):
 
     @classmethod
     def from_schema_specification(cls, schema_specification, name="CustomRowTableEntry", hidden_columns=set()):
-        schema = map(cls.to_table_entry_class, schema_specification)
+        schema = list(map(cls.to_table_entry_class, schema_specification))
         return cls.from_schema(schema, name, hidden_columns)
 
     @classmethod
@@ -381,7 +382,7 @@ class GenericLittleEndianRowTableEntry(RowTableEntry):
                 raise InvalidArgumentError("Unknown table column type[{}]".format(column_specification["type"]))
 
             try:
-                parameters = dict(map(lambda x: (x, column_specification[x]), parameter_list))
+                parameters = dict([(x, column_specification[x]) for x in parameter_list])
             except KeyError:
                 raise InvalidArgumentError("Column[{}] in table schema not provided with all required attributes[{}]"
                                            .format(column_specification["name"], parameter_list))

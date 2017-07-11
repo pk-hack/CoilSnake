@@ -77,7 +77,7 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
     def from_yml_rep(self, yml_rep):
         try:
             self.used = True
-            self.r, self.g, self.b = map(int, yml_rep[1:-1].split(','))
+            self.r, self.g, self.b = list(map(int, yml_rep[1:-1].split(',')))
             self.r &= 0xf8
             self.g &= 0xf8
             self.b &= 0xf8
@@ -207,7 +207,7 @@ class EbPalette(EqualityMixin):
                             i,
                             colors - set(subpalette),  # set of colors not in palette
                             ) for i, subpalette in enumerate(self.subpalettes)]
-        subpalette_info = filter(lambda x: x[1] >= len(x[3]), subpalette_info)
+        subpalette_info = [x for x in subpalette_info if x[1] >= len(x[3])]
 
         if len(subpalette_info) == 0:
             # Not enough room to put these colors in a subpalette

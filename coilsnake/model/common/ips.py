@@ -1,3 +1,4 @@
+from builtins import object
 from array import array
 
 from coilsnake.exceptions.common.exceptions import CoilSnakeError

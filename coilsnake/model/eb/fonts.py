@@ -1,3 +1,4 @@
+from builtins import object
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbTileArrangement, EbGraphicTileset
 from coilsnake.model.eb.palettes import EbPalette
@@ -65,7 +66,7 @@ class EbFont(object):
 
         if widths_format == "yml":
             widths_dict = yml_load(widths_file)
-            self.character_widths = map(lambda i: widths_dict[i], range(self.tileset.num_tiles_maximum))
+            self.character_widths = [widths_dict[i] for i in range(self.tileset.num_tiles_maximum)]
 
     def image_size(self):
         if self.num_characters == 96:

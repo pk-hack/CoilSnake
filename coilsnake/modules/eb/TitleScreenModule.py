@@ -419,7 +419,7 @@ class TitleScreenModule(EbModule):
 
                 # Set the new character layouts
                 self.chars_layouts = [[] for _ in xrange(NUM_CHARS)]
-                for c, data in chars_positions.items():
+                for c, data in list(chars_positions.items()):
                     # Get the data from the YAML file
                     x = int(data['x'] // TILE_WIDTH)
                     y = int(data['y'] // TILE_HEIGHT)

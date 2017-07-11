@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from builtins import object
 import Tkinter
 from functools import partial
 import logging
