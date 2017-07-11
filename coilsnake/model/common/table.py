@@ -133,8 +133,8 @@ class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):
     def create(name, size, values):
         enumeration_class = type("GenericEnum_{}".format(name),
                                  (GenericEnum,),
-                                 dict(list(zip([str(x).upper() for x in values],
-                                          range(len(values))))))
+                                 dict(zip([str(x).upper() for x in values],
+                                          range(len(values)))))
         return type(name,
                     (EnumeratedLittleEndianIntegerTableEntry,),
                     {"name": name,
@@ -149,7 +149,7 @@ class EnumeratedLittleEndianIntegerTableEntry(LittleEndianIntegerTableEntry):
             except InvalidArgumentError:
                 raise TableEntryInvalidYmlRepresentationError(
                     "Could not parse invalid string[{}] as [{}]. Valid string values are: {}".format(
-                    yml_rep, cls.name, ', '.join(list(cls.enumeration_class.values()))))
+                    yml_rep, cls.name, ', '.join(cls.enumeration_class.values())))
         elif isinstance(yml_rep, int):
             return super(EnumeratedLittleEndianIntegerTableEntry, cls).from_yml_rep(yml_rep)
         else:

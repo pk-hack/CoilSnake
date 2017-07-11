@@ -77,7 +77,7 @@ class EbColor(EqualityMixin, StringRepresentationMixin):
     def from_yml_rep(self, yml_rep):
         try:
             self.used = True
-            self.r, self.g, self.b = list(map(int, yml_rep[1:-1].split(',')))
+            self.r, self.g, self.b = map(int, yml_rep[1:-1].split(','))
             self.r &= 0xf8
             self.g &= 0xf8
             self.b &= 0xf8

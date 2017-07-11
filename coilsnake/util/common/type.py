@@ -25,7 +25,7 @@ class GenericEnum(object):
     def create(name, values):
         return type("{}_GenericEnum".format(name),
                     (GenericEnum,),
-                    dict(list(zip([str(x).upper() for x in values], range(len(values))))))
+                    dict(zip([str(x).upper() for x in values], range(len(values)))))
 
     @classmethod
     def is_valid(cls, val):
@@ -63,4 +63,4 @@ class GenericEnum(object):
 def enum_class_from_name_list(names):
     return type("CustomEnum",
                 (GenericEnum,),
-                dict(list(zip([str(x).upper() for x in names], range(len(names))))))
+                dict(zip([str(x).upper() for x in names], range(len(names)))))
