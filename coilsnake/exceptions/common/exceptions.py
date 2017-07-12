@@ -101,7 +101,7 @@ class TableSchemaError(EqualityMixin, StringRepresentationMixin, CoilSnakeError)
         self.cause = cause
 
     def __str__(self):
-        return "{}: Error while parsing \"{}\":\n{}".format(self.__class__.__name__, self.field, unicode(self.cause))
+        return "{}: Error while parsing \"{}\":\n{}".format(self.__class__.__name__, self.field, str(self.cause))
 
 
 class TableError(EqualityMixin, StringRepresentationMixin, CoilSnakeError):
@@ -119,6 +119,6 @@ class TableError(EqualityMixin, StringRepresentationMixin, CoilSnakeError):
             str_rep += " in entry #{}".format(self.entry)
         if self.table_name is not None:
             str_rep += " in table \"{}\"".format(self.table_name)
-        str_rep += ":\n" + unicode(self.cause)
+        str_rep += ":\n" + str(self.cause)
 
         return str_rep

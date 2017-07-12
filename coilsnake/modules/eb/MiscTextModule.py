@@ -1,3 +1,4 @@
+from builtins import object
 from coilsnake.model.eb.table import EbStandardNullTerminatedTextTableEntry, EbStandardTextTableEntry
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.yml import yml_load, yml_dump
@@ -197,15 +198,15 @@ class MiscTextModule(EbModule):
         self.data = dict()
 
     def read_from_rom(self, rom):
-        for category_name, category in MISC_TEXT.iteritems():
+        for category_name, category in MISC_TEXT.items():
             category_data = dict()
-            for item_name, item in category.iteritems():
+            for item_name, item in category.items():
                 category_data[item_name] = item.from_block(rom)
             self.data[category_name] = category_data
 
     def write_to_rom(self, rom):
-        for category_name, category in sorted(MISC_TEXT.iteritems()):
-            for item_name, item in sorted(category.iteritems()):
+        for category_name, category in sorted(MISC_TEXT.items()):
+            for item_name, item in sorted(category.items()):
                 item.to_block(rom, self.data[category_name][item_name])
 
     def read_from_project(self, resource_open):

@@ -207,7 +207,7 @@ class EbPalette(EqualityMixin):
                             i,
                             colors - set(subpalette),  # set of colors not in palette
                             ) for i, subpalette in enumerate(self.subpalettes)]
-        subpalette_info = filter(lambda x: x[1] >= len(x[3]), subpalette_info)
+        subpalette_info = [x for x in subpalette_info if x[1] >= len(x[3])]
 
         if len(subpalette_info) == 0:
             # Not enough room to put these colors in a subpalette

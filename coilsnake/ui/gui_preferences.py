@@ -1,3 +1,4 @@
+from builtins import object
 import os
 
 from coilsnake.util.common.yml import yml_load, yml_dump
@@ -48,7 +49,7 @@ class CoilSnakePreferences(object):
 
     def get_profiles(self, tab_name):
         tab = self._get_preferences_profile_tab(tab_name)
-        profiles = tab.keys()
+        profiles = list(tab.keys())
         if " default" in tab.keys():
             profiles.remove(" default")
         return profiles

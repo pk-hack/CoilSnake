@@ -56,7 +56,7 @@ class PatchModule(GenericModule):
                     continue
                 elif (ips_desc["Title"] in self.patches) and (self.patches[ips_desc["Title"]].lower() == "enabled"):
                     # First, check that we can apply this
-                    ranges = map(lambda y: tuple(map(lambda z: int(z, 0), y[1:-1].split(','))), ips_desc["Ranges"])
+                    ranges = [tuple([int(z, 0) for z in y[1:-1].split(',')]) for y in ips_desc["Ranges"]]
                     for range in ranges:
                         if not rom.is_unallocated(range):
                             raise CoilSnakeError(

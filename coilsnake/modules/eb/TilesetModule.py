@@ -215,8 +215,8 @@ class TilesetModule(EbModule):
         elif old_version <= 6:
             with resource_open_r("map_palette_settings", "yml") as f:
                 yml_rep = yml_load(f)
-                for map_tileset in yml_rep.itervalues():
-                    for map_palette in map_tileset.itervalues():
+                for map_tileset in yml_rep.values():
+                    for map_palette in map_tileset.values():
                         if "Event Palette" in map_palette:
                             map_palette["Event Palette"] = {
                                 "Colors": map_palette["Event Palette"],

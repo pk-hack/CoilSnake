@@ -1,3 +1,4 @@
+from builtins import object
 from array import array
 
 from PIL import Image
@@ -320,14 +321,14 @@ class SpriteGroup(object):
         unique_sprites, unique_sprite_usages = self.calculate_unique_sprites()
 
         # Find a free area
-        offset = rom.allocate(size=sum([x.block_size() for x in unique_sprites.itervalues()]),
+        offset = rom.allocate(size=sum([x.block_size() for x in unique_sprites.values()]),
                               can_write_to=(lambda y: (y & 0xf) == 0))
         self.bank = to_snes_address(offset) >> 16
         offset_start = offset & 0xffff
 
         # Write each sprite
         sprite_offsets = dict()
-        for i, (sprite_hash, sprite) in enumerate(sorted(unique_sprites.iteritems())):
+        for i, (sprite_hash, sprite) in enumerate(sorted(unique_sprites.items())):
             sprite.to_block(rom, offset)
             sprite_offsets[sprite_hash] = offset
             offset += sprite.block_size()
@@ -381,7 +382,7 @@ class SpriteGroup(object):
                     SpriteGroupCollisionEWWidthEntry.to_yml_rep(self.collision_ew_w),
                 SpriteGroupCollisionEWHeightEntry.name:
                     SpriteGroupCollisionEWHeightEntry.to_yml_rep(self.collision_ew_h),
-                'Swim Flags': map(lambda a_x: a_x[1], self.sprites),
+                'Swim Flags': [a_x[1] for a_x in self.sprites],
                 'Length': self.num_sprites}
 
     def from_yml_rep(self, yml_rep):
