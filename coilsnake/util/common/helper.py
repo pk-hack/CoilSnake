@@ -53,7 +53,7 @@ def lower_if_str(x):
 
 
 def grouped(iterable, n):
-    return izip(*[iter(iterable)]*n)
+    return zip(*[iter(iterable)]*n)
 
 def to_bytes(n, length, endianess='big'):
     h = '%x' % n
