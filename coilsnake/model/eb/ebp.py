@@ -43,10 +43,10 @@ class EbpPatch(object):
 
         return self.patch.is_applied(rom)
 
-    def create(self, clean_rom, modified_rom, patch_path, metadata):
+    def create(self, clean_rom, hacked_rom, patch_path, metadata):
 
-        self.patch.create(clean_rom, modified_rom, patch_path)
+        self.patch.create(clean_rom, hacked_rom, patch_path)
         
-        with open(patch_path, "wb") as pfile:
+        with open(patch_path, "ab") as pfile:
             pfile.write(bytes(metadata))
             pfile.close()

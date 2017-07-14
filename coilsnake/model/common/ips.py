@@ -1,5 +1,8 @@
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.util.common.helper import to_bytes
+from coilsnake.model.common.blocks import Rom
+from io import BytesIO
+import os
 
 
 class IpsPatch(object):
@@ -78,36 +81,50 @@ class IpsPatch(object):
     def create(self, clean_rom, hacked_rom, patch_path):
         """Creates an IPS patch from the source and target ROMs."""
 
-        # Create the records.
-        i = None
-        records = {}
-        with open(clean_rom, "rb") as cr, open(hacked_rom, "rb") as hr:
-        # do stuff with `cr` and `hr`
-            cr.seek(0)
-            hr.seek(0)
-            s = cr.read(1)
-            t = hr.read(1)
-            while t:
+        with Rom() as cr, Rom() as hr:
+            cr.from_file(clean_rom)
+            hr.from_file(hacked_rom)
+            
+            # Expand clean ROM as necessary.
+            if cr.__len__() < hr.__len__():
+                if cr.__len__() < 0x400000:
+                    cr.expand(0x400000)
+                elif cr.__len__() < 0x600000:
+                    cr.expand(0x600000)
+                else:
+                    cr.expand(patch.last_offset_used)
+            
+            # Create the records.
+            i = None
+            records = {}
+            index = 0
+            # Get the first byte of each ROM so that the loop works correctly.
+            s = to_bytes(cr.__getitem__(index), 1)
+            t = to_bytes(hr.__getitem__(index), 1)
+            index += 1
+            while index <= cr.__len__():
                 if t == s and i is not None:
                     i = None
                 elif t != s:
                     if i is not None:
                         # Check that the record's size can fit in 2 bytes.
-                        if hr.tell() - 1 - i == 0xFFFF:
+                        if index - 1 - i == 0xFFFF:
                             i = None
                             continue
                         records[i] += t
                     else:
-                        i = hr.tell() - 1
+                        i = index - 1
                         # Check that the offset isn't EOF. If it is, go back one
                         # byte to work around this IPS limitation.
                         if to_bytes(i, 3) != b"EOF":
                             records[i] = t
                         else:
                             i -= 1
-                            records[i] = hacked_rom.getvalue()[i]
-                s = cr.read(1)
-                t = hr.read(1)
+                            records[i] = hr.to_list()[i]
+                if index < cr.__len__():
+                    s = to_bytes(cr.__getitem__(index), 1)
+                    t = to_bytes(hr.__getitem__(index), 1)
+                index += 1
 
         # Write the patch.
         with open(patch_path, "wb") as pfile:

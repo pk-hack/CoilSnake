@@ -689,30 +689,46 @@ Please configure Java in the Settings menu.""")
                 log.error(exc)
         
         def popup_ebp_patch_info(self, notebook):
-            author = ""
-            description = ""
-            title = ""
+            
+            if self.preferences["default author"] is None:
+                self.preferences["default author"] = "Author"
+                
+            author = self.preferences["default author"]
+            
+            if self.preferences["default description"] is None:
+                self.preferences["default description"] = "Description"
+                
+            description = self.preferences["default description"]
+            
+            if self.preferences["default title"] is None:
+                self.preferences["default title"] = "Title"
+                
+            title = self.preferences["default title"]
+            
             top = self.top = Toplevel(notebook)
             top.wm_title("EBP Patch")
             l = Label(top,text="Input EBP Patch Info.")
             l.pack()
             auth = Entry(top)
             auth.delete(0,)
-            auth.insert(0,"Author")
+            auth.insert(0,author)
             auth.pack()
             desc = Entry(top)
             desc.delete(0,)
-            desc.insert(0,"Description")
+            desc.insert(0,description)
             desc.pack()
             titl = Entry(top)
             titl.delete(0,)
-            titl.insert(0,"Title")
+            titl.insert(0,title)
             titl.pack()
             
             def cleanup():
                 author = auth.get()
+                self.preferences["default author"] = author
                 description = desc.get()
+                self.preferences["default description"] = description
                 title = titl.get()
+                self.preferences["default title"] = title
                 self.top.destroy()
                 create_patch_tmp(author, description, title)
         
