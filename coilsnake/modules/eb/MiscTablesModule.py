@@ -36,7 +36,7 @@ class MiscTablesModule(EbModule):
 
     def __init__(self):
         super(MiscTablesModule, self).__init__()
-        self.tables = map(lambda x: (from_snes_address(x), eb_table_from_offset(x)), self.TABLE_OFFSETS)
+        self.tables = [(from_snes_address(x), eb_table_from_offset(x)) for x in self.TABLE_OFFSETS]
 
     def read_from_rom(self, rom):
         for offset, table in self.tables:

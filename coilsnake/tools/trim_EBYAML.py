@@ -29,9 +29,9 @@ with open(sys.argv[1], "r") as f:
                     if not (doc[block] is None
                             or not ("type" in doc[block])
                             or ("data" in doc[block]["type"])
-                            or not ("entries" in doc[block].has_key("entries"))):
+                            or not ("entries" in ("entries" in doc[block]))):
                         newDoc[block] = doc[block]
-                        if newDoc[block].has_key("description"):
+                        if "description" in newDoc[block]:
                             del(newDoc[block]["description"])
                 s = yml_dump(newDoc, default_flow_style=False)
                 # Convert labels to hex

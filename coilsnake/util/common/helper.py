@@ -1,4 +1,4 @@
-from itertools import izip
+
 
 from coilsnake.exceptions.common.exceptions import MissingUserDataError, InvalidUserDataError, InvalidArgumentError
 

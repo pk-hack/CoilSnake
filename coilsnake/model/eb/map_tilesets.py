@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import object
 from functools import partial
 
 from coilsnake.model.common.table import LittleEndianIntegerTableEntry
@@ -102,7 +104,7 @@ class EbTileset(object):
     def arrangements_from_block(self, block, offset):
         with EbCompressibleBlock() as compressed_block:
             compressed_block.from_compressed_block(block=block, offset=offset)
-            num_arrangements = len(compressed_block) / 32
+            num_arrangements = len(compressed_block) // 32
 
             j = 0
             for i in range(num_arrangements):
@@ -195,20 +197,20 @@ class EbTileset(object):
 
     def to_file(self, f):
         for i in range(512):
-            print >> f, self.minitile_string_rep(i)
-            print >> f, self.minitile_string_rep(i ^ 512)
-            print >> f
-        print >> f
+            print(self.minitile_string_rep(i), file=f)
+            print(self.minitile_string_rep(i ^ 512), file=f)
+            print(file=f)
+        print(file=f)
 
         for map_tileset, map_palette, palette in self.palettes:
             f.write(CHARACTERS[map_tileset])
             f.write(CHARACTERS[map_palette])
-            print >> f, str(palette)
-        print >> f
-        print >> f
+            print(str(palette), file=f)
+        print(file=f)
+        print(file=f)
 
         for i in range(1024):
-            print >> f, self.arrangement_collision_string_rep(i)
+            print(self.arrangement_collision_string_rep(i), file=f)
 
     def from_file(self, f):
         self.minitiles.tiles = [None] * 896

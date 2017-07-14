@@ -21,12 +21,12 @@ class CharacterSubstitutionsModule(EbModule):
             data = yml_load(f)
 
         if data is not None:
-            for key, value in data.iteritems():
-                if not isinstance(key, basestring):
+            for key, value in data.items():
+                if not isinstance(key, str):
                     raise InvalidUserDataError("String to be replaced is not actually a string: " + key)
                 if len(key) != 1:
                     raise InvalidUserDataError("String to be replaced must be a 1 character long: " + key)
-                if not isinstance(value, basestring):
+                if not isinstance(value, str):
                     raise InvalidUserDataError("String to replace with is not actually a string: " + value)
 
         CharacterSubstitutions.character_substitutions = data

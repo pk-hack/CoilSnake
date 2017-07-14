@@ -1,3 +1,4 @@
+from builtins import object
 from PIL import Image, ImageDraw
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError

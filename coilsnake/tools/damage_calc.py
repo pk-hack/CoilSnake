@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from __future__ import print_function
+from __future__ import division
 import argparse
 import os
 import random
@@ -74,36 +76,36 @@ def main():
         for i in range(4):
             partyStats[i] = calcStats(growthVars[i], args.levels[i])
     
-    print "*** Party Stats ***"
-    print '\t'.join(map(str, ['', 'HP', 'PP', 'Off', 'Def', 'Speed', 'Guts', 'Vit', 'IQ', "Luck"]))
+    print("*** Party Stats ***")
+    print('\t'.join(map(str, ['', 'HP', 'PP', 'Off', 'Def', 'Speed', 'Guts', 'Vit', 'IQ', "Luck"])))
     for i in range(4):
-        print i, '\t', '\t'.join(map(str, partyStats[i]))
+        print(i, '\t', '\t'.join(map(str, partyStats[i])))
             
     if args.enemyInfo is not None:
         with proj.get_resource("eb", "enemy_configuration_table", "yml", "r") as f:
             enemyData = (yml_load(f))[args.enemyInfo[0]]
-            print "\n*** Enemy Stats:", enemyData["Name"], "***"
-            print '\t'.join(map(str, ['', 'HP', 'PP', 'Off', 'Def', 'Speed', 'Guts', "Luck"]))
-            print '\t%d\t%d\t%d\t%d\t%d\t%d\t%d' % (enemyData["HP"], enemyData["PP"],
+            print("\n*** Enemy Stats:", enemyData["Name"], "***")
+            print('\t'.join(map(str, ['', 'HP', 'PP', 'Off', 'Def', 'Speed', 'Guts', "Luck"])))
+            print('\t%d\t%d\t%d\t%d\t%d\t%d\t%d' % (enemyData["HP"], enemyData["PP"],
                                                     enemyData["Offense"], enemyData["Defense"],
-                                                    enemyData["Speed"], enemyData["Guts"], enemyData["Luck"])
-            print "\n*** Damage Dealt by Enemy to Party ***"
-            print "Level\tTarget\tMinDmg\tMaxDmg\tSMASH\tSmash%"
+                                                    enemyData["Speed"], enemyData["Guts"], enemyData["Luck"]))
+            print("\n*** Damage Dealt by Enemy to Party ***")
+            print("Level\tTarget\tMinDmg\tMaxDmg\tSMASH\tSmash%")
             for i in range(1, 5):
                 for j in range(0, 4):
                     damage = i * enemyData["Offense"] - partyStats[j][3]
                     smashDamage = 4 * enemyData["Offense"] - partyStats[j][3]
                     smashOdds = enemyData["Guts"] / 5.0
-                    print "%d\t%d\t%d\t%d\t%d\t%.2f%%" % (i, j, damage*0.75, damage*1.25, smashDamage, smashOdds)
-                print
+                    print("%d\t%d\t%d\t%d\t%d\t%.2f%%" % (i, j, damage*0.75, damage*1.25, smashDamage, smashOdds))
+                print()
             
-            print "*** Damage Dealt by Party to Enemy ***"
-            print "PC\tMinDmg\tMaxDmg\tSMASH\tSmash%"
+            print("*** Damage Dealt by Party to Enemy ***")
+            print("PC\tMinDmg\tMaxDmg\tSMASH\tSmash%")
             for i in range(0, 4):
                 damage = 2 * partyStats[i][2] - enemyData["Defense"]
                 smashDamage = 4 * partyStats[i][2] - enemyData["Defense"]
                 smashOdds = max(partyStats[i][5] / 5.0, 5.0)
-                print "%d\t%d\t%d\t%d\t%d" % (i, damage * 0.75, damage * 1.25, smashDamage, smashOdds)
+                print("%d\t%d\t%d\t%d\t%d" % (i, damage * 0.75, damage * 1.25, smashDamage, smashOdds))
                 
 
 if __name__ == '__main__':

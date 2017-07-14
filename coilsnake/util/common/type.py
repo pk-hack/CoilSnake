@@ -1,3 +1,4 @@
+from builtins import object
 class EqualityMixin(object):
     def __eq__(self, other):
         return (isinstance(other, self.__class__)
@@ -5,6 +6,8 @@ class EqualityMixin(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    __hash__ = None
 
 
 class StringRepresentationMixin(object):
@@ -26,14 +29,14 @@ class GenericEnum(object):
 
     @classmethod
     def is_valid(cls, val):
-        for k, v in vars(cls).iteritems():
+        for k, v in vars(cls).items():
             if v == val:
                 return True
         return False
 
     @classmethod
     def tostring(cls, val):
-        for k, v in vars(cls).iteritems():
+        for k, v in vars(cls).items():
             if v == val:
                 return k.lower()
         from coilsnake.exceptions.common.exceptions import InvalidArgumentError
@@ -54,7 +57,7 @@ class GenericEnum(object):
 
     @classmethod
     def values(cls):
-        return [x for x in vars(cls).iterkeys() if not x.startswith("_")]
+        return [x for x in vars(cls).keys() if not x.startswith("_")]
 
 
 def enum_class_from_name_list(names):

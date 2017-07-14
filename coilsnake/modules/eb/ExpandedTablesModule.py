@@ -1,3 +1,4 @@
+from builtins import object
 import logging
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
@@ -32,11 +33,11 @@ class ExpandedTablesModule(EbModule):
             self.tables[table_offset] = eb_table_from_offset(table_offset)
 
     def read_from_rom(self, rom):
-        for offset, table in self.tables.iteritems():
+        for offset, table in self.tables.items():
             table.from_block(rom, from_snes_address(offset))
 
     def write_to_rom(self, rom):
-        for offset, table in self.tables.iteritems():
+        for offset, table in self.tables.items():
             new_table_offset = rom.allocate(size=table.size)
             table.to_block(rom, new_table_offset)
             log.info("Writing table @ " + hex(new_table_offset))
@@ -44,7 +45,7 @@ class ExpandedTablesModule(EbModule):
                 pointer.write(rom, to_snes_address(new_table_offset))
 
     def read_from_project(self, resource_open):
-        for table in self.tables.itervalues():
+        for table in self.tables.values():
             with resource_open(table.name.lower(), "yml") as f:
                 yml_rep = yml_load(f)
                 num_rows = len(yml_rep)
@@ -52,6 +53,6 @@ class ExpandedTablesModule(EbModule):
                 table.from_yml_rep(yml_rep)
 
     def write_to_project(self, resource_open):
-        for table in self.tables.itervalues():
+        for table in self.tables.values():
             with resource_open(table.name.lower(), "yml") as f:
                 table.to_yml_file(f)
