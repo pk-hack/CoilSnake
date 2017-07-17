@@ -205,11 +205,11 @@ static PyObject* comp(PyObject* self, PyObject* args) {
 
 	for (i=0; i<size; ++i) {
 		o = PyList_GetItem(list, i);
-		if (!PyInt_Check(o)) {
+		if (!PyLong_Check(o)) {
                         free(udata);
 			return PyErr_Format(PyExc_TypeError, "list of ints expected ('%s') given", o->ob_type->tp_name), NULL;
                 }
-                n = PyInt_AsLong(o);
+                n = PyLong_AsLong(o);
 		if (n == -1 && PyErr_Occurred()) {
                         free(udata);
 			return NULL;
@@ -228,7 +228,7 @@ static PyObject* comp(PyObject* self, PyObject* args) {
 
 	clist = PyList_New(csize);
 	for (i=0; i<csize; ++i) {
-		o = PyInt_FromLong((long) buffer[i]);
+		o = PyLong_FromLong((long) buffer[i]);
 		PyList_SetItem(clist, i, o);
 	}
 	free(buffer);
@@ -242,7 +242,7 @@ PyObject* get_rom_bytes(PyObject* rom) {
         PyObject *romArr, *romByteArr;
         int size;
 
-	romArr = PyObject_GetAttr(rom, PyString_FromString("data"));
+	romArr = PyObject_GetAttr(rom, PyUnicode_FromString("data"));
         if (!romArr)
                 return NULL;
         
@@ -296,21 +296,50 @@ static PyObject* decomp(PyObject* self, PyObject* args) {
 
         ulist = PyList_New(new_size);
         for (i=0; i<new_size; ++i) {
-                o = PyInt_FromLong((long) buffer[i]);
+                o = PyLong_FromLong((long) buffer[i]);
                 PyList_SetItem(ulist, i, o);
         }
         free(buffer);
         return ulist;
 }
 
-static PyMethodDef native_compMethods[] = {
+static PyMethodDef native_comp_methods[] = {
 	{"comp", comp, METH_VARARGS, "C implementation of EB's comp()"},
 	{"decomp", decomp, METH_VARARGS, "C implementation of EB's decomp()"},
 	{NULL, NULL, 0, NULL}
 };
 
+struct module_state {
+    PyObject *error;
+};
+
+#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+
+static int native_comp_traverse(PyObject *m, visitproc visit, void *arg) {
+    Py_VISIT(GETSTATE(m)->error);
+    return 0;
+}
+
+static int native_comp_clear(PyObject *m) {
+    Py_CLEAR(GETSTATE(m)->error);
+    return 0;
+}
+
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "native_comp",
+        NULL,
+        sizeof(struct module_state),
+        native_comp_methods,
+        NULL,
+        native_comp_traverse,
+        native_comp_clear,
+        NULL
+};
+
 PyMODINIT_FUNC
-initnative_comp(void)
+PyInit_native_comp(void)
 {
-	(void) Py_InitModule("native_comp", native_compMethods);
+	PyObject *module = PyModule_Create(&moduledef);
+        return module;
 }
