@@ -7,7 +7,7 @@ from coilsnake.util.common.yml import yml_load
 
 log = logging.getLogger(__name__)
 
-MODULE_COMMENT = """# List all ranges which CoilSnake should not touch
+MODULE_COMMENT = b"""# List all ranges which CoilSnake should not touch
 # Example:
 # - (0x350000, 0x350100)"""
 
