@@ -47,18 +47,18 @@ class MapEventModule(EbModule):
         self.pointer_table.to_block(rom, pointer_table_offset)
 
     def write_to_project(self, resource_open):
-        with resource_open("map_changes", "yml") as f:
+        with resource_open("map_changes", "yml", True) as f:
             self.pointer_table.to_yml_file(f, default_flow_style=None)
 
     def read_from_project(self, resource_open):
-        with resource_open("map_changes", "yml") as f:
+        with resource_open("map_changes", "yml", True) as f:
             self.pointer_table.from_yml_file(f)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
         elif old_version < 5:
-            with resource_open_r("map_changes", "yml") as f:
+            with resource_open_r("map_changes", "yml", True) as f:
                 data = yml_load(f)
 
             for i in data:
@@ -72,7 +72,7 @@ class MapEventModule(EbModule):
                         for j, change in enumerate(entry["Tile Changes"]):
                             entry["Tile Changes"][j] = MapEventSubTableEntry.to_yml_rep(change)
 
-            with resource_open_w("map_changes", "yml") as f:
+            with resource_open_w("map_changes", "yml", True) as f:
                 yml_dump(data, f)
 
             convert_values_to_hex_repr_in_yml_file("map_changes", resource_open_r, resource_open_w, ["Event Flag"],
