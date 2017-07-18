@@ -50,8 +50,8 @@ class TestDoorModule(BaseTestCase, TemporaryWritableFileTestCase):
 
     @nottest
     def test_read_from_project_using_filename(self, filename):
-        with open(filename, 'r') as doors_file:
-            def resource_open(a, b):
+        with open(filename, 'r', encoding="utf-8") as doors_file:
+            def resource_open(a, b, astext):
                 return doors_file
 
             self.module.read_from_project(resource_open)
@@ -83,7 +83,7 @@ class TestDoorModule(BaseTestCase, TemporaryWritableFileTestCase):
             rom.from_file(os.path.join(TEST_DATA_DIR, 'roms', 'real_EarthBound.smc'))
             self.module.read_from_rom(rom)
 
-        def resource_open(a, b):
+        def resource_open(a, b, astext):
             return self.temporary_wo_file
 
         self.module.write_to_project(resource_open)
@@ -97,12 +97,12 @@ class TestDoorModule(BaseTestCase, TemporaryWritableFileTestCase):
             rom.from_file(os.path.join(TEST_DATA_DIR, 'roms', 'real_EarthBound.smc'))
             self.module.read_from_rom(rom)
 
-        def resource_open(a, b):
+        def resource_open(a, b, astext):
             return self.temporary_wo_file
 
         self.module.write_to_project(resource_open)
 
-        self.temporary_wo_file = open(self.temporary_wo_file_name)
+        self.temporary_wo_file = open(self.temporary_wo_file_name, encoding="utf-8", newline="\n")
         self.module.read_from_project(resource_open)
 
         with Rom() as rom:

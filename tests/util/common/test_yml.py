@@ -10,20 +10,23 @@ from tests.coilsnake_test import BaseTestCase, TemporaryWritableFileTestCase, TE
 class TestReplaceFieldInYml(BaseTestCase, TemporaryWritableFileTestCase):
     def test_replace_field_in_yml(self):
         with open(os.path.join(TEST_DATA_DIR, "yml", "sample.yml"), "r") as sample_yml:
-            def resource_open_r(name, extension):
+            def resource_open_r(name, extension, astext):
                 assert_equal(name, "sample_resource")
                 assert_equal(extension, "yml")
-                return open(os.path.join(TEST_DATA_DIR, "yml", "sample.yml"))
+                assert_equal(astext, True)
+                return open(os.path.join(TEST_DATA_DIR, "yml", "sample.yml"), encoding="utf-8", newline="\n")
 
-            def resource_open_r2(name, extension):
+            def resource_open_r2(name, extension, astext):
                 assert_equal(name, "sample_resource")
                 assert_equal(extension, "yml")
-                return open(self.temporary_wo_file_name, "r")
+                assert_equal(astext, True)
+                return open(self.temporary_wo_file_name, "r", encoding="utf-8", newline="\n")
 
-            def resource_open_w(name, extension):
+            def resource_open_w(name, extension, astext):
                 assert_equal(name, "sample_resource")
                 assert_equal(extension, "yml")
-                return open(self.temporary_wo_file_name, "w")
+                assert_equal(astext, True)
+                return open(self.temporary_wo_file_name, "w", encoding="utf-8", newline="\n")
 
             replace_field_in_yml(resource_name="sample_resource",
                                  resource_open_r=resource_open_r,
@@ -44,11 +47,12 @@ class TestReplaceFieldInYml(BaseTestCase, TemporaryWritableFileTestCase):
                                  value_map={"party": "back at ya",
                                             "enemy": "at them"})
 
-            print((open(self.temporary_wo_file_name, "r")).read())
+            with open(self.temporary_wo_file_name, "r", encoding="utf-8", newline="\n") as f:
+                print(f.read())
 
-            assert_files_equal(
-                open(os.path.join(TEST_DATA_DIR, "yml", "sample-replaced.yml"), "r"),
-                open(self.temporary_wo_file_name, "r"))
+            with open(os.path.join(TEST_DATA_DIR, "yml", "sample-replaced.yml"), "r", encoding="utf-8", newline="\n") as f1:
+                with open(self.temporary_wo_file_name, "r", encoding="utf-8", newline="\n") as f2:
+                    assert_files_equal(f1, f2)
 
 
 def test_convert_values_to_hex_repr():
