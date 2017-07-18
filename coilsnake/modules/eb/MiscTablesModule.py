@@ -48,13 +48,13 @@ class MiscTablesModule(EbModule):
 
     def read_from_project(self, resource_open):
         for _, table in self.tables:
-            with resource_open(table.name.lower(), "yml") as f:
+            with resource_open(table.name.lower(), "yml", True) as f:
                 log.debug("Reading {}.yml".format(table.name.lower()))
                 table.from_yml_file(f)
 
     def write_to_project(self, resource_open):
         for _, table in self.tables:
-            with resource_open(table.name.lower(), "yml") as f:
+            with resource_open(table.name.lower(), "yml", True) as f:
                 table.to_yml_file(f)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
@@ -116,13 +116,13 @@ class MiscTablesModule(EbModule):
                                  key="Unsuitable Area Text Pointer",
                                  new_key="Delivery Failure Text Pointer")
 
-            with resource_open_r("timed_delivery_table", "yml") as f:
+            with resource_open_r("timed_delivery_table", "yml", True) as f:
                 out = yml_load(f)
                 yml_str_rep = yml_dump(out, default_flow_style=False)
 
             yml_str_rep = convert_values_to_hex_repr(yml_str_rep, "Event Flag")
 
-            with resource_open_w("timed_delivery_table", "yml") as f:
+            with resource_open_w("timed_delivery_table", "yml", True) as f:
                 f.write(yml_str_rep)
 
             self.upgrade_project(old_version=old_version + 1,
