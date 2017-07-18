@@ -11,10 +11,10 @@ def read_1bpp_graphic_from_block(source, target, offset, x=0, y=0, height=8):
     :param x: x offset on the target image to write to
     :param y: y offset on the target image to write to
     :param height: the height in pixels of the graphic to read"""
-    for i in xrange(height):
+    for i in range(height):
         b = source[offset]
         offset += 1
-        for j in xrange(8):
+        for j in range(8):
             target[i + y][7 - j + x] = (b & (1 << j)) >> j
     return height
 
@@ -27,9 +27,9 @@ def write_1bpp_graphic_to_block(source, target, offset, x=0, y=0, height=8):
     :param x: x offset on the source image to read from
     :param y: y offset on the source image to read from
     :param height: the height in pixels of the graphic to write"""
-    for i in xrange(height):
+    for i in range(height):
         b = 0
-        for j in xrange(8):
+        for j in range(8):
             b |= (source[i + y][7 - j + x] & 1) << j
         target[offset] = b
         offset += 1
@@ -45,12 +45,12 @@ def read_2bpp_graphic_from_block(target, source, offset, x=0, y=0, bit_offset=0)
     :param y: y offset on the target image to write to
     :param bit_offset: number of bits to shift each color data before writing it to the target"""
     tmp1 = 0
-    for i in xrange(y, y + 8):
-        for k in xrange(0, 2):
+    for i in range(y, y + 8):
+        for k in range(0, 2):
             b = source[offset]
             offset += 1
             tmp1 = k + bit_offset
-            for j in xrange(0, 8):
+            for j in range(0, 8):
                 target[i][7 - j + x] |= ((b & (1 << j)) >> j) << tmp1
     return 16
 
@@ -65,12 +65,12 @@ def write_2bpp_graphic_to_block(source, target, offset, x=0, y=0, bit_offset=0):
     :param bit_offset: number of bits to shift the color data before writing it to the target"""
     bit_offset = max(0, bit_offset)
     tmp1 = tmp2 = tmp3 = 0
-    for i in xrange(0, 8):
-        for k in xrange(0, 2):
+    for i in range(0, 8):
+        for k in range(0, 2):
             tmp1 = k + bit_offset
             tmp2 = 1 << tmp1
             tmp3 = 0
-            for j in xrange(0, 8):
+            for j in range(0, 8):
                 tmp3 |= ((source[i + y][7 - j + x] & tmp2) >> tmp1) << j
             target[offset] = tmp3
             offset += 1
