@@ -71,8 +71,8 @@ def upgrade_project(project_path, base_rom_filename, progress_bar=None):
         start_time = time.time()
         with module_class() as module:
             module.upgrade_project(project.version, FORMAT_VERSION, rom,
-                                   lambda x, y, astext=False : project.get_resource(module_name, x, y, 'rt' if astext else 'rb'),
-                                   lambda x, y, astext=False: project.get_resource(module_name, x, y, 'wt' if astext else 'wb'),
+                                   lambda x, y, astext=False : project.get_resource(module_name, x, y, 'rt' if astext else 'rb', 'utf-8' if astext else None),
+                                   lambda x, y, astext=False: project.get_resource(module_name, x, y, 'wt' if astext else 'wb', 'utf-8' if astext else None),
                                    lambda x: project.delete_resource(module_name, x))
             if progress_bar:
                 progress_bar.tick(tick_amount)
@@ -142,7 +142,7 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, ccscri
         log.info("Compiling {}...".format(module_class.NAME))
         start_time = time.time()
         with module_class() as module:
-            module.read_from_project(lambda x, y, astext=False : project.get_resource(module_name, x, y, 'rt' if astext else 'rb'))
+            module.read_from_project(lambda x, y, astext=False : project.get_resource(module_name, x, y, 'rt' if astext else 'rb', 'utf-8' if astext else None))
             if progress_bar:
                 progress_bar.tick(tick_amount)
             module.write_to_rom(rom)
@@ -182,7 +182,7 @@ def decompile_rom(rom_filename, project_path, progress_bar=None):
             module.read_from_rom(rom)
             if progress_bar:
                 progress_bar.tick(tick_amount)
-            module.write_to_project(lambda x, y, astext=False: project.get_resource(module_name, x, y, 'wt' if astext else 'wb'))
+            module.write_to_project(lambda x, y, astext=False: project.get_resource(module_name, x, y, 'wt' if astext else 'wb', 'utf-8' if astext else None))
             if progress_bar:
                 progress_bar.tick(tick_amount)
         log.info("Finished decompiling {} in {:.2f}s".format(module_class.NAME, time.time() - start_time))
