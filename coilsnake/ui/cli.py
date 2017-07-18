@@ -15,7 +15,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
     parser.add_argument("--quiet", help="silence all output", action="store_true")
-    subparsers = parser.add_subparsers()
+    subparsers = parser.add_subparsers(dest="action")
+    subparsers.required = True
 
     compile_parser = subparsers.add_parser("compile", help="compile from project to rom")
     compile_parser.add_argument("project_directory")
