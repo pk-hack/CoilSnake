@@ -67,7 +67,7 @@ class FontModule(EbModule):
     def read_from_project(self, resource_open):
         for i, font in enumerate(self.fonts):
             with resource_open("Fonts/" + FONT_FILENAMES[i], 'png') as image_file:
-                with resource_open("Fonts/" + FONT_FILENAMES[i] + "_widths", "yml") as widths_file:
+                with resource_open("Fonts/" + FONT_FILENAMES[i] + "_widths", "yml", True) as widths_file:
                     font.from_files(image_file, widths_file, image_format="png", widths_format="yml")
 
         self.read_credits_font_from_project(resource_open)
@@ -76,7 +76,7 @@ class FontModule(EbModule):
         for i, font in enumerate(self.fonts):
             # Write the PNG
             with resource_open("Fonts/" + FONT_FILENAMES[i], 'png') as image_file:
-                with resource_open("Fonts/" + FONT_FILENAMES[i] + "_widths", "yml") as widths_file:
+                with resource_open("Fonts/" + FONT_FILENAMES[i] + "_widths", "yml", True) as widths_file:
                     font.to_files(image_file, widths_file, image_format="png", widths_format="yml")
 
         self.write_credits_font_to_project(resource_open)
@@ -129,14 +129,14 @@ class FontModule(EbModule):
 
                 # Expand the widths
 
-                with resource_open_r(widths_resource_name, "yml") as widths_file:
+                with resource_open_r(widths_resource_name, "yml", True) as widths_file:
                     widths_dict = yml_load(widths_file)
 
                 for character_id in xrange(96, 128):
                     if character_id not in widths_dict:
                         widths_dict[character_id] = 0
 
-                with resource_open_w(widths_resource_name, "yml") as widths_file:
+                with resource_open_w(widths_resource_name, "yml", True) as widths_file:
                     yml_dump(widths_dict, widths_file, default_flow_style=False)
 
             self.upgrade_project(6, new_version, rom, resource_open_r, resource_open_w, resource_delete)
