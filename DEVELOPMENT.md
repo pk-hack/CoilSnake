@@ -51,7 +51,7 @@ Please note that the included Vagrant configuration does not run a GUI, meaning 
 
 CoilSnake is now installed in development mode. After making code changes to the source, run your code by launching CoilSnake's GUI:
 
-    set PATH=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT;c:\local\boost_1_64_0\lib64-msvc-14.0;%PATH%
+    set PATH=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT;%PATH%
     python .\script\gui.py
 
 ### Creating a standalone Windows executable
@@ -73,6 +73,6 @@ You'll probably want to follow these steps from a fresh virtual machine. You can
     1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/mrtenda/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
     1. `python setup.py install`
 1. Create the CoilSnake EXE
-    1. `set PATH=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT;c:\local\boost_1_64_0\lib64-msvc-14.0;%PATH%`
+    1. `set PATH=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT;%PATH%`
     1. `python setup_exe.py py2exe`
 1. Run `coilsnake.nsi`
