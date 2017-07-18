@@ -7,7 +7,7 @@ from coilsnake.util.common.yml import yml_load
 
 log = logging.getLogger(__name__)
 
-MODULE_COMMENT = b"""# List all ranges which CoilSnake should not touch
+MODULE_COMMENT = """# List all ranges which CoilSnake should not touch
 # Example:
 # - (0x350000, 0x350100)"""
 
@@ -74,14 +74,14 @@ class UsedRangeModule(GenericModule):
         """
             Writes an empty file, ready to be filled by the user.
         """
-        with resource_opener(self.FILE, 'yml') as f:
+        with resource_opener(self.FILE, 'yml', True) as f:
             f.write(MODULE_COMMENT)
 
     def read_from_project(self, resource_open):
         """
             Reads a user-written list of ranges that shouldn't be touched.
         """
-        with resource_open(self.FILE, 'yml') as f:
+        with resource_open(self.FILE, 'yml', True) as f:
             ranges = yml_load(f)
             if not ranges:
                 self.ranges = []
