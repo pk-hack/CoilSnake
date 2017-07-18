@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 from builtins import object
 from functools import partial
 
@@ -156,8 +156,8 @@ class EbTileset(object):
         else:
             s = str()
             tile = self.minitiles[n]
-            for y in xrange(8):
-                for x in xrange(8):
+            for y in range(8):
+                for x in range(8):
                     s += CHARACTERS[tile[y][x]]
             return s
 
@@ -165,8 +165,8 @@ class EbTileset(object):
         if n < 896:
             minitile = [[0] * self.minitiles.tile_width for x in range(self.minitiles.tile_height)]
             i = 0
-            for y in xrange(8):
-                for x in xrange(8):
+            for y in range(8):
+                for x in range(8):
                     minitile[y][x] = int(string_rep[i], 32)
                     i += 1
             self.minitiles.tiles[n] = minitile
@@ -178,8 +178,8 @@ class EbTileset(object):
         else:
             s = str()
             collision = self.collisions[n]
-            for y in xrange(4):
-                for x in xrange(4):
+            for y in range(4):
+                for x in range(4):
                     s += "{:04x}{:02x}".format(arrangement[y][x], collision[y*4 + x])
             return s
 
@@ -187,8 +187,8 @@ class EbTileset(object):
         i = 0
         arrangement = [[0 for x in range(4)] for y in range(4)]
         collision = [0] * 16
-        for y in xrange(4):
-            for x in xrange(4):
+        for y in range(4):
+            for x in range(4):
                 arrangement[y][x] = int(string_rep[i:i + 4], 16)
                 collision[y * 4 + x] = int(string_rep[i + 4: i + 6], 16)
                 i += 6
