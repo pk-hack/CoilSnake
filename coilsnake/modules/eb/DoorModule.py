@@ -49,7 +49,7 @@ class DoorModule(EbModule):
             else:
                 x += 1
 
-        with resourceOpener("map_doors", "yml") as f:
+        with resourceOpener("map_doors", "yml", True) as f:
             s = yml_dump(
                 out,
                 default_flow_style=False)
@@ -58,7 +58,7 @@ class DoorModule(EbModule):
 
     def read_from_project(self, resourceOpener):
         self.door_areas = []
-        with resourceOpener("map_doors", "yml") as f:
+        with resourceOpener("map_doors", "yml", True) as f:
             input = yml_load(f)
             for y in input:
                 row = input[y]
