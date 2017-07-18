@@ -210,11 +210,11 @@ class MiscTextModule(EbModule):
                 item.to_block(rom, self.data[category_name][item_name])
 
     def read_from_project(self, resource_open):
-        with resource_open("text_misc", "yml") as f:
+        with resource_open("text_misc", "yml", True) as f:
             self.data = yml_load(f)
 
     def write_to_project(self, resource_open):
-        with resource_open("text_misc", "yml") as f:
+        with resource_open("text_misc", "yml", True) as f:
             yml_dump(self.data, f, default_flow_style=False)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
