@@ -133,7 +133,7 @@ class EnemyModule(EbModule):
         self.enemy_group_table.to_block(block=rom, offset=from_snes_address(ENEMY_GROUP_TABLE_DEFAULT_OFFSET))
 
     def write_to_project(self, resource_open):
-        with resource_open("enemy_configuration_table", "yml") as f:
+        with resource_open("enemy_configuration_table", "yml", True) as f:
             self.enemy_config_table.to_yml_file(f)
 
         # Write the battle sprite images
@@ -165,11 +165,11 @@ class EnemyModule(EbModule):
 
             out[i] = entry
 
-        with resource_open("enemy_groups", "yml") as f:
+        with resource_open("enemy_groups", "yml", True) as f:
             yml_dump(out, f)
 
     def read_from_project(self, resource_open):
-        with resource_open("enemy_configuration_table", "yml") as f:
+        with resource_open("enemy_configuration_table", "yml", True) as f:
             self.enemy_config_table.from_yml_file(f)
 
         # Read the sprites and palettes
@@ -215,13 +215,13 @@ class EnemyModule(EbModule):
                 num_palettes += 1
 
         # Read the groups
-        with resource_open("enemy_groups", "yml") as f:
+        with resource_open("enemy_groups", "yml", True) as f:
             self.enemy_group_table.from_yml_file(f)
 
-        with resource_open("enemy_groups", "yml") as f:
+        with resource_open("enemy_groups", "yml", True) as f:
             self.enemy_group_bg_table.from_yml_file(f)
 
-        with resource_open("enemy_groups", "yml") as f:
+        with resource_open("enemy_groups", "yml", True) as f:
             self.enemy_groups = []
             enemy_groups_yml_rep = yml_load(f)
             for entry in enemy_groups_yml_rep.values():
