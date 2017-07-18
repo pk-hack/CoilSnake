@@ -1,4 +1,3 @@
-from builtins import object
 from coilsnake.model.eb.table import EbStandardNullTerminatedTextTableEntry, EbStandardTextTableEntry
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.yml import yml_load, yml_dump

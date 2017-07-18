@@ -1,5 +1,3 @@
-
-from builtins import object
 from functools import partial
 
 from coilsnake.model.common.table import LittleEndianIntegerTableEntry

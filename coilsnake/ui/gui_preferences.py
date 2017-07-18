@@ -1,4 +1,3 @@
-from builtins import object
 import os
 
 from coilsnake.util.common.yml import yml_load, yml_dump

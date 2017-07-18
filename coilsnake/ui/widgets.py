@@ -1,4 +1,3 @@
-from builtins import object
 import queue
 from tkinter import *
 from tkinter.ttk import *

@@ -1,4 +1,3 @@
-from builtins import object
 class GenericModule(object):
     NAME = "Abstract Generic Module"
     FREE_RANGES = []

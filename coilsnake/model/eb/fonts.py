@@ -1,4 +1,3 @@
-from builtins import object
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbTileArrangement, EbGraphicTileset
 from coilsnake.model.eb.palettes import EbPalette

@@ -1,4 +1,3 @@
-from builtins import object
 import logging
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule

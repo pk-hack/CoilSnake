@@ -1,4 +1,3 @@
-from builtins import object
 class CharacterSubstitutions(object):
     character_substitutions = dict()
 
