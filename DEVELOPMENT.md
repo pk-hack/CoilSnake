@@ -52,7 +52,6 @@ Please note that the included Vagrant configuration does not run a GUI, meaning 
 
 CoilSnake is now installed in development mode. After making code changes to the source, run your code by launching CoilSnake's GUI:
 
-    set PATH=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT;%PATH%
     python .\script\gui.py
 
 ### Creating a standalone Windows executable
@@ -70,9 +69,10 @@ You'll probably want to follow these steps from a fresh virtual machine. You can
         1. `pip install cx_Freeze`
 1. Using your favorite git client, clone the [CoilSnake](https://github.com/mrtenda/CoilSnake) repository.
     1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/mrtenda/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
+1. Open the command line and cd to your local CoilSnake git repository's main directory.
 1. Ensure CoilSnake dependencies are installed in a non-compressed form using pip (cx_freeze doesn't work well with compressed eggs)
     1. `pip install --process-dependency-links .`
 1. Create the CoilSnake EXE
-    1. `set PATH=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT;%PATH%`
+    1. `python setup.py develop`
     1. `python setup_exe.py build_exe`
 1. Run `coilsnake.nsi`
