@@ -6,12 +6,16 @@ VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "ubuntu" do |ubuntu|
-    ubuntu.vm.box = "precise32"
-
-    ubuntu.vm.provision :puppet
+    ubuntu.vm.box = "puppetlabs/ubuntu-16.04-64-puppet"
 
     ubuntu.vm.provision :puppet do |puppet|
-      puppet.manifest_file  = "default.pp"
+      # Need to set the puppet environment so vagrant detects we are using puppet 4
+      # See https://github.com/mitchellh/vagrant/pull/5991
+      puppet.environment = "production"
+      puppet.environment_path = "environments"
+
+      puppet.manifests_path = "environments/production/manifests"
+      puppet.manifest_file = "default.pp"
     end
   end
 
