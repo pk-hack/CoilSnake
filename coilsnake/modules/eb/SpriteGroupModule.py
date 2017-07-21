@@ -111,7 +111,7 @@ class SpriteGroupModule(EbModule):
         if old_version == new_version:
             return
         elif old_version == 4:
-            with resource_open_r("sprite_groups", "yml") as f:
+            with resource_open_r("sprite_groups", "yml", True) as f:
                 data = yml_load(f)
                 for i in data:
                     entry = data[i]
@@ -121,7 +121,7 @@ class SpriteGroupModule(EbModule):
                     entry["East/West Collision Width"] = collision_settings[2]
                     entry["East/West Collision Height"] = collision_settings[3]
                     del entry["Collision Settings"]
-            with resource_open_w("sprite_groups", "yml") as f:
+            with resource_open_w("sprite_groups", "yml", True) as f:
                 yml_dump(data, f)
             self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         elif old_version == 2:
