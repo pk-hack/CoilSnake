@@ -19,7 +19,7 @@ setup(
         "ccscript>=1.338"
     ],
     dependency_links=[
-        "https://github.com/john-soklaski/CCScriptWriter/tarball/master#egg=CCScriptWriter-1.2",
+        "https://github.com/Lyrositor/CCScriptWriter/tarball/master#egg=CCScriptWriter-1.2",
         "https://github.com/john-soklaski/ccscript_legacy/tarball/master#egg=ccscript-1.338"
     ],
     ext_modules=[
