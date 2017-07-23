@@ -38,8 +38,9 @@ class ThreadSafeConsole(Text):
                     lines += str(line)
 
         # Batch up all of the lines in the queue, then insert them all at once into the textbox
-        self.insert(END, ''.join(lines))
-        self.see(END)
+        if len(lines) > 0:
+            self.insert(END, ''.join(lines))
+            self.see(END)
 
         self.after(50, self.check_queue)
 
