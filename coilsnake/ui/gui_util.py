@@ -4,6 +4,7 @@ import subprocess
 import tkinter.filedialog
 import tkinter.messagebox
 import sys
+import shutil
 
 from coilsnake.model.common.blocks import Rom
 from coilsnake.ui.common import expand, add_header, strip_header
@@ -172,5 +173,13 @@ def find_system_java_exe():
         java_exe = os.path.join(os.environ["JAVA_HOME"], "bin", "java")
         if os.path.isfile(java_exe):
             return java_exe
+
+    java_exe = shutil.which("javaw")
+    if java_exe:
+        return java_exe
+
+    java_exe = shutil.which("java")
+    if java_exe:
+        return java_exe
 
     return None
