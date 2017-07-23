@@ -23,6 +23,7 @@ class ThreadSafeConsole(Text):
         pass
 
     def check_queue(self):
+        lines = []
         while True:
             try:
                 line = self.queue.get(block=False)
@@ -30,10 +31,15 @@ class ThreadSafeConsole(Text):
                 break
             else:
                 if line is None:
+                    # Delete everything in the textbox
+                    lines = []
                     self.delete(1.0, END)
                 else:
-                    self.insert(END, str(line))
-                self.see(END)
+                    lines += str(line)
+
+        # Batch up all of the lines in the queue, then insert them all at once into the textbox
+        self.insert(END, ''.join(lines))
+        self.see(END)
 
         self.after(50, self.check_queue)
 
