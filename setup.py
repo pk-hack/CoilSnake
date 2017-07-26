@@ -20,7 +20,7 @@ setup(
     ],
     dependency_links=[
         "https://github.com/Lyrositor/CCScriptWriter/tarball/master#egg=CCScriptWriter-1.2",
-        "https://github.com/john-soklaski/ccscript_legacy/tarball/master#egg=ccscript-1.338"
+        "https://github.com/tripped/ccscript_legacy/tarball/master#egg=ccscript-1.338"
     ],
     ext_modules=[
         Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c"])
