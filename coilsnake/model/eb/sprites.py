@@ -1,4 +1,3 @@
-from builtins import object
 from array import array
 
 from PIL import Image

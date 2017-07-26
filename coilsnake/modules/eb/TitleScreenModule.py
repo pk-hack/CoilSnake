@@ -123,7 +123,7 @@ class TitleScreenModule(EbModule):
             num_subpalettes=NUM_SUBPALETTES,
             subpalette_length=CHARS_SUBPALETTE_LENGTH
         )
-        self.chars_layouts = [[] for _ in xrange(NUM_CHARS)]
+        self.chars_layouts = [[] for _ in range(NUM_CHARS)]
 
     def read_from_rom(self, rom):
         self.read_background_data_from_rom(rom)
@@ -190,8 +190,8 @@ class TitleScreenModule(EbModule):
             bank = rom[CHARS_LAYOUT_BANK + 1]
             chars_layout_pointer_offset = from_snes_address(bank << 16)
 
-        self.chars_layouts = [[] for _ in xrange(NUM_CHARS)]
-        for char in xrange(NUM_CHARS):
+        self.chars_layouts = [[] for _ in range(NUM_CHARS)]
+        for char in range(NUM_CHARS):
             # Get the location of a character's data
             offset = chars_layout_pointer_offset + rom.read_multi(
                 CHARS_LAYOUT_TABLE + char*2, 2
@@ -329,7 +329,7 @@ class TitleScreenModule(EbModule):
             )
 
         # Read the background animated frames
-        for frame in xrange(NUM_ANIM_FRAMES):
+        for frame in range(NUM_ANIM_FRAMES):
             # Create temporary structures used to check consistency between
             # frames
             tileset = EbGraphicTileset(BG_NUM_TILES, TILE_WIDTH, TILE_HEIGHT)
@@ -374,7 +374,7 @@ class TitleScreenModule(EbModule):
 
     def read_chars_data_from_project(self, resource_open):
         # Read the characters positions
-        with resource_open(CHARS_POSITIONS_PATH, "yml") as f:
+        with resource_open(CHARS_POSITIONS_PATH, "yml", True) as f:
             chars_positions = yml_load(f)
 
         # Read the characters animated frames
@@ -383,7 +383,7 @@ class TitleScreenModule(EbModule):
             CHARS_NUM_ANIM_SUBPALETTES, ANIM_SUBPALETTE_LENGTH
         )
         original_tileset = None
-        for p in xrange(CHARS_NUM_ANIM_SUBPALETTES):
+        for p in range(CHARS_NUM_ANIM_SUBPALETTES):
             # Read one of the animation frames
             with resource_open(CHARS_FRAMES_PATH.format(p), "png") as f:
                 # Create temporary structures to hold the data
@@ -400,7 +400,7 @@ class TitleScreenModule(EbModule):
                 arrangement.from_image(image, tileset, anim_subpalette, True)
 
             # Add the characters animation subpalette
-            for i in xrange(ANIM_SUBPALETTE_LENGTH):
+            for i in range(ANIM_SUBPALETTE_LENGTH):
                 self.chars_anim_palette[p, i] = anim_subpalette[0, i]
 
             # Add the characters tileset if not already set, otherwise
@@ -411,14 +411,14 @@ class TitleScreenModule(EbModule):
                     CHARS_NUM_TILES, TILE_WIDTH, TILE_HEIGHT
                 )
                 self.chars_tileset.tiles = [
-                    [[0 for _ in xrange(TILE_HEIGHT)]
-                        for _ in xrange(TILE_WIDTH)]
-                    for _ in xrange(CHARS_NUM_TILES)
+                    [[0 for _ in range(TILE_HEIGHT)]
+                        for _ in range(TILE_WIDTH)]
+                    for _ in range(CHARS_NUM_TILES)
                 ]
-                unused_tiles = set(xrange(CHARS_NUM_TILES))
+                unused_tiles = set(range(CHARS_NUM_TILES))
 
                 # Set the new character layouts
-                self.chars_layouts = [[] for _ in xrange(NUM_CHARS)]
+                self.chars_layouts = [[] for _ in range(NUM_CHARS)]
                 for c, data in chars_positions.items():
                     # Get the data from the YAML file
                     x = int(data['x'] // TILE_WIDTH)
@@ -434,13 +434,13 @@ class TitleScreenModule(EbModule):
                     # stored as one); otherwise, bordering tiles that are
                     # visited will all be single tiles.
                     l = [
-                        (i, j) for i in xrange(0, width, 2)
-                        for j in xrange(0, height, 2)
+                        (i, j) for i in range(0, width, 2)
+                        for j in range(0, height, 2)
                     ]
                     if width % 2 == 1:
-                        l.extend([(width-1, j) for j in xrange(1, height, 2)])
+                        l.extend([(width-1, j) for j in range(1, height, 2)])
                     if height % 2 == 1:
-                        l.extend([(i, height-1) for i in xrange(1, width, 2)])
+                        l.extend([(i, height-1) for i in range(1, width, 2)])
 
                     # Generate the new reduced tileset
                     for i, j in l:
@@ -510,7 +510,7 @@ class TitleScreenModule(EbModule):
             image.save(f)
 
         # Write out the background's animated frames
-        for frame in xrange(NUM_ANIM_FRAMES):
+        for frame in range(NUM_ANIM_FRAMES):
             palette = EbPalette(NUM_SUBPALETTES, BG_SUBPALETTE_LENGTH)
             if frame < CHARS_NUM_ANIM_SUBPALETTES:
                 palette[0, CHARS_ANIM_SLICE] = \
@@ -552,7 +552,7 @@ class TitleScreenModule(EbModule):
             }
 
         # Write the characters animation frames
-        for p in xrange(CHARS_NUM_ANIM_SUBPALETTES):
+        for p in range(CHARS_NUM_ANIM_SUBPALETTES):
             with resource_open(CHARS_FRAMES_PATH.format(p), "png") as f:
                 image = arrangement.image(
                     self.chars_tileset,
@@ -569,7 +569,7 @@ class TitleScreenModule(EbModule):
             image.save(f)
 
         # Write out the positions of the characters
-        with resource_open(CHARS_POSITIONS_PATH, "yml") as f:
+        with resource_open(CHARS_POSITIONS_PATH, "yml", True) as f:
             yml_dump(chars_positions, f, False)
 
     def upgrade_project(

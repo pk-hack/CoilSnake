@@ -28,25 +28,25 @@ class TownMapIconModule(EbModule):
         write_asm_pointer(rom, self.POINTER_TABLE_ASM_POINTER_OFFSET, to_snes_address(pointer_table_offset))
 
     def read_from_project(self, resource_open):
-        with resource_open("TownMaps/icon_positions", "yml") as f:
+        with resource_open("TownMaps/icon_positions", "yml", True) as f:
             self.table.from_yml_file(f)
 
     def write_to_project(self, resource_open):
-        with resource_open("TownMaps/icon_positions", "yml") as f:
+        with resource_open("TownMaps/icon_positions", "yml", True) as f:
             self.table.to_yml_file(f)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
         elif old_version == 4:
-            with resource_open_r("TownMaps/icon_positions", "yml") as f:
+            with resource_open_r("TownMaps/icon_positions", "yml", True) as f:
                 data = yml_load(f)
 
                 for i in range(6):
                     old_key = TownMapEnum.tostring(i).lower()
                     data[i] = data[old_key]
                     del data[old_key]
-            with resource_open_w("TownMaps/icon_positions", "yml") as f:
+            with resource_open_w("TownMaps/icon_positions", "yml", True) as f:
                 yml_dump(data, f, default_flow_style=False)
 
             convert_values_to_hex_repr_in_yml_file("TownMaps/icon_positions", resource_open_r, resource_open_w,

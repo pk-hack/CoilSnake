@@ -1,4 +1,3 @@
-from builtins import object
 from itertools import zip_longest
 import tempfile
 

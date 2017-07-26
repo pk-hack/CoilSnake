@@ -33,9 +33,9 @@ class MapSpriteModule(EbModule):
         rom.write_multi(self.POINTER_TABLE_POINTER_OFFSET, to_snes_address(pointer_table_offset), 3)
 
     def write_to_project(self, resource_open):
-        with resource_open("map_sprites", "yml") as f:
+        with resource_open("map_sprites", "yml", True) as f:
             self.table.to_yml_file(f, default_flow_style=None)
 
     def read_from_project(self, resource_open):
-        with resource_open("map_sprites", "yml") as f:
+        with resource_open("map_sprites", "yml", True) as f:
             self.table.from_yml_file(f)

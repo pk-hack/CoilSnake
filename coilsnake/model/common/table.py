@@ -1,4 +1,3 @@
-from builtins import object
 from abc import abstractmethod
 import logging
 

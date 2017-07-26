@@ -52,7 +52,7 @@ class SwirlModule(EbModule):
         if test_swirl_relocated(rom):
             # Calculate total number of animations from the swirl table
             total_animations = 0        
-            for i in xrange(self.swirl_table.num_rows):
+            for i in range(self.swirl_table.num_rows):
                 total_animations += self.swirl_table[i][2]
 
             # Read in the offset of the relocated animation table
@@ -61,7 +61,7 @@ class SwirlModule(EbModule):
             # Pointer size is now 4, so read in 4 bytes at a time
             all_animation_pointers = [
                 from_snes_address(rom.read_multi(from_snes_address(offset + (i * 4)), 4))
-                for i in xrange(total_animations)
+                for i in range(total_animations)
             ]
         else:
             self.pointer_table.from_block(
@@ -69,11 +69,11 @@ class SwirlModule(EbModule):
 
             all_animation_pointers = [
                 from_snes_address(self.pointer_table[i][0] | SWIRL_ANIMATION_POINTER_TABLE_BASE)
-                for i in xrange(self.pointer_table.num_rows)
+                for i in range(self.pointer_table.num_rows)
             ]
 
         self.swirls = [None] * self.swirl_table.num_rows
-        for i in xrange(self.swirl_table.num_rows):
+        for i in range(self.swirl_table.num_rows):
             speed = self.swirl_table[i][0]
             first_animation = self.swirl_table[i][1]
             number_of_animations = self.swirl_table[i][2]
@@ -114,10 +114,10 @@ class SwirlModule(EbModule):
             rom, offset=from_snes_address(SWIRL_TABLE_DEFAULT_OFFSET))
 
     def read_from_project(self, resource_open):
-        with resource_open("Swirls/swirls", "yml") as f:
+        with resource_open("Swirls/swirls", "yml", True) as f:
             swirl_data = yml_load(f)
 
-        self.swirls = [Swirl() for i in xrange(self.swirl_table.num_rows)]
+        self.swirls = [Swirl() for i in range(self.swirl_table.num_rows)]
         for swirl_id, swirl in enumerate(self.swirls):
             log.debug("Reading Swirl #{}".format(swirl_id))
             speed = swirl_data[swirl_id]["speed"]
@@ -141,7 +141,7 @@ class SwirlModule(EbModule):
                 with resource_open("Swirls/{}/{}".format(i, str(j).zfill(3)), "png") as f:
                     image = frame.image()
                     image.save(f, "png")
-        with resource_open("Swirls/swirls", "yml") as f:
+        with resource_open("Swirls/swirls", "yml", True) as f:
             yml_dump(swirl_data, f, default_flow_style=False)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):

@@ -22,7 +22,7 @@ class TestEbPointer(BaseTestCase):
 
     def test_from_block(self):
         block = Block()
-        block.from_list(range(0, 0x100))
+        block.from_list(list(range(0, 0x100)))
 
         self.pointer.from_block(block, 0)
         assert_equal(self.pointer.address, 0x020100)
@@ -33,7 +33,7 @@ class TestEbPointer(BaseTestCase):
 
     def test_to_block(self):
         block = Block()
-        block.from_list(range(1, 6))
+        block.from_list(list(range(1, 6)))
 
         self.pointer.address = 0xabcdef
         self.pointer.to_block(block, 1)

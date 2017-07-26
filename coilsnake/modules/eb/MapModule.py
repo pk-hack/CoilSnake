@@ -135,7 +135,7 @@ class MapModule(EbModule):
 
     def write_to_project(self, resource_open):
         # Write map tiles
-        with resource_open("map_tiles", "map") as f:
+        with resource_open("map_tiles", "map", True) as f:
             for row in self.tiles:
                 f.write(hex(row[0])[2:].zfill(3))
                 for tile in row[1:]:
@@ -169,16 +169,16 @@ class MapModule(EbModule):
                 townmap_x,
                 townmap_y
             ]
-        with resource_open("map_sectors", "yml") as f:
+        with resource_open("map_sectors", "yml", True) as f:
             self.sector_yml_table.to_yml_file(f)
 
     def read_from_project(self, resource_open):
         # Read map data
-        with resource_open("map_tiles", "map") as f:
+        with resource_open("map_tiles", "map", True) as f:
             self.tiles = [[int(x, 16) for x in y.split(" ")] for y in f.readlines()]
 
         # Read sector data
-        with resource_open("map_sectors", "yml") as f:
+        with resource_open("map_sectors", "yml", True) as f:
             self.sector_yml_table.from_yml_file(f)
 
         for i in range(self.sector_yml_table.num_rows):
@@ -216,14 +216,14 @@ class MapModule(EbModule):
 
             self.read_from_rom(rom)
 
-            with resource_open_r("map_sectors", 'yml') as f:
+            with resource_open_r("map_sectors", 'yml', True) as f:
                 data = yml_load(f)
                 for i in data:
                     data[i]["Town Map Image"] = TOWNMAP_IMAGE_ENTRY.to_yml_rep(self.sector_town_map_table[i][0] & 0xf)
                     data[i]["Town Map Arrow"] = TOWNMAP_ARROW_ENTRY.to_yml_rep(self.sector_town_map_table[i][0] >> 4)
                     data[i]["Town Map X"] = TOWNMAP_X.to_yml_rep(self.sector_town_map_table[i][1])
                     data[i]["Town Map Y"] = TOWNMAP_Y.to_yml_rep(self.sector_town_map_table[i][2])
-            with resource_open_w("map_sectors", 'yml') as f:
+            with resource_open_w("map_sectors", 'yml', True) as f:
                 yaml.dump(data, f, Dumper=yaml.CSafeDumper, default_flow_style=False)
 
             self.upgrade_project(3, new_version, rom, resource_open_r, resource_open_w, resource_delete)

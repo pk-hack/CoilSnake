@@ -74,14 +74,14 @@ class UsedRangeModule(GenericModule):
         """
             Writes an empty file, ready to be filled by the user.
         """
-        with resource_opener(self.FILE, 'yml') as f:
+        with resource_opener(self.FILE, 'yml', True) as f:
             f.write(MODULE_COMMENT)
 
     def read_from_project(self, resource_open):
         """
             Reads a user-written list of ranges that shouldn't be touched.
         """
-        with resource_open(self.FILE, 'yml') as f:
+        with resource_open(self.FILE, 'yml', True) as f:
             ranges = yml_load(f)
             if not ranges:
                 self.ranges = []

@@ -47,7 +47,7 @@ class SpriteGroupModule(EbModule):
 
     def write_to_project(self, resource_open):
         # Write the palettes
-        with resource_open("sprite_group_palettes", "yml") as f:
+        with resource_open("sprite_group_palettes", "yml", True) as f:
             self.palette_table.to_yml_file(f)
 
         out = {}
@@ -57,14 +57,14 @@ class SpriteGroupModule(EbModule):
             with resource_open("SpriteGroups/" + str(i).zfill(3), 'png') as image_file:
                 image.save(image_file, 'png', transparency=0)
             del image
-        with resource_open("sprite_groups", "yml") as f:
+        with resource_open("sprite_groups", "yml", True) as f:
             yml_dump(out, f)
 
     def read_from_project(self, resource_open):
-        with resource_open("sprite_group_palettes", "yml") as f:
+        with resource_open("sprite_group_palettes", "yml", True) as f:
             self.palette_table.from_yml_file(f)
 
-        with resource_open("sprite_groups", "yml") as f:
+        with resource_open("sprite_groups", "yml", True) as f:
             input = yml_load(f)
             num_groups = len(input)
             self.groups = []
@@ -111,7 +111,7 @@ class SpriteGroupModule(EbModule):
         if old_version == new_version:
             return
         elif old_version == 4:
-            with resource_open_r("sprite_groups", "yml") as f:
+            with resource_open_r("sprite_groups", "yml", True) as f:
                 data = yml_load(f)
                 for i in data:
                     entry = data[i]
@@ -121,7 +121,7 @@ class SpriteGroupModule(EbModule):
                     entry["East/West Collision Width"] = collision_settings[2]
                     entry["East/West Collision Height"] = collision_settings[3]
                     del entry["Collision Settings"]
-            with resource_open_w("sprite_groups", "yml") as f:
+            with resource_open_w("sprite_groups", "yml", True) as f:
                 yml_dump(data, f)
             self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
         elif old_version == 2:

@@ -16,11 +16,11 @@ class SkipNamingModule(EbModule):
                "Pet": "King",
                "Food": "Steak",
                "Thing": "Rockin"}
-        with resource_open("naming_skip", "yml") as f:
+        with resource_open("naming_skip", "yml", True) as f:
             yml_dump(out, f, default_flow_style=False)
 
     def read_from_project(self, resource_open):
-        with resource_open("naming_skip", "yml") as f:
+        with resource_open("naming_skip", "yml", True) as f:
             self.data = yml_load(f)
 
     def write_loader_asm(self, rom, offset, s, strlen, mem_offset, byte2):

@@ -31,13 +31,13 @@ class MapEnemyModule(EbModule):
         self.group_placement_table.to_block(rom, from_snes_address(GROUP_PLACEMENT_TABLE_OFFSET))
 
     def write_to_project(self, resource_open):
-        with resource_open("map_enemy_groups", "yml") as f:
+        with resource_open("map_enemy_groups", "yml", True) as f:
             self.group_pointer_table.to_yml_file(f, default_flow_style=None)
-        with resource_open(self.group_placement_table.name.lower(), "yml") as f:
+        with resource_open(self.group_placement_table.name.lower(), "yml", True) as f:
             self.group_placement_table.to_yml_file(f)
 
     def read_from_project(self, resource_open):
-        with resource_open("map_enemy_groups", "yml") as f:
+        with resource_open("map_enemy_groups", "yml", True) as f:
             self.group_pointer_table.from_yml_file(f)
-        with resource_open(self.group_placement_table.name.lower(), "yml") as f:
+        with resource_open(self.group_placement_table.name.lower(), "yml", True) as f:
             self.group_placement_table.from_yml_file(f)

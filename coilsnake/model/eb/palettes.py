@@ -277,12 +277,12 @@ def setup_eb_palette_from_image(palette, img, tile_width, tile_height):
     # First, get a list of all the unique sets of colors in each tile
     color_sets = []
 
-    for x in xrange(0, width, tile_width):
-        for y in xrange(0, height, tile_height):
+    for x in range(0, width, tile_width):
+        for y in range(0, height, tile_height):
             new_color_set = set()
 
-            for tile_x in xrange(x, x + tile_width):
-                for tile_y in xrange(y, y+tile_height):
+            for tile_x in range(x, x + tile_width):
+                for tile_y in range(y, y+tile_height):
                     r, g, b = rgb_image_data[tile_x, tile_y]
                     r &= 0xf8
                     g &= 0xf8
