@@ -48,19 +48,39 @@ class CoilSnakeGui(object):
         else:
             logging.root.setLevel(logging.INFO)
 
-    def set_debug_mode(self):
-        confirm = tkinter.messagebox.askquestion(
-            "Enable Debug Mode?",
-            "Would you like to enable Debug mode? Debug mode will provide you with more detailed output while "
-            + "CoilSnake is running.\n\n"
-            + "This is generally only needed by advanced users.",
-            icon="question"
-        )
+    def refresh_debug_mode_command_label(self):
+        # The "Debug Mode" command is the 5th in the Preferences menu (starting counting at 0, including separators)
+        self.pref_menu.entryconfig(5, label=self.get_debug_mode_command_label())
 
-        self.preferences["debug mode"] = (confirm == "yes")
+    def get_debug_mode_command_label(self):
+        return 'Disable Debug Mode' if self.preferences["debug mode"] else 'Enable Debug Mode'
+
+    def set_debug_mode(self):
+        if self.preferences["debug mode"]:
+            confirm = tkinter.messagebox.askquestion(
+                "Disable Debug Mode?",
+                "Would you like to disable Debug mode?",
+                icon="question"
+            )
+
+            if confirm == "yes":
+                self.preferences["debug mode"] = False
+        else:
+            confirm = tkinter.messagebox.askquestion(
+                "Enable Debug Mode?",
+                "Would you like to enable Debug mode? Debug mode will provide you with more detailed output while "
+                + "CoilSnake is running.\n\n"
+                + "This is generally only needed by advanced users.",
+                icon="question"
+            )
+
+            if confirm == "yes":
+                self.preferences["debug mode"] = True
+
         self.preferences.save()
 
         self.refresh_debug_logging()
+        self.refresh_debug_mode_command_label()
 
     def set_emulator_exe(self):
         tkinter.messagebox.showinfo(
@@ -467,18 +487,18 @@ Please configure Java in the Settings menu.""")
         menubar.add_cascade(label="Tools", menu=tools_menu)
 
         # Preferences pulldown menu
-        pref_menu = Menu(menubar, tearoff=0)
-        pref_menu.add_command(label="Configure Emulator",
-                              command=self.set_emulator_exe)
-        pref_menu.add_command(label="Configure Java",
-                              command=self.set_java_exe)
-        pref_menu.add_separator()
-        pref_menu.add_command(label="Configure CCScript",
-                              command=self.set_ccscript_offset)
-        pref_menu.add_separator()
-        pref_menu.add_command(label="Debug Mode",
-                              command=self.set_debug_mode)
-        menubar.add_cascade(label="Settings", menu=pref_menu)
+        self.pref_menu = Menu(menubar, tearoff=0)
+        self.pref_menu.add_command(label="Configure Emulator",
+                                   command=self.set_emulator_exe)
+        self.pref_menu.add_command(label="Configure Java",
+                                   command=self.set_java_exe)
+        self.pref_menu.add_separator()
+        self.pref_menu.add_command(label="Configure CCScript",
+                                   command=self.set_ccscript_offset)
+        self.pref_menu.add_separator()
+        self.pref_menu.add_command(label=self.get_debug_mode_command_label(),
+                                   command=self.set_debug_mode)
+        menubar.add_cascade(label="Settings", menu=self.pref_menu)
 
         # Help menu
         help_menu = Menu(menubar, tearoff=0)
