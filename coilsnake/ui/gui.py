@@ -32,6 +32,8 @@ from coilsnake.util.common.assets import asset_path
 
 log = logging.getLogger(__name__)
 
+BUTTON_WIDTH = 15
+LABEL_WIDTH = 20
 
 class CoilSnakeGui(object):
     def __init__(self):
@@ -405,11 +407,11 @@ Please configure Java in the Settings menu.""")
         #patcher_create_frame = self.create_create_patch_frame(self.notebook)
         #self.notebook.add(patcher_create_frame, text="Create Patch")
 
-        self.notebook.pack(fill=BOTH, expand=1)
+        self.notebook.pack(fill=X)
         self.notebook.select(self.preferences.get_default_tab())
 
         self.progress_bar = CoilSnakeGuiProgressBar(self.root, orient=HORIZONTAL, mode='determinate')
-        self.progress_bar.pack(fill=BOTH, expand=1)
+        self.progress_bar.pack(fill=X)
 
         console_frame = Frame(self.root)
 
@@ -417,10 +419,10 @@ Please configure Java in the Settings menu.""")
         scrollbar.pack(side=RIGHT, fill=Y)
 
         self.console = ThreadSafeConsole(console_frame, width=80, height=8)
-        self.console.pack(fill=X)
+        self.console.pack(fill=BOTH, expand=1)
         scrollbar.config(command=self.console.yview)
         self.console.config(yscrollcommand=scrollbar.set)
-        console_frame.pack(fill=X, expand=1)
+        console_frame.pack(fill=BOTH, expand=1)
 
         def selectall_text(event):
             event.widget.tag_add("sel", "1.0", "end")
@@ -433,6 +435,24 @@ Please configure Java in the Settings menu.""")
         def tab_changed(event):
             # Do this so some random element in the tab isn't selected upon tab change
             self.notebook.focus()
+
+            ## Recalculate the height of the notebook depending on the contents of the new tab
+
+            # Ensure the dimensions of the widgets are up to date
+            self.notebook.update_idletasks()
+
+            # Get the geometry of the window, so we can reset it later
+            window_geometry = self.root.winfo_geometry()
+
+            # Set the notebook height to the selected tab's requested height
+            tab_window_name = self.notebook.select()
+            tab = self.notebook.nametowidget(tab_window_name)
+            tab_height = tab.winfo_reqheight()
+            self.notebook.configure(height=tab_height)
+
+            # Keeps the window from changing size
+            self.root.geometry(window_geometry)
+
         self.notebook.bind("<<NotebookTabChanged>>", tab_changed)
 
         self.console_stream = self.console
@@ -540,7 +560,7 @@ Please configure Java in the Settings menu.""")
             self.do_decompile(input_rom_entry, project_entry)
 
         decompile_button = Button(decompile_frame, text="Decompile", command=decompile_tmp)
-        decompile_button.pack(fill=BOTH, expand=1)
+        decompile_button.pack(fill=X, expand=1)
         self.components.append(decompile_button)
 
         return decompile_frame
@@ -568,7 +588,7 @@ Please configure Java in the Settings menu.""")
             self.do_compile(project_entry, base_rom_entry, output_rom_entry)
 
         compile_button = Button(compile_frame, text="Compile", command=compile_tmp)
-        compile_button.pack(fill=BOTH, expand=1)
+        compile_button.pack(fill=X, expand=1)
         self.components.append(compile_button)
 
         return compile_frame
@@ -587,7 +607,7 @@ Please configure Java in the Settings menu.""")
             self.do_upgrade(rom_entry, project_entry)
 
         self.upgrade_button = Button(upgrade_frame, text="Upgrade", command=upgrade_tmp)
-        self.upgrade_button.pack(fill=BOTH, expand=1)
+        self.upgrade_button.pack(fill=X, expand=1)
         self.components.append(self.upgrade_button)
 
         if self.preferences["default upgrade rom"]:
@@ -610,7 +630,7 @@ Please configure Java in the Settings menu.""")
             self.do_decompile_script(input_rom_entry, project_entry)
 
         button = Button(decompile_script_frame, text="Decompile Script", command=decompile_script_tmp)
-        button.pack(fill=BOTH, expand=1)
+        button.pack(fill=X, expand=1)
         self.components.append(button)
 
         if self.preferences["default decompile script rom"]:
@@ -637,7 +657,7 @@ Please configure Java in the Settings menu.""")
             self.do_patch_rom(clean_rom_entry, patched_rom_entry, patch_entry, headered_var)
 
         button = Button(patcher_patch_frame, text="Patch ROM", command=patch_rom_tmp)
-        button.pack(fill=BOTH, expand=1)
+        button.pack(fill=X, expand=1)
         self.components.append(button)
 
         if self.preferences["default clean rom"]:
@@ -668,7 +688,7 @@ Please configure Java in the Settings menu.""")
             self.do_create_patch(clean_rom_entry, modified_rom_entry, patch_entry)
 
         button = Button(patcher_create_frame, text="Create Patch", command=create_patch_tmp)
-        button.pack(fill=BOTH, expand=1)
+        button.pack(fill=X, expand=1)
         self.components.append(button)
 
         if self.preferences["default clean rom"]:
@@ -686,7 +706,7 @@ Please configure Java in the Settings menu.""")
     def add_profile_selector_to_frame(self, frame, tab, fields):
         profile_frame = tkinter.ttk.Frame(frame)
 
-        Label(profile_frame, text="Profile:", width=13).pack(side=LEFT, fill=BOTH, expand=1)
+        Label(profile_frame, text="Profile:", width=LABEL_WIDTH).pack(side=LEFT)
 
         def tmp_select(profile_name):
             for field_id in fields:
@@ -698,7 +718,6 @@ Please configure Java in the Settings menu.""")
         profile_var = StringVar(profile_frame)
 
         profile = OptionMenu(profile_frame, profile_var, "", command=tmp_select)
-        profile["width"] = 25
         profile.pack(side=LEFT, fill=BOTH, expand=1, ipadx=1)
         
         self.components.append(profile)
@@ -743,19 +762,19 @@ Please configure Java in the Settings menu.""")
                 tmp_reload_options()
                 self.preferences.save()
 
-        button = Button(profile_frame, text="Save", width=6, command=tmp_save)
-        button.pack(side=LEFT, fill=BOTH, expand=1)
+        button = Button(profile_frame, text="Save", width=BUTTON_WIDTH, command=tmp_save)
+        button.pack(side=LEFT)
         self.components.append(button)
 
-        button = Button(profile_frame, text="Delete", width=5, command=tmp_delete)
-        button.pack(side=LEFT, fill=BOTH, expand=1)
+        button = Button(profile_frame, text="Delete", width=BUTTON_WIDTH, command=tmp_delete)
+        button.pack(side=LEFT)
         self.components.append(button)
 
-        button = Button(profile_frame, text="New", width=5, command=tmp_new)
-        button.pack(side=LEFT, fill=BOTH, expand=1)
+        button = Button(profile_frame, text="New", width=BUTTON_WIDTH, command=tmp_new)
+        button.pack(side=LEFT)
         self.components.append(button)
 
-        profile_frame.pack(fill=BOTH, expand=1)
+        profile_frame.pack(fill=X, expand=1)
 
         def tmp_reload_options_and_select_default():
             tmp_reload_options(selected_profile_name=self.preferences.get_default_profile(tab))
@@ -765,9 +784,9 @@ Please configure Java in the Settings menu.""")
     def add_rom_fields_to_frame(self, name, frame, save=False, padding_buttons=1):
         rom_frame = tkinter.ttk.Frame(frame)
 
-        Label(rom_frame, text="{}:".format(name), width=13, justify=RIGHT).pack(side=LEFT, fill=BOTH, expand=1)
-        rom_entry = Entry(rom_frame, width=30)
-        rom_entry.pack(side=LEFT, fill=BOTH, expand=1)
+        Label(rom_frame, text="{}:".format(name), width=LABEL_WIDTH, justify=RIGHT).pack(side=LEFT)
+        rom_entry = Entry(rom_frame)
+        rom_entry.pack(side=LEFT, fill=BOTH, expand=1, padx=1)
         self.components.append(rom_entry)
 
         def browse_tmp():
@@ -776,29 +795,29 @@ Please configure Java in the Settings menu.""")
         def run_tmp():
             self.run_rom(rom_entry)
 
-        button = Button(rom_frame, text="Browse...", command=browse_tmp, width=6)
-        button.pack(side=LEFT, fill=BOTH, expand=1)
+        button = Button(rom_frame, text="Browse...", command=browse_tmp, width=BUTTON_WIDTH)
+        button.pack(side=LEFT)
         self.components.append(button)
 
-        button = Button(rom_frame, text="Run", command=run_tmp, width=5)
-        button.pack(side=LEFT, fill=BOTH, expand=1)
+        button = Button(rom_frame, text="Run", command=run_tmp, width=BUTTON_WIDTH)
+        button.pack(side=LEFT)
         self.components.append(button)
 
         for i in range(padding_buttons):
-            button = Button(rom_frame, text="", width=5, state=DISABLED, takefocus=False)
-            button.pack(side=LEFT, fill=BOTH, expand=1)
+            button = Button(rom_frame, text="", width=BUTTON_WIDTH, state=DISABLED, takefocus=False)
+            button.pack(side=LEFT)
             button.lower()
 
-        rom_frame.pack(fill=BOTH, expand=1)
+        rom_frame.pack(fill=X)
 
         return rom_entry
 
     def add_project_fields_to_frame(self, name, frame):
         project_frame = tkinter.ttk.Frame(frame)
 
-        Label(project_frame, text="{}:".format(name), width=13, justify=RIGHT).pack(side=LEFT, fill=BOTH, expand=1)
-        project_entry = Entry(project_frame, width=30)
-        project_entry.pack(side=LEFT, fill=BOTH, expand=1)
+        Label(project_frame, text="{}:".format(name), width=LABEL_WIDTH, justify=RIGHT).pack(side=LEFT)
+        project_entry = Entry(project_frame)
+        project_entry.pack(side=LEFT, fill=BOTH, expand=1, padx=1)
         self.components.append(project_entry)
 
         def browse_tmp():
@@ -810,19 +829,19 @@ Please configure Java in the Settings menu.""")
         def edit_tmp():
             self.open_ebprojedit(project_entry)
 
-        button = Button(project_frame, text="Browse...", command=browse_tmp, width=6)
-        button.pack(side=LEFT, fill=BOTH, expand=1)
+        button = Button(project_frame, text="Browse...", command=browse_tmp, width=BUTTON_WIDTH)
+        button.pack(side=LEFT)
         self.components.append(button)
 
-        button = Button(project_frame, text="Open", command=open_tmp, width=5)
-        button.pack(side=LEFT, fill=BOTH, expand=1)
+        button = Button(project_frame, text="Open", command=open_tmp, width=BUTTON_WIDTH)
+        button.pack(side=LEFT)
         self.components.append(button)
 
-        button = Button(project_frame, text="Edit", command=edit_tmp, width=5)
-        button.pack(side=LEFT, fill=BOTH, expand=1)
+        button = Button(project_frame, text="Edit", command=edit_tmp, width=BUTTON_WIDTH)
+        button.pack(side=LEFT)
         self.components.append(button)
 
-        project_frame.pack(fill=BOTH, expand=1)
+        project_frame.pack(fill=X, expand=1)
 
         return project_entry
 
@@ -830,21 +849,21 @@ Please configure Java in the Settings menu.""")
         patch_frame = tkinter.ttk.Frame(frame)
 
         Label(
-            patch_frame, text="{}:".format(name), width=13, justify=RIGHT
-        ).pack(side=LEFT, fill=BOTH, expand=1)
-        patch_entry = Entry(patch_frame, width=30)
-        patch_entry.pack(side=LEFT, fill=BOTH, expand=1)
+            patch_frame, text="{}:".format(name), width=LABEL_WIDTH, justify=RIGHT
+        ).pack(side=LEFT)
+        patch_entry = Entry(patch_frame)
+        patch_entry.pack(side=LEFT, fill=BOTH, expand=1, padx=1)
         self.components.append(patch_entry)
 
         def browse_tmp():
             browse_for_patch(self.root, patch_entry, save)
 
-        button = Button(patch_frame, text="Browse...", command=browse_tmp, width=6)
-        button.pack(side=LEFT, fill=BOTH, expand=1)
+        button = Button(patch_frame, text="Browse...", command=browse_tmp, width=BUTTON_WIDTH)
+        button.pack(side=LEFT)
         self.components.append(button)
 
-        button = Button(patch_frame, text="", width=5, state=DISABLED, takefocus=False)
-        button.pack(side=LEFT, fill=BOTH, expand=1)
+        button = Button(patch_frame, text="", width=BUTTON_WIDTH, state=DISABLED, takefocus=False)
+        button.pack(side=LEFT)
         button.lower()
 
         patch_frame.pack(fill=BOTH, expand=1)
