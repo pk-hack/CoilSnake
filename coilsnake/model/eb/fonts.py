@@ -1,4 +1,3 @@
-from builtins import object
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbTileArrangement, EbGraphicTileset
 from coilsnake.model.eb.palettes import EbPalette
@@ -30,7 +29,7 @@ class EbFont(object):
 
     def from_block(self, block, tileset_offset, character_widths_offset):
         self.tileset.from_block(block=block, offset=tileset_offset, bpp=1)
-        for i in xrange(96, self.num_characters):
+        for i in range(96, self.num_characters):
             self.tileset.clear_tile(i, color=1)
         self.character_widths = block[character_widths_offset:character_widths_offset + self.num_characters].to_list()
 

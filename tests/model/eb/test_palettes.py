@@ -1,4 +1,3 @@
-from __future__ import print_function
 from PIL import Image
 from nose.tools import assert_equal, assert_set_equal, assert_list_equal, assert_raises, assert_true, assert_false, raises
 

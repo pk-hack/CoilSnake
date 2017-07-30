@@ -1,4 +1,4 @@
-!define py2exeOutputDirectory 'dist'
+!define cxfreezeOutputDirectory 'build/exe.win-amd64-3.6'
 !define exe 'CoilSnake.exe'
 
 CRCCheck on
@@ -29,12 +29,12 @@ Section
     InitPluginsDir
     SetOutPath '$PLUGINSDIR'
 
-    File "${py2exeOutputDirectory}\coilsnake\assets\images\splash.bmp"
+    File "${cxfreezeOutputDirectory}\coilsnake\assets\images\splash.bmp"
     SetBrandingImage /RESIZETOFIT $PLUGINSDIR\splash.bmp
     DetailPrint "Loading CoilSnake..."
     SetDetailsPrint none
 
-    File /r '${py2exeOutputDirectory}\*.*'
+    File /r '${cxfreezeOutputDirectory}\*.*'
 
     GetTempFileName $0
     DetailPrint $0

@@ -1,4 +1,3 @@
-from builtins import object
 import logging
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
@@ -46,7 +45,7 @@ class ExpandedTablesModule(EbModule):
 
     def read_from_project(self, resource_open):
         for table in self.tables.values():
-            with resource_open(table.name.lower(), "yml") as f:
+            with resource_open(table.name.lower(), "yml", True) as f:
                 yml_rep = yml_load(f)
                 num_rows = len(yml_rep)
                 table.recreate(num_rows=num_rows)
@@ -54,5 +53,5 @@ class ExpandedTablesModule(EbModule):
 
     def write_to_project(self, resource_open):
         for table in self.tables.values():
-            with resource_open(table.name.lower(), "yml") as f:
+            with resource_open(table.name.lower(), "yml", True) as f:
                 table.to_yml_file(f)

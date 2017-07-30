@@ -1,4 +1,3 @@
-from builtins import object
 import json
 
 from coilsnake.exceptions.common.exceptions import CoilSnakeError

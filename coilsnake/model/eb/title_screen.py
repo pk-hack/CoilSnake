@@ -1,4 +1,3 @@
-from builtins import object
 CHARS_NUM_TILES = 1024
 
 

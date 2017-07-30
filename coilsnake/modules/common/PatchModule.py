@@ -76,11 +76,11 @@ class PatchModule(GenericModule):
                         rom.mark_allocated(range)
 
     def write_to_project(self, resource_open):
-        with resource_open("patches", "yml") as f:
+        with resource_open("patches", "yml", True) as f:
             yml_dump(self.patches, f, default_flow_style=False)
 
     def read_from_project(self, resource_open):
-        with resource_open("patches", "yml") as f:
+        with resource_open("patches", "yml", True) as f:
             self.patches = yml_load(f)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):

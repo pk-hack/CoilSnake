@@ -17,7 +17,7 @@ class CharacterSubstitutionsModule(EbModule):
     FILE = 'Fonts/character_substitutions'
 
     def read_from_project(self, resource_open):
-        with resource_open("Fonts/character_substitutions", "yml") as f:
+        with resource_open("Fonts/character_substitutions", "yml", True) as f:
             data = yml_load(f)
 
         if data is not None:
@@ -32,7 +32,7 @@ class CharacterSubstitutionsModule(EbModule):
         CharacterSubstitutions.character_substitutions = data
 
     def write_to_project(self, resource_open):
-        with resource_open(self.FILE, 'yml') as f:
+        with resource_open(self.FILE, 'yml', True) as f:
             f.write(MODULE_COMMENT)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):

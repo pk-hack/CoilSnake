@@ -1,4 +1,3 @@
-from builtins import object
 from PIL import Image, ImageDraw
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
@@ -42,7 +41,7 @@ class SwirlFrameRow(EqualityMixin):
 
     def from_image_data(self, image_data, y):
         x1, x2, x3, x4 = None, None, None, None
-        for x in xrange(256):
+        for x in range(256):
             if x1 is None:
                 if image_data[x, y] == 1:
                     x1 = x
@@ -91,7 +90,7 @@ class SwirlFrameRow(EqualityMixin):
 
 class SwirlFrame(object):
     def __init__(self):
-        self.rows = [SwirlFrameRow() for i in xrange(224)]
+        self.rows = [SwirlFrameRow() for i in range(224)]
 
     def from_block(self, block, offset):
         is_mode_01 = block[offset] == 1
@@ -102,7 +101,7 @@ class SwirlFrame(object):
 
         while num_of_scanlines > 0:
             if num_of_scanlines & 0x80 == 0:  # repeating mode
-                for i in xrange(current_scanline, current_scanline + num_of_scanlines):
+                for i in range(current_scanline, current_scanline + num_of_scanlines):
                     self.rows[i].from_block(block, offset, is_mode_01)
 
                 if is_mode_01:
@@ -112,7 +111,7 @@ class SwirlFrame(object):
             else:  # continuous mode
                 num_of_scanlines -= 0x80
 
-                for i in xrange(current_scanline, current_scanline + num_of_scanlines):
+                for i in range(current_scanline, current_scanline + num_of_scanlines):
                     self.rows[i].from_block(block, offset, is_mode_01)
 
                     if is_mode_01:

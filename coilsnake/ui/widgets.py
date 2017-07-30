@@ -1,7 +1,6 @@
-from builtins import object
-import Queue
-from Tkinter import *
-from ttk import *
+import queue
+from tkinter import *
+from tkinter.ttk import *
 
 from abc import abstractmethod
 
@@ -11,7 +10,7 @@ class ThreadSafeConsole(Text):
         Text.__init__(self, master, **options)
         self["bg"] = "white"
         self["fg"] = "black"
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
         self.check_queue()
 
     def write(self, line):
@@ -24,17 +23,24 @@ class ThreadSafeConsole(Text):
         pass
 
     def check_queue(self):
+        lines = []
         while True:
             try:
                 line = self.queue.get(block=False)
-            except Queue.Empty:
+            except queue.Empty:
                 break
             else:
                 if line is None:
+                    # Delete everything in the textbox
+                    lines = []
                     self.delete(1.0, END)
                 else:
-                    self.insert(END, str(line))
-                self.see(END)
+                    lines += str(line)
+
+        # Batch up all of the lines in the queue, then insert them all at once into the textbox
+        if len(lines) > 0:
+            self.insert(END, ''.join(lines))
+            self.see(END)
 
         self.after(50, self.check_queue)
 
@@ -62,7 +68,7 @@ class CoilSnakeGuiProgressBar(Progressbar):
 
     def __init__(self, master, **options):
         Progressbar.__init__(self, master, **options)
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
         self.check_queue()
 
     def set(self, percentage):
@@ -84,7 +90,7 @@ class CoilSnakeGuiProgressBar(Progressbar):
         while True:
             try:
                 command, argument = self.queue.get(block=False)
-            except Queue.Empty:
+            except queue.Empty:
                 break
             else:
                 if command == CoilSnakeGuiProgressBar.COMMAND_SET:

@@ -1,4 +1,3 @@
-from builtins import object
 import logging
 
 import os
@@ -87,7 +86,7 @@ class Project(object):
         yml_dump(tmp, f)
         f.close()
 
-    def get_resource(self, module_name, resource_name, extension="dat", mode="r+"):
+    def get_resource(self, module_name, resource_name, extension="dat", mode="r+", encoding=None, newline=None):
         if module_name not in self._resources:
             self._resources[module_name] = {}
         if resource_name not in self._resources[module_name]:
@@ -95,7 +94,7 @@ class Project(object):
         fname = os.path.join(self._dir_name, self._resources[module_name][resource_name])
         if not os.path.exists(os.path.dirname(fname)):
             os.makedirs(os.path.dirname(fname))
-        f = open(fname, mode)
+        f = open(fname, mode, encoding=encoding, newline=newline)
         return f
 
     def delete_resource(self, module_name, resource_name):

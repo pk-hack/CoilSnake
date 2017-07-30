@@ -1,4 +1,3 @@
-from __future__ import print_function
 from coilsnake.model.eb.blocks import EbCompressibleBlock
 from coilsnake.model.eb.graphics import EbGraphicTileset, EbTileArrangement
 from coilsnake.model.eb.palettes import EbPalette
@@ -131,7 +130,7 @@ class WindowGraphicsModule(EbModule):
                 image.save(image_file, "png")
 
         # Write names
-        with resource_open("WindowGraphics/flavor_names", "txt") as f:
+        with resource_open("WindowGraphics/flavor_names", "txt", True) as f:
             for asm_pointer_offset in FLAVOR_NAME_ASM_POINTER_OFFSETS:
                 print(self.flavor_names[asm_pointer_offset], file=f)
 
@@ -166,7 +165,7 @@ class WindowGraphicsModule(EbModule):
                     m += 3
 
         # Read names
-        with resource_open("WindowGraphics/flavor_names", "txt") as f:
+        with resource_open("WindowGraphics/flavor_names", "txt", True) as f:
             for asm_pointer_offset in FLAVOR_NAME_ASM_POINTER_OFFSETS:
                 name = f.readline()[:-1]
                 self.flavor_names[asm_pointer_offset] = FLAVOR_NAME_ENTRY.from_yml_rep(name)

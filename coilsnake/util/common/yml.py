@@ -34,7 +34,7 @@ def replace_field_in_yml(resource_name, resource_open_r, resource_open_w, key, n
     if new_key is None:
         new_key = key
     value_map = dict((lower_if_str(k), lower_if_str(v)) for k, v in value_map.items())
-    with resource_open_r(resource_name, "yml") as f:
+    with resource_open_r(resource_name, "yml", True) as f:
         data = yml_load(f)
         for i in data:
             if value_map and (lower_if_str(data[i][key]) in value_map):
@@ -44,20 +44,20 @@ def replace_field_in_yml(resource_name, resource_open_r, resource_open_w, key, n
             elif new_key != key:
                 data[i][new_key] = data[i][key]
                 del data[i][key]
-    with resource_open_w(resource_name, "yml") as f:
+    with resource_open_w(resource_name, "yml", True) as f:
         yml_dump(data, f, default_flow_style=False)
 
 
 def convert_values_to_hex_repr_in_yml_file(resource_name, resource_open_r, resource_open_w, keys,
                                            default_flow_style=False):
-    with resource_open_r(resource_name, "yml") as f:
+    with resource_open_r(resource_name, "yml", True) as f:
         out = yaml.load(f, Loader=yaml.CSafeLoader)
         yml_str_rep = yaml.dump(out, default_flow_style=default_flow_style, Dumper=yaml.CSafeDumper)
 
     for key in keys:
         yml_str_rep = convert_values_to_hex_repr(yml_str_rep, key)
 
-    with resource_open_w(resource_name, "yml") as f:
+    with resource_open_w(resource_name, "yml", True) as f:
         f.write(yml_str_rep)
 
 

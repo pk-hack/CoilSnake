@@ -35,9 +35,9 @@ class MapMusicModule(EbModule):
         rom.write_multi(MAP_MUSIC_ASM_POINTER_OFFSET, to_snes_address(pointer_table_offset), 3)
 
     def write_to_project(self, resource_open):
-        with resource_open("map_music", "yml") as f:
+        with resource_open("map_music", "yml", True) as f:
             self.pointer_table.to_yml_file(f, default_flow_style=False)
 
     def read_from_project(self, resource_open):
-        with resource_open("map_music", "yml") as f:
+        with resource_open("map_music", "yml", True) as f:
             self.pointer_table.from_yml_file(f)

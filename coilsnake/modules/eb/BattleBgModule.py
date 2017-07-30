@@ -97,11 +97,11 @@ class BattleBgModule(EbModule):
                 self.palettes[palette_id] = palette
 
     def write_to_project(self, resource_open):
-        with resource_open("bg_data_table", "yml") as f:
+        with resource_open("bg_data_table", "yml", True) as f:
             self.bg_table.to_yml_file(f)
-        with resource_open("bg_scrolling_table", "yml") as f:
+        with resource_open("bg_scrolling_table", "yml", True) as f:
             self.scroll_table.to_yml_file(f)
-        with resource_open("bg_distortion_table", "yml") as f:
+        with resource_open("bg_distortion_table", "yml", True) as f:
             self.distortion_table.to_yml_file(f)
 
         # Export BGs by table entry
@@ -114,11 +114,11 @@ class BattleBgModule(EbModule):
                 image.save(f, "png")
 
     def read_from_project(self, resource_open):
-        with resource_open("bg_data_table", "yml") as f:
+        with resource_open("bg_data_table", "yml", True) as f:
             self.bg_table.from_yml_file(f)
-        with resource_open("bg_scrolling_table", "yml") as f:
+        with resource_open("bg_scrolling_table", "yml", True) as f:
             self.scroll_table.from_yml_file(f)
-        with resource_open("bg_distortion_table", "yml") as f:
+        with resource_open("bg_distortion_table", "yml", True) as f:
             self.distortion_table.from_yml_file(f)
 
         self.backgrounds = []

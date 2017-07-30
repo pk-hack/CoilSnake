@@ -1,4 +1,3 @@
-from __future__ import print_function
 from nose.tools import assert_dict_equal, assert_list_equal, assert_raises, assert_equal, assert_is_instance
 from nose.tools.nontrivial import raises
 

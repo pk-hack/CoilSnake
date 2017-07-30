@@ -155,7 +155,7 @@ class TilesetModule(EbModule):
         self.arrangements_pointer_table.to_block(block=rom, offset=from_snes_address(ARRANGEMENTS_POINTER_TABLE_OFFSET))
 
     def write_map_palette_settings(self, palette_settings, resource_open):
-        with resource_open("map_palette_settings", "yml") as f:
+        with resource_open("map_palette_settings", "yml", True) as f:
             yml_str_rep = yml_dump(palette_settings, default_flow_style=False)
             yml_str_rep = convert_values_to_hex_repr(yml_str_rep, "Event Flag")
             f.write(yml_str_rep)
@@ -183,17 +183,17 @@ class TilesetModule(EbModule):
         # Dump the tilesets
         for i, tileset in enumerate(self.tilesets):
             log.debug("Writing tileset #{}".format(i))
-            with resource_open("Tilesets/" + str(i).zfill(2), "fts") as f:
+            with resource_open("Tilesets/" + str(i).zfill(2), "fts", True) as f:
                 tileset.to_file(f)
 
     def read_from_project(self, resource_open):
         for i, tileset in enumerate(self.tilesets):
             log.debug("Reading tileset #{}".format(i))
-            with resource_open("Tilesets/" + str(i).zfill(2), "fts") as f:
+            with resource_open("Tilesets/" + str(i).zfill(2), "fts", True) as f:
                 tileset.from_file(f)
 
         log.debug("Reading palette settings")
-        with resource_open("map_palette_settings", "yml") as f:
+        with resource_open("map_palette_settings", "yml", True) as f:
             yml_rep = yml_load(f)
             for map_tileset in yml_rep:
                 # Get the draw (normal) tileset
@@ -213,7 +213,7 @@ class TilesetModule(EbModule):
         if old_version == new_version:
             return
         elif old_version <= 6:
-            with resource_open_r("map_palette_settings", "yml") as f:
+            with resource_open_r("map_palette_settings", "yml", True) as f:
                 yml_rep = yml_load(f)
                 for map_tileset in yml_rep.values():
                     for map_palette in map_tileset.values():

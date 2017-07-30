@@ -1,4 +1,3 @@
-from builtins import object
 import array
 import copy
 import os
@@ -100,7 +99,7 @@ class Block(object):
         elif size == 0:
             return
         else:
-            for i in xrange(key, key+size):
+            for i in range(key, key+size):
                 self.data[i] = item & 0xff
                 item >>= 8
 
@@ -260,7 +259,7 @@ class AllocatableBlock(Block):
 
         # First find a free range
         allocated_range = None
-        for i in xrange(0, len(self.unallocated_ranges)):
+        for i in range(0, len(self.unallocated_ranges)):
             begin, end = self.unallocated_ranges[i]
             if size <= end - begin + 1:
                 if (can_write_to is not None) and (not can_write_to(begin)):
@@ -375,7 +374,7 @@ class Rom(AllocatableBlock):
 
     def add_header(self):
         if self.type == 'Earthbound':
-            for i in xrange(0x200):
+            for i in range(0x200):
                 self.data.insert(0, 0)
             self.size += 0x200
         else:
@@ -395,7 +394,7 @@ class Rom(AllocatableBlock):
                     self.data.fromlist([0] * 0x200000)
                     self.size += 0x200000
                     # The data range written below is already marked as used in romtypes.yml
-                    for i in xrange(0x8000, 0x8000 + 0x8000):
+                    for i in range(0x8000, 0x8000 + 0x8000):
                         self[0x400000 + i] = self[i]
         else:
             raise NotImplementedError("Don't know how to expand ROM of type[%s]" % self.type)

@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 
-from distutils.core import setup, Extension
-import py2exe
+from distutils.core import Extension
+from cx_Freeze import setup, Executable
 
 import os
+import sys
+
+# Workaround for tcl/tk with cx_freeze
+# From https://stackoverflow.com/questions/35533803/keyerror-tcl-library-when-i-use-cx-freeze
+PYTHON_INSTALL_DIR = os.path.dirname(os.path.dirname(os.__file__))
+os.environ['TCL_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tcl8.6')
+os.environ['TK_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tk8.6')
 
 data_files = []
 for root, sub_folders, files in os.walk(os.path.join("coilsnake", "assets")):
@@ -12,7 +19,8 @@ for root, sub_folders, files in os.walk(os.path.join("coilsnake", "assets")):
         directory_file_list.append(os.path.join(root, f))
     data_files.append((root, directory_file_list))
 
-include_module_list = ["CCScriptWriter.CCScriptWriter"]
+# Get the list of all dynamically loaded modules
+include_module_list = []
 with open(os.path.join("coilsnake", "assets", "modulelist.txt"), "r") as f:
     for line in f:
         line = line.rstrip("\n")
@@ -20,7 +28,23 @@ with open(os.path.join("coilsnake", "assets", "modulelist.txt"), "r") as f:
             continue
         include_module_list.append("coilsnake.modules." + line)
 
-setup(
+# Manually include tk and tcl dependencies, these aren't automatically included
+build_exe_options = {
+        "packages": include_module_list,
+        'include_files': [
+            os.path.join(PYTHON_INSTALL_DIR, 'DLLs', 'tk86t.dll'),
+            os.path.join(PYTHON_INSTALL_DIR, 'DLLs', 'tcl86t.dll'),
+         ],
+         "optimize": 2}
+
+
+# GUI applications require a different base on Windows (the default is for a
+# console application).
+base = None
+if sys.platform == "win32":
+    base = "Win32GUI"
+
+setup(      
     name="coilsnake",
     version="3.0",
     description="CoilSnake",
@@ -31,11 +55,10 @@ setup(
     ext_modules=[
         Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c"])
     ],
-
-    windows=[{"script": os.path.join("script", "gui.py"),
-              "dest_base": "CoilSnake"}],
-    options={"py2exe": {"includes": include_module_list,
-                        "bundle_files": 2,
-                        "optimize": 2,
-                        "skip_archive": True}},
-)
+    options = {"build_exe": build_exe_options},
+    executables = [Executable(
+        os.path.join("script", "gui.py"),
+        base=base,
+        targetName="CoilSnake.exe",
+        icon= os.path.join("coilsnake", "assets", "images", "icon.ico")
+    )])

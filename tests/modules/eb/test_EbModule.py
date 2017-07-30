@@ -34,7 +34,7 @@ class TestEbModule(BaseTestCase):
     def test_comp(self, comp, decomp):
         a = array.array('B')
         with open(os.path.join(TEST_DATA_DIR, "binaries", "compressible.bin"), 'rb') as f:
-            a.fromstring(f.read())
+            a.frombytes(f.read())
         assert_equal(len(a), 18496)
 
         uncompressed_data = a.tolist()
