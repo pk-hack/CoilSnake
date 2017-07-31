@@ -23,7 +23,6 @@ setup(
     ],
     ext_modules=[
         Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c", "coilsnake/util/eb/exhal/compress.c"],
-        include_dirs=['/usr/include','/usr/local/include'],
         extra_compile_args=["-std=c99"],
         )
     ]
