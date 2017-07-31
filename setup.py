@@ -3,6 +3,7 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
+CFLAGS="-std=c99"
 
 setup(
     name="coilsnake",
