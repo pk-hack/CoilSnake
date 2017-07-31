@@ -18,7 +18,3 @@ submodule:
 
 clean:
 	python setup.py clean
-	cd $(CCSCRIPT_SRC_DIR) ; \
-		make clean
-	rm -f $(ASSETS_CCSCRIPT_EXE)
-	rm -f $(ASSETS_CCSCRIPT_LIB_DIR)/*.ccs
