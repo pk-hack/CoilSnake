@@ -3,8 +3,6 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
-CFLAGS="-std=c99"
-
 setup(
     name="coilsnake",
     version="3.0",
@@ -24,8 +22,11 @@ setup(
         "https://github.com/tripped/ccscript_legacy/tarball/master#egg=ccscript-1.338"
     ],
     ext_modules=[
-        Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c", "coilsnake/util/eb/exhal/compress.c"])
-    ],
+        Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c", "coilsnake/util/eb/exhal/compress.c"],
+        includedirs=['/usr/include','/usr/local/include'],
+        extracompileargs=["-std=c99"],
+        )
+    ]
     entry_points={
         "console_scripts": [
             "coilsnake = coilsnake.ui.gui:main",
