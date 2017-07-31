@@ -25,7 +25,7 @@ setup(
         Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c", "coilsnake/util/eb/exhal/compress.c"],
         extra_compile_args=["-std=c99"],
         )
-    ]
+    ],
     entry_points={
         "console_scripts": [
             "coilsnake = coilsnake.ui.gui:main",
