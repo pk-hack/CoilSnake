@@ -23,7 +23,7 @@ setup(
         "https://github.com/tripped/ccscript_legacy/tarball/master#egg=ccscript-1.338"
     ],
     ext_modules=[
-        Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c"])
+        Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c", "coilsnake/util/eb/exhal/compress.c"])
     ],
     entry_points={
         "console_scripts": [

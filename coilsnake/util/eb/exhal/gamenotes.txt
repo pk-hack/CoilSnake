@@ -1,0 +1,59 @@
+This is an incomplete list of decompression routine addresses for games which are supported by the
+exhal compression tool. You can use these addresses to try finding compressed data by searching a
+disassembly (or doing a binary search, i.e. JSR $87CA -> 20 CA 87; JSL $8087C6 -> 22 C6 87 80.)
+
+Alcahest (SNES) 
+	JP: JSR $87CA (in bank 80) or JSL $8087C6
+	
+Arcana / Card Master (SNES)
+	US/JP: JSR $8766 (in bank 00) or JSL $808762
+
+EarthBound / Mother 2 (SNES)
+	US: JSL $C41A9E
+	JP: JSL $C419EA
+
+HAL's Hole in One Golf / Jumbo Ozaki no Hole in One (SNES)
+	US/EU/JP: JSR $89AA (in bank 00) or JSL $0089A6
+
+HyperZone (SNES)
+	US/EU/JP: JSR $89E6 (in bank 00) or JSL $0089E2
+
+Itoi Shigesato no Bass Tsuri No. 1 (SNES)
+	JP: JSL $01DD8A or JSL $01DEAA
+
+Kirby no KiraKira Kids (SNES)
+	JP: JSR $89DF (in bank 80) or JSL $8089DB
+	
+Kirby Super Star (SNES)
+	US/EU/JP: JSL $00889A
+
+Kirby's Dream Course / Kirby Bowl (SNES)
+	US/EU: JSL $809F18
+	JP:    JSL $809F1A
+
+Kirby's Dream Land 3 (SNES)
+	US/JP: JSL $00AA55 or JSL $00AA63
+
+Othello World (SNES)
+	JP: JSR $CC48 (in bank 00/80)
+
+Okamoto Ayako to Match Play Golf (SNES)
+	JP: JSR $983B (in bank 00)
+
+SimCity (SNES) [unused?]
+	US: JSR $90DD
+	EU: JSR $90D3
+	JP: JSR $90A6
+
+SimCity 2000 (SNES)
+	US/EU/JP: JSL $C10000
+	
+Special Tee Shot (BS-X)
+	JP: JSL $838E13
+
+Super Famicom Box BIOS (SNES)
+	JP: JSR $88A2 (in bank 00) or JSL $00889E
+
+Vegas Stakes (SNES)
+	US/EU: JSR $87DB (in bank 00) or JSL $0087D7
+	JP:    JSR $87F6 (in bank 00) or JSL $0087F2
