@@ -40,6 +40,11 @@ def setup_logging(quiet=False, verbose=False, stream=None):
 
 
 def upgrade_project(project_path, base_rom_filename, progress_bar=None):
+    if not os.path.isdir(project_path):
+        raise RuntimeError("Project directory \"" + project_path + "\" is not a directory.")
+    if not os.path.isfile(base_rom_filename):
+        raise RuntimeError("Base Rom \"" + base_rom_filename + "\" is not a file.")
+
     modules = load_modules()
 
     # Open project
@@ -88,6 +93,11 @@ def upgrade_project(project_path, base_rom_filename, progress_bar=None):
 
 
 def compile_project(project_path, base_rom_filename, output_rom_filename, ccscript_offset=None, progress_bar=None):
+    if not os.path.isdir(project_path):
+        raise RuntimeError("Project directory \"" + project_path + "\" is not a directory.")
+    if not os.path.isfile(base_rom_filename):
+        raise RuntimeError("Base Rom \"" + base_rom_filename + "\" is not a file.")
+
     modules = load_modules()
 
     project_filename = os.path.join(project_path, PROJECT_FILENAME)
@@ -161,6 +171,9 @@ def compile_project(project_path, base_rom_filename, output_rom_filename, ccscri
 
 
 def decompile_rom(rom_filename, project_path, progress_bar=None):
+    if not os.path.isfile(rom_filename):
+        raise RuntimeError("Rom \"" + rom_filename + "\" is not a file.")
+
     modules = load_modules()
 
     rom = Rom()
@@ -202,6 +215,11 @@ def decompile_rom(rom_filename, project_path, progress_bar=None):
 
 
 def decompile_script(rom_filename, project_path, progress_bar=None):
+    if not os.path.isdir(project_path):
+        raise RuntimeError("Project directory \"" + project_path + "\" is not a directory.")
+    if not os.path.isfile(rom_filename):
+        raise RuntimeError("Rom \"" + rom_filename + "\" is not a file.")
+
     rom = Rom()
     rom.from_file(rom_filename)
     if rom.type != "Earthbound":
@@ -228,6 +246,11 @@ def decompile_script(rom_filename, project_path, progress_bar=None):
 
 
 def patch_rom(clean_rom_filename, patched_rom_filename, patch_filename, headered, progress_bar=None):
+    if not os.path.isfile(clean_rom_filename):
+        raise RuntimeError("Clean Rom \"" + clean_rom_filename + "\" is not a file.")
+    if not os.path.isfile(patch_filename):
+        raise RuntimeError("Patch \"" + patch_filename + "\" is not a file.")
+
     if clean_rom_filename != patched_rom_filename:
         copyfile(clean_rom_filename, patched_rom_filename)
 
