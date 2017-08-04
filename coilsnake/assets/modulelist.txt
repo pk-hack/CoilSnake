@@ -1,5 +1,6 @@
 common.UsedRangeModule
 common.PatchModule
+eb.AnimationModule
 eb.CharacterSubstitutionsModule
 eb.CccInterfaceModule
 eb.SkipNamingModule
