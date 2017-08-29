@@ -1,7 +1,6 @@
 from array import array
 
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
-from coilsnake.util.common.helper import to_bytes
 from coilsnake.model.common.blocks import Rom
 from io import BytesIO
 import os
@@ -102,8 +101,8 @@ class IpsPatch(object):
             records = {}
             index = 0
             # Get the first byte of each ROM so that the loop works correctly.
-            s = to_bytes(cr.__getitem__(index), 1)
-            t = to_bytes(hr.__getitem__(index), 1)
+            s = cr.__getitem__(index).to_bytes(1)
+            t = hr.__getitem__(index).to_bytes(1)
             index += 1
             while index <= cr.__len__():
                 if t == s and i is not None:
@@ -119,14 +118,14 @@ class IpsPatch(object):
                         i = index - 1
                         # Check that the offset isn't EOF. If it is, go back one
                         # byte to work around this IPS limitation.
-                        if to_bytes(i, 3) != b"EOF":
+                        if i.to_bytes(3) != b"EOF":
                             records[i] = t
                         else:
                             i -= 1
                             records[i] = hr.to_list()[i]
                 if index < cr.__len__():
-                    s = to_bytes(cr.__getitem__(index), 1)
-                    t = to_bytes(hr.__getitem__(index), 1)
+                    s = cr.__getitem__(index).to_bytes(1)
+                    t = hr.__getitem__(index).to_bytes(1)
                 index += 1
 
         # Write the patch.
@@ -134,8 +133,8 @@ class IpsPatch(object):
             pfile.seek(0)
             pfile.write(b"PATCH")
             for r in sorted(records):
-                pfile.write(to_bytes(r, 3))
-                pfile.write(to_bytes(len(records[r]), 2))
+                pfile.write(r.to_bytes(3))
+                pfile.write(len(records[r]).to_bytes(2))
                 pfile.write(records[r])
             pfile.write(b"EOF")
             pfile.close()
