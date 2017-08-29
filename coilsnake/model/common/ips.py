@@ -104,7 +104,7 @@ class IpsPatch(object):
             s = cr.__getitem__(index).to_bytes(1, byteorder='big')
             t = hr.__getitem__(index).to_bytes(1, byteorder='big')
             index += 1
-            while index <= cr.__len__():
+            while index <= cr.__len__() and index <= hr.__len__():
                 if t == s and i is not None:
                     i = None
                 elif t != s:
