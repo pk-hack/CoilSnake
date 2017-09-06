@@ -286,9 +286,9 @@ class EbTileArrangement(EqualityMixin):
         self.to_image(image, tileset, palette, ignore_subpalettes)
         return image
 
-    def from_image(self, image, tileset, palette, no_flip=False, dedup=True):
+    def from_image(self, image, tileset, palette, no_flip=False, dedup=True, is_animation=False):
         if palette.num_subpalettes == 1:
-            self._from_image_with_single_subpalette(image, tileset, palette, no_flip, dedup)
+            self._from_image_with_single_subpalette(image, tileset, palette, no_flip, dedup, is_animation)
         else:
             # Multiple subpalettes, so we have to figure out which tile should use which subpalette
             palette.from_image(image)
@@ -333,9 +333,9 @@ class EbTileArrangement(EqualityMixin):
                     arrangement_item.subpalette = subpalette_id
                     arrangement_item.is_vertically_flipped = vflip
                     arrangement_item.is_horizontally_flipped = hflip
-                    arrangement_item.is_priority = False
+                    arrangement_item.is_priority = is_animation
 
-    def _from_image_with_single_subpalette(self, image, tileset, palette, no_flip=False, dedup=True):
+    def _from_image_with_single_subpalette(self, image, tileset, palette, no_flip=False, dedup=True, is_animation=False):
         # Don't need to do any subpalette fitting because there's only one subpalette
         palette.from_image(image)
         image_data = image.load()
@@ -359,7 +359,7 @@ class EbTileArrangement(EqualityMixin):
                 arrangement_item.subpalette = 0
                 arrangement_item.is_vertically_flipped = vflip
                 arrangement_item.is_horizontally_flipped = hflip
-                arrangement_item.is_priority = False
+                arrangement_item.is_priority = is_animation
 
     def __getitem__(self, key):
         x, y = key
