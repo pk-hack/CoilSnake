@@ -5,6 +5,7 @@ from cx_Freeze import setup, Executable
 
 import os
 import sys
+import platform
 
 # Workaround for tcl/tk with cx_freeze
 # From https://stackoverflow.com/questions/35533803/keyerror-tcl-library-when-i-use-cx-freeze
@@ -44,6 +45,11 @@ base = None
 if sys.platform == "win32":
     base = "Win32GUI"
 
+extra_compile_args = []
+
+if platform.system() != "Windows":
+    extra_compile_args = ["-std=c99"]
+
 setup(      
     name="coilsnake",
     version="3.0",
@@ -53,7 +59,11 @@ setup(
     data_files=data_files,
 
     ext_modules=[
-        Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c"])
+        Extension(
+            "coilsnake.util.eb.native_comp",
+            ["coilsnake/util/eb/native_comp.c", "coilsnake/util/eb/exhal/compress.c"],
+            extra_compile_args=extra_compile_args,
+        )
     ],
     options = {"build_exe": build_exe_options},
     executables = [Executable(

@@ -6,7 +6,8 @@ RELEASE_DATE = "June 12, 2017"
 WEBSITE = "http://mrtenda.github.io/CoilSnake"
 AUTHOR = "MrTenda"
 ADDITIONAL_CREDITS = """- Some portions based on JHack, created by AnyoneEB
-- Contributions by H.S, Michael1, and many others"""
+- Contributions by H.S, Michael1, John Soklaski,
+  and many others"""
 DEPENDENCIES = [
     {"name": "CoilSnake logo",
      "author": "Rydel"},
@@ -19,8 +20,9 @@ DEPENDENCIES = [
     {"name": "EBYAML",
      "author": "Penguin",
      "url": "https://github.com/PKHackers/EBYAML"},
-    {"name": "EarthBound Compression Library",
-     "author": "Goplat"},
+    {"name": "exhal Compression Library",
+     "author": "Devin Acker",
+     "url": "https://github.com/devinacker/exhal"},
     {"name": "EB++",
      "author": "Rufus",
      "url": "http://goo.gl/BnNqUM"}

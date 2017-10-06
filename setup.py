@@ -2,7 +2,12 @@
 
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
+import platform
 
+extra_compile_args = []
+
+if platform.system() != "Windows":
+      extra_compile_args = ["-std=c99"]
 
 setup(
     name="coilsnake",
@@ -23,7 +28,11 @@ setup(
         "https://github.com/tripped/ccscript_legacy/tarball/master#egg=ccscript-1.338"
     ],
     ext_modules=[
-        Extension("coilsnake.util.eb.native_comp", ["coilsnake/util/eb/native_comp.c"])
+        Extension(
+            "coilsnake.util.eb.native_comp",
+            ["coilsnake/util/eb/native_comp.c", "coilsnake/util/eb/exhal/compress.c"],
+            extra_compile_args=extra_compile_args,
+        )
     ],
     entry_points={
         "console_scripts": [
