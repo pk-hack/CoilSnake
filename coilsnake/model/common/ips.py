@@ -89,12 +89,7 @@ class IpsPatch(object):
             
             # Expand clean ROM as necessary.
             if cr.__len__() < hr.__len__():
-                if cr.__len__() < 0x400000:
-                    cr.expand(0x400000)
-                elif cr.__len__() < 0x600000:
-                    cr.expand(0x600000)
-                else:
-                    cr.expand(patch.last_offset_used)
+                cr.expand(hr.__len__())
             
             # Create the records.
             i = None
