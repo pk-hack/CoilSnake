@@ -96,6 +96,9 @@ class IpsPatch(object):
                 else:
                     cr.expand(patch.last_offset_used)
             
+            print(cr.__len__())
+            print(hr.__len__())
+            
             # Create the records.
             i = None
             records = {}
