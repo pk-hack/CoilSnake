@@ -105,7 +105,7 @@ class Animation:
     def images(self, arrangements=None):
         if not arrangements:
             arrangements = self.arrangements
-        return [arrangement.image(self.graphics, self.palette) for arrangement in self.arrangements]
+        return [arrangement.image(self.graphics, self.palette) for arrangement in arrangements]
 
     def image(self, arrangements=None):
         return self.images(arrangements=arrangements)[0]
