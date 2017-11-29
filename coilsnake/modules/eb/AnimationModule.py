@@ -22,19 +22,18 @@ def write_animation_sequence_pointers_offset(rom, offset):
     # Replace address in lda instructions with our new offset
     offset_low = offset & 0xFFFF
     offset_high = (offset & 0xFF0000) >> 16
-    rom.write_multi(LDA_TABLE_OFFSET_LOW+1, offset_low, 2)
-    rom.write_multi(LDA_TABLE_OFFSET_HIGH+1, offset_high, 1)
+    rom.write_multi(LDA_TABLE_OFFSET_LOW + 1, offset_low, 2)
+    rom.write_multi(LDA_TABLE_OFFSET_HIGH + 1, offset_high, 1)
 
 
 # Extracts the offset of the animation sequence pointers table from the assembly code
-def get_animation_sequence_pointers_offset(rom):
+def read_animation_sequence_pointers_offset(rom):
     # This is an immediate mode lda instruction, so just skip the opcode and grab the operands
-    low = rom.read_multi(LDA_TABLE_OFFSET_LOW+1, 2)
-    high = rom.read_multi(LDA_TABLE_OFFSET_HIGH+1, 1)
+    low = rom.read_multi(LDA_TABLE_OFFSET_LOW + 1, 2)
+    high = rom.read_multi(LDA_TABLE_OFFSET_HIGH + 1, 1)
     offset = (high << 16) | low
 
     return offset
-
 
 
 # Maybe make EbCompressedGraphic, but need support for multiple arrangements
@@ -47,7 +46,7 @@ class Animation:
     TILE_HEIGHT = 8
     TILE_BPP = 2
 
-    def __init__(self, frames, unknown, graphics_data_size=None):   
+    def __init__(self, frames, unknown, graphics_data_size=None):
         self.graphics_data_size = graphics_data_size
         self.frames = frames
         self.unknown = unknown
@@ -60,8 +59,10 @@ class Animation:
 
         # Animations are 2 bpp, so the palette will have four colors... hopefully
         self.palette = EbPalette(num_subpalettes=1, subpalette_length=4)
-        self.graphics = EbGraphicTileset(num_tiles=num_tiles, tile_width=Animation.TILE_WIDTH, tile_height=Animation.TILE_HEIGHT)
-        self.arrangements = [EbTileArrangement(width=Animation.SCREEN_WIDTH_TILES, height=Animation.SCREEN_HEIGHT_TILES) for i in range(self.frames)]
+        self.graphics = EbGraphicTileset(num_tiles=num_tiles, tile_width=Animation.TILE_WIDTH,
+                                         tile_height=Animation.TILE_HEIGHT)
+        self.arrangements = [EbTileArrangement(width=Animation.SCREEN_WIDTH_TILES, height=Animation.SCREEN_HEIGHT_TILES)
+                             for i in range(self.frames)]
 
     def from_block(self, block, offset):
         with EbCompressibleBlock() as compressed_block:
@@ -79,14 +80,16 @@ class Animation:
             # Read in the arrangements (one per frame)
             for i, arrangement in enumerate(self.arrangements):
                 offset = arrangement_offset + (i * arrangement.block_size())
-                arrangement.from_block(block=compressed_block, offset=offset)            
+                arrangement.from_block(block=compressed_block, offset=offset)
 
     def to_block(self, block):
         # Graphics size will be wrong here, because it uses max number of tiles instead of actual
         self.graphics.num_tiles_maximum = self.graphics._num_tiles_used
         self.graphics_data_size = self.graphics.block_size(bpp=Animation.TILE_BPP)
-    
-        total_block_size = self.graphics_data_size + self.palette.block_size() + sum(arrangement.block_size() for arrangement in self.arrangements)
+
+        total_block_size = self.graphics_data_size + self.palette.block_size() + \
+            sum(arrangement.block_size() for arrangement in self.arrangements)
+        
         with EbCompressibleBlock(total_block_size) as compressed_block:
             self.graphics.to_block(block=compressed_block, offset=0, bpp=Animation.TILE_BPP)
             self.palette.to_block(block=compressed_block, offset=self.graphics_data_size)
@@ -95,7 +98,7 @@ class Animation:
             for arrangement in self.arrangements:
                 arrangement.to_block(block=compressed_block, offset=arrangement_offset)
                 arrangement_offset += arrangement.block_size()
-            
+
             compressed_block.compress()
             return block.allocate(data=compressed_block)
 
@@ -110,13 +113,14 @@ class Animation:
     def add_frame_from_image(self, image, frame_id):
         self.arrangements[frame_id].from_image(image, self.graphics, self.palette, is_animation=True)
 
+
 class AnimationModule(EbModule):
     """ Extracts non-battle animations from Earthbound. """
     NAME = "Animations"
 
     # Animation Data and Animation Sequence Pointers Table
     # TODO: This range should be changed dynamically based on the contents of the pointers table
-    #FREE_RANGES = [(0x0C0000, 0x0C2E18)]
+    # FREE_RANGES = [(0x0C0000, 0x0C2E18)]
 
     def __init__(self):
         super(AnimationModule, self).__init__()
@@ -127,7 +131,7 @@ class AnimationModule(EbModule):
 
     def read_from_rom(self, rom):
         self.pointer_table.from_block(
-            rom, offset=from_snes_address(get_animation_sequence_pointers_offset(rom)))
+            rom, offset=from_snes_address(read_animation_sequence_pointers_offset(rom)))
 
         for index in range(self.pointer_table.num_rows):
             row = self.pointer_table[index]
@@ -158,7 +162,8 @@ class AnimationModule(EbModule):
 
         self.pointer_table[0] = [0, 0, 0, 0]  # The first entry in the table is empty for some reason
         for i, animation in enumerate(self.animations):
-            self.pointer_table[i + 1] = [to_snes_address(animation_offsets[i]), animation.graphics_data_size, animation.frames, animation.unknown]
+            self.pointer_table[i + 1] = [to_snes_address(animation_offsets[i]), animation.graphics_data_size,
+                                         animation.frames, animation.unknown]
 
         # Relocate animation pointer table so we can store more than six animations
         new_table_offset = rom.allocate(size=self.pointer_table.size)
@@ -171,23 +176,24 @@ class AnimationModule(EbModule):
         with resource_open("Animations/animations", "yml", True) as f:
             animation_data = yml_load(f)
 
-            # Subtract 1 because the first row is an empty animation
-            num_animations = self.pointer_table.num_rows - 1
+        # Subtract 1 because the first row is an empty animation
+        num_animations = self.pointer_table.num_rows - 1
 
-            for animation_id in range(num_animations):
-                frames = animation_data[animation_id]["frames"]
-                unknown = animation_data[animation_id]["unknown"]
+        for animation_id in range(num_animations):
+            frames = animation_data[animation_id]["frames"]
+            unknown = animation_data[animation_id]["unknown"]
 
-                animation = Animation(frames=frames, unknown=unknown)
-                self.animations.append(animation)
-                for frame_id in range(frames):
-                    with resource_open("Animations/{}/{}".format(animation_id, str(frame_id).zfill(3)), "png") as f:
-                        image = open_indexed_image(f)
-                        try:
-                            animation.add_frame_from_image(image, frame_id)
-                        except Exception as e:
-                            message = "Encountered error while reading frame #{} of Animation #{}".format(frame_id, animation_id)
-                            raise CoilSnakeTraceableError(message, e)
+            animation = Animation(frames=frames, unknown=unknown)
+            self.animations.append(animation)
+            for frame_id in range(frames):
+                with resource_open("Animations/{}/{}".format(animation_id, str(frame_id).zfill(3)), "png") as f:
+                    image = open_indexed_image(f)
+                    try:
+                        animation.add_frame_from_image(image, frame_id)
+                    except Exception as e:
+                        message = "Encountered error while reading frame #{} of Animation #{}".format(frame_id,
+                                                                                                      animation_id)
+                        raise CoilSnakeTraceableError(message, e)
 
     def write_to_project(self, resource_open):
         animation_data = {}
@@ -196,7 +202,7 @@ class AnimationModule(EbModule):
             for j, image in enumerate(animation.images()):
                 with resource_open("Animations/{}/{}".format(i, str(j).zfill(3)), "png") as f:
                     image.save(f, "png")
-        
+
         with resource_open("Animations/animations", "yml", True) as f:
             yml_dump(animation_data, f, default_flow_style=False)
 
