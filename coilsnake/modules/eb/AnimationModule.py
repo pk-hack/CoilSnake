@@ -9,11 +9,33 @@ from coilsnake.util.common.image import open_indexed_image
 from coilsnake.util.common.yml import yml_dump, yml_load
 
 import logging
-from pathlib import Path
 
 log = logging.getLogger(__name__)
 
+LDA_TABLE_OFFSET_LOW = from_snes_address(0xc47ab0)
+LDA_TABLE_OFFSET_HIGH = from_snes_address(0xc47ab5)
 ANIMATION_SEQUENCE_POINTERS_TABLE_DEFAULT_OFFSET = 0xcc2de1
+
+
+# Writes new offset of animation sequence pointers table into the assembly code
+def write_animation_sequence_pointers_offset(rom, offset):
+    # Replace address in lda instructions with our new offset
+    offset_low = offset & 0xFFFF
+    offset_high = (offset & 0xFF0000) >> 16
+    rom.write_multi(LDA_TABLE_OFFSET_LOW+1, offset_low, 2)
+    rom.write_multi(LDA_TABLE_OFFSET_HIGH+1, offset_high, 1)
+
+
+# Extracts the offset of the animation sequence pointers table from the assembly code
+def get_animation_sequence_pointers_offset(rom):
+    # This is an immediate mode lda instruction, so just skip the opcode and grab the operands
+    low = rom.read_multi(LDA_TABLE_OFFSET_LOW+1, 2)
+    high = rom.read_multi(LDA_TABLE_OFFSET_HIGH+1, 1)
+    offset = (high << 16) | low
+
+    return offset
+
+
 
 # Maybe make EbCompressedGraphic, but need support for multiple arrangements
 class Animation:
@@ -94,7 +116,7 @@ class AnimationModule(EbModule):
 
     # Animation Data and Animation Sequence Pointers Table
     # TODO: This range should be changed dynamically based on the contents of the pointers table
-    FREE_RANGES = [(0x0C0000, 0x0C2E18)]  
+    #FREE_RANGES = [(0x0C0000, 0x0C2E18)]
 
     def __init__(self):
         super(AnimationModule, self).__init__()
@@ -105,7 +127,7 @@ class AnimationModule(EbModule):
 
     def read_from_rom(self, rom):
         self.pointer_table.from_block(
-            rom, offset=from_snes_address(ANIMATION_SEQUENCE_POINTERS_TABLE_DEFAULT_OFFSET))
+            rom, offset=from_snes_address(get_animation_sequence_pointers_offset(rom)))
 
         for index in range(self.pointer_table.num_rows):
             row = self.pointer_table[index]
@@ -130,17 +152,20 @@ class AnimationModule(EbModule):
             animation_offsets.append(offset)
 
         # Build up animation pointer table
-        
-        # The first entry in the table is empty for some reason
-        self.pointer_table[0] = [0, 0, 0, 0]
+        new_num_rows = len(self.animations) + 1  # Add 1 because table is prefixed with an empty entry
+        if self.pointer_table.num_rows != new_num_rows:
+            self.pointer_table.recreate(new_num_rows)
+
+        self.pointer_table[0] = [0, 0, 0, 0]  # The first entry in the table is empty for some reason
         for i, animation in enumerate(self.animations):
             self.pointer_table[i + 1] = [to_snes_address(animation_offsets[i]), animation.graphics_data_size, animation.frames, animation.unknown]
 
-        # TODO: Relocate animation pointer table so we can store more than six animations
+        # Relocate animation pointer table so we can store more than six animations
+        new_table_offset = rom.allocate(size=self.pointer_table.size)
+        write_animation_sequence_pointers_offset(rom, to_snes_address(new_table_offset))
 
         # Write animation pointer table to rom
-        self.pointer_table.to_block(
-            rom, offset=from_snes_address(ANIMATION_SEQUENCE_POINTERS_TABLE_DEFAULT_OFFSET))
+        self.pointer_table.to_block(rom, offset=new_table_offset)
 
     def read_from_project(self, resource_open):
         with resource_open("Animations/animations", "yml", True) as f:
