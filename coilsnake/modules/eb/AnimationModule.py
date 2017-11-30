@@ -12,28 +12,41 @@ import logging
 
 log = logging.getLogger(__name__)
 
-LDA_TABLE_OFFSET_LOW = from_snes_address(0xc47ab0)
-LDA_TABLE_OFFSET_HIGH = from_snes_address(0xc47ab5)
-ANIMATION_SEQUENCE_POINTERS_TABLE_DEFAULT_OFFSET = 0xcc2de1
+# The address of the animation table is hardcoded in two places in the rom.
+# It is stored in the operands of a "lda" instruction, which loads the value
+# of its operand into the "a" register. The registers are only 16-bits wide,
+# so each time the 24-bit animation table address is loaded,
+# it takes two of these instructions.
+LDA_TABLE_ADDRESS_LOW = from_snes_address(0xc47ab0)
+LDA_TABLE_ADDRESS_HIGH = from_snes_address(0xc47ab5)
+
+LDA_TABLE_ADDRESS_2_LOW = from_snes_address(0xc47b94)
+LDA_TABLE_ADDRESS_2_HIGH = from_snes_address(0xc47b99)
+
+# This is the default address of the animation table in the rom.
+# We need this so we can look up the format of the table from eb.yml.
+ANIMATION_TABLE_DEFAULT_ADDRESS = 0xcc2de1
 
 
-# Writes new offset of animation sequence pointers table into the assembly code
-def write_animation_sequence_pointers_offset(rom, offset):
-    # Replace address in lda instructions with our new offset
-    offset_low = offset & 0xFFFF
-    offset_high = (offset & 0xFF0000) >> 16
-    rom.write_multi(LDA_TABLE_OFFSET_LOW + 1, offset_low, 2)
-    rom.write_multi(LDA_TABLE_OFFSET_HIGH + 1, offset_high, 1)
+# Writes the new address of animation table into the assembly code
+def write_animation_table_address(rom, address):
+    # Replace operands in "lda" instructions with our new offset
+    address_low = address & 0xFFFF
+    address_high = (address & 0xFF0000) >> 16
+    rom.write_multi(LDA_TABLE_ADDRESS_LOW + 1, address_low, 2)
+    rom.write_multi(LDA_TABLE_ADDRESS_HIGH + 1, address_high, 1)
+    rom.write_multi(LDA_TABLE_ADDRESS_2_LOW + 1, address_low, 2)
+    rom.write_multi(LDA_TABLE_ADDRESS_2_HIGH + 1, address_high, 1)
 
 
-# Extracts the offset of the animation sequence pointers table from the assembly code
-def read_animation_sequence_pointers_offset(rom):
-    # This is an immediate mode lda instruction, so just skip the opcode and grab the operands
-    low = rom.read_multi(LDA_TABLE_OFFSET_LOW + 1, 2)
-    high = rom.read_multi(LDA_TABLE_OFFSET_HIGH + 1, 1)
-    offset = (high << 16) | low
+# Reads the address of the animation table from the assembly code
+def read_animation_table_address(rom):
+    # This is an immediate mode "lda" instruction, so just skip the opcode and grab the operands
+    low = rom.read_multi(LDA_TABLE_ADDRESS_LOW + 1, 2)
+    high = rom.read_multi(LDA_TABLE_ADDRESS_HIGH + 1, 1)
+    address = (high << 16) | low
 
-    return offset
+    return address
 
 
 # Maybe make EbCompressedGraphic, but need support for multiple arrangements
@@ -124,17 +137,17 @@ class AnimationModule(EbModule):
 
     def __init__(self):
         super(AnimationModule, self).__init__()
-        self.pointer_table = eb_table_from_offset(
-            offset=ANIMATION_SEQUENCE_POINTERS_TABLE_DEFAULT_OFFSET
+        self.table = eb_table_from_offset(
+            offset=ANIMATION_TABLE_DEFAULT_ADDRESS
         )
         self.animations = []
 
     def read_from_rom(self, rom):
-        self.pointer_table.from_block(
-            rom, offset=from_snes_address(read_animation_sequence_pointers_offset(rom)))
+        self.table.from_block(
+            rom, offset=from_snes_address(read_animation_table_address(rom)))
 
-        for index in range(self.pointer_table.num_rows):
-            row = self.pointer_table[index]
+        for index in range(self.table.num_rows):
+            row = self.table[index]
             offset = row[0]
             graphics_data_size = row[1]
             frames = row[2]
@@ -155,31 +168,28 @@ class AnimationModule(EbModule):
             offset = animation.to_block(rom)
             animation_offsets.append(offset)
 
-        # Build up animation pointer table
+        # Build up animation table
         new_num_rows = len(self.animations) + 1  # Add 1 because table is prefixed with an empty entry
-        if self.pointer_table.num_rows != new_num_rows:
-            self.pointer_table.recreate(new_num_rows)
+        if self.table.num_rows != new_num_rows:
+            self.table.recreate(new_num_rows)
 
-        self.pointer_table[0] = [0, 0, 0, 0]  # The first entry in the table is empty for some reason
+        self.table[0] = [0, 0, 0, 0]  # The first entry in the table is empty for some reason
         for i, animation in enumerate(self.animations):
-            self.pointer_table[i + 1] = [to_snes_address(animation_offsets[i]), animation.graphics_data_size,
-                                         animation.frames, animation.unknown]
+            self.table[i + 1] = [to_snes_address(animation_offsets[i]), animation.graphics_data_size,
+                                 animation.frames, animation.unknown]
 
-        # Relocate animation pointer table so we can store more than six animations
-        new_table_offset = rom.allocate(size=self.pointer_table.size)
-        write_animation_sequence_pointers_offset(rom, to_snes_address(new_table_offset))
+        # Relocate animation table so we can store more than six animations
+        new_table_offset = rom.allocate(size=self.table.size)
+        write_animation_table_address(rom, to_snes_address(new_table_offset))
 
-        # Write animation pointer table to rom
-        self.pointer_table.to_block(rom, offset=new_table_offset)
+        # Write animation table to rom
+        self.table.to_block(rom, offset=new_table_offset)
 
     def read_from_project(self, resource_open):
         with resource_open("Animations/animations", "yml", True) as f:
             animation_data = yml_load(f)
 
-        # Subtract 1 because the first row is an empty animation
-        num_animations = self.pointer_table.num_rows - 1
-
-        for animation_id in range(num_animations):
+        for animation_id in animation_data:
             frames = animation_data[animation_id]["frames"]
             unknown = animation_data[animation_id]["unknown"]
 
