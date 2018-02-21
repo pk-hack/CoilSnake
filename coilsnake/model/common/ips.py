@@ -87,6 +87,13 @@ class IpsPatch(object):
             cr.from_file(clean_rom)
             hr.from_file(hacked_rom)
             
+            if cr.__len__() > hr.__len__():
+                size_to_use = None
+                if cr.__len__() == 0x400000:
+                    raise CoilSnakeError("Clean ROM greater in size than hacked ROM. Please use a 3 Megabyte clean ROM.")
+                if cr.__len__() == 0x600000
+                    raise CoilSnakeError("Clean ROM greater in size than hacked ROM. Please use a 3 Megabyte or 4 Megabyte clean ROM.")
+            
             # Expand clean ROM as necessary.
             if cr.__len__() < hr.__len__():
                 if hr.__len__() == 0x400000:
