@@ -299,7 +299,7 @@ def patch_rom(clean_rom_filename, patched_rom_filename, patch_filename, headered
 
     log.info("Patched to {} in {:.2f}s".format(patched_rom_filename, time.time() - patching_start_time))
     
-def create_patch(clean_rom, hacked_rom, patch_path, author='author', description='description', title='title', progress_bar=None):
+def create_patch(clean_rom, hacked_rom, patch_path, author, description, title, progress_bar=None):
     """Starts creating the patch in its own thread."""
 
     creating_patch_start_time = time.time()
