@@ -114,7 +114,7 @@ def _patchrom(args):
               headered=header)
 
 def _createpatch(args):
-    print args.author
+    print(args.author)
     create_patch(clean_rom=args.clean_rom,
               hacked_rom=args.hacked_rom,
               patch_path=args.output_path,
