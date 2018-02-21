@@ -48,5 +48,5 @@ class EbpPatch(object):
         self.patch.create(clean_rom, hacked_rom, patch_path)
         
         with open(patch_path, "ab") as pfile:
-            pfile.write(bytes(metadata), 'utf8')
+            pfile.write(bytes(metadata, 'utf8'))
             pfile.close()
