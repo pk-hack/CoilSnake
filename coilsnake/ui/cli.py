@@ -53,9 +53,9 @@ def main():
     createpatch_parser.add_argument("clean_rom")
     createpatch_parser.add_argument("hacked_rom")
     createpatch_parser.add_argument("output_path")
-    createpatch_parser.add_argument("author")
-    createpatch_parser.add_argument("description")
-    createpatch_parser.add_argument("title")
+    createpatch_parser.add_argument("author", nargs='?')
+    createpatch_parser.add_argument("description", nargs='?')
+    createpatch_parser.add_argument("title", nargs='?')
     createpatch_parser.set_defaults(func=_createpatch)
     
     expand_parser = subparsers.add_parser("expand", help="Expand a ROM's size to 32 MBits (4MB) or 48 MBits (6MB). exhi is false for 4MB, and true for 6MB.")
