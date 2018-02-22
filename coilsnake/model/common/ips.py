@@ -1,6 +1,9 @@
 from array import array
 
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
+from coilsnake.model.common.blocks import Rom
+from io import BytesIO
+import os
 
 
 class IpsPatch(object):
@@ -77,5 +80,67 @@ class IpsPatch(object):
                     return False
         return True
 
-    def create(self, clean_rom, modified_rom):
-        raise NotImplementedError("IPS patch creation is not implemented yet.")
+    def create(self, clean_rom, hacked_rom, patch_path):
+        """Creates an IPS patch from the source and target ROMs."""
+
+        with Rom() as cr, Rom() as hr:
+            cr.from_file(clean_rom)
+            hr.from_file(hacked_rom)
+            
+            if cr.__len__() > hr.__len__():
+                if hr.__len__() <= 0x400000 and hr.__len__() > 0x300000:
+                    raise CoilSnakeError("Clean ROM greater in size than hacked ROM. Please use a 3 Megabyte or 4 Megabyte clean ROM.")
+                if hr.__len__() <= 0x300000:
+                    raise CoilSnakeError("Clean ROM greater in size than hacked ROM. Please use a 3 Megabyte clean ROM.")
+            
+            # Expand clean ROM as necessary.
+            if cr.__len__() < hr.__len__():
+                if hr.__len__() == 0x400000:
+                    cr.expand(0x400000)
+                elif hr.__len__() == 0x600000:
+                    cr.expand(0x600000)
+                else:
+                    cr.expand(patch.last_offset_used)
+            
+            # Create the records.
+            i = None
+            records = {}
+            index = 0
+            # Get the first byte of each ROM so that the loop works correctly.
+            s = cr.__getitem__(index).to_bytes(1, byteorder='big')
+            t = hr.__getitem__(index).to_bytes(1, byteorder='big')
+            index += 1
+            while index <= cr.__len__() and index <= hr.__len__():
+                if t == s and i is not None:
+                    i = None
+                elif t != s:
+                    if i is not None:
+                        # Check that the record's size can fit in 2 bytes.
+                        if index - 1 - i == 0xFFFF:
+                            i = None
+                            continue
+                        records[i] += t
+                    else:
+                        i = index - 1
+                        # Check that the offset isn't EOF. If it is, go back one
+                        # byte to work around this IPS limitation.
+                        if i.to_bytes(3, byteorder='big') != b"EOF":
+                            records[i] = t
+                        else:
+                            i -= 1
+                            records[i] = hr.to_list()[i]
+                if index < cr.__len__() and index < hr.__len__():
+                    s = cr.__getitem__(index).to_bytes(1, byteorder='big')
+                    t = hr.__getitem__(index).to_bytes(1, byteorder='big')
+                index += 1
+
+        # Write the patch.
+        with open(patch_path, "wb") as pfile:
+            pfile.seek(0)
+            pfile.write(b"PATCH")
+            for r in sorted(records):
+                pfile.write(r.to_bytes(3, byteorder='big'))
+                pfile.write(len(records[r]).to_bytes(2, byteorder='big'))
+                pfile.write(records[r])
+            pfile.write(b"EOF")
+            pfile.close()

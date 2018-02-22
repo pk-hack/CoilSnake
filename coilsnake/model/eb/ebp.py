@@ -15,7 +15,7 @@ class EbpPatch(object):
     def last_offset_used(self):
 
         return self.patch.last_offset_used
-
+    
     def load(self, filename):
 
         try:
@@ -43,12 +43,10 @@ class EbpPatch(object):
 
         return self.patch.is_applied(rom)
 
-    def create(self, clean_rom, modified_rom, author="", title="", description=""):
+    def create(self, clean_rom, hacked_rom, patch_path, metadata):
 
-        self.patch.create(clean_rom, modified_rom)
-        self.metadata = {
-            "patcher": "EBPatcher",  # Used for compatibility with EBPatcher
-            "author": author,
-            "title": title,
-            "description": description
-        }
+        self.patch.create(clean_rom, hacked_rom, patch_path)
+        
+        with open(patch_path, "ab") as pfile:
+            pfile.write(bytes(metadata, 'utf8'))
+            pfile.close()
