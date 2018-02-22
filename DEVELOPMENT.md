@@ -40,7 +40,7 @@ Please note that the included Vagrant configuration does not run a GUI, meaning 
 ## Windows
 
 1. Install:
-    1. [Python 3.6](https://www.python.org/downloads/release/python-362/) (64-bit version)
+    1. [Python 3.6](https://www.python.org/downloads/release/python-364/) (64-bit version)
     1. [Visual C++ 2015 Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)
     1. [PyYAML](http://pyyaml.org/wiki/PyYAML)
         1. If using Python 3.6, download unoffical wheels [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#pyyaml)
