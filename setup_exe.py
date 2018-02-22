@@ -52,7 +52,7 @@ if platform.system() != "Windows":
 
 setup(      
     name="coilsnake",
-    version="3.0",
+    version="3.33",
     description="CoilSnake",
     url="https://mrtenda.github.io/CoilSnake",
     packages=["coilsnake"],
