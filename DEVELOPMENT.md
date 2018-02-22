@@ -59,7 +59,7 @@ CoilSnake is now installed in development mode. After making code changes to the
 You'll probably want to follow these steps from a fresh virtual machine. You can start up a new Windows 7 VM by the following command: `vagrant up windows`
 
 1. Install:
-    1. [Python 3.6](https://www.python.org/downloads/release/python-362/) (64-bit version)
+    1. [Python 3.6](https://www.python.org/downloads/release/python-364/) (64-bit version)
     1. [Visual C++ 2015 Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)
     1. [NSIS 3.x](http://nsis.sourceforge.net/Download)
     1. [PyYAML](http://pyyaml.org/wiki/PyYAML)
