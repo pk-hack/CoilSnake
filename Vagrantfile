@@ -20,11 +20,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "windows" do |windows|
-    box_name = "win7-ie11"
-    box_repo = "http://aka.ms"
+    box_name = "msedge.win10.vagrant"
 
     windows.vm.box = "modern.ie/" + box_name
-    windows.vm.box_url = box_repo + "/vagrant-" + box_name
+    windows.vm.box_url = "https://vagrantcloud.com/Microsoft/boxes/EdgeOnWindows10/versions/1.0/providers/virtualbox.box"
     windows.vm.boot_timeout = 500
 
     windows.vm.network "forwarded_port", guest: 3389, host: 3389, id: "rdp", auto_correct: true
