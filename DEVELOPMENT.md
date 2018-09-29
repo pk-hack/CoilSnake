@@ -41,10 +41,9 @@ Please note that the included Vagrant configuration does not run a GUI, meaning 
 
 1. Install:
     1. [Python 3.6](https://www.python.org/downloads/release/python-364/) (64-bit version)
-    1. [Visual C++ 2015 Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)
+    1. [Visual C++ 2017 Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2017)
     1. [PyYAML](http://pyyaml.org/wiki/PyYAML)
-        1. If using Python 3.6, download unoffical wheels [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#pyyaml)
-        1. `pip install PyYAML-3.12-cp36-cp36m-win_amd64.whl`
+        1. `pip install PyYAML-xxx-win_amd64.whl`
 1. Using your favorite git client, clone the [CoilSnake](https://github.com/mrtenda/CoilSnake) repository.
     1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/mrtenda/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
 1. Open the command line and cd to your local CoilSnake git repository's main directory.
@@ -60,11 +59,10 @@ You'll probably want to follow these steps from a fresh virtual machine. You can
 
 1. Install:
     1. [Python 3.6](https://www.python.org/downloads/release/python-364/) (64-bit version)
-    1. [Visual C++ 2015 Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)
+    1. [Visual C++ 2017 Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2017)
     1. [NSIS 3.x](http://nsis.sourceforge.net/Download)
     1. [PyYAML](http://pyyaml.org/wiki/PyYAML)
-        1. If using Python 3.6, download unoffical wheels [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#pyyaml)
-        1. `pip install PyYAML-3.12-cp36-cp36m-win_amd64.whl`
+        1. `pip install PyYAML-xxx-win_amd64.whl`
     1. [cx_freeze](https://anthony-tuininga.github.io/cx_Freeze/)
         1. `pip install cx_Freeze`
 1. Using your favorite git client, clone the [CoilSnake](https://github.com/mrtenda/CoilSnake) repository.
