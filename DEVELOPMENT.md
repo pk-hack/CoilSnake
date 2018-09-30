@@ -55,7 +55,7 @@ CoilSnake is now installed in development mode. After making code changes to the
 
 ### Creating a standalone Windows executable
 
-You'll probably want to follow these steps from a fresh virtual machine. You can start up a new Windows 7 VM by the following command: `vagrant up windows`
+You'll probably want to follow these steps from a fresh virtual machine. You can start up a new Windows 10 VM by the following command: `vagrant up windows`
 
 1. Install:
     1. [Python 3.6](https://www.python.org/downloads/release/python-364/) (64-bit version)
