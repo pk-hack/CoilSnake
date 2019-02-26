@@ -81,14 +81,20 @@ class SpriteGroupModule(EbModule):
                     del image
 
                 self.groups.append(group)
+                approximate = -1
 
                 # Assign the palette number to the sprite
                 for j in range(8):
                     if palette.list() == self.palette_table[j][0].list():
                         group.palette = j
                         break
+                    elif approximate == -1 and palette.list()[3:] == self.palette_table[j][0].list()[3:]:
+                        approximate = j
                 else:
-                    raise CoilSnakeError("Sprite Group #" + str(i).zfill(3) + " uses an invalid palette")
+                    if approximate != -1:
+                        group.palette = approximate
+                    else:
+                        raise CoilSnakeError("Sprite Group #" + str(i).zfill(3) + " uses an invalid palette")
 
     def write_to_rom(self, rom):
         with Block(size=sum(x.block_size() for x in self.groups)) as block:
