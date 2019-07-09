@@ -21,6 +21,12 @@ BG_ANIM_PALETTE_POINTER = 0xEC9D
 BG_PALETTE_POINTER = 0xECC6
 BG_PALETTE_POINTER_SECONDARY = 0xED6B
 
+# Kirby debug menu sprite assembly
+KIRBY_INDEX_AND_ASM_POINTER = 0x2FFB8
+KIRBY_INDEX_AND_ASM_POINTER_SIZE = 3
+KIRBY_INDEX_SIZE = 2
+KIRBY_INDEX_AND_ASM_SIZE = KIRBY_INDEX_SIZE + 45
+
 # Background data parameters
 BG_ARRANGEMENT_WIDTH = 32
 BG_ARRANGEMENT_HEIGHT = 32
@@ -209,7 +215,7 @@ class TitleScreenModule(EbModule):
     def write_to_rom(self, rom):
         self.write_background_data_to_rom(rom)
         self.write_chars_data_to_rom(rom)
-        self.write_chars_layouts_to_rom(rom)
+        self.write_chars_layouts_and_kirby_data_to_rom(rom)
 
     def write_background_data_to_rom(self, rom):
         # Write the background tileset data
@@ -267,11 +273,11 @@ class TitleScreenModule(EbModule):
                 rom, block, CHARS_ANIM_PALETTE_POINTER
             )
 
-    def write_chars_layouts_to_rom(self, rom):
+    def write_chars_layouts_and_kirby_data_to_rom(self, rom):
         block_size = sum(
             TitleScreenLayoutEntry.block_size()*len(c)
             for c in self.chars_layouts
-        )
+        ) + KIRBY_INDEX_AND_ASM_SIZE
 
         # Ensure the new data is located in only one bank
         # Spreading it across two banks might make part of it inaccessible.
@@ -285,11 +291,23 @@ class TitleScreenModule(EbModule):
                 for entry in layout:
                     entry.to_block(block=block, offset=offset)
                     offset += entry.block_size()
-            new_offset = to_snes_address(rom.allocate(
+
+            # Move the Kirby debug menu sprite assembly to its new location
+            kirby_index_and_asm_offset = from_snes_address(
+                rom[KIRBY_INDEX_AND_ASM_POINTER] |
+                (rom[KIRBY_INDEX_AND_ASM_POINTER + 1] << 8) |
+                (rom[KIRBY_INDEX_AND_ASM_POINTER + 2] << 16)
+            )
+
+            block[offset:offset + KIRBY_INDEX_AND_ASM_SIZE] = \
+                rom[kirby_index_and_asm_offset:kirby_index_and_asm_offset + KIRBY_INDEX_AND_ASM_SIZE]
+
+            rom_offset = rom.allocate(
                 data=block,
                 size=block_size,
                 can_write_to=can_write_to
-            ))
+            )
+            new_offset = to_snes_address(rom_offset)
 
             # Write the offsets to the layouts to the ROM
             new_bank = new_offset >> 16
@@ -301,6 +319,14 @@ class TitleScreenModule(EbModule):
                 ]
                 data_offset += len(layout)*TitleScreenLayoutEntry.block_size()
 
+            # Fix pointers for the Kirby sprite assembly
+            kirby_index_offset = (rom_offset & 0xFF0000) + data_offset
+            kirby_asm_offset = kirby_index_offset + KIRBY_INDEX_SIZE
+            rom[KIRBY_INDEX_AND_ASM_POINTER:KIRBY_INDEX_AND_ASM_POINTER + KIRBY_INDEX_AND_ASM_POINTER_SIZE] = \
+                [kirby_index_offset & 0xFF, (kirby_index_offset & 0xFF00) >> 8, new_bank]
+            rom[kirby_index_offset:kirby_asm_offset] = \
+                [kirby_asm_offset & 0xFF, (kirby_asm_offset & 0xFF00) >> 8]
+
             # Change the offset for the character layouts
             # The way this normally works is that EarthBound stores the address
             # of the bank holding the data (0xE1 by default, hence the 0x210000
@@ -308,7 +334,7 @@ class TitleScreenModule(EbModule):
             # address. However, reallocating the data may have changed its
             # bank, so we need to manually set it to the new bank address.
 
-            # In order to change the offset, we are replacing a LDA instruction 
+            # In order to change the offset, we are replacing a LDA instruction
             # which addresses a direct page (0xA5) with a LDA instruction
             # that treats its operand as the constant to load (0xA9)
             # See https://wiki.superfamicom.org/snes/show/65816+Reference#instructions.
