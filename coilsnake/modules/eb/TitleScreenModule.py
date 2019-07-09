@@ -22,7 +22,6 @@ BG_PALETTE_POINTER = 0xECC6
 BG_PALETTE_POINTER_SECONDARY = 0xED6B
 
 # Kirby debug menu sprite assembly
-KIRBY_INDEX_AND_ASM_OFFSET = 0x2FF5BB
 KIRBY_INDEX_AND_ASM_POINTER = 0x2FFB8
 KIRBY_INDEX_AND_ASM_POINTER_SIZE = 3
 KIRBY_INDEX_SIZE = 2
@@ -294,7 +293,14 @@ class TitleScreenModule(EbModule):
                     offset += entry.block_size()
 
             # Move the Kirby debug menu sprite assembly to its new location
-            block[offset:offset + KIRBY_INDEX_AND_ASM_SIZE] = rom[KIRBY_INDEX_AND_ASM_OFFSET:KIRBY_INDEX_AND_ASM_OFFSET + KIRBY_INDEX_AND_ASM_SIZE]
+            kirby_index_and_asm_offset = from_snes_address(
+                rom[KIRBY_INDEX_AND_ASM_POINTER] |
+                (rom[KIRBY_INDEX_AND_ASM_POINTER + 1] << 8) |
+                (rom[KIRBY_INDEX_AND_ASM_POINTER + 2] << 16)
+            )
+
+            block[offset:offset + KIRBY_INDEX_AND_ASM_SIZE] = \
+                rom[kirby_index_and_asm_offset:kirby_index_and_asm_offset + KIRBY_INDEX_AND_ASM_SIZE]
 
             rom_offset = rom.allocate(
                 data=block,
@@ -316,8 +322,10 @@ class TitleScreenModule(EbModule):
             # Fix pointers for the Kirby sprite assembly
             kirby_index_offset = (rom_offset & 0xFF0000) + data_offset
             kirby_asm_offset = kirby_index_offset + KIRBY_INDEX_SIZE
-            rom[KIRBY_INDEX_AND_ASM_POINTER:KIRBY_INDEX_AND_ASM_POINTER + KIRBY_INDEX_AND_ASM_POINTER_SIZE] = [kirby_index_offset & 0xFF, (kirby_index_offset & 0xFF00) >> 8, new_bank]
-            rom[kirby_index_offset:kirby_asm_offset] = [kirby_asm_offset & 0xFF, (kirby_asm_offset & 0xFF00) >> 8]
+            rom[KIRBY_INDEX_AND_ASM_POINTER:KIRBY_INDEX_AND_ASM_POINTER + KIRBY_INDEX_AND_ASM_POINTER_SIZE] = \
+                [kirby_index_offset & 0xFF, (kirby_index_offset & 0xFF00) >> 8, new_bank]
+            rom[kirby_index_offset:kirby_asm_offset] = \
+                [kirby_asm_offset & 0xFF, (kirby_asm_offset & 0xFF00) >> 8]
 
             # Change the offset for the character layouts
             # The way this normally works is that EarthBound stores the address
