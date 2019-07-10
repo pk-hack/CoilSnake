@@ -18,15 +18,18 @@ PALETTE_POINTER = 0x04C3C3
 ARRANGEMENT_WIDTH = 32
 ARRANGEMENT_HEIGHT = 32
 NUM_SUBPALETTES = 8
-NUM_TILES = 2048
+NUM_TILES = 1024
 TILE_WIDTH = 8
 TILE_HEIGHT = 8
 TILESET_BPP = 4
 SUBPALETTE_LENGTH = 16
+NESS_OFFSET = 0x0000
+JEFF_OFFSET = 0x8000
 
-DEATH_SCREEN_PATH = "Logos/DeathScreen"
+OLD_DEATH_SCREEN_PATH = "Logos/DeathScreen"
+NESS_DEATH_SCREEN_PATH = "Logos/DeathScreen_Ness"
+JEFF_DEATH_SCREEN_PATH = "Logos/DeathScreen_Jeff"
 DEATH_SCREEN_SUBPALETTES_PATH = "Logos/DeathScreen_palettes"
-
 
 class DeathScreenModule(EbModule):
     """Extracts the death screen data from EarthBound."""
@@ -35,13 +38,16 @@ class DeathScreenModule(EbModule):
     FREE_RANGES = [
         (0x21cfaf, 0x21d4f3),  # Tileset
         (0x21d4f4, 0x21d5e7),  # Palette
-        (0x21d5e8, 0x21d6e1)  # Arrangement
+        (0x21d5e8, 0x21d6e1)   # Arrangement
     ]
 
     def __init__(self):
         super(DeathScreenModule, self).__init__()
 
-        self.tileset = EbGraphicTileset(
+        self.ness_tileset = EbGraphicTileset(
+            num_tiles=NUM_TILES, tile_width=TILE_WIDTH, tile_height=TILE_HEIGHT
+        )
+        self.jeff_tileset = EbGraphicTileset(
             num_tiles=NUM_TILES, tile_width=TILE_WIDTH, tile_height=TILE_HEIGHT
         )
         self.arrangement = EbTileArrangement(
@@ -60,7 +66,8 @@ class DeathScreenModule(EbModule):
                     read_asm_pointer(rom, TILESET_POINTER)
                 )
             )
-            self.tileset.from_block(block=block, offset=0, bpp=TILESET_BPP)
+            self.ness_tileset.from_block(block=block, offset=NESS_OFFSET, bpp=TILESET_BPP)
+            self.jeff_tileset.from_block(block=block, offset=JEFF_OFFSET, bpp=TILESET_BPP)
 
             # Read the arrangement data
             block.from_compressed_block(
@@ -80,9 +87,10 @@ class DeathScreenModule(EbModule):
 
     def write_to_rom(self, rom):
         # Write the tileset data
-        block_size = self.tileset.block_size(bpp=TILESET_BPP)
+        block_size = self.ness_tileset.block_size(bpp=TILESET_BPP) + self.jeff_tileset.block_size(bpp=TILESET_BPP)
         with EbCompressibleBlock(block_size) as block:
-            self.tileset.to_block(block=block, offset=0, bpp=TILESET_BPP)
+            self.ness_tileset.to_block(block=block, offset=NESS_OFFSET, bpp=TILESET_BPP)
+            self.jeff_tileset.to_block(block=block, offset=JEFF_OFFSET, bpp=TILESET_BPP)
             self._write_compressed_block(rom, block, TILESET_POINTER)
 
         # Write the tile arrangement data
@@ -100,9 +108,12 @@ class DeathScreenModule(EbModule):
             )
 
     def read_from_project(self, resource_open):
-        with resource_open(DEATH_SCREEN_PATH, "png") as f:
+        with resource_open(NESS_DEATH_SCREEN_PATH, "png") as f:
             image = open_indexed_image(f)
-            self.arrangement.from_image(image, self.tileset, self.palette)
+            self.arrangement.from_image(image, self.ness_tileset, self.palette, True, False)
+        with resource_open(JEFF_DEATH_SCREEN_PATH, "png") as f:
+            image = open_indexed_image(f)
+            self.jeff_tileset.from_image(image, self.arrangement, self.palette)
         with resource_open(DEATH_SCREEN_SUBPALETTES_PATH, "yml", True) as f:
             subpalettes = yml_load(f)
             for subpalette, tiles in subpalettes.items():
@@ -110,8 +121,11 @@ class DeathScreenModule(EbModule):
                     self.arrangement[x, y].subpalette = subpalette
 
     def write_to_project(self, resource_open):
-        with resource_open(DEATH_SCREEN_PATH, "png") as f:
-            image = self.arrangement.image(self.tileset, self.palette, True)
+        with resource_open(NESS_DEATH_SCREEN_PATH, "png") as f:
+            image = self.arrangement.image(self.ness_tileset, self.palette, True)
+            image.save(f)
+        with resource_open(JEFF_DEATH_SCREEN_PATH, "png") as f:
+            image = self.arrangement.image(self.jeff_tileset, self.palette, True)
             image.save(f)
         with resource_open(DEATH_SCREEN_SUBPALETTES_PATH, "yml", True) as f:
             subpalettes = {}
@@ -126,9 +140,20 @@ class DeathScreenModule(EbModule):
     def upgrade_project(
             self, old_version, new_version, rom, resource_open_r,
             resource_open_w, resource_delete):
-        if old_version < 9:
-            self.read_from_rom(rom)
-            self.write_to_project(resource_open_w)
+
+        if old_version == new_version:
+            return
+
+        self.read_from_rom(rom)
+        self.write_to_project(resource_open_w)
+
+        if old_version == 9:
+            with resource_open_r(OLD_DEATH_SCREEN_PATH, "png") as old:
+                with resource_open_w(NESS_DEATH_SCREEN_PATH, "png") as new:
+                    image = open_indexed_image(old)
+                    image.save(new)
+
+            resource_delete(OLD_DEATH_SCREEN_PATH)
 
     @staticmethod
     def _write_compressed_block(rom, compressed_block, pointer):
