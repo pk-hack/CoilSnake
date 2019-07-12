@@ -1,76 +1,76 @@
+
 # CoilSnake Development Guide
 
-## Linux
+## Environment
 
-Because Python is notorious for being difficult to maintain a clean installation of, I recommend developing either in a Python virtualenv or in an actual virtual machine.
+Because Python is notorious for being difficult to maintain a clean installation of, it is recommended to develop either in a Python virtualenv or in an actual virtual machine.
 
 ### Using a virtualenv
 
-1. `apt-get install` any system dependencies requried by CoilSnake. These are listed in the official [CoilSnake installation instructions](https://mrtenda.github.io/CoilSnake/download.html).
 1. `sudo pip install virtualenv`
 1. `virtualenv CoilSnake_virtualenv --no-site-packages`
 1. `source CoilSnake_virtualenv/bin/activate`
-  * The above command sets up your CoilSnake virtual development environment. When you open a new terminal for CoilSnake development, always re-run the above command in order to re-enter the virtual development environment. For more information about how this works, see [virtualenv's documentation](https://pypi.python.org/pypi/virtualenv/1.7).
-1. `git clone --recursive https://github.com/mrtenda/CoilSnake.git`
-1. `cd CoilSnake`
-1. `make`
-1. `python setup.py develop`
-
-CoilSnake is now installed in development mode in its own virtualenv, so it does not interfere with other parts of your system. After making code changes to the source, run your code by launching CoilSnake's GUI or CLI:
-
-    python script/gui.py
-    # or...
-    python script/cli.py
+    - The above command sets up your CoilSnake virtual development environment. When you open a new terminal for CoilSnake development, always re-run the above command in order to re-enter the virtual development environment. For more information about how this works, see [virtualenv's documentation](https://pypi.python.org/pypi/virtualenv/1.7).
+1. Follow the steps mentioned below for your respective system.
 
 ### Using a virtual machine
 
-1. `git clone --recursive https://github.com/mrtenda/CoilSnake.git`
-1. `cd CoilSnake`
-1. `vagrant up ubuntu`
-1. `vagrant ssh ubuntu`
-1. `cd /vagrant`
-1. `sudo python setup.py develop`
+For Windows, you'll probably want to follow the steps from a fresh virtual machine. You can start up a new Windows 10 VM by the following command: `vagrant up windows`
 
-CoilSnake is now installed in development mode on the virtual machine. After making code changes to the source, you can test it by running CoilSnake's CLI interface.
+To make a Ubuntu VM, you can follow these instructions:
 
-    python script/cli.py
-    
-Please note that the included Vagrant configuration does not run a GUI, meaning that you won't be able to test CoilSnake's GUI with it.
+```
+vagrant up ubuntu
+vagrant ssh ubuntu
+cd /vagrant
+```
+
+Please note that the included Vagrant configuration for Ubuntu does not run a GUI, meaning that you won't be able to test CoilSnake's GUI with it.
+
+After installing a VM, follow the steps mentioned below for your respective system ([Linux](#linux)/[Windows](#windows)).
+
+## Linux
+
+1. Install any system dependencies required by CoilSnake. For Ubuntu, these are listed in the official [CoilSnake installation instructions](https://mrtenda.github.io/CoilSnake/download.html).
+1. Follow the '[Generic](#generic)' instructions below.
 
 ## Windows
 
 1. Install:
-    1. [Python 3.6](https://www.python.org/downloads/release/python-364/) (64-bit version)
-    1. [Visual C++ 2017 Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2017)
-    1. [PyYAML](http://pyyaml.org/wiki/PyYAML)
-        1. `pip install PyYAML-xxx-win_amd64.whl`
+    1. [Python 3.7](https://www.python.org/downloads/release/python-374/) (32-bit version)
+    1. [Visual C++ 2019 Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16)
+        - Select "C++ build tools" under the "Workloads" tab and make sure these are ticked:
+            1. MSVC v140 - VS 2015 C++ x64/x86 build tools
+            1. Windows 10 SDK
+1. Prepare the build environment:
+    1. `set PATH=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC;C:\Program Files\Windows Kits\10\bin\10.0.17763.0\x86;%PATH%`
+        - You may need to run this command every time you start an instance of the command line (or add these paths to the system environment variables).
+    1. `vcvarsall.bat x86`
+1. Follow the '[Generic](#generic)' instructions below.
+
+## Generic
+
 1. Using your favorite git client, clone the [CoilSnake](https://github.com/mrtenda/CoilSnake) repository.
-    1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/mrtenda/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
-1. Open the command line and cd to your local CoilSnake git repository's main directory.
-1. `python setup.py develop`
+1. Open the command line and `cd` to your local CoilSnake git repository's main directory.
+1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/mrtenda/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
+    - Alternatively, using the command line git, run: `git submodule update --init --recursive`
+1. Install dependencies:
+    - `python setup.py develop`
+1. Build additional coilsnake dependencies:
+    - `python setup.py build_ext`
 
-CoilSnake is now installed in development mode. After making code changes to the source, run your code by launching CoilSnake's GUI:
+CoilSnake is now installed in development mode. After making code changes to the source, run your code by launching CoilSnake's GUI or CLI:
 
-    python .\script\gui.py
+```
+python3 script/gui.py
+# or...
+python3 script/cli.py
+```
 
-### Creating a standalone Windows executable
+### Creating a standalone executable
 
-You'll probably want to follow these steps from a fresh virtual machine. You can start up a new Windows 10 VM by the following command: `vagrant up windows`
-
-1. Install:
-    1. [Python 3.6](https://www.python.org/downloads/release/python-364/) (64-bit version)
-    1. [Visual C++ 2017 Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2017)
-    1. [NSIS 3.x](http://nsis.sourceforge.net/Download)
-    1. [PyYAML](http://pyyaml.org/wiki/PyYAML)
-        1. `pip install PyYAML-xxx-win_amd64.whl`
-    1. [cx_freeze](https://anthony-tuininga.github.io/cx_Freeze/)
-        1. `pip install cx_Freeze`
-1. Using your favorite git client, clone the [CoilSnake](https://github.com/mrtenda/CoilSnake) repository.
-    1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/mrtenda/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
-1. Open the command line and cd to your local CoilSnake git repository's main directory.
-1. Ensure CoilSnake dependencies are installed in a non-compressed form using pip (cx_freeze doesn't work well with compressed eggs)
-    1. `pip install --process-dependency-links .`
-1. Create the CoilSnake EXE
-    1. `python setup.py develop`
-    1. `python setup_exe.py build_exe`
-1. Run `coilsnake.nsi`
+1. After following the steps for your system, install this additional dependency:
+    - [pyinstaller](https://www.pyinstaller.org) - `pip install pyinstaller`
+1. Create the CoilSnake executable:
+    - `python setup_exe.py`
+1. Run the output file under the 'dist' directory.

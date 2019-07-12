@@ -21,11 +21,11 @@ setup(
         "Pillow>=3.0.0",
         "PyYAML>=3.11",
         "CCScriptWriter>=1.2",
-        "ccscript>=1.338"
+        "ccscript>=1.339"
     ],
     dependency_links=[
         "https://github.com/Lyrositor/CCScriptWriter/tarball/master#egg=CCScriptWriter-1.2",
-        "https://github.com/tripped/ccscript_legacy/tarball/master#egg=ccscript-1.338"
+        "https://github.com/jamsilva/ccscript_legacy/tarball/master#egg=ccscript-1.339"
     ],
     ext_modules=[
         Extension(
