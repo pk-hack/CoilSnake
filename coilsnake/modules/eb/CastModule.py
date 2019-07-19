@@ -1,8 +1,11 @@
 import logging
 
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
+from coilsnake.model.common.ips import IpsPatch
 from coilsnake.model.eb.graphics import EbCastMiscGraphic, EbCastNameGraphic
+from coilsnake.model.eb.palettes import EbPalette
 from coilsnake.model.eb.table import EbStandardNullTerminatedTextTableEntry
+from coilsnake.modules.common.PatchModule import get_ips_filename
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.image import open_image, open_indexed_image
 from coilsnake.util.common.yml import yml_dump, yml_load
@@ -26,35 +29,56 @@ CAST_NAME_GRAPHICS_ASM_POINTER_OFFSET = 0x4e446
 CAST_GRAPHICS_BLOCK_BEGIN = 0x21d815
 CAST_GRAPHICS_BLOCK_END = 0x21e4e7
 
+DYNAMIC_CAST_NAME_MODES = ['none', 'prefix', 'suffix']
 
 class EbDynamicCastName(object):
-    def __init__(self, key, asm_offset):
+    def __init__(self, key, asm_pointer_offset, custom_asm_offset):
         self.key = key
-        self.asm_offset = asm_offset
+        self.asm_pointer_offset = asm_pointer_offset
         self.table_entry = EbStandardNullTerminatedTextTableEntry.create(12)
-        self.name = ''
-        self.prefixed = True
+        self.text = ''
+        self.mode = 'none'
+        self.patch_name_prefix = key.replace('\'', '').replace(' ', '_').lower()
+        self.custom_asm_offset = custom_asm_offset
 
     def read_from_rom(self, rom):
-        self.name = self.table_entry.from_block(rom, from_snes_address(read_asm_pointer(block=rom, offset=self.asm_offset)))
-        self.prefixed = (rom.read_multi(self.asm_offset - 0x14, 4) != 0xeaeaeaea)
+        self.text = self.table_entry.from_block(rom, from_snes_address(read_asm_pointer(block=rom, offset=self.asm_pointer_offset)))
+
+        for mode in DYNAMIC_CAST_NAME_MODES:
+            if self.get_patch(mode, rom.type).is_applied(rom):
+                self.mode = mode
+                break
+        else:
+            raise CoilSnakeError('Unable to detect dynamic cast name mode for entry with text \'{}\'.'.format(self.text))
 
     def write_to_rom(self, rom):
-        loc = rom.allocate(size=len(self.name) + 1)
-        write_asm_pointer(block=rom, offset=self.asm_offset, pointer=to_snes_address(loc))
-        self.table_entry.to_block(rom, loc, self.name)
+        loc = rom.allocate(size=len(self.text) + 1)
+        addr = to_snes_address(loc)
+        write_asm_pointer(block=rom, offset=self.asm_pointer_offset, pointer=addr)
+        self.table_entry.to_block(rom, loc, self.text)
+        self.get_patch(self.mode, rom.type).apply(rom)
 
-        if not self.prefixed:
-            rom.write_multi(self.asm_offset - 0x14, 0xeaeaeaea, 4)
+        if self.mode == 'prefix':
+            rom.write_multi(self.custom_asm_offset + 9,  addr & 0xFFFF,       2)
+            rom.write_multi(self.custom_asm_offset + 14, (addr >> 16) & 0xFF, 2)
+            rom.write_multi(self.custom_asm_offset + 26, len(self.text),      2)
+
+    def get_patch(self, mode, rom_type):
+        ips = IpsPatch()
+        ips.load(get_ips_filename(rom_type, '{}_{}'.format(self.patch_name_prefix, mode)), 0)
+        return ips
 
     def read_from_yml_data(self, yml_data):
-        self.name = yml_data[self.key]['name']
-        self.prefixed = yml_data[self.key]['prefixed']
+        self.text = yml_data[self.key]['text']
+        self.mode = yml_data[self.key]['mode']
+
+        if self.mode not in DYNAMIC_CAST_NAME_MODES:
+            raise InvalidArgumentError('Invalid dynamic cast name mode \'{}\' for entry with text \'{}\'. Valid modes are {}'.format(self.mode, self.name, DYNAMIC_CAST_NAME_MODES))
 
     def write_to_yml_data(self, yml_data):
         yml_data[self.key] = {
-            'name': self.name,
-            'prefixed': self.prefixed
+            'text': self.text,
+            'mode': self.mode
         }
 
 # This info will be exported as if the game:
@@ -69,18 +93,16 @@ class EbCastEntry(object):
         self.misc = False
 
     def read_from_rom(self, rom, offset):
-        self.begin = (rom[offset + 1] << 8) | rom[offset]
+        self.begin = rom.read_multi(offset, 2)
         self.size = rom[offset + 2] // 2
-        self.misc = self.begin < 0x30
+        self.misc = (self.begin < 0x30)
         self.begin -= (0x10 if self.misc else 0x30)
         self.begin //= 2
 
     def write_to_rom(self, rom, offset):
         begin = (self.begin * 2) + (0x10 if self.misc else 0x30)
-        size = self.size * 2
-        rom[offset]     = begin & 0xFF
-        rom[offset + 1] = begin >> 8
-        rom[offset + 2] = size
+        rom.write_multi(offset, begin, 2)
+        rom[offset + 2] = self.size * 2
 
     def set_values(self, begin, size, misc):
         self.begin = begin
@@ -140,9 +162,21 @@ class CastModule(EbModule):
     def __init__(self):
         super(CastModule, self).__init__()
         self.cast_dynamic_names = [
-            EbDynamicCastName('Paula\'s dad',  0x4e915),
-            EbDynamicCastName('Paula\'s mom',  0x4e9b7),
-            EbDynamicCastName('Poo\'s master', 0x4ea60)
+            EbDynamicCastName(
+                key='Paula\'s dad',
+                asm_pointer_offset=0x4e915,
+                custom_asm_offset=0x4e8c7
+            ),
+            EbDynamicCastName(
+                key='Paula\'s mom',
+                asm_pointer_offset=0x4e9b7,
+                custom_asm_offset=0x4e980
+            ),
+            EbDynamicCastName(
+                key='Poo\'s master',
+                asm_pointer_offset=0x4ea60,
+                custom_asm_offset=0x4ea22
+            )
         ]
         self.formatting = EbCastFormatting()
         self.name_gfx   = EbCastNameGraphic()
@@ -227,10 +261,14 @@ class CastModule(EbModule):
     def write_gfx_to_rom(self, rom, offset, gfx):
         graphics_offset, arrangement_offset, palette_offsets = gfx.to_block(block=rom)
         write_asm_pointer(block=rom, offset=offset, pointer=to_snes_address(graphics_offset))
+        gfx.palettes[0].to_block(block=rom, offset=CAST_GRAPHICS_PALETTE_OFFSET)
 
     def read_gfx_from_project(self, obj, resource_open):
         with resource_open(obj.path(), 'png') as image_file:
             image = open_indexed_image(image_file)
+            palette = EbPalette(num_subpalettes=1, subpalette_length=4)
+            palette.from_image(image)
+            obj.palettes[0] = palette
             obj.from_image(image, obj.cast_arrangement())
 
     def write_gfx_to_project(self, obj, resource_open):
