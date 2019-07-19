@@ -13,6 +13,7 @@ eb.SwirlModule
 eb.TownMapIconModule
 eb.DeathScreenModule
 eb.SoundStoneModule
+eb.CastModule
 eb.MapModule
 eb.MapEnemyModule
 eb.MapMusicModule

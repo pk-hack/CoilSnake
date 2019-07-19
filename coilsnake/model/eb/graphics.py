@@ -570,3 +570,58 @@ class EbTownMapIcons(EbCompressedGraphic):
             subpalette_length=16,
             compressed_palettes=False
         )
+
+class EbCastGraphic(EbCompressedGraphic):
+    def __init__(self, name, num_8x8_tiles):
+        super(EbCastGraphic, self).__init__(
+            num_tiles=num_8x8_tiles,
+            tile_width=8,
+            tile_height=8,
+            bpp=2,
+            arrangement_width=0,
+            arrangement_height=0,
+            num_palettes=1,
+            num_subpalettes=1,
+            subpalette_length=4,
+            compressed_palettes=False
+        )
+
+        self.name = name
+        self.saved_arrangement = None
+
+    def path(self):
+        return 'Cast/{}'.format(self.name)
+
+    def cast_arrangement(self):
+        if self.saved_arrangement == None:
+            tiles = self.graphics.num_tiles_maximum
+            arrangement_height = 2
+            arrangement_width = tiles // arrangement_height
+            layout_width  = 16
+            layout_height = tiles // layout_width
+            self.saved_arrangement = EbTileArrangement(arrangement_width, arrangement_height)
+            line1 = []
+            line2 = []
+
+            for i in range(0, layout_height, 2):
+                for j in range(layout_width * i, layout_width * (i + 1)):
+                    line1.append(EbTileArrangementItem(j))
+                    line2.append(EbTileArrangementItem(j + layout_width))
+
+            self.saved_arrangement.arrangement = [line1, line2]
+
+        return self.saved_arrangement
+
+class EbCastNameGraphic(EbCastGraphic):
+    def __init__(self):
+        super(EbCastNameGraphic, self).__init__(
+            name='NameGraphic',
+            num_8x8_tiles=672
+        )
+
+class EbCastMiscGraphic(EbCastGraphic):
+    def __init__(self):
+        super(EbCastMiscGraphic, self).__init__(
+            name='MiscGraphic',
+            num_8x8_tiles=64
+        )
