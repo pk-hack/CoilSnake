@@ -17,10 +17,9 @@ log = logging.getLogger(__name__)
 # of its operand into the "a" register. The registers are only 16-bits wide,
 # so each time the 24-bit animation table address is loaded,
 # it takes two of these instructions.
-LDA_TABLE_ADDRESS_LOW = from_snes_address(0xc47ab0)
-LDA_TABLE_ADDRESS_HIGH = from_snes_address(0xc47ab5)
-
-LDA_TABLE_ADDRESS_2_LOW = from_snes_address(0xc47b94)
+LDA_TABLE_ADDRESS_LOW    = from_snes_address(0xc47ab0)
+LDA_TABLE_ADDRESS_HIGH   = from_snes_address(0xc47ab5)
+LDA_TABLE_ADDRESS_2_LOW  = from_snes_address(0xc47b94)
 LDA_TABLE_ADDRESS_2_HIGH = from_snes_address(0xc47b99)
 
 # This is the default address of the animation table in the rom.
@@ -33,9 +32,9 @@ def write_animation_table_address(rom, address):
     # Replace operands in "lda" instructions with our new offset
     address_low = address & 0xFFFF
     address_high = (address & 0xFF0000) >> 16
-    rom.write_multi(LDA_TABLE_ADDRESS_LOW + 1, address_low, 2)
-    rom.write_multi(LDA_TABLE_ADDRESS_HIGH + 1, address_high, 1)
-    rom.write_multi(LDA_TABLE_ADDRESS_2_LOW + 1, address_low, 2)
+    rom.write_multi(LDA_TABLE_ADDRESS_LOW    + 1, address_low,  2)
+    rom.write_multi(LDA_TABLE_ADDRESS_HIGH   + 1, address_high, 1)
+    rom.write_multi(LDA_TABLE_ADDRESS_2_LOW  + 1, address_low,  2)
     rom.write_multi(LDA_TABLE_ADDRESS_2_HIGH + 1, address_high, 1)
 
 
@@ -44,9 +43,7 @@ def read_animation_table_address(rom):
     # This is an immediate mode "lda" instruction, so just skip the opcode and grab the operands
     low = rom.read_multi(LDA_TABLE_ADDRESS_LOW + 1, 2)
     high = rom.read_multi(LDA_TABLE_ADDRESS_HIGH + 1, 1)
-    address = (high << 16) | low
-
-    return address
+    return (high << 16) | low
 
 
 # Maybe make EbCompressedGraphic, but need support for multiple arrangements
@@ -102,7 +99,7 @@ class Animation:
 
         total_block_size = self.graphics_data_size + self.palette.block_size() + \
             sum(arrangement.block_size() for arrangement in self.arrangements)
-        
+
         with EbCompressibleBlock(total_block_size) as compressed_block:
             self.graphics.to_block(block=compressed_block, offset=0, bpp=Animation.TILE_BPP)
             self.palette.to_block(block=compressed_block, offset=self.graphics_data_size)
@@ -217,4 +214,6 @@ class AnimationModule(EbModule):
             yml_dump(animation_data, f, default_flow_style=False)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
-        return
+        if old_version < 10:
+            self.read_from_rom(rom)
+            self.write_to_project(resource_open_w)
