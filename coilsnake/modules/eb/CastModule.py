@@ -27,19 +27,27 @@ CAST_MISC_GRAPHICS_ASM_POINTER_OFFSET = 0x4e42e
 CAST_NAME_GRAPHICS_ASM_POINTER_OFFSET = 0x4e446
 
 CAST_GRAPHICS_BLOCK_BEGIN = 0x21d815
-CAST_GRAPHICS_BLOCK_END = 0x21e4e7
+CAST_GRAPHICS_BLOCK_END   = 0x21e4e7
 
 DYNAMIC_CAST_NAME_MODES = ['none', 'prefix', 'suffix']
 
+# These entries are formatted to be used by EbDynamicCastName
+# Their order must be key, asm_pointer_offset, custom_asm_offset, patch_name_prefix
+DYNAMIC_CAST_ENTRIES = [
+    ('Paula\'s dad',  0x4e915, 0x4e8c7, 'paulas_dad'),
+    ('Paula\'s mom',  0x4e9b7, 0x4e980, 'paulas_mom'),
+    ('Poo\'s master', 0x4ea60, 0x4ea22, 'poos_master')
+]
+
 class EbDynamicCastName(object):
-    def __init__(self, key, asm_pointer_offset, custom_asm_offset):
+    def __init__(self, key, asm_pointer_offset, custom_asm_offset, patch_name_prefix):
         self.key = key
         self.asm_pointer_offset = asm_pointer_offset
         self.table_entry = EbStandardNullTerminatedTextTableEntry.create(12)
         self.text = ''
         self.mode = 'none'
-        self.patch_name_prefix = key.replace('\'', '').replace(' ', '_').lower()
         self.custom_asm_offset = custom_asm_offset
+        self.patch_name_prefix = patch_name_prefix
 
     def read_from_rom(self, rom):
         self.text = self.table_entry.from_block(rom, from_snes_address(read_asm_pointer(block=rom, offset=self.asm_pointer_offset)))
@@ -52,7 +60,7 @@ class EbDynamicCastName(object):
             raise CoilSnakeError('Unable to detect dynamic cast name mode for entry with text \'{}\'.'.format(self.text))
 
     def write_to_rom(self, rom):
-        loc = rom.allocate(size=len(self.text) + 1)
+        loc = rom.allocate(size=self.table_entry.to_block_size(self.text))
         addr = to_snes_address(loc)
         write_asm_pointer(block=rom, offset=self.asm_pointer_offset, pointer=addr)
         self.table_entry.to_block(rom, loc, self.text)
@@ -161,31 +169,15 @@ class CastModule(EbModule):
 
     def __init__(self):
         super(CastModule, self).__init__()
-        self.cast_dynamic_names = [
-            EbDynamicCastName(
-                key='Paula\'s dad',
-                asm_pointer_offset=0x4e915,
-                custom_asm_offset=0x4e8c7
-            ),
-            EbDynamicCastName(
-                key='Paula\'s mom',
-                asm_pointer_offset=0x4e9b7,
-                custom_asm_offset=0x4e980
-            ),
-            EbDynamicCastName(
-                key='Poo\'s master',
-                asm_pointer_offset=0x4ea60,
-                custom_asm_offset=0x4ea22
-            )
-        ]
-        self.formatting = EbCastFormatting()
-        self.name_gfx   = EbCastNameGraphic()
-        self.misc_gfx   = EbCastMiscGraphic()
+        self.formatting    = EbCastFormatting()
+        self.name_gfx      = EbCastNameGraphic()
+        self.misc_gfx      = EbCastMiscGraphic()
+        self.dynamic_names = [EbDynamicCastName(*entry) for entry in DYNAMIC_CAST_ENTRIES]
 
     def read_from_rom(self, rom):
         log.debug('Reading dynamic cast names')
 
-        for n in self.cast_dynamic_names:
+        for n in self.dynamic_names:
             n.read_from_rom(rom)
 
         log.debug('Reading cast formatting data')
@@ -200,7 +192,7 @@ class CastModule(EbModule):
     def write_to_rom(self, rom):
         log.debug('Writing dynamic cast names')
 
-        for n in self.cast_dynamic_names:
+        for n in self.dynamic_names:
             n.write_to_rom(rom)
 
         log.debug('Writing cast formatting data')
@@ -219,7 +211,7 @@ class CastModule(EbModule):
         with resource_open(CAST_DYNAMIC_NAMES_FILE_NAME, 'yml', True) as f:
             yml_data = yml_load(f)
 
-        for n in self.cast_dynamic_names:
+        for n in self.dynamic_names:
             n.read_from_yml_data(yml_data)
 
         log.debug('Reading cast formatting data')
@@ -235,7 +227,7 @@ class CastModule(EbModule):
         log.debug('Writing dynamic cast names')
         yml_data = {}
 
-        for n in self.cast_dynamic_names:
+        for n in self.dynamic_names:
             n.write_to_yml_data(yml_data)
 
         with resource_open(CAST_DYNAMIC_NAMES_FILE_NAME, 'yml', True) as f:

@@ -80,12 +80,16 @@ class EbStandardTextTableEntry(TableEntry):
                     {"size": size})
 
     @classmethod
+    def to_block_size(cls, value):
+        return len(standard_text_to_byte_list(value, cls.size, False))
+
+    @classmethod
     def from_block(cls, block, offset):
         return standard_text_from_block(block, offset, cls.size)
 
     @classmethod
     def to_block(cls, block, offset, value):
-        standard_text_to_block(block, offset, value, cls.size)
+        standard_text_to_block(block, offset, value, cls.size, False)
 
     @classmethod
     def from_yml_rep(cls, yml_rep):
@@ -96,7 +100,7 @@ class EbStandardTextTableEntry(TableEntry):
                 yml_rep, type(yml_rep).__name__))
 
         try:
-            byte_rep = standard_text_to_byte_list(yml_rep, cls.size)
+            byte_rep = standard_text_to_byte_list(yml_rep, cls.size, False)
         except ValueError as e:
             raise TableEntryInvalidYmlRepresentationError(str(e))
 
@@ -115,9 +119,12 @@ class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
                     {"size": size})
 
     @classmethod
+    def to_block_size(cls, value):
+        return len(standard_text_to_byte_list(value, cls.size, True))
+
+    @classmethod
     def to_block(cls, block, offset, value):
-        standard_text_to_block(block, offset, value, cls.size - 1)
-        block[offset + cls.size - 1] = 0
+        standard_text_to_block(block, offset, value, cls.size, True)
 
     @classmethod
     def from_yml_rep(cls, yml_rep):
@@ -128,7 +135,7 @@ class EbStandardNullTerminatedTextTableEntry(EbStandardTextTableEntry):
                 yml_rep, type(yml_rep).__name__))
 
         try:
-            byte_rep = standard_text_to_byte_list(yml_rep, cls.size - 1)
+            byte_rep = standard_text_to_byte_list(yml_rep, cls.size, True)
         except ValueError as e:
             raise TableEntryInvalidYmlRepresentationError(str(e))
 
