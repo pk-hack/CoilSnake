@@ -13,7 +13,7 @@ def standard_text_from_block(block, offset, max_length):
     return str
 
 
-def standard_text_to_byte_list(text, max_length):
+def standard_text_to_byte_list(text, max_length, always_zero_terminated=False):
     # First, substitute all of the characters
     if CharacterSubstitutions.character_substitutions:
         for k, v in CharacterSubstitutions.character_substitutions.items():
@@ -21,6 +21,7 @@ def standard_text_to_byte_list(text, max_length):
 
     byte_list = []
     text_pos = 0
+    reserve_bytes = 1 if always_zero_terminated else 0
     while text_pos < len(text):
         c = text[text_pos]
 
@@ -54,7 +55,7 @@ def standard_text_to_byte_list(text, max_length):
             text_pos += 1
 
     num_bytes = len(byte_list)
-    if num_bytes > max_length:
+    if num_bytes > max_length - reserve_bytes:
         raise ValueError("String cannot be written in {} bytes or less: {}".format(
             max_length, text
         ))
@@ -64,6 +65,6 @@ def standard_text_to_byte_list(text, max_length):
     return byte_list
 
 
-def standard_text_to_block(block, offset, text, max_length):
-    byte_list = standard_text_to_byte_list(text, max_length)
+def standard_text_to_block(block, offset, text, max_length, always_zero_terminated=False):
+    byte_list = standard_text_to_byte_list(text, max_length, always_zero_terminated)
     block[offset:offset+len(byte_list)] = byte_list

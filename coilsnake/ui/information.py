@@ -7,7 +7,7 @@ WEBSITE = "http://mrtenda.github.io/CoilSnake"
 AUTHOR = "MrTenda"
 ADDITIONAL_CREDITS = """- Some portions based on JHack, created by AnyoneEB
 - Contributions by H.S, Michael1, John Soklaski,
-  and many others"""
+  João Silva and many others"""
 DEPENDENCIES = [
     {"name": "CoilSnake logo",
      "author": "Rydel"},
