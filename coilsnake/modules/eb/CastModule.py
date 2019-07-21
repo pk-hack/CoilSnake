@@ -60,13 +60,16 @@ class EbDynamicCastName(object):
             raise CoilSnakeError('Unable to detect dynamic cast name mode for entry with text \'{}\'.'.format(self.text))
 
     def write_to_rom(self, rom):
+        if self.mode != 'prefix':
+            self.get_patch(self.mode, rom.type).apply(rom)
+
         loc = rom.allocate(size=self.table_entry.to_block_size(self.text))
         addr = to_snes_address(loc)
         write_asm_pointer(block=rom, offset=self.asm_pointer_offset, pointer=addr)
         self.table_entry.to_block(rom, loc, self.text)
-        self.get_patch(self.mode, rom.type).apply(rom)
 
         if self.mode == 'prefix':
+            self.get_patch(self.mode, rom.type).apply(rom)
             rom.write_multi(self.custom_asm_offset + 9,  addr & 0xFFFF,       2)
             rom.write_multi(self.custom_asm_offset + 14, (addr >> 16) & 0xFF, 2)
             rom.write_multi(self.custom_asm_offset + 26, len(self.text),      2)
