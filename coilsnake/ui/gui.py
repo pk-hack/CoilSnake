@@ -13,6 +13,7 @@ import tkinter.ttk
 import webbrowser
 from tkinter import *
 from tkinter.ttk import *
+import platform
 
 import os
 from PIL import ImageTk
@@ -178,7 +179,7 @@ class CoilSnakeGui(object):
 Please configure your emulator in the Settings menu.""")
         elif rom_filename:
             Popen([self.preferences["emulator"], rom_filename])
-    
+
     def open_ebprojedit(self, entry=None):
         if entry:
             project_path = entry.get()
@@ -414,8 +415,26 @@ Please configure Java in the Settings menu.""")
         self.root = Tk()
         self.root.wm_title("CoilSnake " + information.VERSION)
 
-        self.icon = ImageTk.PhotoImage(file=asset_path(["images", "icon.png"]))
-        self.root.tk.call('wm', 'iconphoto', self.root._w, self.icon)
+        if platform.system() == "Windows":
+            self.root.tk.call("wm", "iconbitmap", self.root._w, asset_path(["images", "CoilSnake.ico"]))
+        elif platform.system() == "Darwin":
+            # Workaround - Raise the window
+            from Cocoa import NSRunningApplication, NSApplicationActivateIgnoringOtherApps
+
+            app = NSRunningApplication.runningApplicationWithProcessIdentifier_(os.getpid())
+            app.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
+        else:
+            self.iconphoto_params = (True,
+                ImageTk.PhotoImage(file=asset_path(["images", "16.png"])),
+                ImageTk.PhotoImage(file=asset_path(["images", "22.png"])),
+                ImageTk.PhotoImage(file=asset_path(["images", "24.png"])),
+                ImageTk.PhotoImage(file=asset_path(["images", "32.png"])),
+                ImageTk.PhotoImage(file=asset_path(["images", "48.png"])),
+                ImageTk.PhotoImage(file=asset_path(["images", "64.png"])),
+                ImageTk.PhotoImage(file=asset_path(["images", "128.png"])),
+                ImageTk.PhotoImage(file=asset_path(["images", "256.png"]))
+            )
+            self.root.wm_iconphoto(*self.iconphoto_params)
 
         self.create_menubar()
 
@@ -494,7 +513,11 @@ Please configure Java in the Settings menu.""")
 
     def create_about_window(self):
         self.about_menu = Toplevel(self.root, takefocus=True)
-        self.about_menu.tk.call('wm', 'iconphoto', self.about_menu._w, self.icon)
+
+        if platform.system() == "Windows":
+            self.about_menu.tk.call("wm", "iconbitmap", self.about_menu._w, asset_path(["images", "CoilSnake.ico"]))
+        elif platform.system() != "Darwin":
+            self.about_menu.wm_iconphoto(*self.iconphoto_params)
 
         photo = ImageTk.PhotoImage(file=asset_path(["images", "logo.png"]))
         about_label = Label(self.about_menu, image=photo)
@@ -521,6 +544,18 @@ Please configure Java in the Settings menu.""")
 
     def create_menubar(self):
         menubar = Menu(self.root)
+
+        # Add 'About CoilSnake' to the app menu on macOS
+        self.create_about_window()
+
+        def show_about_window():
+            self.about_menu.deiconify()
+            self.about_menu.lift()
+
+        if platform.system() == "Darwin":
+            app_menu = Menu(menubar, name='apple')
+            menubar.add_cascade(menu=app_menu)
+            app_menu.add_command(label="About CoilSnake", command=show_about_window)
 
         # Tools pulldown menu
         tools_menu = Menu(menubar, tearoff=0)
@@ -555,16 +590,12 @@ Please configure Java in the Settings menu.""")
         # Help menu
         help_menu = Menu(menubar, tearoff=0)
 
-        self.create_about_window()
-
-        def show_about_window():
-            self.about_menu.deiconify()
-            self.about_menu.lift()
-
         def open_coilsnake_website():
             webbrowser.open(information.WEBSITE, 2)
 
-        help_menu.add_command(label="About CoilSnake", command=show_about_window)
+        if platform.system() != "Darwin":
+            help_menu.add_command(label="About CoilSnake", command=show_about_window)
+
         help_menu.add_command(label="CoilSnake Website", command=open_coilsnake_website)
 
         menubar.add_cascade(label="Help", menu=help_menu)
@@ -719,7 +750,7 @@ Please configure Java in the Settings menu.""")
             self.preferences["default created patch"] = patch_entry.get()
             self.preferences.save()
             self.do_create_patch(clean_rom_entry, hacked_rom_entry, patch_entry, author, description, title)
-        
+
         def create_patch_do_first():
             if patch_entry.get().endswith(".ebp"):
                 popup_ebp_patch_info(self, notebook)
@@ -728,24 +759,24 @@ Please configure Java in the Settings menu.""")
             else:
                 exc = Exception("Could not create patch because patch does not end in .ips or .ebp")
                 log.error(exc)
-        
+
         def popup_ebp_patch_info(self, notebook):
-            
+
             if self.preferences["default author"] is None:
                 self.preferences["default author"] = "Author"
-                
+
             author = self.preferences["default author"]
-            
+
             if self.preferences["default description"] is None:
                 self.preferences["default description"] = "Description"
-                
+
             description = self.preferences["default description"]
-            
+
             if self.preferences["default title"] is None:
                 self.preferences["default title"] = "Title"
-                
+
             title = self.preferences["default title"]
-            
+
             top = self.top = Toplevel(notebook)
             top.wm_title("EBP Patch")
             l = Label(top,text="Input EBP Patch Info.")
@@ -762,7 +793,7 @@ Please configure Java in the Settings menu.""")
             titl.delete(0,)
             titl.insert(0,title)
             titl.pack()
-            
+
             def cleanup():
                 author = auth.get()
                 self.preferences["default author"] = author
@@ -772,7 +803,7 @@ Please configure Java in the Settings menu.""")
                 self.preferences["default title"] = title
                 self.top.destroy()
                 create_patch_tmp(author, description, title)
-        
+
             self.b=Button(top,text='OK',command=cleanup)
             self.b.pack()
 
@@ -789,7 +820,7 @@ Please configure Java in the Settings menu.""")
         if self.preferences["default created patch"]:
             set_entry_text(entry=patch_entry,
                            text=self.preferences["default created patch"])
-        
+
         return patcher_create_frame
 
 
@@ -812,7 +843,7 @@ Please configure Java in the Settings menu.""")
 
         profile = OptionMenu(profile_frame, profile_var, "", command=tmp_select)
         profile.pack(side=LEFT, fill=BOTH, expand=1, ipadx=1)
-        
+
         self.components.append(profile)
 
         def tmp_reload_options(selected_profile_name=None):
