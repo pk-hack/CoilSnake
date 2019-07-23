@@ -13,8 +13,8 @@ import logging
 log = logging.getLogger(__name__)
 
 # The address of the animation table is hardcoded in two places in the rom.
-# It is stored in the operands of a "lda" instruction, which loads the value
-# of its operand into the "a" register. The registers are only 16-bits wide,
+# It is stored in the operands of a 'lda' instruction, which loads the value
+# of its operand into the 'a' register. The registers are only 16-bits wide,
 # so each time the 24-bit animation table address is loaded,
 # it takes two of these instructions.
 LDA_TABLE_ADDRESS_LOW    = from_snes_address(0xc47ab0)
@@ -22,103 +22,86 @@ LDA_TABLE_ADDRESS_HIGH   = from_snes_address(0xc47ab5)
 LDA_TABLE_ADDRESS_2_LOW  = from_snes_address(0xc47b94)
 LDA_TABLE_ADDRESS_2_HIGH = from_snes_address(0xc47b99)
 
-# This is the default address of the animation table in the rom.
-# We need this so we can look up the format of the table from eb.yml.
+# This is the default address of the animation table in the rom, pointed to by the
+# 'lda' instructions above. We need this to get the format of the table from eb.yml.
 ANIMATION_TABLE_DEFAULT_ADDRESS = 0xcc2de1
+
+# All animations take up the entirety of the screen
+SCREEN_WIDTH_TILES  = 32
+SCREEN_HEIGHT_TILES = 28
+TILE_WIDTH          = 8
+TILE_HEIGHT         = 8
+TILE_BPP            = 2
 
 
 # Writes the new address of animation table into the assembly code
 def write_animation_table_address(rom, address):
-    # Replace operands in "lda" instructions with our new offset
-    address_low = address & 0xFFFF
+    # Replace operands in 'lda' instructions with our new offset
+    address_low  =  address & 0x00FFFF
     address_high = (address & 0xFF0000) >> 16
     rom.write_multi(LDA_TABLE_ADDRESS_LOW    + 1, address_low,  2)
     rom.write_multi(LDA_TABLE_ADDRESS_HIGH   + 1, address_high, 1)
     rom.write_multi(LDA_TABLE_ADDRESS_2_LOW  + 1, address_low,  2)
     rom.write_multi(LDA_TABLE_ADDRESS_2_HIGH + 1, address_high, 1)
 
-
 # Reads the address of the animation table from the assembly code
 def read_animation_table_address(rom):
-    # This is an immediate mode "lda" instruction, so just skip the opcode and grab the operands
-    low = rom.read_multi(LDA_TABLE_ADDRESS_LOW + 1, 2)
+    # This is an immediate mode 'lda' instruction, so just skip the opcode and grab the operands
+    low  = rom.read_multi(LDA_TABLE_ADDRESS_LOW  + 1, 2)
     high = rom.read_multi(LDA_TABLE_ADDRESS_HIGH + 1, 1)
     return (high << 16) | low
 
 
 # Maybe make EbCompressedGraphic, but need support for multiple arrangements
 class Animation:
-    # All animations take up the entirety of the screen
-    SCREEN_WIDTH_TILES = 32
-    SCREEN_HEIGHT_TILES = 28
-
-    TILE_WIDTH = 8
-    TILE_HEIGHT = 8
-    TILE_BPP = 2
-
     def __init__(self, frames, unknown, graphics_data_size=None):
         self.graphics_data_size = graphics_data_size
         self.frames = frames
         self.unknown = unknown
 
         if graphics_data_size:
-            num_tiles = graphics_data_size * 8 // (Animation.TILE_WIDTH * Animation.TILE_HEIGHT * Animation.TILE_BPP)
-        else:
-            # Make tileset with maximum number of tiles possible... but what about animation? Could be more? Why do we even need this?
-            num_tiles = Animation.SCREEN_WIDTH_TILES * Animation.SCREEN_HEIGHT_TILES * frames
+            num_tiles = EbGraphicTileset.tiles_from_parameters(graphics_data_size, TILE_WIDTH, TILE_HEIGHT, TILE_BPP)
+        else: # Make tileset with maximum number of tiles possible for each frame of animation
+            num_tiles = SCREEN_WIDTH_TILES * SCREEN_HEIGHT_TILES * frames
 
-        # Animations are 2 bpp, so the palette will have four colors... hopefully
+        # Animations are 2 bpp, so the palette will have 4 colors
         self.palette = EbPalette(num_subpalettes=1, subpalette_length=4)
-        self.graphics = EbGraphicTileset(num_tiles=num_tiles, tile_width=Animation.TILE_WIDTH,
-                                         tile_height=Animation.TILE_HEIGHT)
-        self.arrangements = [EbTileArrangement(width=Animation.SCREEN_WIDTH_TILES, height=Animation.SCREEN_HEIGHT_TILES)
+        self.graphics = EbGraphicTileset(num_tiles=num_tiles, tile_width=TILE_WIDTH, tile_height=TILE_HEIGHT)
+        self.arrangements = [EbTileArrangement(width=SCREEN_WIDTH_TILES, height=SCREEN_HEIGHT_TILES)
                              for i in range(self.frames)]
 
     def from_block(self, block, offset):
         with EbCompressibleBlock() as compressed_block:
             compressed_block.from_compressed_block(block=block, offset=offset)
-            self.graphics.from_block(block=compressed_block,
-                                     offset=0,
-                                     bpp=Animation.TILE_BPP)
+            self.graphics.from_block(block=compressed_block, offset=0, bpp=TILE_BPP)
+            next_offset = self.graphics_data_size
+            self.palette.from_block(block=compressed_block, offset=next_offset)
+            next_offset += self.palette.block_size()
 
-            # These animations appear to have a single palette
-            self.palette.from_block(block=compressed_block, offset=self.graphics_data_size)
-
-            # Calculate where the arrangement information begins
-            arrangement_offset = self.graphics_data_size + self.palette.block_size()
-
-            # Read in the arrangements (one per frame)
-            for i, arrangement in enumerate(self.arrangements):
-                offset = arrangement_offset + (i * arrangement.block_size())
-                arrangement.from_block(block=compressed_block, offset=offset)
+            for arrangement in self.arrangements:
+                arrangement.from_block(block=compressed_block, offset=next_offset)
+                next_offset += arrangement.block_size()
 
     def to_block(self, block):
-        # Graphics size will be wrong here, because it uses max number of tiles instead of actual
-        self.graphics.num_tiles_maximum = self.graphics._num_tiles_used
-        self.graphics_data_size = self.graphics.block_size(bpp=Animation.TILE_BPP)
-
-        total_block_size = self.graphics_data_size + self.palette.block_size() + \
-            sum(arrangement.block_size() for arrangement in self.arrangements)
+        self.graphics_data_size = self.graphics.block_size(bpp=TILE_BPP, trimmed=True)
+        total_block_size = (self.graphics_data_size + self.palette.block_size() +
+                            sum(arrangement.block_size() for arrangement in self.arrangements))
 
         with EbCompressibleBlock(total_block_size) as compressed_block:
-            self.graphics.to_block(block=compressed_block, offset=0, bpp=Animation.TILE_BPP)
-            self.palette.to_block(block=compressed_block, offset=self.graphics_data_size)
+            self.graphics.to_block(block=compressed_block, offset=0, bpp=TILE_BPP)
+            next_offset = self.graphics_data_size
+            self.palette.to_block(block=compressed_block, offset=next_offset)
+            next_offset += self.palette.block_size()
 
-            arrangement_offset = self.graphics_data_size + self.palette.block_size()
             for arrangement in self.arrangements:
-                arrangement.to_block(block=compressed_block, offset=arrangement_offset)
-                arrangement_offset += arrangement.block_size()
+                arrangement.to_block(block=compressed_block, offset=next_offset)
+                next_offset += arrangement.block_size()
 
             compressed_block.compress()
             return block.allocate(data=compressed_block)
 
     def images(self, arrangements=None):
-        if not arrangements:
-            arrangements = self.arrangements
-        return [arrangement.image(self.graphics, self.palette) for arrangement in arrangements]
-
-    def image(self, arrangements=None):
-        return self.images(arrangements=arrangements)[0]
+        return [arrangement.image(self.graphics, self.palette) for arrangement in self.arrangements]
 
     def add_frame_from_image(self, image, frame_id):
         self.arrangements[frame_id].from_image(image, self.graphics, self.palette, is_animation=True)
@@ -126,17 +109,14 @@ class Animation:
 
 class AnimationModule(EbModule):
     """ Extracts non-battle animations from Earthbound. """
-    NAME = "Animations"
+    NAME = 'Animations'
 
     # Animation Data and Animation Sequence Pointers Table
-    # TODO: This range should be changed dynamically based on the contents of the pointers table
-    FREE_RANGES = [(0x0C0000, 0x0C2E18)]
+    FREE_RANGES = [(0x0C0000, 0x0C2E18)] # TODO: This range should be changed dynamically based on the contents of the pointers table
 
     def __init__(self):
         super(AnimationModule, self).__init__()
-        self.table = eb_table_from_offset(
-            offset=ANIMATION_TABLE_DEFAULT_ADDRESS
-        )
+        self.table = eb_table_from_offset(offset=ANIMATION_TABLE_DEFAULT_ADDRESS)
         self.animations = []
 
     def read_from_rom(self, rom):
@@ -147,13 +127,10 @@ class AnimationModule(EbModule):
             row = self.table[index]
             offset = row[0]
             graphics_data_size = row[1]
-            frames = row[2]
+            frames  = row[2]
+            unknown = row[3] # This field appears to be related somewhat to animation speed
 
-            # This field appears to be related somewhat to animation speed
-            unknown = row[3]
-
-            # The first entry in the table has no data, only add animations that have data
-            if graphics_data_size > 0:
+            if graphics_data_size > 0: # Only add animations that have data
                 animation = Animation(graphics_data_size=graphics_data_size, frames=frames, unknown=unknown)
                 animation.from_block(rom, from_snes_address(offset))
                 self.animations.append(animation)
@@ -166,11 +143,11 @@ class AnimationModule(EbModule):
             animation_offsets.append(offset)
 
         # Build up animation table
-        new_num_rows = len(self.animations) + 1  # Add 1 because table is prefixed with an empty entry
+        new_num_rows = len(self.animations) + 1 # Add 1 because the table is prefixed with an empty entry
         if self.table.num_rows != new_num_rows:
             self.table.recreate(new_num_rows)
 
-        self.table[0] = [0, 0, 0, 0]  # The first entry in the table is empty for some reason
+        self.table[0] = [0, 0, 0, 0] # The first entry should be empty
         for i, animation in enumerate(self.animations):
             self.table[i + 1] = [to_snes_address(animation_offsets[i]), animation.graphics_data_size,
                                  animation.frames, animation.unknown]
@@ -178,39 +155,37 @@ class AnimationModule(EbModule):
         # Relocate animation table so we can store more than six animations
         new_table_offset = rom.allocate(size=self.table.size)
         write_animation_table_address(rom, to_snes_address(new_table_offset))
-
-        # Write animation table to rom
         self.table.to_block(rom, offset=new_table_offset)
 
     def read_from_project(self, resource_open):
-        with resource_open("Animations/animations", "yml", True) as f:
+        with resource_open('Animations/animations', 'yml', True) as f:
             animation_data = yml_load(f)
 
         for animation_id in animation_data:
-            frames = animation_data[animation_id]["frames"]
-            unknown = animation_data[animation_id]["unknown"]
-
+            frames  = animation_data[animation_id]['frames']
+            unknown = animation_data[animation_id]['unknown']
             animation = Animation(frames=frames, unknown=unknown)
             self.animations.append(animation)
+
             for frame_id in range(frames):
-                with resource_open("Animations/{}/{}".format(animation_id, str(frame_id).zfill(3)), "png") as f:
+                with resource_open('Animations/{}/{}'.format(animation_id, str(frame_id).zfill(3)), 'png') as f:
                     image = open_indexed_image(f)
                     try:
                         animation.add_frame_from_image(image, frame_id)
                     except Exception as e:
-                        message = "Encountered error while reading frame #{} of Animation #{}".format(frame_id,
+                        message = 'Encountered error while reading frame #{} of Animation #{}'.format(frame_id,
                                                                                                       animation_id)
                         raise CoilSnakeTraceableError(message, e)
 
     def write_to_project(self, resource_open):
         animation_data = {}
         for i, animation in enumerate(self.animations):
-            animation_data[i] = {"frames": animation.frames, "unknown": animation.unknown}
+            animation_data[i] = {'frames': animation.frames, 'unknown': animation.unknown}
             for j, image in enumerate(animation.images()):
-                with resource_open("Animations/{}/{}".format(i, str(j).zfill(3)), "png") as f:
-                    image.save(f, "png")
+                with resource_open('Animations/{}/{}'.format(i, str(j).zfill(3)), 'png') as f:
+                    image.save(f, 'png')
 
-        with resource_open("Animations/animations", "yml", True) as f:
+        with resource_open('Animations/animations', 'yml', True) as f:
             yml_dump(animation_data, f, default_flow_style=False)
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):

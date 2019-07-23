@@ -97,10 +97,29 @@ class EbGraphicTileset(EqualityMixin):
                     offset += write_1bpp_graphic_to_block(source=tile, target=block, offset=offset,
                                                           x=x, height=self.tile_height)
 
-    def block_size(self, bpp=2):
-        """Returns the size required to represent this tileset in a block.
+    @staticmethod
+    def tiles_from_parameters(block_size, tile_width=8, tile_height=8, bpp=2):
+        """Returns the number of tiles that can be represented in a block with the given parameters.
+        :param block_size: the size required to represent this tileset in a block.
+        :param tile_width: width in pixels of each of the tileset's individual tiles
+        :param tile_height: height in pixels of each of the tileset's individual tiles
         :param bpp: The number of bits used to represent each pixel by the block representation."""
-        return self.tile_height * bpp * (self.tile_width // 8) * self.num_tiles_maximum
+        return block_size // (self.tile_height * bpp * (self.tile_width // 8))
+
+    @staticmethod
+    def block_size_from_parameters(num_tiles, tile_width=8, tile_height=8, bpp=2):
+        """Returns the number of blocks needed to represent graphics with the given parameters.
+        :param num_tiles: the number of tiles in this tileset
+        :param tile_width: width in pixels of each of the tileset's individual tiles
+        :param tile_height: height in pixels of each of the tileset's individual tiles
+        :param bpp: The number of bits used to represent each pixel by the block representation."""
+        return tile_height * bpp * (tile_width // 8) * num_tiles
+
+    def block_size(self, bpp=2, trimmed=False):
+        """Returns the size required to represent this tileset in a block.
+        :param bpp: The number of bits used to represent each pixel by the block representation.
+        :param trimmed: When True, trim the size to number of tiles in use; otherwise to the maximum"""
+        return self.block_size_from_parameters(self._num_tiles_used if trimmed else self.num_tiles_maximum, self.tile_width, self.tile_height, bpp)
 
     def from_image(self, image, arrangement, palette):
         """Reads in a tileset from an image, given a known arrangement and palette which were used to construct the
