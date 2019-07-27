@@ -1,6 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
 import sys
+import platform
 from setuptools.sandbox import run_setup
 
 run_setup('setup.py', ['build_ext'])
@@ -18,15 +20,21 @@ with open(os.path.join("coilsnake", "assets", "modulelist.txt"), "r") as f:
         module = "coilsnake.modules." + line
         hidden_import_list.append(module)
 
-pyver = str(sys.version_info[0]) + "." + str(sys.version_info[1])
+pyver = '{}.{}'.format(sys.version_info[0], sys.version_info[1])
+
+binaries = [(
+    'build/lib.{}*{}/coilsnake/util/eb/native_comp.cp*{}*'.format(
+        sys.platform if sys.platform != 'darwin' else 'macosx',
+        pyver,
+        sys.platform
+    ),
+    'coilsnake/util/eb'
+)]
 
 a = Analysis(
     ['script/gui.py'],
     pathex = ['.'],
-    binaries = [(
-        'build/lib.' + sys.platform + '*' + pyver + '/coilsnake',
-        'coilsnake')
-    ],
+    binaries = binaries,
     datas = [('coilsnake/assets', 'coilsnake/assets')],
     hiddenimports = hidden_import_list,
     hookspath = [],
@@ -34,7 +42,6 @@ a = Analysis(
     excludes = [
         '_bz2',
         '_ssl',
-        '_socket',
         '_lzma',
         'readline',
         'termios',
@@ -55,22 +62,40 @@ pyz = PYZ(
     cipher=None
 )
 
+# --- Workaround for https://github.com/pyinstaller/pyinstaller/issues/3820 ---
+if platform.system() == 'Darwin':
+    index = 0
+
+    for i, item in enumerate(a.scripts):
+        name, loc, info = item
+
+        if loc.endswith('script/gui.py'):
+            index = i
+            break
+
+    scripts = a.scripts[i:i + 1]
+    scripts.extend(a.scripts[:i])
+    scripts.extend(a.scripts[i + 1:])
+else:
+    scripts = a.scripts
+# -------------------
+
 if len(sys.argv) > 1 and sys.argv[1] == 'debug':
     exe = EXE(
         pyz,
+        scripts,
         [],
-        a.scripts,
         exclude_binaries=True,
-        name='CoilSnake',
+        name='CoilSnake_bin',
         debug=False,
         bootloader_ignore_signals=False,
         strip=False,
         upx=True,
         console=False,
-        icon='coilsnake/assets/images/icon.ico'
+        icon='coilsnake/assets/images/CoilSnake.ico'
     )
 
-    coll = COLLECT(
+    final = COLLECT(
         exe,
         a.binaries,
         a.zipfiles,
@@ -81,9 +106,9 @@ if len(sys.argv) > 1 and sys.argv[1] == 'debug':
         name='CoilSnake'
     )
 else:
-    exe = EXE(
+    final = EXE(
         pyz,
-        a.scripts,
+        scripts,
         a.binaries,
         a.zipfiles,
         a.datas,
@@ -96,5 +121,25 @@ else:
         upx_exclude=[],
         runtime_tmpdir=None,
         console=False,
-        icon='coilsnake/assets/images/icon.ico'
+        icon='coilsnake/assets/images/CoilSnake.ico'
     )
+
+if platform.system() != 'Darwin':
+    exit()
+
+app = BUNDLE(
+    final,
+    name='CoilSnake.app',
+    icon='coilsnake/assets/images/CoilSnake.icns',
+    bundle_identifier='com.github.mrtenda.CoilSnake'
+)
+
+# --- Workaround for https://github.com/pyinstaller/pyinstaller/issues/3753 ---
+indirbase = '/Library/Frameworks/Python.framework/Versions/{}/lib/{}*'
+outdir    = 'dist/CoilSnake.app/Contents/lib'
+tcldir    = indirbase.format(pyver, 'tcl')
+tkdir     = indirbase.format(pyver, 'tk')
+os.mkdir(outdir)
+os.system('cp -r {} {}'.format(tcldir, outdir))
+os.system('cp -r {} {}'.format(tkdir,  outdir))
+# -------------------

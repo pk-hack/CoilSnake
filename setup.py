@@ -7,7 +7,17 @@ import platform
 extra_compile_args = []
 
 if platform.system() != "Windows":
-      extra_compile_args = ["-std=c99"]
+    extra_compile_args = ["-std=c99"]
+
+install_requires = [
+    "Pillow>=3.0.0",
+    "PyYAML>=3.11",
+    "CCScriptWriter>=1.2",
+    "ccscript>=1.339"
+]
+
+if platform.system() == "Darwin":
+    install_requires.append("pyobjc-framework-Cocoa")
 
 setup(
     name="coilsnake",
@@ -17,12 +27,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
 
-    install_requires=[
-        "Pillow>=3.0.0",
-        "PyYAML>=3.11",
-        "CCScriptWriter>=1.2",
-        "ccscript>=1.339"
-    ],
+    install_requires=install_requires,
     dependency_links=[
         "https://github.com/Lyrositor/CCScriptWriter/tarball/master#egg=CCScriptWriter-1.2",
         "https://github.com/jamsilva/ccscript_legacy/tarball/master#egg=ccscript-1.339"

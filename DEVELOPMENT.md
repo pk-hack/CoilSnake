@@ -7,7 +7,7 @@ Because Python is notorious for being difficult to maintain a clean installation
 
 ### Using a virtualenv
 
-1. `sudo pip install virtualenv`
+1. `sudo pip3 install virtualenv`
 1. `virtualenv CoilSnake_virtualenv --no-site-packages`
 1. `source CoilSnake_virtualenv/bin/activate`
     - The above command sets up your CoilSnake virtual development environment. When you open a new terminal for CoilSnake development, always re-run the above command in order to re-enter the virtual development environment. For more information about how this works, see [virtualenv's documentation](https://pypi.python.org/pypi/virtualenv/1.7).
@@ -34,6 +34,20 @@ After installing a VM, follow the steps mentioned below for your respective syst
 1. Install any system dependencies required by CoilSnake. For Ubuntu, these are listed in the official [CoilSnake installation instructions](https://mrtenda.github.io/CoilSnake/download.html).
 1. Follow the '[Generic](#generic)' instructions below.
 
+## macOS
+
+1. Install:
+    1. [Command Line Tools for Xcode](https://developer.apple.com/downloads)
+    1. [Python 3.7](https://www.python.org/downloads/release/python-374/)
+        - Do not install non-official builds - this one includes Tk 8.6, with fixes and a nicer-looking UI over Tk 8.5.
+    1. Homebrew
+        - `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+    1. libyaml
+        - `brew install libyaml`
+    1. PyYAML with libyaml support
+        - `python3 -m easy_install pyyaml`
+1. Follow the '[Generic](#generic)' instructions below.
+
 ## Windows
 
 1. Install:
@@ -55,9 +69,9 @@ After installing a VM, follow the steps mentioned below for your respective syst
 1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/mrtenda/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
     - Alternatively, using the command line git, run: `git submodule update --init --recursive`
 1. Install dependencies:
-    - `python setup.py develop`
+    - `python3 setup.py develop`
 1. Build additional coilsnake dependencies:
-    - `python setup.py build_ext`
+    - `python3 setup.py build_ext`
 
 CoilSnake is now installed in development mode. After making code changes to the source, run your code by launching CoilSnake's GUI or CLI:
 
@@ -70,7 +84,7 @@ python3 script/cli.py
 ### Creating a standalone executable
 
 1. After following the steps for your system, install this additional dependency:
-    - [pyinstaller](https://www.pyinstaller.org) - `pip install pyinstaller`
+    - [pyinstaller](https://www.pyinstaller.org) - `pip3 install pyinstaller==3.5`
 1. Create the CoilSnake executable:
-    - `python setup_exe.py`
+    - `python3 setup_exe.py`
 1. Run the output file under the 'dist' directory.
