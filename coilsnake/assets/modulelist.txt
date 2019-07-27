@@ -1,6 +1,5 @@
 common.UsedRangeModule
 common.PatchModule
-eb.AnimationModule
 eb.CharacterSubstitutionsModule
 eb.CccInterfaceModule
 eb.SkipNamingModule
@@ -15,6 +14,7 @@ eb.TownMapIconModule
 eb.DeathScreenModule
 eb.SoundStoneModule
 eb.CastModule
+eb.AnimationModule
 eb.MapModule
 eb.MapEnemyModule
 eb.MapMusicModule

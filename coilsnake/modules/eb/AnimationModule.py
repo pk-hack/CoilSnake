@@ -112,7 +112,7 @@ class AnimationModule(EbModule):
     NAME = 'Animations'
 
     # Animation Data and Animation Sequence Pointers Table
-    FREE_RANGES = [(0x0C0000, 0x0C2E18)] # TODO: This range should be changed dynamically based on the contents of the pointers table
+    FREE_RANGES = [(0x0C0000, 0x0C2E18)]
 
     def __init__(self):
         super(AnimationModule, self).__init__()

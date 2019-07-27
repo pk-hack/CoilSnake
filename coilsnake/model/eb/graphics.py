@@ -104,7 +104,7 @@ class EbGraphicTileset(EqualityMixin):
         :param tile_width: width in pixels of each of the tileset's individual tiles
         :param tile_height: height in pixels of each of the tileset's individual tiles
         :param bpp: The number of bits used to represent each pixel by the block representation."""
-        return block_size // (self.tile_height * bpp * (self.tile_width // 8))
+        return block_size // (tile_height * bpp * (tile_width // 8))
 
     @staticmethod
     def block_size_from_parameters(num_tiles, tile_width=8, tile_height=8, bpp=2):

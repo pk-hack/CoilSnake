@@ -1,6 +1,6 @@
 import logging
 
-from coilsnake.exceptions.common.exceptions import InvalidArgumentError
+from coilsnake.exceptions.common.exceptions import CoilSnakeError, InvalidArgumentError
 from coilsnake.model.common.ips import IpsPatch
 from coilsnake.model.eb.graphics import EbCastMiscGraphic, EbCastNameGraphic
 from coilsnake.model.eb.palettes import EbPalette
@@ -45,7 +45,7 @@ class EbDynamicCastName(object):
         self.asm_pointer_offset = asm_pointer_offset
         self.table_entry = EbStandardNullTerminatedTextTableEntry.create(12)
         self.text = ''
-        self.mode = 'none'
+        self.mode = 'suffix'
         self.custom_asm_offset = custom_asm_offset
         self.patch_name_prefix = patch_name_prefix
 
@@ -56,8 +56,6 @@ class EbDynamicCastName(object):
             if self.get_patch(mode, rom.type).is_applied(rom):
                 self.mode = mode
                 break
-        else:
-            raise CoilSnakeError('Unable to detect dynamic cast name mode for entry with text \'{}\'.'.format(self.text))
 
     def write_to_rom(self, rom):
         if self.mode != 'prefix':
