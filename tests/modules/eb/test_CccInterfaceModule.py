@@ -22,7 +22,7 @@ class TestCccInterfaceModule(BaseTestCase, TemporaryWritableFileTestCase):
         del self.module
 
     def test_write_to_project(self):
-        def resource_open(a, b):
+        def resource_open(a, b, c):
             return self.temporary_wo_file
 
         self.module.write_to_project(resource_open)
@@ -32,7 +32,7 @@ class TestCccInterfaceModule(BaseTestCase, TemporaryWritableFileTestCase):
 
     def test_read_from_project(self):
         with open(os.path.join(TEST_DATA_DIR, 'summary.txt'), 'r') as summary_file:
-            def resource_open(a, b):
+            def resource_open(a, b, c):
                 return summary_file
 
             self.module.read_from_project(resource_open)
@@ -48,13 +48,13 @@ class TestCccInterfaceModule(BaseTestCase, TemporaryWritableFileTestCase):
             EbPointer.label_address_map)
 
     def test_read_from_project_empty_summary(self):
-        def resource_open(a, b):
+        def resource_open(a, b, c):
             return self.temporary_wo_file
 
         self.module.write_to_project(resource_open)
 
         with open(self.temporary_wo_file_name, 'r') as summary_file:
-            def resource_open(a, b):
+            def resource_open(a, b, c):
                 return summary_file
 
             self.module.read_from_project(resource_open)
@@ -64,7 +64,7 @@ class TestCccInterfaceModule(BaseTestCase, TemporaryWritableFileTestCase):
 
     def test_read_from_project_blank_summary(self):
         with open(os.path.join(TEST_DATA_DIR, 'summary_blank.txt'), 'r') as summary_file:
-            def resource_open(a, b):
+            def resource_open(a, b, c):
                 return summary_file
 
             self.module.read_from_project(resource_open)

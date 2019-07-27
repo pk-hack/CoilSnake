@@ -97,10 +97,29 @@ class EbGraphicTileset(EqualityMixin):
                     offset += write_1bpp_graphic_to_block(source=tile, target=block, offset=offset,
                                                           x=x, height=self.tile_height)
 
-    def block_size(self, bpp=2):
-        """Returns the size required to represent this tileset in a block.
+    @staticmethod
+    def tiles_from_parameters(block_size, tile_width=8, tile_height=8, bpp=2):
+        """Returns the number of tiles that can be represented in a block with the given parameters.
+        :param block_size: the size required to represent this tileset in a block.
+        :param tile_width: width in pixels of each of the tileset's individual tiles
+        :param tile_height: height in pixels of each of the tileset's individual tiles
         :param bpp: The number of bits used to represent each pixel by the block representation."""
-        return self.tile_height * bpp * (self.tile_width // 8) * self.num_tiles_maximum
+        return block_size // (tile_height * bpp * (tile_width // 8))
+
+    @staticmethod
+    def block_size_from_parameters(num_tiles, tile_width=8, tile_height=8, bpp=2):
+        """Returns the number of blocks needed to represent graphics with the given parameters.
+        :param num_tiles: the number of tiles in this tileset
+        :param tile_width: width in pixels of each of the tileset's individual tiles
+        :param tile_height: height in pixels of each of the tileset's individual tiles
+        :param bpp: The number of bits used to represent each pixel by the block representation."""
+        return tile_height * bpp * (tile_width // 8) * num_tiles
+
+    def block_size(self, bpp=2, trimmed=False):
+        """Returns the size required to represent this tileset in a block.
+        :param bpp: The number of bits used to represent each pixel by the block representation.
+        :param trimmed: When True, trim the size to number of tiles in use; otherwise to the maximum"""
+        return self.block_size_from_parameters(self._num_tiles_used if trimmed else self.num_tiles_maximum, self.tile_width, self.tile_height, bpp)
 
     def from_image(self, image, arrangement, palette):
         """Reads in a tileset from an image, given a known arrangement and palette which were used to construct the
@@ -286,9 +305,9 @@ class EbTileArrangement(EqualityMixin):
         self.to_image(image, tileset, palette, ignore_subpalettes)
         return image
 
-    def from_image(self, image, tileset, palette, no_flip=False, dedup=True):
+    def from_image(self, image, tileset, palette, no_flip=False, dedup=True, is_animation=False):
         if palette.num_subpalettes == 1:
-            self._from_image_with_single_subpalette(image, tileset, palette, no_flip, dedup)
+            self._from_image_with_single_subpalette(image, tileset, palette, no_flip, dedup, is_animation)
         else:
             # Multiple subpalettes, so we have to figure out which tile should use which subpalette
             palette.from_image(image)
@@ -333,9 +352,9 @@ class EbTileArrangement(EqualityMixin):
                     arrangement_item.subpalette = subpalette_id
                     arrangement_item.is_vertically_flipped = vflip
                     arrangement_item.is_horizontally_flipped = hflip
-                    arrangement_item.is_priority = False
+                    arrangement_item.is_priority = is_animation
 
-    def _from_image_with_single_subpalette(self, image, tileset, palette, no_flip=False, dedup=True):
+    def _from_image_with_single_subpalette(self, image, tileset, palette, no_flip=False, dedup=True, is_animation=False):
         # Don't need to do any subpalette fitting because there's only one subpalette
         palette.from_image(image)
         image_data = image.load()
@@ -359,7 +378,7 @@ class EbTileArrangement(EqualityMixin):
                 arrangement_item.subpalette = 0
                 arrangement_item.is_vertically_flipped = vflip
                 arrangement_item.is_horizontally_flipped = hflip
-                arrangement_item.is_priority = False
+                arrangement_item.is_priority = is_animation
 
     def __getitem__(self, key):
         x, y = key

@@ -395,9 +395,13 @@
   - name: Pointer
     size: 4
     type: pointer
+  - name: Graphics data size
+    size: 2
+    type: int
+  - name: Frame count
+    size: 1
   - name: Unknown
-    size: 4
-    type: bytearray
+    size: 1
   name: ANIMATION_SEQUENCE_POINTERS
   offset: 13381089
   size: 56
