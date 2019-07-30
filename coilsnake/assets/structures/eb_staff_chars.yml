@@ -1,0 +1,318 @@
+# Hint: in the 'Top 8x8 tile' field the first hex digit is the row, the second is the column in Fonts/credits.png.
+
+0:
+    Type: big
+    Top 8x8 tile: 0x00
+    Character: " "
+1:
+    Type: small
+    Top 8x8 tile: 0x00
+    Character: " "
+2:
+    Type: big
+    Top 8x8 tile: 0x01
+    Character: "!"
+3:
+    Type: small
+    Top 8x8 tile: 0x02
+    Character: A
+4:
+    Type: small
+    Top 8x8 tile: 0x12
+    Character: B
+5:
+    Type: big
+    Top 8x8 tile: 0x03
+    Character: "*" # A small, centered, filled square
+6:
+    Type: small
+    Top 8x8 tile: 0x04
+    Character: C
+7:
+    Type: small
+    Top 8x8 tile: 0x14
+    Character: D
+8:
+    Type: small
+    Top 8x8 tile: 0x05
+    Character: E
+9:
+    Type: small
+    Top 8x8 tile: 0x15
+    Character: F
+10:
+    Type: small
+    Top 8x8 tile: 0x06
+    Character: G
+11:
+    Type: small
+    Top 8x8 tile: 0x16
+    Character: H
+12:
+    Type: big
+    Top 8x8 tile: 0x07
+    Character: "'"
+13:
+    Type: small
+    Top 8x8 tile: 0x08
+    Character: I
+14:
+    Type: small
+    Top 8x8 tile: 0x18
+    Character: J
+15:
+    Type: small
+    Top 8x8 tile: 0x09
+    Character: K
+16:
+    Type: small
+    Top 8x8 tile: 0x19
+    Character: L
+17:
+    Type: small
+    Top 8x8 tile: 0x0A
+    Character: M
+18:
+    Type: small
+    Top 8x8 tile: 0x1A
+    Character: N
+19:
+    Type: small
+    Top 8x8 tile: 0x0B
+    Character: O
+20:
+    Type: small
+    Top 8x8 tile: 0x1B
+    Character: P
+21:
+    Type: big
+    Top 8x8 tile: 0x0C
+    Character: ","
+22:
+    Type: big
+    Top 8x8 tile: 0x0D
+    Character: "-"
+23:
+    Type: big
+    Top 8x8 tile: 0x0E
+    Character: "."
+24:
+    Type: big
+    Top 8x8 tile: 0x0F
+    Character: "/"
+25:
+    Type: big
+    Top 8x8 tile: 0x20
+    Character: 0
+26:
+    Type: big
+    Top 8x8 tile: 0x21
+    Character: 1
+27:
+    Type: big
+    Top 8x8 tile: 0x22
+    Character: 2
+28:
+    Type: big
+    Top 8x8 tile: 0x23
+    Character: 3
+29:
+    Type: big
+    Top 8x8 tile: 0x24
+    Character: 4
+30:
+    Type: big
+    Top 8x8 tile: 0x25
+    Character: 5
+31:
+    Type: big
+    Top 8x8 tile: 0x26
+    Character: 6
+32:
+    Type: big
+    Top 8x8 tile: 0x27
+    Character: 7
+33:
+    Type: big
+    Top 8x8 tile: 0x28
+    Character: 8
+34:
+    Type: big
+    Top 8x8 tile: 0x29
+    Character: 9
+35:
+    Type: small
+    Top 8x8 tile: 0x2A
+    Character: Q
+36:
+    Type: small
+    Top 8x8 tile: 0x3A
+    Character: R
+37:
+    Type: small
+    Top 8x8 tile: 0x2B
+    Character: S
+38:
+    Type: small
+    Top 8x8 tile: 0x3B
+    Character: T
+39:
+    Type: small
+    Top 8x8 tile: 0x2C
+    Character: U
+40:
+    Type: small
+    Top 8x8 tile: 0x3C
+    Character: V
+41:
+    Type: small
+    Top 8x8 tile: 0x2D
+    Character: W
+42:
+    Type: small
+    Top 8x8 tile: 0x3D
+    Character: X
+43:
+    Type: small
+    Top 8x8 tile: 0x2E
+    Character: Y
+44:
+    Type: small
+    Top 8x8 tile: 0x3E
+    Character: Z
+45:
+    Type: big
+    Top 8x8 tile: 0x2F
+    Character: "?"
+46:
+    Type: big
+    Top 8x8 tile: 0x40
+    Character: "_" # Not so much an underscore as an "overscore"
+47:
+    Type: small
+    Top 8x8 tile: 0x40
+    Character: "_" # Not so much an underscore as an "overscore"
+48:
+    Type: big
+    Top 8x8 tile: 0x41
+    Character: A
+49:
+    Type: big
+    Top 8x8 tile: 0x42
+    Character: B
+50:
+    Type: big
+    Top 8x8 tile: 0x43
+    Character: C
+51:
+    Type: big
+    Top 8x8 tile: 0x44
+    Character: D
+52:
+    Type: big
+    Top 8x8 tile: 0x45
+    Character: E
+53:
+    Type: big
+    Top 8x8 tile: 0x46
+    Character: F
+54:
+    Type: big
+    Top 8x8 tile: 0x47
+    Character: G
+55:
+    Type: big
+    Top 8x8 tile: 0x48
+    Character: H
+56:
+    Type: big
+    Top 8x8 tile: 0x49
+    Character: I
+57:
+    Type: big
+    Top 8x8 tile: 0x4A
+    Character: J
+58:
+    Type: big
+    Top 8x8 tile: 0x4B
+    Character: K
+59:
+    Type: big
+    Top 8x8 tile: 0x4C
+    Character: L
+60:
+    Type: big
+    Top 8x8 tile: 0x4D
+    Character: M
+61:
+    Type: big
+    Top 8x8 tile: 0x4E
+    Character: N
+62:
+    Type: big
+    Top 8x8 tile: 0x4F
+    Character: O
+63:
+    Type: big
+    Top 8x8 tile: 0x60
+    Character: P
+64:
+    Type: big
+    Top 8x8 tile: 0x61
+    Character: Q
+65:
+    Type: big
+    Top 8x8 tile: 0x62
+    Character: R
+66:
+    Type: big
+    Top 8x8 tile: 0x63
+    Character: S
+67:
+    Type: big
+    Top 8x8 tile: 0x64
+    Character: T
+68:
+    Type: big
+    Top 8x8 tile: 0x65
+    Character: U
+69:
+    Type: big
+    Top 8x8 tile: 0x66
+    Character: V
+70:
+    Type: big
+    Top 8x8 tile: 0x67
+    Character: W
+71:
+    Type: big
+    Top 8x8 tile: 0x68
+    Character: X
+72:
+    Type: big
+    Top 8x8 tile: 0x69
+    Character: Y
+73:
+    Type: big
+    Top 8x8 tile: 0x6A
+    Character: Z
+74:
+    Type: big
+    Top 8x8 tile: 0x6D
+    Character: ";"
+75:
+    Type: small
+    Top 8x8 tile: 0x6D
+    Character: "."
+76:
+    Type: big
+    Top 8x8 tile: 0xAC
+    Character: j # Eighth note
+77:
+    Type: big
+    Top 8x8 tile: 0xAE
+    Character: "~"
+78:
+    Type: big
+    Top 8x8 tile: 0xAF
+    Character: o # A small, centered circumference
