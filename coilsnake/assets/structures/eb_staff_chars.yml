@@ -1,318 +1,397 @@
-# Hint: in the 'Top 8x8 tile' field the first hex digit is the row, the second is the column in Fonts/credits.png.
+# Big characters use two rows. Use the top (smaller) row value. E.g. for the character '!', use row 0 instead of 1.
 
 0:
     Type: big
-    Top 8x8 tile: 0x00
+    Row:    0
+    Column: 0
     Character: " "
 1:
     Type: small
-    Top 8x8 tile: 0x00
+    Row:    0
+    Column: 0
     Character: " "
 2:
     Type: big
-    Top 8x8 tile: 0x01
+    Row:    0
+    Column: 1
     Character: "!"
 3:
     Type: small
-    Top 8x8 tile: 0x02
+    Row:    0
+    Column: 2
     Character: A
 4:
     Type: small
-    Top 8x8 tile: 0x12
+    Row:    1
+    Column: 2
     Character: B
 5:
     Type: big
-    Top 8x8 tile: 0x03
+    Row:    0
+    Column: 3
     Character: "*" # A small, centered, filled square
 6:
     Type: small
-    Top 8x8 tile: 0x04
+    Row:    0
+    Column: 4
     Character: C
 7:
     Type: small
-    Top 8x8 tile: 0x14
+    Row:    1
+    Column: 4
     Character: D
 8:
     Type: small
-    Top 8x8 tile: 0x05
+    Row:    0
+    Column: 5
     Character: E
 9:
     Type: small
-    Top 8x8 tile: 0x15
+    Row:    1
+    Column: 5
     Character: F
 10:
     Type: small
-    Top 8x8 tile: 0x06
+    Row:    0
+    Column: 6
     Character: G
 11:
     Type: small
-    Top 8x8 tile: 0x16
+    Row:    1
+    Column: 6
     Character: H
 12:
     Type: big
-    Top 8x8 tile: 0x07
+    Row:    0
+    Column: 7
     Character: "'"
 13:
     Type: small
-    Top 8x8 tile: 0x08
+    Row:    0
+    Column: 8
     Character: I
 14:
     Type: small
-    Top 8x8 tile: 0x18
+    Row:    1
+    Column: 8
     Character: J
 15:
     Type: small
-    Top 8x8 tile: 0x09
+    Row:    0
+    Column: 9
     Character: K
 16:
     Type: small
-    Top 8x8 tile: 0x19
+    Row:    1
+    Column: 9
     Character: L
 17:
     Type: small
-    Top 8x8 tile: 0x0A
+    Row:    0
+    Column: 10
     Character: M
 18:
     Type: small
-    Top 8x8 tile: 0x1A
+    Row:    1
+    Column: 10
     Character: N
 19:
     Type: small
-    Top 8x8 tile: 0x0B
+    Row:    0
+    Column: 11
     Character: O
 20:
     Type: small
-    Top 8x8 tile: 0x1B
+    Row:    1
+    Column: 11
     Character: P
 21:
     Type: big
-    Top 8x8 tile: 0x0C
+    Row:    0
+    Column: 12
     Character: ","
 22:
     Type: big
-    Top 8x8 tile: 0x0D
+    Row:    0
+    Column: 13
     Character: "-"
 23:
     Type: big
-    Top 8x8 tile: 0x0E
+    Row:    0
+    Column: 14
     Character: "."
 24:
     Type: big
-    Top 8x8 tile: 0x0F
+    Row:    0
+    Column: 15
     Character: "/"
 25:
     Type: big
-    Top 8x8 tile: 0x20
+    Row:    2
+    Column: 0
     Character: 0
 26:
     Type: big
-    Top 8x8 tile: 0x21
+    Row:    2
+    Column: 1
     Character: 1
 27:
     Type: big
-    Top 8x8 tile: 0x22
+    Row:    2
+    Column: 2
     Character: 2
 28:
     Type: big
-    Top 8x8 tile: 0x23
+    Row:    2
+    Column: 3
     Character: 3
 29:
     Type: big
-    Top 8x8 tile: 0x24
+    Row:    2
+    Column: 4
     Character: 4
 30:
     Type: big
-    Top 8x8 tile: 0x25
+    Row:    2
+    Column: 5
     Character: 5
 31:
     Type: big
-    Top 8x8 tile: 0x26
+    Row:    2
+    Column: 6
     Character: 6
 32:
     Type: big
-    Top 8x8 tile: 0x27
+    Row:    2
+    Column: 7
     Character: 7
 33:
     Type: big
-    Top 8x8 tile: 0x28
+    Row:    2
+    Column: 8
     Character: 8
 34:
     Type: big
-    Top 8x8 tile: 0x29
+    Row:    2
+    Column: 9
     Character: 9
 35:
     Type: small
-    Top 8x8 tile: 0x2A
+    Row:    2
+    Column: 10
     Character: Q
 36:
     Type: small
-    Top 8x8 tile: 0x3A
+    Row:    3
+    Column: 10
     Character: R
 37:
     Type: small
-    Top 8x8 tile: 0x2B
+    Row:    2
+    Column: 11
     Character: S
 38:
     Type: small
-    Top 8x8 tile: 0x3B
+    Row:    3
+    Column: 11
     Character: T
 39:
     Type: small
-    Top 8x8 tile: 0x2C
+    Row:    2
+    Column: 12
     Character: U
 40:
     Type: small
-    Top 8x8 tile: 0x3C
+    Row:    3
+    Column: 12
     Character: V
 41:
     Type: small
-    Top 8x8 tile: 0x2D
+    Row:    2
+    Column: 13
     Character: W
 42:
     Type: small
-    Top 8x8 tile: 0x3D
+    Row:    3
+    Column: 13
     Character: X
 43:
     Type: small
-    Top 8x8 tile: 0x2E
+    Row:    2
+    Column: 14
     Character: Y
 44:
     Type: small
-    Top 8x8 tile: 0x3E
+    Row:    3
+    Column: 14
     Character: Z
 45:
     Type: big
-    Top 8x8 tile: 0x2F
+    Row:    2
+    Column: 15
     Character: "?"
 46:
     Type: big
-    Top 8x8 tile: 0x40
+    Row:    4
+    Column: 0
     Character: "_" # Not so much an underscore as an "overscore"
 47:
     Type: small
-    Top 8x8 tile: 0x40
+    Row:    4
+    Column: 0
     Character: "_" # Not so much an underscore as an "overscore"
 48:
     Type: big
-    Top 8x8 tile: 0x41
+    Row:    4
+    Column: 1
     Character: A
 49:
     Type: big
-    Top 8x8 tile: 0x42
+    Row:    4
+    Column: 2
     Character: B
 50:
     Type: big
-    Top 8x8 tile: 0x43
+    Row:    4
+    Column: 3
     Character: C
 51:
     Type: big
-    Top 8x8 tile: 0x44
+    Row:    4
+    Column: 4
     Character: D
 52:
     Type: big
-    Top 8x8 tile: 0x45
+    Row:    4
+    Column: 5
     Character: E
 53:
     Type: big
-    Top 8x8 tile: 0x46
+    Row:    4
+    Column: 6
     Character: F
 54:
     Type: big
-    Top 8x8 tile: 0x47
+    Row:    4
+    Column: 7
     Character: G
 55:
     Type: big
-    Top 8x8 tile: 0x48
+    Row:    4
+    Column: 8
     Character: H
 56:
     Type: big
-    Top 8x8 tile: 0x49
+    Row:    4
+    Column: 9
     Character: I
 57:
     Type: big
-    Top 8x8 tile: 0x4A
+    Row:    4
+    Column: 10
     Character: J
 58:
     Type: big
-    Top 8x8 tile: 0x4B
+    Row:    4
+    Column: 11
     Character: K
 59:
     Type: big
-    Top 8x8 tile: 0x4C
+    Row:    4
+    Column: 12
     Character: L
 60:
     Type: big
-    Top 8x8 tile: 0x4D
+    Row:    4
+    Column: 13
     Character: M
 61:
     Type: big
-    Top 8x8 tile: 0x4E
+    Row:    4
+    Column: 14
     Character: N
 62:
     Type: big
-    Top 8x8 tile: 0x4F
+    Row:    4
+    Column: 15
     Character: O
 63:
     Type: big
-    Top 8x8 tile: 0x60
+    Row:    6
+    Column: 0
     Character: P
 64:
     Type: big
-    Top 8x8 tile: 0x61
+    Row:    6
+    Column: 1
     Character: Q
 65:
     Type: big
-    Top 8x8 tile: 0x62
+    Row:    6
+    Column: 2
     Character: R
 66:
     Type: big
-    Top 8x8 tile: 0x63
+    Row:    6
+    Column: 3
     Character: S
 67:
     Type: big
-    Top 8x8 tile: 0x64
+    Row:    6
+    Column: 4
     Character: T
 68:
     Type: big
-    Top 8x8 tile: 0x65
+    Row:    6
+    Column: 5
     Character: U
 69:
     Type: big
-    Top 8x8 tile: 0x66
+    Row:    6
+    Column: 6
     Character: V
 70:
     Type: big
-    Top 8x8 tile: 0x67
+    Row:    6
+    Column: 7
     Character: W
 71:
     Type: big
-    Top 8x8 tile: 0x68
+    Row:    6
+    Column: 8
     Character: X
 72:
     Type: big
-    Top 8x8 tile: 0x69
+    Row:    6
+    Column: 9
     Character: Y
 73:
     Type: big
-    Top 8x8 tile: 0x6A
+    Row:    6
+    Column: 10
     Character: Z
 74:
     Type: big
-    Top 8x8 tile: 0x6D
+    Row:    6
+    Column: 13
     Character: ";"
 75:
     Type: small
-    Top 8x8 tile: 0x6D
+    Row:    6
+    Column: 13
     Character: "."
 76:
     Type: big
-    Top 8x8 tile: 0xAC
+    Row:    10
+    Column: 12
     Character: j # Eighth note
 77:
     Type: big
-    Top 8x8 tile: 0xAE
+    Row:    10
+    Column: 14
     Character: "~"
 78:
     Type: big
-    Top 8x8 tile: 0xAF
+    Row:    10
+    Column: 15
     Character: o # A small, centered circumference

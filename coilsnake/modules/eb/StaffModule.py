@@ -26,11 +26,14 @@ CONTROL_SPACE        = 0x03
 CONTROL_PLAYER_NAME  = 0x04
 CONTROL_END_OF_STAFF = 0xff
 
-MAX_BYTE = 0xff - 0x40
+MAX_ROW = 0xf - 0x4
+MAX_COL = 0xf
+
 SCREEN_WIDTH_IN_TILES = 32
 
 ENTRY_TYPE = 'Type'
-ENTRY_TILE = 'Top 8x8 tile'
+ENTRY_ROW  = 'Row'
+ENTRY_COL  = 'Column'
 ENTRY_CHAR = 'Character'
 
 STAFF_CHARS_FILE_NAME = 'Staff/staff_chars'
@@ -51,28 +54,35 @@ class StaffModule(EbModule):
         self.data   = []
         self.height = 0
 
+    @staticmethod
+    def check_row_col_error(name, val, max_val):
+        if val > max_val:
+            raise InvalidUserDataError(
+                'Invalid \'{}\'={} - should be between 0 and {}.'.format(
+                    name, val, max_val
+                )
+            )
+
     def read_staff_chars(self, yml_data):
         log.debug('Reading staff character-to-code mapping')
 
         for k, v in yml_data.items():
+            vrow  = v[ENTRY_ROW]
+            vcol  = v[ENTRY_COL]
+            self.check_row_col_error(ENTRY_ROW, vrow, MAX_ROW)
+            self.check_row_col_error(ENTRY_COL, vcol, MAX_COL)
+            vtile = (vrow << 4) | vcol
             vtype = v[ENTRY_TYPE]
-            vtile = v[ENTRY_TILE]
             vchar = v[ENTRY_CHAR]
 
-            if vtile > MAX_BYTE:
-                raise InvalidUserDataError(
-                    'Invalid \'{}\'=0x{:X} - should be between 0 and {}.'.format(
-                        ENTRY_TILE, vtile, MAX_BYTE
-                    )
-                )
-            elif vtype == 'big':
+            if vtype == 'big':
                 self.big[str(vchar)]   = vtile + 0x40
             elif vtype == 'small':
                 self.small[str(vchar)] = vtile + 0x40
             else:
                 raise InvalidUserDataError(
-                    'Invalid \'{}\' for entry with \'{}\'=0x{:X} and \'{}\'={}.'.format(
-                        ENTRY_TYPE, ENTRY_TILE, vtile, ENTRY_CHAR, vchar
+                    'Invalid \'{}\' for entry with \'{}\'={}, \'{}\'={} and \'{}\'={}.'.format(
+                        ENTRY_TYPE, ENTRY_ROW, vrow, ENTRY_COL, vcol, ENTRY_CHAR, vchar
                     )
                 )
 
