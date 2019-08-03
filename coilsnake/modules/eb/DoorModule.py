@@ -4,6 +4,16 @@ from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.yml import convert_values_to_hex_repr, yml_load, yml_dump
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
 
+from collections import OrderedDict
+
+def sort_yml_doors(arg): # Reorder dicts
+    if isinstance(arg, list):
+        return [sort_yml_doors(v) for v in arg]
+
+    if isinstance(arg, dict):
+        return OrderedDict((k, sort_yml_doors(arg[k])) for k in sorted(arg.keys()))
+
+    return arg
 
 class DoorModule(EbModule):
     NAME = "Doors"
@@ -59,7 +69,7 @@ class DoorModule(EbModule):
     def read_from_project(self, resourceOpener):
         self.door_areas = []
         with resourceOpener("map_doors", "yml", True) as f:
-            input = yml_load(f)
+            input = sort_yml_doors(yml_load(f))
             for y in input:
                 row = input[y]
                 for x in row:
