@@ -91,7 +91,7 @@ class StaffModule(EbModule):
     def read_text_line_from_project(self, byte, line, mapping, height):
         self.data.append(byte)
 
-        if line == '':
+        if not line:
             line = ' '
 
         for char in line:
@@ -131,12 +131,9 @@ class StaffModule(EbModule):
             line = f.readline()
 
             while line:
-                if line[-1] == '\n':
-                    line = line[:-1]
+                line = line.strip()
 
-                line.strip()
-
-                if line == '':
+                if not line:
                     line = f.readline()
                     continue
 
@@ -229,10 +226,7 @@ class StaffModule(EbModule):
         offset = rom.allocate(size=len(self.data))
         self.write_pointer_to_rom(rom, to_snes_address(offset))
         log.debug('Writing staff text')
-
-        for byte in self.data:
-            rom[offset] = byte
-            offset += 1
+        rom[offset:offset + len(self.data)] = self.data
 
         for length_offset in LENGTH_OFFSETS:
             rom.write_multi(length_offset, self.height, 2)

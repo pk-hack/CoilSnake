@@ -4,6 +4,7 @@ eb.CharacterSubstitutionsModule
 eb.CccInterfaceModule
 eb.SkipNamingModule
 eb.MiscTextModule
+eb.StaffModule
 eb.MapSpriteModule
 eb.DoorModule
 eb.SpriteGroupModule
@@ -14,7 +15,6 @@ eb.TownMapIconModule
 eb.DeathScreenModule
 eb.SoundStoneModule
 eb.CastModule
-eb.StaffModule
 eb.AnimationModule
 eb.MapModule
 eb.MapEnemyModule
