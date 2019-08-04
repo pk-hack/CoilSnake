@@ -1,0 +1,397 @@
+# Big characters use two rows. Use the top (smaller) row value. E.g. for the character '!', use row 0 instead of 1.
+
+0:
+    Type: big
+    Row:    0
+    Column: 0
+    Character: " "
+1:
+    Type: small
+    Row:    0
+    Column: 0
+    Character: " "
+2:
+    Type: big
+    Row:    0
+    Column: 1
+    Character: "!"
+3:
+    Type: small
+    Row:    0
+    Column: 2
+    Character: A
+4:
+    Type: small
+    Row:    1
+    Column: 2
+    Character: B
+5:
+    Type: big
+    Row:    0
+    Column: 3
+    Character: "*" # A small, centered, filled square
+6:
+    Type: small
+    Row:    0
+    Column: 4
+    Character: C
+7:
+    Type: small
+    Row:    1
+    Column: 4
+    Character: D
+8:
+    Type: small
+    Row:    0
+    Column: 5
+    Character: E
+9:
+    Type: small
+    Row:    1
+    Column: 5
+    Character: F
+10:
+    Type: small
+    Row:    0
+    Column: 6
+    Character: G
+11:
+    Type: small
+    Row:    1
+    Column: 6
+    Character: H
+12:
+    Type: big
+    Row:    0
+    Column: 7
+    Character: "'"
+13:
+    Type: small
+    Row:    0
+    Column: 8
+    Character: I
+14:
+    Type: small
+    Row:    1
+    Column: 8
+    Character: J
+15:
+    Type: small
+    Row:    0
+    Column: 9
+    Character: K
+16:
+    Type: small
+    Row:    1
+    Column: 9
+    Character: L
+17:
+    Type: small
+    Row:    0
+    Column: 10
+    Character: M
+18:
+    Type: small
+    Row:    1
+    Column: 10
+    Character: N
+19:
+    Type: small
+    Row:    0
+    Column: 11
+    Character: O
+20:
+    Type: small
+    Row:    1
+    Column: 11
+    Character: P
+21:
+    Type: big
+    Row:    0
+    Column: 12
+    Character: ","
+22:
+    Type: big
+    Row:    0
+    Column: 13
+    Character: "-"
+23:
+    Type: big
+    Row:    0
+    Column: 14
+    Character: "."
+24:
+    Type: big
+    Row:    0
+    Column: 15
+    Character: "/"
+25:
+    Type: big
+    Row:    2
+    Column: 0
+    Character: 0
+26:
+    Type: big
+    Row:    2
+    Column: 1
+    Character: 1
+27:
+    Type: big
+    Row:    2
+    Column: 2
+    Character: 2
+28:
+    Type: big
+    Row:    2
+    Column: 3
+    Character: 3
+29:
+    Type: big
+    Row:    2
+    Column: 4
+    Character: 4
+30:
+    Type: big
+    Row:    2
+    Column: 5
+    Character: 5
+31:
+    Type: big
+    Row:    2
+    Column: 6
+    Character: 6
+32:
+    Type: big
+    Row:    2
+    Column: 7
+    Character: 7
+33:
+    Type: big
+    Row:    2
+    Column: 8
+    Character: 8
+34:
+    Type: big
+    Row:    2
+    Column: 9
+    Character: 9
+35:
+    Type: small
+    Row:    2
+    Column: 10
+    Character: Q
+36:
+    Type: small
+    Row:    3
+    Column: 10
+    Character: R
+37:
+    Type: small
+    Row:    2
+    Column: 11
+    Character: S
+38:
+    Type: small
+    Row:    3
+    Column: 11
+    Character: T
+39:
+    Type: small
+    Row:    2
+    Column: 12
+    Character: U
+40:
+    Type: small
+    Row:    3
+    Column: 12
+    Character: V
+41:
+    Type: small
+    Row:    2
+    Column: 13
+    Character: W
+42:
+    Type: small
+    Row:    3
+    Column: 13
+    Character: X
+43:
+    Type: small
+    Row:    2
+    Column: 14
+    Character: Y
+44:
+    Type: small
+    Row:    3
+    Column: 14
+    Character: Z
+45:
+    Type: big
+    Row:    2
+    Column: 15
+    Character: "?"
+46:
+    Type: big
+    Row:    4
+    Column: 0
+    Character: "_" # Not so much an underscore as an "overscore"
+47:
+    Type: small
+    Row:    4
+    Column: 0
+    Character: "_" # Not so much an underscore as an "overscore"
+48:
+    Type: big
+    Row:    4
+    Column: 1
+    Character: A
+49:
+    Type: big
+    Row:    4
+    Column: 2
+    Character: B
+50:
+    Type: big
+    Row:    4
+    Column: 3
+    Character: C
+51:
+    Type: big
+    Row:    4
+    Column: 4
+    Character: D
+52:
+    Type: big
+    Row:    4
+    Column: 5
+    Character: E
+53:
+    Type: big
+    Row:    4
+    Column: 6
+    Character: F
+54:
+    Type: big
+    Row:    4
+    Column: 7
+    Character: G
+55:
+    Type: big
+    Row:    4
+    Column: 8
+    Character: H
+56:
+    Type: big
+    Row:    4
+    Column: 9
+    Character: I
+57:
+    Type: big
+    Row:    4
+    Column: 10
+    Character: J
+58:
+    Type: big
+    Row:    4
+    Column: 11
+    Character: K
+59:
+    Type: big
+    Row:    4
+    Column: 12
+    Character: L
+60:
+    Type: big
+    Row:    4
+    Column: 13
+    Character: M
+61:
+    Type: big
+    Row:    4
+    Column: 14
+    Character: N
+62:
+    Type: big
+    Row:    4
+    Column: 15
+    Character: O
+63:
+    Type: big
+    Row:    6
+    Column: 0
+    Character: P
+64:
+    Type: big
+    Row:    6
+    Column: 1
+    Character: Q
+65:
+    Type: big
+    Row:    6
+    Column: 2
+    Character: R
+66:
+    Type: big
+    Row:    6
+    Column: 3
+    Character: S
+67:
+    Type: big
+    Row:    6
+    Column: 4
+    Character: T
+68:
+    Type: big
+    Row:    6
+    Column: 5
+    Character: U
+69:
+    Type: big
+    Row:    6
+    Column: 6
+    Character: V
+70:
+    Type: big
+    Row:    6
+    Column: 7
+    Character: W
+71:
+    Type: big
+    Row:    6
+    Column: 8
+    Character: X
+72:
+    Type: big
+    Row:    6
+    Column: 9
+    Character: Y
+73:
+    Type: big
+    Row:    6
+    Column: 10
+    Character: Z
+74:
+    Type: big
+    Row:    6
+    Column: 13
+    Character: ";"
+75:
+    Type: small
+    Row:    6
+    Column: 13
+    Character: "."
+76:
+    Type: big
+    Row:    10
+    Column: 12
+    Character: j # Eighth note
+77:
+    Type: big
+    Row:    10
+    Column: 14
+    Character: "~"
+78:
+    Type: big
+    Row:    10
+    Column: 15
+    Character: o # A small, centered circumference

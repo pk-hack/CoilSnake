@@ -4,6 +4,7 @@ eb.CharacterSubstitutionsModule
 eb.CccInterfaceModule
 eb.SkipNamingModule
 eb.MiscTextModule
+eb.StaffModule
 eb.MapSpriteModule
 eb.DoorModule
 eb.SpriteGroupModule
