@@ -159,6 +159,31 @@ class CoilSnakeGui(object):
         self.preferences.set_default_tab(tab_number)
         self.preferences.save()
 
+    def save_geometry_and_close(self, e=None):
+        self.preferences['width']  = self.root.winfo_width()
+        self.preferences['height'] = self.root.winfo_height()
+        self.preferences['xpos']   = self.root.winfo_rootx()
+        self.preferences['ypos']   = self.root.winfo_rooty()
+        self.preferences.save()
+        self.root.destroy()
+
+    def load_geometry(self):
+        self.root.update_idletasks()
+        width  = self.preferences['width']  or self.root.winfo_width()
+        height = self.preferences['height'] or self.root.winfo_height()
+        xpos   = self.preferences['xpos']   or self.root.winfo_rootx()
+        ypos   = self.preferences['ypos']   or self.root.winfo_rooty()
+
+        if platform.system() != "Windows" and platform.system() != "Darwin":
+            # Workaround - On X11, the window coordinates refer to the window border rather than the content
+            self.root.geometry('{}x{}+0+0'.format(width, height))
+            self.root.update_idletasks()
+            xpos -= self.root.winfo_rootx()
+            ypos -= self.root.winfo_rooty()
+
+        self.root.geometry('{}x{}+{}+{}'.format(width, height, xpos, ypos))
+        self.root.update_idletasks()
+
     # GUI update functions
     def disable_all_components(self):
         for component in self.components:
@@ -492,8 +517,9 @@ Please configure Java in the Settings menu.""")
             # Ensure the dimensions of the widgets are up to date
             self.notebook.update_idletasks()
 
-            # Get the geometry of the window, so we can reset it later
-            window_geometry = self.root.winfo_geometry()
+            # Get the width and height of the window, so we can reset it later
+            width  = self.root.winfo_width()
+            height = self.root.winfo_height()
 
             # Set the notebook height to the selected tab's requested height
             tab_window_name = self.notebook.select()
@@ -502,7 +528,7 @@ Please configure Java in the Settings menu.""")
             self.notebook.configure(height=tab_height)
 
             # Keeps the window from changing size
-            self.root.geometry(window_geometry)
+            self.root.geometry("{}x{}".format(width, height))
 
         self.notebook.bind("<<NotebookTabChanged>>", tab_changed)
 
@@ -510,6 +536,8 @@ Please configure Java in the Settings menu.""")
 
         setup_logging(quiet=False, verbose=False, stream=self.console_stream)
         self.refresh_debug_logging()
+        self.load_geometry()
+        self.root.protocol("WM_DELETE_WINDOW", self.save_geometry_and_close)
 
     def create_about_window(self):
         self.about_menu = Toplevel(self.root, takefocus=True)
