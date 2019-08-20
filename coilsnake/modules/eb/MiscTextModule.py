@@ -15,13 +15,13 @@ class EbMiscTextAsmPointer(object):
 
 
 class EbMiscTextString(object):
-    def __init__(self, pointer=None, default_offset=None, maximum_size=None, null_terminated=False):
-        if pointer and default_offset:
-            raise ValueError("Only one of pointer and default_offset can be provided to EbStandardMiscText")
+    def __init__(self, pointers=None, default_offset=None, maximum_size=None, null_terminated=False):
+        if pointers and default_offset:
+            raise ValueError("Only one of pointers and default_offset can be provided to EbStandardMiscText")
         if not maximum_size:
             raise ValueError("maximum_size must be provided")
 
-        self.pointer = pointer
+        self.pointers = pointers
         self.default_offset = default_offset
         if null_terminated:
             self.table_entry = EbStandardNullTerminatedTextTableEntry.create(maximum_size)
@@ -29,17 +29,19 @@ class EbMiscTextString(object):
             self.table_entry = EbStandardTextTableEntry.create(maximum_size)
 
     def from_block(self, block):
-        if self.pointer:
-            loc = self.pointer.read(block)
+        if self.pointers:
+            loc = self.pointers[0].read(block)
         else:
             loc = self.default_offset
 
         return self.table_entry.from_block(block, loc)
 
     def to_block(self, block, value):
-        if self.pointer:
+        if self.pointers:
             loc = block.allocate(size=self.table_entry.size)
-            self.pointer.write(block, to_snes_address(loc))
+
+            for pointer in self.pointers:
+                pointer.write(block, to_snes_address(loc))
         else:
             loc = self.default_offset
 
@@ -53,14 +55,14 @@ MISC_TEXT = {
         "Text Speed Fast": EbMiscTextString(default_offset=0x04c07f, maximum_size=6),
         "Text Speed Medium": EbMiscTextString(default_offset=0x04c086, maximum_size=6),
         "Text Speed Slow": EbMiscTextString(default_offset=0x04c08d, maximum_size=6),
-        "Continue": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F08C), maximum_size=25),
-        "Copy": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F0C5), maximum_size=25),
-        "Delete": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F102), maximum_size=25),
-        "Set Up": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F120), maximum_size=25),
-        "Copy to where?": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F189), maximum_size=14),
+        "Continue": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1F08C)], maximum_size=25),
+        "Copy": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1F0C5)], maximum_size=25),
+        "Delete": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1F102)], maximum_size=25),
+        "Set Up": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1F120)], maximum_size=25),
+        "Copy to where?": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1F189), EbMiscTextAsmPointer(0x1F208)], maximum_size=14),
         "Confirm Delete": EbMiscTextString(default_offset=0x04c0be, maximum_size=32),
-        "Confirm Delete No": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F364), maximum_size=25),
-        "Confirm Delete Yes": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1F380), maximum_size=25),
+        "Confirm Delete No": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1F364)], maximum_size=25),
+        "Confirm Delete Yes": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1F380)], maximum_size=25),
         "Select Speed": EbMiscTextString(default_offset=0x04c0e5, maximum_size=25),
         "Select Sound": EbMiscTextString(default_offset=0x04c0fe, maximum_size=28),
         "Select Sound Stereo": EbMiscTextString(default_offset=0x04c11a, maximum_size=6),
@@ -73,11 +75,11 @@ MISC_TEXT = {
         "Ask Name Pet": EbMiscTextString(default_offset=0x04c234, maximum_size=40),
         "Ask Name Food": EbMiscTextString(default_offset=0x04c25c, maximum_size=40),
         "Ask Name PSI": EbMiscTextString(default_offset=0x04c284, maximum_size=40),
-        "Confirm Food": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1FB05), maximum_size=14),
-        "Confirm PSI": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1FBB7), maximum_size=14),
-        "Confirm All": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1FC69), maximum_size=13),
-        "Confirm All Yes": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1FC83), maximum_size=10),
-        "Confirm All No": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1FCA1), maximum_size=10)
+        "Confirm Food": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1FB05)], maximum_size=14),
+        "Confirm PSI": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1FBB7)], maximum_size=14),
+        "Confirm All": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1FC69)], maximum_size=13),
+        "Confirm All Yes": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1FC83)], maximum_size=10),
+        "Confirm All No": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1FCA1)], maximum_size=10)
     },
     "Ailments": {
         "Ailment 01": EbMiscTextString(default_offset=0x045b70, maximum_size=16),
@@ -97,12 +99,12 @@ MISC_TEXT = {
         "Auto Fight": EbMiscTextString(default_offset=0x04a001, maximum_size=16),
         "PSI": EbMiscTextString(default_offset=0x04a011, maximum_size=16),
         "Defend": EbMiscTextString(default_offset=0x04a021, maximum_size=16),
-        "Pray": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x237E0), maximum_size=25, null_terminated=True),
-        "Shoot": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x23616), maximum_size=20, null_terminated=True),
-        "Spy": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x2378B), maximum_size=25, null_terminated=True),
+        "Pray": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x237E0)], maximum_size=25, null_terminated=True),
+        "Shoot": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x23616)], maximum_size=20, null_terminated=True),
+        "Spy": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x2378B)], maximum_size=25, null_terminated=True),
         "Run Away": EbMiscTextString(default_offset=0x04a061, maximum_size=16),
-        "Mirror": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x23808), maximum_size=25, null_terminated=True),
-        "Do Nothing": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x23637), maximum_size=25, null_terminated=True)  # New in CoilSnake 2.0
+        "Mirror": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x23808)], maximum_size=25, null_terminated=True),
+        "Do Nothing": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x23637)], maximum_size=25, null_terminated=True)  # New in CoilSnake 2.0
     },
     "Out of Battle Menu": {
         "Talk to": EbMiscTextString(default_offset=0x2fa37a, maximum_size=9),
@@ -165,9 +167,9 @@ MISC_TEXT = {
         "Arms Window Title": EbMiscTextString(default_offset=0x045c68, maximum_size=7),
         "Other Window Title": EbMiscTextString(default_offset=0x045c70, maximum_size=7),
         "No Equip": EbMiscTextString(default_offset=0x045c78, maximum_size=10),
-        "Unequip": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1A912), maximum_size=12, null_terminated=True),
+        "Unequip": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1A912)], maximum_size=12, null_terminated=True),
         # v This one could possibly have a larger max size, I haven't tested
-        "To": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1AB1A), maximum_size=5, null_terminated=True)
+        "To": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1AB1A)], maximum_size=5, null_terminated=True)
     },
     "Item Menu": {
         "Use": EbMiscTextString(default_offset=0x043550, maximum_size=5),
@@ -184,7 +186,7 @@ MISC_TEXT = {
     },
     "Window Titles": {
         "Escargo Express Window Title": EbMiscTextString(default_offset=0x045c10, maximum_size=12),
-        "Phone Window Title": EbMiscTextString(pointer=EbMiscTextAsmPointer(0x1945B), maximum_size=5)
+        "Phone Window Title": EbMiscTextString(pointers=[EbMiscTextAsmPointer(0x1945B)], maximum_size=5)
     }
 }
 
