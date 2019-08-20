@@ -61,6 +61,7 @@ After installing a VM, follow the steps mentioned below for your respective syst
         - You may need to run this command every time you start an instance of the command line (or add these paths to the system environment variables).
     1. `vcvarsall.bat x86`
 1. Follow the '[Generic](#generic)' instructions below.
+1. In commands beginning with `python3` use just `python` instead
 
 ## Generic
 
@@ -71,7 +72,7 @@ After installing a VM, follow the steps mentioned below for your respective syst
 1. Install dependencies:
     - `python3 setup.py develop`
 1. Build additional coilsnake dependencies:
-    - `python3 setup.py build_ext`
+    - `python3 setup.py build`
 
 CoilSnake is now installed in development mode. After making code changes to the source, run your code by launching CoilSnake's GUI or CLI:
 
