@@ -25,7 +25,7 @@ VERSION_NAMES = {
     7:  "2.2",
     8:  "2.3.1",
     9:  "3.33",
-    10: "3.33++"
+    10: "4.0"
 }
 
 # The default project filename
