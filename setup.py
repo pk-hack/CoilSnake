@@ -21,7 +21,7 @@ if platform.system() == "Darwin":
 
 setup(
     name="coilsnake",
-    version="3.33",
+    version="4.0",
     description="CoilSnake",
     url="https://mrtenda.github.io/CoilSnake",
     packages=find_packages(),
