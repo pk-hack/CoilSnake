@@ -69,6 +69,7 @@ After installing a VM, follow the steps mentioned below for your respective syst
 1. Open the command line and `cd` to your local CoilSnake git repository's main directory.
 1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/mrtenda/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
     - Alternatively, using the command line git, run: `git submodule update --init --recursive`
+1. `python3 -m pip install --upgrade pip`
 1. Install dependencies:
     - `python3 setup.py develop`
 1. Build additional coilsnake dependencies:
@@ -85,7 +86,7 @@ python3 script/cli.py
 ### Creating a standalone executable
 
 1. After following the steps for your system, install this additional dependency:
-    - [pyinstaller](https://www.pyinstaller.org) - `pip3 install pyinstaller==3.5`
+    - [pyinstaller](https://www.pyinstaller.org) - `python3 -m pip install pyinstaller==3.5`
 1. Create the CoilSnake executable:
     - `python3 setup_exe.py`
 1. Run the output file under the 'dist' directory.
