@@ -7,8 +7,12 @@ from setuptools.sandbox import run_setup
 
 run_setup('setup.py', ['build_ext'])
 
+debug = False
+
+if len(sys.argv) > 1 and sys.argv[1] == 'debug':
+    debug = True
+
 hiddenimports = []
-hidden_import_list = ['PIL._tkinter_finder']
 
 with open(os.path.join("coilsnake", "assets", "modulelist.txt"), "r") as f:
     for line in f:
@@ -18,7 +22,7 @@ with open(os.path.join("coilsnake", "assets", "modulelist.txt"), "r") as f:
             continue
 
         module = "coilsnake.modules." + line
-        hidden_import_list.append(module)
+        hiddenimports.append(module)
 
 pyver = '{}.{}'.format(sys.version_info[0], sys.version_info[1])
 
@@ -36,7 +40,7 @@ a = Analysis(
     pathex = ['.'],
     binaries = binaries,
     datas = [('coilsnake/assets', 'coilsnake/assets')],
-    hiddenimports = hidden_import_list,
+    hiddenimports = hiddenimports,
     hookspath = [],
     runtime_hooks = [],
     excludes = [
@@ -80,55 +84,30 @@ else:
     scripts = a.scripts
 # -------------------
 
-if len(sys.argv) > 1 and sys.argv[1] == 'debug':
-    exe = EXE(
-        pyz,
-        scripts,
-        [],
-        exclude_binaries=True,
-        name='CoilSnake_bin',
-        debug=False,
-        bootloader_ignore_signals=False,
-        strip=False,
-        upx=True,
-        console=False,
-        icon='coilsnake/assets/images/CoilSnake.ico'
-    )
-
-    final = COLLECT(
-        exe,
-        a.binaries,
-        a.zipfiles,
-        a.datas,
-        strip=False,
-        upx=True,
-        upx_exclude=[],
-        name='CoilSnake'
-    )
-else:
-    final = EXE(
-        pyz,
-        scripts,
-        a.binaries,
-        a.zipfiles,
-        a.datas,
-        [],
-        name='CoilSnake',
-        debug=False,
-        bootloader_ignore_signals=False,
-        strip=False,
-        upx=True,
-        upx_exclude=[],
-        runtime_tmpdir=None,
-        console=False,
-        icon='coilsnake/assets/images/CoilSnake.ico'
-    )
+exe = EXE(
+    pyz,
+    scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    [],
+    name='CoilSnake',
+    debug=debug,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=debug,
+    icon='coilsnake/assets/images/CoilSnake.ico',
+    manifest=None
+)
 
 if platform.system() != 'Darwin':
     exit()
 
 app = BUNDLE(
-    final,
+    exe,
     name='CoilSnake.app',
     icon='coilsnake/assets/images/CoilSnake.icns',
     bundle_identifier='com.github.mrtenda.CoilSnake'
