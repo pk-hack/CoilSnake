@@ -84,7 +84,14 @@ class CoilSnakePreferences(object):
             self.preferences["profiles"] = dict()
         if tab_name not in self.preferences["profiles"]:
             self.preferences["profiles"][tab_name] = {"Default Profile": {}}
-        return self.preferences["profiles"][tab_name]
+
+        tab = self.preferences["profiles"][tab_name]
+
+        if None in tab.keys():
+            tab['NULL'] = tab[None]
+            del tab[None]
+
+        return tab
 
     def _get_preferences_profile(self, tab_name, profile_name):
         tab = self._get_preferences_profile_tab(tab_name)
