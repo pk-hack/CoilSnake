@@ -69,7 +69,7 @@ After installing a VM, follow the steps mentioned below for your respective syst
 1. Open the command line and `cd` to your local CoilSnake git repository's main directory.
 1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/mrtenda/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
     - Alternatively, using the command line git, run: `git submodule update --init --recursive`
-1. `python3 -m pip install --upgrade pip`
+1. `python3 -m pip install pip==18.1`
 1. Install dependencies:
     - `python3 setup.py develop`
 1. Build additional coilsnake dependencies:
