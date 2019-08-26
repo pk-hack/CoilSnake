@@ -547,19 +547,22 @@ Please configure Java in the Settings menu.""")
         elif platform.system() != "Darwin":
             self.about_menu.wm_iconphoto(*self.iconphoto_params)
 
+        photo_header = ImageTk.PhotoImage(file=asset_path(["images", "CS4_logo.png"]))
+        about_header = Label(self.about_menu, image=photo_header, anchor=CENTER)
+        about_header.photo = photo_header
+        about_header.pack(side=TOP, fill=BOTH, expand=1)
+
         photo = ImageTk.PhotoImage(file=asset_path(["images", "logo.png"]))
-        about_label = Label(self.about_menu, image=photo)
+        about_label = Label(self.about_menu, image=photo, justify=RIGHT)
         about_label.photo = photo
-        about_label.pack(side=LEFT, expand=1)
+        about_label.pack(side=LEFT, fill=BOTH, expand=1)
 
         about_right_frame = tkinter.ttk.Frame(self.about_menu)
         Label(about_right_frame,
               text=coilsnake_about(),
-              font=("Courier", 11),
-              anchor="w",
-              justify="left",
-              borderwidth=5,
-              relief=GROOVE).pack(fill=BOTH, expand=1, side=TOP)
+              font=("Courier", 10),
+              anchor=CENTER,
+              justify=LEFT).pack(fill=BOTH, expand=1, side=TOP)
 
         about_right_frame.pack(side=LEFT, fill=BOTH, expand=1)
 

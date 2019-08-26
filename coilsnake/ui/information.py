@@ -1,7 +1,7 @@
 from coilsnake.util.common import project
 
 VERSION = project.VERSION_NAMES[project.FORMAT_VERSION]
-RELEASE_DATE = "August 20, 2019"
+RELEASE_DATE = "August 26, 2019"
 
 WEBSITE = "http://mrtenda.github.io/CoilSnake"
 AUTHOR = "MrTenda"
@@ -9,8 +9,10 @@ ADDITIONAL_CREDITS = """- Some portions based on JHack, created by AnyoneEB
 - Contributions by H.S, Michael1, John Soklaski,
   João Silva and many others"""
 DEPENDENCIES = [
-    {"name": "CoilSnake logo",
+    {"name": "CoilSnake logo and icon",
      "author": "Rydel"},
+    {"name": "CoilSnake 4 logo",
+     "author": "vince94"},
     {"name": "CCScript",
      "author": "Mr. Accident",
      "url": "http://starmen.net/pkhack/ccscript"},
