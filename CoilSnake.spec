@@ -1,8 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import os
-import sys
+import glob
 import platform
+import shutil
+import sys
+
 from setuptools.sandbox import run_setup
 
 run_setup('setup.py', ['build_ext'])
@@ -12,7 +15,7 @@ debug = False
 if len(sys.argv) > 1 and sys.argv[1] == 'debug':
     debug = True
 
-hiddenimports = []
+hiddenimports = ['PIL._tkinter_finder']
 
 with open(os.path.join("coilsnake", "assets", "modulelist.txt"), "r") as f:
     for line in f:
@@ -66,27 +69,9 @@ pyz = PYZ(
     cipher=None
 )
 
-# --- Workaround for https://github.com/pyinstaller/pyinstaller/issues/3820 ---
-if platform.system() == 'Darwin':
-    index = 0
-
-    for i, item in enumerate(a.scripts):
-        name, loc, info = item
-
-        if loc.endswith('script/gui.py'):
-            index = i
-            break
-
-    scripts = a.scripts[i:i + 1]
-    scripts.extend(a.scripts[:i])
-    scripts.extend(a.scripts[i + 1:])
-else:
-    scripts = a.scripts
-# -------------------
-
 exe = EXE(
     pyz,
-    scripts,
+    a.scripts,
     a.binaries,
     a.zipfiles,
     a.datas,
@@ -94,7 +79,7 @@ exe = EXE(
     name='CoilSnake',
     debug=debug,
     bootloader_ignore_signals=False,
-    strip=False,
+    strip=(sys.platform != 'win32'),
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
@@ -113,12 +98,9 @@ app = BUNDLE(
     bundle_identifier='com.github.mrtenda.CoilSnake'
 )
 
-# --- Workaround for https://github.com/pyinstaller/pyinstaller/issues/3753 ---
-indirbase = '/Library/Frameworks/Python.framework/Versions/{}/lib/{}*'
-outdir    = 'dist/CoilSnake.app/Contents/lib'
-tcldir    = indirbase.format(pyver, 'tcl')
-tkdir     = indirbase.format(pyver, 'tk')
-os.mkdir(outdir)
-os.system('cp -r {} {}'.format(tcldir, outdir))
-os.system('cp -r {} {}'.format(tkdir,  outdir))
+# --- Workaround for https://github.com/pyinstaller/pyinstaller/issues/3820 ---
+infile = glob.glob('/Library/Frameworks/Python.framework/Versions/{}/lib/tcl8/8.5/msgcat*.tm'.format(pyver))[0]
+outdir = 'dist/CoilSnake.app/Contents/lib/tcl8/8.5'
+os.makedirs(outdir, exist_ok=True)
+shutil.copy(infile, outdir)
 # -------------------
