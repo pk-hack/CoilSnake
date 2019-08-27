@@ -1,4 +1,3 @@
-
 # CoilSnake Development Guide
 
 ## Environment
@@ -32,6 +31,7 @@ After installing a VM, follow the steps mentioned below for your respective syst
 ## Linux
 
 1. Install any system dependencies required by CoilSnake. For Ubuntu, these are listed in the official [CoilSnake installation instructions](https://mrtenda.github.io/CoilSnake/download.html).
+1. To build the self-contained binary with better compression, install UPX.
 1. Follow the '[Generic](#generic)' instructions below.
 
 ## macOS
@@ -40,12 +40,14 @@ After installing a VM, follow the steps mentioned below for your respective syst
     1. [Command Line Tools for Xcode](https://developer.apple.com/downloads)
     1. [Python 3.7](https://www.python.org/downloads/release/python-374/)
         - Do not install non-official builds - this one includes Tk 8.6, with fixes and a nicer-looking UI over Tk 8.5.
-    1. Homebrew
+    1. Homebrew:
         - `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
-    1. libyaml
+    1. libyaml:
         - `brew install libyaml`
-    1. PyYAML with libyaml support
+    1. PyYAML with libyaml support:
         - `python3 -m easy_install pyyaml`
+    1. To build the app bundle with better compression, install UPX:
+        - `brew install upx`
 1. Follow the '[Generic](#generic)' instructions below.
 
 ## Windows
@@ -61,7 +63,8 @@ After installing a VM, follow the steps mentioned below for your respective syst
         - You may need to run this command every time you start an instance of the command line (or add these paths to the system environment variables).
     1. `vcvarsall.bat x86`
 1. Follow the '[Generic](#generic)' instructions below.
-1. In commands beginning with `python3` use just `python` instead
+1. Download and extract [UPX](https://github.com/upx/upx/releases/tag/v3.95) to the root CoilSnake folder for better executable compression.
+1. In commands beginning with `python3` use just `python` instead.
 
 ## Generic
 
@@ -69,7 +72,7 @@ After installing a VM, follow the steps mentioned below for your respective syst
 1. Open the command line and `cd` to your local CoilSnake git repository's main directory.
 1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/mrtenda/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
     - Alternatively, using the command line git, run: `git submodule update --init --recursive`
-1. `python3 -m pip install --upgrade pip`
+1. `python3 -m pip install pip==18.1`
 1. Install dependencies:
     - `python3 setup.py develop`
 1. Build additional coilsnake dependencies:
@@ -85,8 +88,13 @@ python3 script/cli.py
 
 ### Creating a standalone executable
 
-1. After following the steps for your system, install this additional dependency:
-    - [pyinstaller](https://www.pyinstaller.org) - `python3 -m pip install pyinstaller==3.5`
-1. Create the CoilSnake executable:
+1. Follow the steps above to build CoilSnake for your system.
+1. Using your favorite git client, clone this fork of [pyinstaller](https://github.com/jamsilva/pyinstaller) and build it:
+    1. Go to the bootloader directory and build it:
+        `python3 ./waf distclean all`
+    1. Go back up to the root folder of pyinstaller and run:
+        `python3 setup.py build`
+        `python3 setup.py install`
+1. In the CoilSnake source directory, build the CoilSnake executable:
     - `python3 setup_exe.py`
 1. Run the output file under the 'dist' directory.
