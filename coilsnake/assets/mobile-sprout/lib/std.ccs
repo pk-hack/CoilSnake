@@ -1,0 +1,365 @@
+/*
+ * CCScript standard library
+ *  version 0.5.1
+ *
+ * Don't modifiy this file unless you know what you're doing!
+ */
+ 
+ 
+
+/*
+ * ROM manipulation helpers 
+ */
+
+command _asmptr(loc,target) {
+	ROMTBL[loc, 1, 1] = short [0] target
+	ROMTBL[loc, 6, 1] = short [1] target
+}
+
+
+// Links a TPT entry's text pointer to a label
+command sprite_link(tptnum, target) {
+	ROMTBL[0xCF898E, 0x11, tptnum] = target
+}
+
+// Sets the starting coordinates, in pixels
+command newgame_location(x, y) {
+	ROM[0xC1FE9E] = short x
+	ROM[0xC1FE9B] = short y
+}
+
+// Sets the new game startup code pointer
+command newgame_startup(target) {
+	_asmptr(0xC1FEA4, target)
+}
+
+// Sets a pointer to be used whenever the screen refreshes
+command on_refresh(target) {
+	_asmptr(0xC06B29, target)
+}
+
+// Sets default "check" pointer (No problem here.)
+command on_check(target) {
+	_asmptr(0xC13BE9, target)
+}
+
+
+// Sets the file select music
+command setup_music(music) {
+	ROM[0xC1f04a] = byte music
+}
+
+// Sets the naming screen music
+command setup_music2(music) {
+	ROM[0xC1f8fc] = byte music
+}
+
+// Sets the setup background
+command setup_background(bg) {
+	ROM[0xC0B5F1] = short bg
+}
+
+
+
+/*
+ * Basic control codes
+ */
+ 
+// Update 8/23: newline redefined as [01] - only break when
+//  current line is not blank.
+// New linebreak command has old newline behavior.
+command linebreak "[00]"
+command newline "[01]"
+
+command eob "[02]"
+
+command wait "[13]"
+
+command prompt "[14]"
+
+command next "[03 00]"
+
+command end "[13 02]"
+
+command set(num) "[04 {short num}]"
+
+command unset(num) "[05 {short num}]"
+
+command isset(num) "[07 {short num}]"
+
+command toggle(num)	if isset(num) unset(num) else set(num)
+
+command call(target) "[08 {long target}]"
+
+command goto(target) "[0A {long target}]"
+
+command pause(len) "[10 {byte len}]"
+
+command longpause(len) {
+	pause(len)
+	pause(len)
+	pause(len)
+	pause(len)
+	pause(len)
+}
+
+command clearline "[12]"
+
+
+/*
+ * 18. Windowing codes
+ */
+command window_open(n) "[18 01 {byte n}]"
+
+command window_closetop "[18 00]"
+
+command window_switch(n) "[18 03 {byte n}]"
+
+command window_closeall "[18 04]"
+
+command window_close(n)
+{
+	window_switch(n)
+	window_closetop()
+}
+
+command window_clear "[18 06]"
+
+command open_wallet "[18 0A]"
+
+command open_hp "[1C 04]"
+
+
+/*
+ * Memory-related commands
+ */
+
+command input(n) "[1F 52 {byte n} 0D 00]"
+
+command arg(n) "[0E {byte n} 0D 01]"
+
+command arg_zero {
+	hasmoney(0xffffffff)
+	swap
+}
+
+command counter(n) "[0E {byte n}]"
+
+command counter_zero {
+	arg_zero
+	counter(0)
+}
+
+command counter_is(n) {
+	ctoarg
+	swap
+	result_is(n)
+}
+
+command inc "[0F]"
+
+command swap "[1B 04]"
+
+command ctoarg "[0D 01]"
+
+command rtoarg "[0D 00]"
+
+command result_is(n) "[0B {byte n}]"
+
+command result_not(n) "[0C {byte n}]"
+
+command store_registers "[1B 00]"
+
+command load_registers "[1B 01]"
+
+
+
+/*
+ * Text control
+ */
+command text_pos(x,y) "[18 05 {byte x} {byte y}]"
+
+command text_color(n) "[1C 00 {byte n}]"
+
+command text_blips(n) "[1F 04 {byte n}]"
+
+command font_normal "[1F 30]"
+
+command font_saturn "[1F 31]"
+
+command stat(n) "[1C 01 {byte n}]"
+
+command name(char) "[1C 02 {byte char}]"
+
+command itemname(item) "[1C 05 {byte item}]"
+
+command teleportname(dest) "[1C 06 {byte dest}]"
+
+command smash "[1C 08 01]  "
+
+command youwon "[1C 08 02]  "
+
+command number(n) "[1C 0A {long n}]"
+
+command money(n) "[1C 0B {long n}]"
+
+command user "[1C 0D]"
+
+command target "[1C 0E]"
+
+command delta "[1C 0F]"
+
+command psiname(psi) "[1C 12 {byte psi}]"
+
+
+/*
+ * Goods and money
+ */
+command give(character,item) "[1D 00 {byte character} {byte item}]"
+
+command take(character,item) "[1D 01 {byte character} {byte item}]"
+
+command full(character) not "[1D 03 {byte character}]"
+
+command notfull(char) "[1D 03 {byte char}]"
+
+command hasitem(char,item) "[1D 05 {byte char} {byte item}]"
+
+command givemoney(amt) "[1D 08 {short amt}]"
+
+command takemoney(amt) "[1D 09 {short amt}]"
+
+command deposit(amt) "[1D 06 {long amt}]"
+
+command withdraw(amt) "[1D 07 {long amt}]"
+
+command hasmoney(amt) not "[1D 14 {long amt}]"
+
+command usable(char, item) "[1F 81 {byte char} {byte item}]"
+
+
+
+/*
+ * Stats
+ */
+command healall {
+	heal_percent(0xFF, 100)
+	recoverpp_percent(0xFF, 100)
+}
+
+command inflict(char, status) "[19 05 {byte char} {short status}]"
+
+command heal_percent(char,n) "[1E 00 {byte char} {byte n}]"
+
+command hurt_percent(char,n) "[1E 01 {byte char} {byte n}]"
+
+command heal(char,n) "[1E 02 {byte char} {byte n}]"
+
+command hurt(char,n) "[1E 03 {byte char} {byte n}]"
+
+command recoverpp_percent(char,n) "[1E 04 {byte char} {byte n}]"
+
+command consumepp_percent(char,n) "[1E 05 {byte char} {byte n}]"
+
+command recoverpp(char,n) "[1E 06 {byte char} {byte n}]"
+
+command consumepp(char,n) "[1E 07 {byte char} {byte n}]"
+
+command change_level(char,n) "[1E 08 {byte char} {byte n}]"
+
+command boost_exp(char,n) "[1E 09 {byte char} {byte[0] n} {byte[1] n} {byte[2] n}]"
+
+command boost_iq(char,n) "[1E 0A {byte char} {byte n}]"
+
+command boost_guts(char,n) "[1E 0B {byte char} {byte n}]"
+
+command boost_speed(char,n) "[1E 0C {byte char} {byte n}]"
+
+command boost_vitality(char,n) "[1E 0D {byte char} {byte n}]"
+
+command boost_luck(char,n) "[1E 0E {byte char} {byte n}]"
+
+
+/*
+ * Sound and music
+ */
+command sound(n) "[1F 02 {byte n}]"
+
+command music(n) "[1F 00 00 {byte n}]"
+
+command music_stop "[1F 01 02]"
+
+command music_resume "[1F 03]"
+
+command music_effect(n) "[1F 07 {byte n}]"
+
+command music_switching_off "[1F 05]"
+
+command music_switching_on "[1F 06]"
+
+
+
+
+/*
+ * Gameplay control
+ */
+command battle(num) {
+	window_closeall()
+	if "[1F 23 {short num}]" eob
+}
+
+command warp(dest) "[1F 21 {byte dest}]"
+
+command teleport(dest, style) "[1F 20 {byte dest} {byte style}]"
+
+command anchor_set "[1F 68]"
+
+command anchor_warp "[1F 69]"
+
+command party_add(char) "[1F 11 {byte char}]"
+
+command party_remove(char) "[1F 12 {byte char}]"
+
+command event(n) "[1F 41 {byte n}]"
+
+command learnpsi(char, psi) "[1F 71 {byte char} {byte psi}]"
+
+command save "[1F B0]"
+
+command lock_movement(num) "[1F E5 {byte num}]"
+
+command hotspot_on(slot, hotspot, target) "[1F 66 {byte slot} {byte hotspot} {long target}]"
+	
+command hotspot_off(hotspot) "[1F 67 {byte hotspot}]"
+
+
+
+/*
+ * Visual effects
+ */
+
+command char_direction(char, dir) "[1F 13 {byte char} {byte dir}]"
+
+command sprite_direction(tpt, dir) "[1F 16 {short tpt} {byte dir}]"
+
+command show_party(effect) show_char(0xFF, effect)
+
+command show_char(char, style) "[1F EC {byte char} {byte style}]"
+
+command show_char_float(char, float) "[1F 1C {byte char} {byte float}]"
+
+command show_sprite_float(tpt, float) "[1F 1A {short tpt} {byte float}]"
+
+/*
+ * TODO: figure out how 1F EB XX YY really works
+ */
+command hide_char(char) "[1F EB {byte char} 06]"
+
+command hide_party hide_char(0xFF)
+
+command hide_char_float(char) "[1F 1D {byte char}]"
+
+command hide_sprite(tpt, effect) "[1F 1E {short tpt} {byte effect}]"
+
+command hide_sprite_float(tpt)	"[1F 1B {short tpt}]"
+

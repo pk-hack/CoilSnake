@@ -1,0 +1,198 @@
+/*
+ * CCScript standard library
+ *  version 0.5.1
+ *
+ * Control code arguments listing
+ */
+ 
+/*
+ * Directions
+ */
+define NORTH = 1
+define NORTHEAST = 2
+define EAST = 3
+define SOUTHEAST = 4
+define SOUTH = 5
+define SOUTHWEST = 6
+define WEST = 7
+define NORTHWEST = 8
+
+
+/*
+ * Sound effects
+ */
+define SND_CURSORBLIP = 1
+define SND_CURSORCONFIRM = 2
+define SND_CURSORBEEP = 3
+define SND_CURSORNAME = 4
+define SND_ERRORBEEP = 5
+define SND_TEXTBLIP = 7
+define SND_DOOROPEN = 8
+define SND_DOORCLOSE = 9
+define SND_PHONERING = 10
+define SND_PHONEPICKUP = 11
+define SND_KACHING = 12
+define SND_FOOTSTEP = 13
+define SND_BEEOOP = 14
+define SND_BUZZ = 15
+define SND_GIFTOPEN = 16
+define SND_LANDING = 17
+define SND_STAIRS = 18
+define SND_HIGHBUZZ = 19
+define SND_LOWBUZZ = 20
+define SND_SQUEAKYBUZZ = 21
+define SND_TRUMPET = 22
+define SND_MUFFLEDBUZZ = 23
+define SND_HEROATTACK = 24
+define SND_MONSTERATTACK = 25
+define SND_BASH = 26
+define SND_SHOOT = 27
+define SND_PRAYING = 28
+define SND_PSI1 = 29
+define SND_NORMALBASH = 30
+define SND_SMASH = 31
+define SND_HERODEATH = 32
+define SND_ENEMYDEATH = 33
+define SND_GIFTOPEN2 = 34
+define SND_DODGE = 35
+define SND_RECOVER = 36
+define SND_STATUSRECOVER = 37
+define SND_SHIELD1 = 38
+define SND_SHIELD2 = 39
+define SND_STATSUP = 40
+define SND_STATSDOWN = 41
+define SND_HYPNOSIS = 42
+define SND_MAGNET = 43
+define SND_PARALYSIS = 44
+define SND_BRAINSHOCK1 = 45
+define SND_THUMP = 46
+define SND_CRITICAL = 47
+define SND_ROCKIN1 = 48
+define SND_ROCKIN2 = 49
+define SND_ROCKIN3 = 50
+define SND_FIRE1 = 51
+define SND_FIRE2 = 52
+define SND_FIRE3 = 53
+define SND_BRAINSHOCK2 = 54
+define SND_PSI2 = 55
+define SND_FREEZE1 = 56
+define SND_FREEZE2 = 57
+define SND_DEFENSEDOWN1 = 58
+define SND_DEFENSEDOWN2 = 59
+define SND_THUNDERMISS = 60
+define SND_THUNDERHIT1 = 61
+define SND_THUNDERHIT2 = 62
+define SND_THUNDERDAMAGE = 63
+define SND_STARSTORM = 64
+define SND_FLASH1 = 65
+define SND_FLASH2 = 66
+define SND_FLASH3 = 67
+define SND_EAT = 68
+define SND_QUIETBEEP = 69
+define SND_MISSILE = 70
+define SND_HISS = 71
+define SND_STATUSCHANGE = 72
+define SND_PING = 73
+define SND_THUMP2 = 74
+define SND_MBR = 75
+define SND_MAGNET2 = 76
+define SND_MAGNET3 = 77
+define SND_WHIRR = 78
+define SND_PARALYSIS2 = 79
+define SND_BRAINSHOCK3 = 80
+define SND_DRILL = 81
+define SND_SPORES = 82
+define SND_AFFLICTED = 83
+define SND_KERPOW = 84
+define SND_MYSTERIOUS = 85
+define SND_WARBLING = 86
+define SND_SPROING = 88
+define SND_REFUEL = 89
+define SND_GIYGASWEAK = 90
+define SND_FIRE4 = 91
+define SND_MUFFLEDBUZZ2 = 92
+define SND_SHIELDREFLECT = 93
+define SND_CHIRP = 94
+define SND_BUTTERFLY = 95
+define SND_POSSESSED = 96
+define SND_STAIRS2 = 97
+define SND_DRUMS = 98
+define SND_STARMASTER = 99
+define SND_EDENWARP = 100
+define SND_BIRDS = 101
+define SND_SPECIALITEM = 102
+define SND_LEARNPSI = 103
+define SND_CHICKEN = 104
+define SND_SPHINX1 = 105
+define SND_SPHINX2 = 106
+define SND_SPHINX3 = 107
+define SND_SPHINX4 = 108
+define SND_SPHINX5 = 109
+define SND_PYRAMIDOPEN = 110
+define SND_RAPIDKNOCK = 111
+define SND_MANIMANI = 113
+define SND_CREEPY = 114
+define SND_BOXOPEN1 = 115
+define SND_BOXTAKE = 116
+define SND_CHICKEN2 = 118
+define SND_PSI3 = 119
+define SND_GUITAR = 120
+define SND_BEEP2 = 121
+define SND_TRUMPETBLAST = 122
+define SND_FUNKY = 124
+
+	       
+	       
+	       
+/*
+ * Special events
+ */
+define EVENT_COFFEE = 1
+define EVENT_TEA = 2
+define EVENT_NAME1 = 3
+define EVENT_NAME2 = 4
+define EVENT_TOWNMAP = 7
+define EVENT_SSTONE = 9
+define EVENT_TITLE = 10
+define EVENT_CAST = 11
+define EVENT_CREDITS = 12
+
+
+/*
+ * PSI teleport styles
+ */
+define TELEPORT_ALPHA = 1
+define TELEPORT_BETA = 2
+define TELEPORT_OMEGA = 4
+
+
+/*
+ * Sprite appearance styles
+ */
+define APPEAR = 1
+define APPEAR_BLINK = 2
+define APPEAR_HORZ = 3
+define APPEAR_VERT = 4
+define APPEAR_SPRAY = 5
+define APPEAR_FASTBLINK = 7
+define VANISH_HORZ = 8
+define VANISH_VERT = 9
+define VANISH_SPRAY = 10
+
+
+/*
+ * Floating sprites
+ */
+define FLOAT_SURPISE = 1
+define FLOAT_RADIO = 2
+define FLOAT_EXCLAIM = 3
+define FLOAT_BULB = 4
+define FLOAT_ZAP = 5
+define FLOAT_FLAG = 6
+define FLOAT_DRUMMER1 = 7
+define FLOAT_DRUMMER2 = 8
+define FLOAT_HEART = 9
+define FLOAT_BUSGUY1 = 10
+define FLOAT_BUSGUY2 = 11
+
+
