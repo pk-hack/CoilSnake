@@ -23,7 +23,7 @@ setup(
     name="coilsnake",
     version="4.0",
     description="CoilSnake",
-    url="https://mrtenda.github.io/CoilSnake",
+    url="https://pk-hack.github.io/CoilSnake",
     packages=find_packages(),
     include_package_data=True,
 
