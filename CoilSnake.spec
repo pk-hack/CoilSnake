@@ -95,7 +95,7 @@ app = BUNDLE(
     exe,
     name='CoilSnake.app',
     icon='coilsnake/assets/images/CoilSnake.icns',
-    bundle_identifier='com.github.mrtenda.CoilSnake'
+    bundle_identifier='com.github.pkhack.CoilSnake'
 )
 
 # --- Workaround for https://github.com/pyinstaller/pyinstaller/issues/3820 ---

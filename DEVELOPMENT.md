@@ -30,7 +30,7 @@ After installing a VM, follow the steps mentioned below for your respective syst
 
 ## Linux
 
-1. Install any system dependencies required by CoilSnake. For Ubuntu, these are listed in the official [CoilSnake installation instructions](https://mrtenda.github.io/CoilSnake/download.html).
+1. Install any system dependencies required by CoilSnake. For Ubuntu, these are listed in the official [CoilSnake installation instructions](https://pk-hack.github.io/CoilSnake/download.html).
 1. To build the self-contained binary with better compression, install UPX.
 1. Follow the '[Generic](#generic)' instructions below.
 
@@ -68,9 +68,9 @@ After installing a VM, follow the steps mentioned below for your respective syst
 
 ## Generic
 
-1. Using your favorite git client, clone the [CoilSnake](https://github.com/mrtenda/CoilSnake) repository.
+1. Using your favorite git client, clone the [CoilSnake](https://github.com/pk-hack/CoilSnake) repository.
 1. Open the command line and `cd` to your local CoilSnake git repository's main directory.
-1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/mrtenda/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
+1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/pk-hack/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
     - Alternatively, using the command line git, run: `git submodule update --init --recursive`
 1. `python3 -m pip install pip==18.1`
 1. Install dependencies:
