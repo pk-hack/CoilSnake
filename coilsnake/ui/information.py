@@ -4,7 +4,7 @@ VERSION = project.VERSION_NAMES[project.FORMAT_VERSION]
 RELEASE_DATE = "August 27, 2019"
 
 WEBSITE = "http://pk-hack.github.io/CoilSnake"
-AUTHOR = "The PK Hack community"
+AUTHOR = "the PK Hack community"
 ADDITIONAL_CREDITS = """- Some portions based on JHack, created by AnyoneEB
 - Contributions by H.S, Michael1, John Soklaski,
   João Silva and many others"""
