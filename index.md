@@ -39,7 +39,7 @@ projects:
 whatnow-content: |
   ## What now?
 
-  The [CoilSnake tutorial](https://github.com/pk-hack/CoilSnake/wiki/Tutorial) is the best place to get started.
+  The [CoilSnake tutorial](https://github.com/pk-hack/CoilSnake/wiki/Introduction) is the best place to get started.
 
 contribute-content: |
   ## Contribute
