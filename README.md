@@ -17,6 +17,6 @@ Download and usage instructions for Windows and Linux can be found on the
 ### Support or Contact
 
 * Submit [issues or feature requests](https://github.com/pk-hack/CoilSnake/issues).
-* Read the [CoilSnake tutorial](https://github.com/pk-hack/CoilSnake/wiki/Tutorial).
+* Read the [CoilSnake tutorial](https://github.com/pk-hack/CoilSnake/wiki/Introduction).
 * Visit the [forum](https://forum.starmen.net/forum/Community/PKHack).
 * Join the [Slack chat](https://forum.starmen.net/forum/Community/PKHack/PKHack-slack-chat).
