@@ -39,14 +39,14 @@ projects:
 whatnow-content: |
   ## What now?
 
-  The [CoilSnake tutorial](https://github.com/mrtenda/CoilSnake/wiki/Tutorial) is the best place to get started.
+  The [CoilSnake tutorial](https://github.com/pk-hack/CoilSnake/wiki/Tutorial) is the best place to get started.
 
 contribute-content: |
   ## Contribute
 
-  * Fork the [github repository](https://github.com/mrtenda/CoilSnake).
-  * Add to the [wiki documentation](https://github.com/mrtenda/CoilSnake/wiki).
-  * Submit [issues or feature  requests](https://github.com/mrtenda/CoilSnake/issues).
+  * Fork the [github repository](https://github.com/pk-hack/CoilSnake).
+  * Add to the [wiki documentation](https://github.com/pk-hack/CoilSnake/wiki).
+  * Submit [issues or feature  requests](https://github.com/pk-hack/CoilSnake/issues).
   * Show off your work on the [forum](http://forum.starmen.net/forum/Community/PKHack).
 
 ---
@@ -76,6 +76,6 @@ contribute-content: |
 </section>
 
 <section id="s_contribute">
-  <div class="topright"><iframe src="http://ghbtns.com/github-btn.html?user=mrtenda&amp;repo=CoilSnake&amp;type=watch&amp;count=true&amp;size=large" width="160" height="35" style="border: none;"> </iframe></div>
+  <div class="topright"><iframe src="http://ghbtns.com/github-btn.html?user=pk-hack&amp;repo=CoilSnake&amp;type=watch&amp;count=true&amp;size=large" width="160" height="35" style="border: none;"> </iframe></div>
   {{page.contribute-content | markdownify}}
 </section>
