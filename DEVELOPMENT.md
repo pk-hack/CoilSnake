@@ -30,8 +30,17 @@ After installing a VM, follow the steps mentioned below for your respective syst
 
 ## Linux
 
-1. Install any system dependencies required by CoilSnake. For Ubuntu, these are listed in the official [CoilSnake installation instructions](https://pk-hack.github.io/CoilSnake/download.html).
-1. To build the self-contained binary with better compression, install UPX.
+1. Install any system dependencies required by CoilSnake. For Debian-based OSes, simply run:
+
+```
+sudo apt-get install python3-pip python3-dev g++ libyaml-dev \
+                     python3-tk python3-pil.imagetk \
+                     libjpeg-dev zlib1g-dev tk8.6-dev tcl8.6-dev
+```
+
+2. To build the self-contained binary with better compression, install UPX: `sudo apt-get install upx-ucl`
+
+
 1. Follow the '[Generic](#generic)' instructions below.
 
 ## macOS
