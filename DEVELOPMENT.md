@@ -38,8 +38,6 @@ sudo apt-get install python3-pip python3-dev g++ libyaml-dev \
                      libjpeg-dev zlib1g-dev tk8.6-dev tcl8.6-dev
 ```
 
-2. To build the self-contained binary with better compression, install UPX: `sudo apt-get install upx-ucl`
-
 
 1. Follow the '[Generic](#generic)' instructions below.
 
@@ -47,7 +45,7 @@ sudo apt-get install python3-pip python3-dev g++ libyaml-dev \
 
 1. Install:
     1. [Command Line Tools for Xcode](https://developer.apple.com/downloads)
-    1. [Python 3.7](https://www.python.org/downloads/release/python-374/)
+    1. [Python 3.9](https://www.python.org/downloads/release/python-392/)
         - Do not install non-official builds - this one includes Tk 8.6, with fixes and a nicer-looking UI over Tk 8.5.
     1. Homebrew:
         - `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
@@ -55,32 +53,24 @@ sudo apt-get install python3-pip python3-dev g++ libyaml-dev \
         - `brew install libyaml`
     1. PyYAML with libyaml support:
         - `python3 -m easy_install pyyaml`
-    1. To build the app bundle with better compression, install UPX:
-        - `brew install upx`
 1. Follow the '[Generic](#generic)' instructions below.
 
 ## Windows
 
 1. Install:
-    1. [Python 3.7](https://www.python.org/downloads/release/python-374/) (32-bit version)
+    1. [Python 3.9](https://www.python.org/downloads/release/python-392/) (64-bit version)
     1. [Visual C++ 2019 Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16)
         - Select "C++ build tools" under the "Workloads" tab and make sure these are ticked:
             1. MSVC v140 - VS 2015 C++ x64/x86 build tools
             1. Windows 10 SDK
-1. Prepare the build environment:
-    1. `set PATH=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC;C:\Program Files\Windows Kits\10\bin\10.0.17763.0\x86;%PATH%`
-        - You may need to run this command every time you start an instance of the command line (or add these paths to the system environment variables).
-    1. `vcvarsall.bat x86`
+1. Find a path that exists on your computer similar to `C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x86` and add it to your system environment variables.
 1. Follow the '[Generic](#generic)' instructions below.
-1. Download and extract [UPX](https://github.com/upx/upx/releases/tag/v3.95) to the root CoilSnake folder for better executable compression.
 1. In commands beginning with `python3` use just `python` instead.
 
 ## Generic
 
 1. Using your favorite git client, clone the [CoilSnake](https://github.com/pk-hack/CoilSnake) repository.
 1. Open the command line and `cd` to your local CoilSnake git repository's main directory.
-1. If the `coilsnake\assets\mobile-sprout` directory is empty, clone the [mobile-sprout repository](https://github.com/pk-hack/mobile-sprout) and copy its contents to the `coilsnake\assets\mobile-sprout` directory.
-    - Alternatively, using the command line git, run: `git submodule update --init --recursive`
 1. `python3 -m pip install pip==18.1`
 1. Install dependencies:
     - `python3 setup.py develop`
@@ -96,6 +86,8 @@ python3 script/cli.py
 ```
 
 ### Creating a standalone executable
+
+Note: The steps for creating a standalone executable are currently unmaintained and likely broken for systems other than 64-bit Windows. 
 
 1. Follow the steps above to build CoilSnake for your system.
 1. Install pyinstaller:
