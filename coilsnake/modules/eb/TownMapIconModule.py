@@ -11,6 +11,7 @@ class TownMapIconModule(EbModule):
 
     POINTER_TABLE_DEFAULT_OFFSET = 0xE1F491
     POINTER_TABLE_ASM_POINTER_OFFSET = 0x4D464
+    TILE_COUNT_ADDRESS = 0x4d626
 
     def __init__(self):
         super(TownMapIconModule, self).__init__()
@@ -26,6 +27,7 @@ class TownMapIconModule(EbModule):
         pointer_table_offset = rom.allocate(size=self.table.size)
         self.table.to_block(rom, pointer_table_offset)
         write_asm_pointer(rom, self.POINTER_TABLE_ASM_POINTER_OFFSET, to_snes_address(pointer_table_offset))
+        rom[self.TILE_COUNT_ADDRESS:self.TILE_COUNT_ADDRESS+2] = [0x00, 0x60] # Patch to support additional tiles 
 
     def read_from_project(self, resource_open):
         with resource_open("TownMaps/icon_positions", "yml", True) as f:
