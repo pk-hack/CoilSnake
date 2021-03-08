@@ -21,7 +21,7 @@ if platform.system() == "Darwin":
 
 setup(
     name="coilsnake",
-    version="4.0",
+    version="4.1",
     description="CoilSnake",
     url="https://pk-hack.github.io/CoilSnake",
     packages=find_packages(),
@@ -30,7 +30,7 @@ setup(
     install_requires=install_requires,
     dependency_links=[
         "https://github.com/Lyrositor/CCScriptWriter/tarball/master#egg=CCScriptWriter-1.2",
-        "https://github.com/jamsilva/ccscript_legacy/tarball/master#egg=ccscript-1.339"
+        "https://github.com/stochaztic/ccscript_legacy/tarball/master#egg=ccscript-1.339"
     ],
     ext_modules=[
         Extension(

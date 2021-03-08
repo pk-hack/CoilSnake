@@ -533,7 +533,7 @@ class EbGasStationLogo(EbCompressedGraphic):
 class EbTownMap(EbCompressedGraphic):
     def __init__(self):
         super(EbTownMap, self).__init__(
-            num_tiles=512,
+            num_tiles=768,
             tile_width=8,
             tile_height=8,
             bpp=4,
