@@ -1,6 +1,7 @@
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.yml import yml_load, yml_dump
 from coilsnake.util.eb.pointer import to_snes_address
+from coilsnake.util.eb.text import standard_text_to_byte_list
 
 
 class SkipNamingModule(EbModule):
@@ -25,12 +26,9 @@ class SkipNamingModule(EbModule):
 
     def write_loader_asm(self, rom, offset, s, strlen, mem_offset, byte2):
         i = 0
-        for ch in s[0:strlen]:
-            rom[offset:offset+5] = [0xa9, ord(ch) + 0x30, 0x8d, mem_offset + i, byte2]
-            i += 1
-            offset += 5
-        for j in range(i, strlen):
-            rom[offset:offset+5] = [0xa9, 0, 0x8d, mem_offset + i, byte2]
+        byte_list = standard_text_to_byte_list(s, strlen, False)
+        for byte in byte_list:
+            rom[offset:offset+5] = [0xa9, byte, 0x8d, mem_offset + i, byte2]
             i += 1
             offset += 5
         return offset
