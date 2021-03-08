@@ -98,12 +98,8 @@ python3 script/cli.py
 ### Creating a standalone executable
 
 1. Follow the steps above to build CoilSnake for your system.
-1. Using your favorite git client, clone this fork of [pyinstaller](https://github.com/jamsilva/pyinstaller) and build it:
-    1. Go to the bootloader directory and build it:
-        `python3 ./waf distclean all`
-    1. Go back up to the root folder of pyinstaller and run:
-        `python3 setup.py build`
-        `python3 setup.py install`
+1. Install pyinstaller:
+    - `python3 -m pip install pyinstaller`
 1. In the CoilSnake source directory, build the CoilSnake executable:
     - `python3 setup_exe.py`
 1. Run the output file under the 'dist' directory.

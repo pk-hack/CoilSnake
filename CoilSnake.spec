@@ -5,12 +5,17 @@ import glob
 import platform
 import shutil
 import sys
+import sysconfig
 
 from setuptools.sandbox import run_setup
 
 run_setup('setup.py', ['build_ext'])
 
 debug = False
+
+sys_platform = sys.platform
+if sys_platform == 'win32':
+    sys_platform = sysconfig.get_platform()
 
 if len(sys.argv) > 1 and sys.argv[1] == 'debug':
     debug = True
@@ -30,10 +35,9 @@ with open(os.path.join("coilsnake", "assets", "modulelist.txt"), "r") as f:
 pyver = '{}.{}'.format(sys.version_info[0], sys.version_info[1])
 
 binaries = [(
-    'build/lib.{}*{}/coilsnake/util/eb/native_comp.cp*{}*'.format(
-        sys.platform if sys.platform != 'darwin' else 'macosx',
-        pyver,
-        sys.platform
+    'build/lib.{}-{}/coilsnake/util/eb/native_comp.cp*'.format(
+        sys_platform if sys_platform != 'darwin' else 'macosx',
+        pyver
     ),
     'coilsnake/util/eb'
 )]
