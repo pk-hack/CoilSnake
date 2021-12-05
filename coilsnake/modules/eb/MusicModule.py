@@ -119,8 +119,10 @@ class MusicModule(EbModule):
             pack_base_fname = 'MusicPacks/{:02X}/'.format(pack.pack_num)
             for fname, data in pack.convert_to_files():
                 fname_spl = fname.split('.')
+                assert len(fname_spl) > 1, "Internal error in music module, can't write file '{}'".format(fname)
+                fname_no_ext = '.'.join(fname_spl[:-1])
                 is_text = isinstance(data,str)
-                with resourceOpener(pack_base_fname+fname_spl[0],fname_spl[1],is_text) as f:
+                with resourceOpener(pack_base_fname+fname_no_ext,fname_spl[-1],is_text) as f:
                     if is_text:
                         f.write(data)
                     else:
