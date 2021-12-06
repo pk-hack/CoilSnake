@@ -17,13 +17,19 @@ log = logging.getLogger(__name__)
 
 CONFIG_TXT_FILENAME = "config.txt"
 
-YML_INST_PACK_1 = "Instrument pack 1"
-YML_INST_PACK_2 = "Instrument pack 2"
+YML_INST_PACK_1 = "Instrument Pack 1"
+YML_INST_PACK_2 = "Instrument Pack 2"
+
+YML_SONG_PACK         = "Song Pack"
+YML_SONG_FILENAME     = "Song File"
+YML_SONG_TO_REFERENCE = "Song to Reference"
+YML_SONG_OFFSET       = "Offset"
 
 INST_OVERWRITE = 0x00
 INST_DEFAULT   = 0x1a
 SAMPLE_OFFSET_OVERWRITE = 0x7000
 SAMPLE_OFFSET_DEFAULT   = 0x95b0
+SONG_ADDRESS_TABLE_ENGINE_ARAM_ADDR = 0x2e4a
 
 def extract_pack_parts(rom: Block, pack_ptr: int) -> List[Tuple[int,int,Block]]:
     parts = []
@@ -210,6 +216,8 @@ class EngineMusicPack(GenericMusicPack):
         if pack_num != 1:
             raise InvalidUserDataError('Engine pack must have pack number $01, has pack ${:02X}'.format(pack_num))
         super().__init__(pack_num)
+    def process_song_addresses(self, song_addresses: List[int]) -> None:
+        pass
 
 @dataclass
 class EBInstrument:
@@ -517,6 +525,8 @@ class Song:
         raise NotImplementedError('Please use a subclass of Song')
     def get_song_aram_address(self) -> int:
         raise NotImplementedError('Please use a subclass of Song')
+    def to_yml_lines(self) -> List[str]:
+        raise NotImplementedError('Please use a subclass of Song')
 
 @dataclass
 class SongWithData(Song):
@@ -528,37 +538,57 @@ class SongWithData(Song):
     data_address: int
     data: Block
 
+    song_path: str
+
     def get_song_packs(self) -> Tuple[int, int, int]:
         return (self.instrument_pack_1, self.instrument_pack_2, self.pack_number)
     def get_song_aram_address(self) -> int:
         return self.data_address
+    def to_yml_lines(self) -> List[str]:
+        yml_lines = [
+            '{}: 0x{:02X}'.format(YML_SONG_PACK, self.pack_number),
+            '{}: {}'.format(YML_SONG_FILENAME, self.song_path),
+        ]
+        return yml_lines
 
 @dataclass
-class SongOffsettedFromAnother(Song):
-    song: Song
+class SongThatIsPartOfAnother(Song):
+    parent_song: SongWithData
     offset: int
+
+    def get_song_packs(self) -> Tuple[int, int, int]:
+        return self.parent_song.get_song_packs()
+    def get_song_aram_address(self) -> int:
+        return self.parent.get_song_aram_address() + self.offset
+    def to_yml_lines(self) -> List[str]:
+        yml_lines = [
+            '{}: {}'.format(YML_SONG_TO_REFERENCE, self.parent_song.song_number),
+            '{}: {}'.format(YML_SONG_OFFSET, self.offset),
+        ]
+        return yml_lines
 
 class SongMusicPack(GenericMusicPack):
     def __init__(self, pack_num: int) -> None:
         super().__init__(pack_num)
-        self.songs: List[Song] = []
+        self.songs: List[SongWithData] = []
     
     def load_from_parts(self, parts: List[Tuple[int, int, Block]]) -> None:
         self.parts = parts
         self.songs = []
-        for part_addr, part_len, part_data in parts:
-            song = SongWithData(None, None, None, self.pack_num, part_addr, part_data)
+        for part_addr, _, part_data in parts:
+            song = SongWithData(None, None, None, self.pack_num, part_addr, part_data, None)
             self.songs.append(song)
 
     # For writing to project
     def convert_to_files(self) -> List[Tuple[str, Union[Block,str]]]:
         files_to_output: List[Tuple[str, Union[Block,str]]] = []
 
-        for song_idx, song in enumerate(self.songs, 1):
+        for song in self.songs:
             if song.song_number is None:
                 log.error("Issue with song pack ${:02X} at address ${:04X}".format(self.pack_num, song.get_song_aram_address()))
                 raise CoilSnakeInternalError("Metadata is not set when converting songs to files")
-            song_name = "song-{:02X}".format(song.song_number)
+            ebm_path = "song-{:02X}.ebm".format(song.song_number)
+            song.song_path = ebm_path
 
             ### Write out EBM file
             ebm_data = Block(len(song.data) + 4)
@@ -568,23 +598,22 @@ class SongMusicPack(GenericMusicPack):
             # Write data chunk
             ebm_data[4:len(ebm_data)] = song.data
             # Add to file list
-            files_to_output.append((song_name + '.ebm',ebm_data))
+            files_to_output.append((ebm_path, ebm_data))
 
             ### Write out EBM.yml file
             yml_data = {}
             yml_data[YML_INST_PACK_1] = song.instrument_pack_1
             yml_data[YML_INST_PACK_2] = song.instrument_pack_2
-            yml_str = str(yml_dump(yml_data))
-            files_to_output.append((song_name + '.ebm.yml',yml_str))
+            yml_str = str(yml_dump(yml_data, default_flow_style=False))
+            files_to_output.append((ebm_path + '.yml', yml_str))
 
         return files_to_output
 
 
-def find_containing_song(song_pack: SongMusicPack, song_addr: int) -> Union[None,Tuple[Song,int]]:
+def check_if_song_is_part_of_another(song_pack: SongMusicPack, song_addr: int) -> Union[None,SongThatIsPartOfAnother]:
     for song in song_pack.songs:
-
         if song.data_address <= song_addr < song.data_address + len(song.data):
-            return (song, song_addr - song.data_address)
+            return SongThatIsPartOfAnother(song, song_addr - song.data_address)
     return None
 
 def create_pack_object_from_parts(pack_num: int, parts: List[Tuple[int, int, Block]]) -> GenericMusicPack:

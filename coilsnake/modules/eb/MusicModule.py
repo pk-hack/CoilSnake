@@ -1,7 +1,7 @@
 from coilsnake.model.common.table import LittleEndianHexIntegerTableEntry, Table
 from coilsnake.model.common.blocks import Block
 import logging
-from typing import List
+from typing import Dict, List
 
 from coilsnake.exceptions.common.exceptions import CoilSnakeInternalError, InvalidUserDataError
 import coilsnake.model.eb.musicpack as mp
@@ -58,6 +58,7 @@ class MusicModule(EbModule):
         self.song_address_table = Table(MusicModule.SONG_ADDRESS_TABLE_SCHEMA, name="Song Address Table", num_rows=self.song_pack_table.num_rows)
         self.packs: List[mp.GenericMusicPack] = []
         self.in_engine_songs: List[int] = []
+        self.songs: Dict[int, mp.Song] = {}
 
     def read_single_pack(self, rom: Block, pack_num: int) -> mp.GenericMusicPack:
         pack_ptr = from_snes_address(self.pack_pointer_table[pack_num][0])
@@ -74,6 +75,9 @@ class MusicModule(EbModule):
             pack = self.read_single_pack(rom, pack_num)
             self.packs.append(pack)
         # Read song address table from engine
+        if not isinstance(self.packs[1], mp.EngineMusicPack):
+            raise InvalidUserDataError("Expected pack 1 to be the music engine pack, instead it is of type {}".format(
+                type(self.packs[1]).__name__))
         song_address_table_data = self.packs[1].get_aram_region(
             MusicModule.SONG_ADDRESS_TABLE_ENGINE_ARAM_ADDR,
             self.song_address_table.size)
@@ -83,7 +87,6 @@ class MusicModule(EbModule):
         for song_table_ind in range(self.song_pack_table.num_rows):
             song_num = song_table_ind + 1
             inst_pack_1, inst_pack_2, song_pack_num = tuple(self.song_pack_table[song_table_ind])
-            log.debug(f'Song num = {song_num:02X}, packs = {self.song_pack_table[song_table_ind]}')
             if song_pack_num == 0xff or song_pack_num == 0x01:
                 self.in_engine_songs.append(song_num)
                 continue
@@ -95,11 +98,9 @@ class MusicModule(EbModule):
             if len(matching_songs_in_pack) < 1:
                 log.debug('Unable to find pack part with address ${:04X}'.format(song_addr))
                 log.debug('Song addresses in pack: ' + ', '.join('${:04X}'.format(song.data_address) for song in pack_obj_of_song.songs))
-                containing_song_info = mp.find_containing_song(pack_obj_of_song, song_addr)
-                if containing_song_info is None:
+                song_obj = mp.check_if_song_is_part_of_another(pack_obj_of_song, song_addr)
+                if song_obj is None:
                     raise InvalidUserDataError("Song pack ${:02X} missing song at address ${:04X} when processing song ${:02X}".format(song_pack_num, song_addr, song_num))
-                # TODO: make new song object that refers to other song
-                continue
             else:
                 if len(matching_songs_in_pack) > 1:
                     raise InvalidUserDataError("Song pack ${:02X} has multiple songs at address ${:04X} when processing song ${:02X}".format(song_pack_num, song_addr, song_num))
@@ -109,14 +110,27 @@ class MusicModule(EbModule):
                 song_obj.song_number = song_num
                 song_obj.instrument_pack_1 = inst_pack_1
                 song_obj.instrument_pack_2 = inst_pack_2
-
-
+            self.songs[song_num] = song_obj
+        # Perform sanity checks on extracted songs
+        for song_table_ind in range(self.song_pack_table.num_rows):
+            song_num = song_table_ind + 1
+            song_packs = tuple(self.song_pack_table[song_table_ind])
+            if song_num not in self.songs:
+                continue
+            song_obj = self.songs[song_num]
+            if isinstance(song_obj, mp.SongThatIsPartOfAnother):
+                parent_packs = song_obj.get_song_packs()
+                if song_packs != parent_packs:
+                    raise InvalidUserDataError("Song number {} (packs: {}) is a subset of song {} (packs: {}) - packs do not match!".format(
+                        song_num, song_packs, song_obj.parent_song.song_number, parent_packs
+                    ))
 
     def write_to_project(self, resourceOpener):
+        # Write out each pack to its folder.
         for pack in self.packs:
             # Each pack knows how to turn itself into files.
             # Write those files into the pack folder.
-            pack_base_fname = 'MusicPacks/{:02X}/'.format(pack.pack_num)
+            pack_base_fname = 'Music/Packs/{:02X}/'.format(pack.pack_num)
             for fname, data in pack.convert_to_files():
                 fname_spl = fname.split('.')
                 assert len(fname_spl) > 1, "Internal error in music module, can't write file '{}'".format(fname)
@@ -127,6 +141,14 @@ class MusicModule(EbModule):
                         f.write(data)
                     else:
                         f.write(data.data)
+        # Create and write songs.yml
+        yml_song_lines = []
+        for song_num in sorted(self.songs.keys()):
+            yml_song_lines.append("{}:\n".format(song_num))
+            yml_song_lines += ('  {}\n'.format(line) for line in self.songs[song_num].to_yml_lines())
+        with resourceOpener('Music/songs','yml',True) as f:
+            f.writelines(yml_song_lines)
+
 
     def read_from_project(self, resourceOpener):
         # TODO
