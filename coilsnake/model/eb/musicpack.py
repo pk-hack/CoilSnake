@@ -24,6 +24,7 @@ YML_SONG_PACK         = "Song Pack"
 YML_SONG_FILENAME     = "Song File"
 YML_SONG_TO_REFERENCE = "Song to Reference"
 YML_SONG_OFFSET       = "Offset"
+YML_SONG_ADDRESS      = "Address"
 
 INST_OVERWRITE = 0x00
 INST_DEFAULT   = 0x1a
@@ -562,8 +563,28 @@ class SongThatIsPartOfAnother(Song):
         return self.parent.get_song_aram_address() + self.offset
     def to_yml_lines(self) -> List[str]:
         yml_lines = [
-            '{}: {}'.format(YML_SONG_TO_REFERENCE, self.parent_song.song_number),
+            '{}: 0x{:02X}'.format(YML_SONG_TO_REFERENCE, self.parent_song.song_number),
             '{}: {}'.format(YML_SONG_OFFSET, self.offset),
+        ]
+        return yml_lines
+
+@dataclass
+class InEngineSong(Song):
+    instrument_pack_1: int
+    instrument_pack_2: int
+    pack_number: int
+    data_address: int
+
+    def get_song_packs(self) -> Tuple[int, int, int]:
+        return (self.instrument_pack_1, self.instrument_pack_2, self.pack_number)
+    def get_song_aram_address(self) -> int:
+        return self.data_address
+    def to_yml_lines(self) -> List[str]:
+        yml_lines = [
+            '{}: 0x{:02X}'.format(YML_SONG_PACK, self.pack_number),
+            '{}: 0x{:02X}'.format(YML_INST_PACK_1, self.instrument_pack_1),
+            '{}: 0x{:02X}'.format(YML_INST_PACK_2, self.instrument_pack_2),
+            '{}: 0x{:04X}'.format(YML_SONG_ADDRESS, self.get_song_aram_address()),
         ]
         return yml_lines
 

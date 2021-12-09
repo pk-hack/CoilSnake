@@ -57,7 +57,6 @@ class MusicModule(EbModule):
         self.pack_pointer_table = eb_table_from_offset(MusicModule.PACK_POINTER_TABLE_ROM_ADDR)
         self.song_address_table = Table(MusicModule.SONG_ADDRESS_TABLE_SCHEMA, name="Song Address Table", num_rows=self.song_pack_table.num_rows)
         self.packs: List[mp.GenericMusicPack] = []
-        self.in_engine_songs: List[int] = []
         self.songs: Dict[int, mp.Song] = {}
 
     def read_single_pack(self, rom: Block, pack_num: int) -> mp.GenericMusicPack:
@@ -87,29 +86,30 @@ class MusicModule(EbModule):
         for song_table_ind in range(self.song_pack_table.num_rows):
             song_num = song_table_ind + 1
             inst_pack_1, inst_pack_2, song_pack_num = tuple(self.song_pack_table[song_table_ind])
-            if song_pack_num == 0xff or song_pack_num == 0x01:
-                self.in_engine_songs.append(song_num)
-                continue
             song_addr = self.song_address_table[song_table_ind]
-            pack_obj_of_song = self.packs[song_pack_num]
-            if not isinstance(pack_obj_of_song, mp.SongMusicPack):
-                raise InvalidUserDataError("Invalid type {} of song pack ${:02X} when processing song ${:02X}, expected SongMusicPack".format(type(pack_obj_of_song).__name__, song_pack_num, song_num))
-            matching_songs_in_pack = [x for x in pack_obj_of_song.songs if x.data_address == song_addr]
-            if len(matching_songs_in_pack) < 1:
-                log.debug('Unable to find pack part with address ${:04X}'.format(song_addr))
-                log.debug('Song addresses in pack: ' + ', '.join('${:04X}'.format(song.data_address) for song in pack_obj_of_song.songs))
-                song_obj = mp.check_if_song_is_part_of_another(pack_obj_of_song, song_addr)
-                if song_obj is None:
-                    raise InvalidUserDataError("Song pack ${:02X} missing song at address ${:04X} when processing song ${:02X}".format(song_pack_num, song_addr, song_num))
+            if song_pack_num == 0xff or song_pack_num == 0x01:
+                song_obj = mp.InEngineSong(inst_pack_1, inst_pack_2, song_pack_num, song_addr)
             else:
-                if len(matching_songs_in_pack) > 1:
-                    raise InvalidUserDataError("Song pack ${:02X} has multiple songs at address ${:04X} when processing song ${:02X}".format(song_pack_num, song_addr, song_num))
-                # We've found the song part in the pack. Use that
-                song_obj = matching_songs_in_pack[0]
-                # Update data in song object
-                song_obj.song_number = song_num
-                song_obj.instrument_pack_1 = inst_pack_1
-                song_obj.instrument_pack_2 = inst_pack_2
+                # Song is not stored in the engine pack - determine which Song object it is
+                pack_obj_of_song = self.packs[song_pack_num]
+                if not isinstance(pack_obj_of_song, mp.SongMusicPack):
+                    raise InvalidUserDataError("Invalid type {} of song pack ${:02X} when processing song ${:02X}, expected SongMusicPack".format(type(pack_obj_of_song).__name__, song_pack_num, song_num))
+                matching_songs_in_pack = [x for x in pack_obj_of_song.songs if x.data_address == song_addr]
+                if len(matching_songs_in_pack) < 1:
+                    log.debug('Unable to find pack part with address ${:04X}'.format(song_addr))
+                    log.debug('Song addresses in pack: ' + ', '.join('${:04X}'.format(song.data_address) for song in pack_obj_of_song.songs))
+                    song_obj = mp.check_if_song_is_part_of_another(pack_obj_of_song, song_addr)
+                    if song_obj is None:
+                        raise InvalidUserDataError("Song pack ${:02X} missing song at address ${:04X} when processing song ${:02X}".format(song_pack_num, song_addr, song_num))
+                else:
+                    if len(matching_songs_in_pack) > 1:
+                        raise InvalidUserDataError("Song pack ${:02X} has multiple songs at address ${:04X} when processing song ${:02X}".format(song_pack_num, song_addr, song_num))
+                    # We've found the song part in the pack. Use that
+                    song_obj = matching_songs_in_pack[0]
+                    # Update data in song object
+                    song_obj.song_number = song_num
+                    song_obj.instrument_pack_1 = inst_pack_1
+                    song_obj.instrument_pack_2 = inst_pack_2
             self.songs[song_num] = song_obj
         # Perform sanity checks on extracted songs
         for song_table_ind in range(self.song_pack_table.num_rows):
@@ -144,7 +144,7 @@ class MusicModule(EbModule):
         # Create and write songs.yml
         yml_song_lines = []
         for song_num in sorted(self.songs.keys()):
-            yml_song_lines.append("{}:\n".format(song_num))
+            yml_song_lines.append("0x{:02X}:\n".format(song_num))
             yml_song_lines += ('  {}\n'.format(line) for line in self.songs[song_num].to_yml_lines())
         with resourceOpener('Music/songs','yml',True) as f:
             f.writelines(yml_song_lines)
