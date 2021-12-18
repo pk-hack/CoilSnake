@@ -222,7 +222,7 @@ class MusicModule(EbModule):
                             song_obj = mp.song_obj_from_yml(song_num, song_md)
                             self.songs[song_num] = song_obj
                 except InvalidUserDataError as e:
-                    raise InvalidUserDataError("Unable to interpret pack {:02X} as type {}: {}".format(pack_num, pack_type, e.message))
+                    raise InvalidUserDataError("Error reading pack ${:02X} as {}: {}".format(pack_num, pack_type.__name__, e.message))
             else:
                 # TODO: Remove this. This is just a workaround since we aren't reading songs.yml yet.
                 pack_obj = mp.EmptyPack(pack_num)

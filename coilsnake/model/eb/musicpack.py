@@ -753,7 +753,7 @@ class SongMusicPack(GenericMusicPack):
                 try:
                     ebm_yml_data = yml_load(file_loader(song.song_path+'.yml', astext=True))
                 except FileNotFoundError:
-                    raise InvalidUserDataError("file {} missing".format(song.song_path+'.yml'))
+                    raise InvalidUserDataError("'{}' missing".format(song.song_path+'.yml'))
                 required_fields = (YML_INST_PACK_1, YML_INST_PACK_2)
                 for field in required_fields:
                     if field not in ebm_yml_data:
@@ -764,7 +764,7 @@ class SongMusicPack(GenericMusicPack):
                 try:
                     ebm_raw_data = file_loader(song.song_path, astext=False).read()
                 except FileNotFoundError:
-                    raise InvalidUserDataError("file {} missing".format(song.song_path))
+                    raise InvalidUserDataError("'{}' missing".format(song.song_path))
                 ebm_data = Block(len(ebm_raw_data))
                 ebm_data.from_array(array('B',ebm_raw_data))
                 song.data_address = ebm_data.read_multi(2, 2)
