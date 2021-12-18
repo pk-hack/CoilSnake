@@ -736,10 +736,10 @@ class SongMusicPack(GenericMusicPack):
             files_to_output.append((ebm_path, ebm_data))
 
             ### Write out EBM.yml file
-            yml_data = {}
-            yml_data[YML_INST_PACK_1] = song.instrument_pack_1
-            yml_data[YML_INST_PACK_2] = song.instrument_pack_2
-            yml_str = str(yml_dump(yml_data, default_flow_style=False))
+            yml_lines = []
+            yml_lines.append("{}: 0x{:02X}\n".format(YML_INST_PACK_1, song.instrument_pack_1))
+            yml_lines.append("{}: 0x{:02X}\n".format(YML_INST_PACK_2, song.instrument_pack_2))
+            yml_str = ''.join(yml_lines)
             files_to_output.append((ebm_path + '.yml', yml_str))
 
         return files_to_output
