@@ -472,8 +472,10 @@ def relocate_song_data(src: int, dst: int, data: Block) -> Block:
         
         # Parse all phrases / "block list"
         pattern_set = set()
-        jumps_done = set()
+        phrases_done = set()
+        phrase_relocations = set()
         while True:
+            phrases_done.add(data_ptr)
             pattern_ptr = consume_word()
             if pattern_ptr & 0xff00 == 0:
                 # Special meaning - not a phrase address
@@ -491,21 +493,28 @@ def relocate_song_data(src: int, dst: int, data: Block) -> Block:
                     pass
                 else:
                     # Loop (0x01-0x7f) / Jump (0x82-0xff)
-                    # - Relocate jump address
-                    if data_ptr in jumps_done:
-                        consume_word()
-                        pass
-                    jumps_done.add(data_ptr)
-                    # Consume, then change, jump address
+                    # Note that we have to fix the loop address later
+                    phrase_relocations.add(data_ptr + 2)
                     rel_jump_ptr = consume_word() - src
                     check_rel_ptr_in_bounds(rel_jump_ptr, "Phrase loop address")
-                    change_last_word()
+                    if rel_jump_ptr not in phrases_done:
+                        # Take jump if we haven't yet
+                        data_ptr = rel_jump_ptr
+                    elif pattern_ptr >= 0x80:
+                        # Don't fallthrough on unconditional jump - stop processing
+                        break       
             else:
-                # Actually a phrase pointer - add to list and change
+                # Actually a phrase pointer - add to list
+                phrase_relocations.add(data_ptr)
                 rel_pattern_ptr = pattern_ptr - src
                 check_rel_ptr_in_bounds(rel_pattern_ptr, "Pattern address")
                 pattern_set.add(rel_pattern_ptr)
-                change_last_word()
+        # Relocate phrase pointers
+        for phrase_ptr in phrase_relocations:
+            # We change the last word, so we have to set data_ptr
+            # at the end of the word.
+            data_ptr = phrase_ptr + 2
+            change_last_word()
         
         # Parse all patterns
         track_list = []
