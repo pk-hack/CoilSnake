@@ -494,6 +494,8 @@ def relocate_song_data(src: int, dst: int, data: Block) -> Block:
                 else:
                     # Loop (0x01-0x7f) / Jump (0x82-0xff)
                     # Note that we have to fix the loop address later
+                    # Since we call change_last_word later, we need to store the
+                    # address after the word to change.
                     phrase_relocations.add(data_ptr + 2)
                     rel_jump_ptr = consume_word() - src
                     check_rel_ptr_in_bounds(rel_jump_ptr, "Phrase loop address")
@@ -511,9 +513,7 @@ def relocate_song_data(src: int, dst: int, data: Block) -> Block:
                 pattern_set.add(rel_pattern_ptr)
         # Relocate phrase pointers
         for phrase_ptr in phrase_relocations:
-            # We change the last word, so we have to set data_ptr
-            # at the end of the word.
-            data_ptr = phrase_ptr + 2
+            data_ptr = phrase_ptr
             change_last_word()
         
         # Parse all patterns
