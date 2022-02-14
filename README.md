@@ -16,13 +16,13 @@ Download and usage instructions for Windows and Linux can be found on the
 
 ### General Troubleshooting
 
-* I can't decompile the script
+* **I can't decompile the script**
 
   Make sure that you decompile a vanilla EarthBound ROM _first_, so that the assets get decompiled first, and then try to decompile the script. The ccscript folder won't get populated until you decompile the ROM first.
-* Fatal error detected: Failed to execute script gui
+* **Fatal error detected: Failed to execute script gui**
 
-  This issue is caused due to a corrupted CoilSnake preferences file (possibly caused by old version of CoilSnake being used before). To fix it, browse your user directory (C:\Users\{your user name} in Windows) and delete the file named ".coilsnake.yml". Then open CoilSnake again.
-* Some anti-virus softwares (Windows Defender, Avast, etc.) detect CoilSnake as a virus/Trojan/etc. Is CoilSnake safe to open?
+  This issue is caused due to a corrupted CoilSnake preferences file (possibly caused by old version of CoilSnake being used before). To fix it, browse your user directory ("C:/Users/{your user name}" in Windows) and delete the file named ".coilsnake.yml". Then open CoilSnake again.
+* **Some anti-virus softwares (Windows Defender, Avast, etc.) detect CoilSnake as a virus/Trojan/etc. Is CoilSnake safe to open?**
 
   CoilSnake is 100% safe to open in a Windows machine, as long as you are downloading it from the proper GitHub release page, or the PK Hack Forums release thread. Any other source outside of the specified ones in this repository is discouraged for downloading. If you still don't feel confident, comfortable or safe trying to open the CoilSnake executable, you can always follow the instructions in the Development file to compile and create an executable from source for yourself.
 
