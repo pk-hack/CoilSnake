@@ -879,6 +879,7 @@ class EngineMusicPack(SongMusicPack):
             # No action to take here.
             pass
         else:
+            # TODO: support arbitrarily sized engine.bin
             raise InvalidUserDataError("Unknown engine.bin of size ${:04X} in pack $01".format(len(main_part)))
 
     def save_to_parts(self) -> None:
