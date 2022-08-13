@@ -1,14 +1,14 @@
 from coilsnake.util.common import project
 
 VERSION = project.VERSION_NAMES[project.FORMAT_VERSION]
-RELEASE_DATE = "March 8, 2021"
+RELEASE_DATE = "August 13, 2022"
 
 WEBSITE = "http://pk-hack.github.io/CoilSnake"
 AUTHOR = "the PK Hack community"
 ADDITIONAL_CREDITS = """- Some portions based on JHack, created by AnyoneEB
 - Contributions by H.S, Michael1, John Soklaski,
   João Silva, ShadowOne333, stochaztic, Catador,
-  and many others"""
+  cooprocks123e, and many others"""
 DEPENDENCIES = [
     {"name": "CoilSnake logo and icon",
      "author": "Rydel"},
