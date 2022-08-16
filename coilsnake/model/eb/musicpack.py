@@ -716,7 +716,7 @@ class SongMusicPack(GenericMusicPack):
         self.parts, song_output_ptr = self.songs_to_parts(DYNAMIC_SONG_DATA_START, filtered_songs)
         # Ensure song data is in bounds
         if song_output_ptr > DYNAMIC_SONG_DATA_END:
-            raise InvalidUserDataError("Data for song pack {} extends past data area. "
+            raise InvalidUserDataError("Data for song pack ${:02X} extends past data area. "
                                        "Remove songs from the pack.".format(self.pack_num))
 
     # For writing to project
@@ -787,6 +787,7 @@ class EngineMusicPack(SongMusicPack):
     MAIN_PART_ADDR = 0x0500
     MAIN_PART_LEN = 0x2FDD - 0x0500
     MAIN_PART_LEN_WITH_SONGS = 0x418B
+    MAIN_PART_SONGS_HASH = 0x0C4F739B
     MAIN_PART_SONG_LIST = [
         0x2FDD,
         0x301C,
@@ -807,7 +808,7 @@ class EngineMusicPack(SongMusicPack):
     GAS_STATION_COMBINED_ADDR = 0x4800
     GAS_STATION_COMBINED_SIZE = 0x0405
     GAS_STATION_PT_2_START = 0x23D
-    GAS_STATION_PT_2_BYTES = (0x41, 0x4A, 0x00, 0x00)
+    GAS_STATION_PT_2_HASH = 0xF5E81DDE
 
     def __init__(self, pack_num: int) -> None:
         if pack_num != 1:
@@ -834,15 +835,12 @@ class EngineMusicPack(SongMusicPack):
             p_addr, p_size, p_block = p
             if not (p_addr == EngineMusicPack.GAS_STATION_COMBINED_ADDR and 
                     p_size == EngineMusicPack.GAS_STATION_COMBINED_SIZE):
+                # Haven't found gas station part yet - keep looking.
                 continue
-            data_matches = True
-            for i, v_expected in enumerate(EngineMusicPack.GAS_STATION_PT_2_BYTES):
-                v_actual = p_block[pt_2_offset + i]
-                if v_expected != v_actual:
-                    data_matches = False
-                    break
-            if not data_matches:
-                continue
+            if hash(p_block[pt_2_offset:]) != EngineMusicPack.GAS_STATION_PT_2_HASH:
+                # We've found the gas station part, but it doesn't have the data we expected.
+                # We're done here.
+                return
             # This looks like it is the gas station part. Split it in two.
             # Remove old combined part from the list.
             del parts[p_idx]
@@ -861,7 +859,7 @@ class EngineMusicPack(SongMusicPack):
                 raise InvalidUserDataError("Expected part at address ${:04X} in pack $01".format(addr))
             self.engine_parts[addr] = part_dict[addr]
         
-        # Split Gas Station into two separate parts
+        # Split Gas Station into two separate parts (if applicable)
         self.split_gas_station(parts)
 
         # Use SongMusicPack function to load the songs that are already in their own parts
@@ -869,18 +867,16 @@ class EngineMusicPack(SongMusicPack):
 
         # Get the main part and load the in-engine songs from it (if needed)
         main_part = self.engine_parts[EngineMusicPack.MAIN_PART_ADDR]
-        if len(main_part) == EngineMusicPack.MAIN_PART_LEN_WITH_SONGS:
+        main_part_has_songs = (
+            len(main_part) == EngineMusicPack.MAIN_PART_LEN_WITH_SONGS and
+            hash(main_part[EngineMusicPack.MAIN_PART_LEN:]) == EngineMusicPack.MAIN_PART_SONGS_HASH
+        )
+        if main_part_has_songs:
             # Extract songs
             self.extract_in_engine_songs(main_part)
             # Truncate song data out of main part
             main_part = main_part[:EngineMusicPack.MAIN_PART_LEN]
             self.engine_parts[EngineMusicPack.MAIN_PART_ADDR] = main_part
-        elif len(main_part) == EngineMusicPack.MAIN_PART_LEN:
-            # No action to take here.
-            pass
-        else:
-            # TODO: support arbitrarily sized engine.bin
-            raise InvalidUserDataError("Unknown engine.bin of size ${:04X} in pack $01".format(len(main_part)))
 
     def save_to_parts(self) -> None:
         # Start with the engine parts we loaded from the various .bin files
@@ -889,11 +885,16 @@ class EngineMusicPack(SongMusicPack):
 
         # Get in-engine / always-loaded song data
         filtered_songs = (s for s in self.songs if isinstance(s, SongWithData) and s.is_always_loaded())
-        always_loaded_song_parts, song_output_ptr = self.songs_to_parts(EngineMusicPack.MAIN_PART_ADDR + EngineMusicPack.MAIN_PART_LEN, filtered_songs)
+        # Get main engine part so we know where to put the always-loaded songs
+        main_part_block = self.engine_parts[EngineMusicPack.MAIN_PART_ADDR]
+        always_loaded_song_parts, song_output_ptr = self.songs_to_parts(EngineMusicPack.MAIN_PART_ADDR + len(main_part_block), filtered_songs)
         # Ensure song data is in bounds
         if song_output_ptr > DYNAMIC_SONG_DATA_START:
-            raise InvalidUserDataError("Data for song pack {} extends past data area. "
-                                       "Remove songs from the pack.".format(self.pack_num))
+            overage = song_output_ptr - DYNAMIC_SONG_DATA_START
+            raise InvalidUserDataError("Data for engine pack ${:02X} is too long by {} bytes. "
+                                       "Maybe your \"in-engine\" songs are too large.".format(self.pack_num, overage))
+        else:
+            log.debug("Engine pack has %d bytes of free space available.", DYNAMIC_SONG_DATA_START - song_output_ptr)
         output_parts += always_loaded_song_parts
 
         # Get dynamically loaded song data that is in this pack (Gas Station 1 in vanilla)
