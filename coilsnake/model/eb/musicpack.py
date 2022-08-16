@@ -1,38 +1,36 @@
 from array import array
-from coilsnake.util.common.yml import yml_load
-import re
-import logging
-
-from typing import Any, Dict, List, TextIO, Tuple, Union
-from coilsnake.model.common.blocks import Block
-
-from coilsnake.exceptions.common.exceptions import CoilSnakeInternalError, InvalidUserDataError, OutOfBoundsError
-
 from dataclasses import dataclass
-
 from functools import lru_cache
+import logging
+import re
+from typing import Any, Dict, List, TextIO, Tuple, Union
 
-log = logging.getLogger(__name__)
+from coilsnake.exceptions.common.exceptions import \
+    CoilSnakeInternalError, InvalidUserDataError, OutOfBoundsError
+from coilsnake.model.common.blocks import Block
+from coilsnake.util.common.yml import yml_load
 
 CONFIG_TXT_FILENAME = "config.txt"
 
 YML_INST_PACK_1 = "Instrument Pack 1"
 YML_INST_PACK_2 = "Instrument Pack 2"
 
-YML_SONG_PACK         = "Song Pack"
-YML_SONG_FILENAME     = "Song File"
+YML_SONG_PACK = "Song Pack"
+YML_SONG_FILENAME = "Song File"
 YML_SONG_TO_REFERENCE = "Song to Reference"
-YML_SONG_OFFSET       = "Offset"
-YML_SONG_ADDRESS      = "Address"
+YML_SONG_OFFSET = "Offset"
+YML_SONG_ADDRESS = "Address"
 YML_SONG_PACK_BUILTIN = "in-engine"
 
 INST_OVERWRITE = 0x00
-INST_DEFAULT   = 0x1a
+INST_DEFAULT = 0x1a
 SAMPLE_OFFSET_OVERWRITE = 0x7000
-SAMPLE_OFFSET_DEFAULT   = 0x95b0
+SAMPLE_OFFSET_DEFAULT = 0x95b0
 
 DYNAMIC_SONG_DATA_START = 0x4800
-DYNAMIC_SONG_DATA_END   = 0x6C00
+DYNAMIC_SONG_DATA_END = 0x6C00
+
+log = logging.getLogger(__name__)
 
 @dataclass
 class EBInstrument:
@@ -45,7 +43,7 @@ class EBInstrument:
     sample: Union[Block, int, None]
     sample_loop_offset: Union[int, None]
 
-def extract_pack_parts(rom: Block, pack_ptr: int) -> List[Tuple[int,int,Block]]:
+def extract_pack_parts(rom: Block, pack_ptr: int) -> List[Tuple[int, int, Block]]:
     parts = []
     start_bank = pack_ptr & 0xff0000
     while pack_ptr < rom.size and pack_ptr & 0xff0000 == start_bank:
@@ -68,16 +66,16 @@ def extract_brr_chunk(brr_start_addr: int, brr_sample_addr: int, brr_block: Bloc
     start = brr_sample_addr - brr_start_addr
     end = start
     while end < len(brr_block):
-        b = brr_block[end]
+        brr_header = brr_block[end]
         end += 9
-        if b & 1:
+        if brr_header & 1:
             return brr_block[start:end]
-    raise InvalidUserDataError("BRR data at ARAM address ${04X} is missing a terminator".format(brr_sample_addr))
+    raise InvalidUserDataError("BRR data at ARAM address ${:04X} is missing a terminator".format(brr_sample_addr))
 
 def read_hex_or_default_or_overwrite(s: str, default=None, overwrite=None):
-    m = re.match("^.*(default|overwrite).*$", s, flags=re.IGNORECASE)
-    if m:
-        s2 = m.group(1).lower()
+    match = re.match("^.*(default|overwrite).*$", s, flags=re.IGNORECASE)
+    if match:
+        s2 = match.group(1).lower()
         if s2 == 'default':
             return default
         if s2 == 'overwrite':
@@ -91,8 +89,7 @@ def parse_config_txt(config_txt: Union[TextIO, str]) -> Tuple[int, int, int, Lis
     instruments: List[EBInstrument] = []
     instrument_files: List[EBInstrument] = []
     if isinstance(config_txt, str):
-        lines = config_txt.splitlines()
-        line_iter = enumerate(lines, start=1)
+        line_iter = enumerate(config_txt.splitlines(), start=1)
     else:
         line_iter = enumerate(config_txt, start=1)
     for line_num, line in line_iter:
@@ -107,46 +104,48 @@ def parse_config_txt(config_txt: Union[TextIO, str]) -> Tuple[int, int, int, Lis
             if line == '}':
                 # That's it! No more config.txt
                 break
-            m = re.match(r'^"([^"]*)"\s+\$([0-9a-f]{2})\s+\$([0-9a-f]{2})\s+\$([0-9a-f]{2})\s+\$([0-9a-f]{2})\s+\$([0-9a-f]{2})$', line, flags=re.IGNORECASE)
-            if m:
-                filename = m.group(1)
-                instinfo = [int(val, base=16) for val in m.groups()[1:]]
+            match = re.match(r'^"([^"]*)"' + r'\s+\$([0-9a-f]{2})' * 5 + r'$',
+                             line, flags=re.IGNORECASE)
+            if match:
+                filename = match.group(1)
+                instinfo = [int(val, base=16) for val in match.groups()[1:]]
                 instrument = EBInstrument(*(instinfo + [None, None]))
                 instruments.append(instrument)
                 instrument_files.append(filename)
-        else:
-            if instrument_keyword_hit:
-                if line != '{':
-                    raise InvalidUserDataError("Error at line {} in config.txt: expecting '{'".format(line_num))
-                in_instruments = True
                 continue
-            else:
-                m = re.match("^.*pack num.*: (\w+)\s*$", line, flags=re.IGNORECASE)
-                if m:
-                    if line_num > 3:
-                        raise InvalidUserDataError("Error at line {} in config.txt: pack number directive can only be within first 3 lines".format(line_num))
-                    pack_num = read_hex_or_default_or_overwrite(m.group(1), default=None, overwrite="ow")
-                    if pack_num == "ow":
-                        raise InvalidUserDataError("Error at line {} in config.txt: pack number cannot be 'override'".format(line_num))
-                    continue
-                m = re.match("^.*base inst.*: (\w+)\s*$", line, flags=re.IGNORECASE)
-                if m:
-                    if line_num > 3:
-                        raise InvalidUserDataError("Error at line {} in config.txt: base instrument directive can only be within first 3 lines".format(line_num))
-                    base_inst = read_hex_or_default_or_overwrite(m.group(1), default=INST_DEFAULT, overwrite=INST_OVERWRITE)
-                    continue
-                m = re.match("^.*offset.*: (\w+)\s*$", line, flags=re.IGNORECASE)
-                if m:
-                    if line_num > 3:
-                        raise InvalidUserDataError("Error at line {} in config.txt: BRR sample offset directive can only be within first 3 lines".format(line_num))
-                    brr_offset = read_hex_or_default_or_overwrite(m.group(1), default=SAMPLE_OFFSET_DEFAULT, overwrite=SAMPLE_OFFSET_OVERWRITE)
-                    continue
-                m = re.match("^#instruments$", line, flags=re.IGNORECASE)
-                if m:
-                    instrument_keyword_hit = True
-                    continue
-                raise InvalidUserDataError("Error at line {} in config.txt: Unexpected text '{}'".format(line_num, line))
-                
+            raise InvalidUserDataError("Error at line {} in config.txt: expected instrument definition".format(line_num))
+        if instrument_keyword_hit:
+            if line != '{':
+                raise InvalidUserDataError("Error at line {} in config.txt: expecting '{{'".format(line_num))
+            in_instruments = True
+            continue
+        # Handle the header text
+        match = re.match(r"^.*pack num.*: (\w+)\s*$", line, flags=re.IGNORECASE)
+        if match:
+            if line_num > 3:
+                raise InvalidUserDataError("Error at line {} in config.txt: pack number directive can only be within first 3 lines".format(line_num))
+            pack_num = read_hex_or_default_or_overwrite(match.group(1), default=None, overwrite="ow")
+            if pack_num == "ow":
+                raise InvalidUserDataError("Error at line {} in config.txt: pack number cannot be 'override'".format(line_num))
+            continue
+        match = re.match(r"^.*base inst.*: (\w+)\s*$", line, flags=re.IGNORECASE)
+        if match:
+            if line_num > 3:
+                raise InvalidUserDataError("Error at line {} in config.txt: base instrument directive can only be within first 3 lines".format(line_num))
+            base_inst = read_hex_or_default_or_overwrite(match.group(1), default=INST_DEFAULT, overwrite=INST_OVERWRITE)
+            continue
+        match = re.match(r"^.*offset.*: (\w+)\s*$", line, flags=re.IGNORECASE)
+        if match:
+            if line_num > 3:
+                raise InvalidUserDataError("Error at line {} in config.txt: BRR sample offset directive can only be within first 3 lines".format(line_num))
+            brr_offset = read_hex_or_default_or_overwrite(match.group(1), default=SAMPLE_OFFSET_DEFAULT, overwrite=SAMPLE_OFFSET_OVERWRITE)
+            continue
+        match = re.match(r"^#instruments$", line, flags=re.IGNORECASE)
+        if match:
+            instrument_keyword_hit = True
+            continue
+        raise InvalidUserDataError("Error at line {} in config.txt: Unexpected text '{}'".format(line_num, line))
+
     return pack_num, base_inst, brr_offset, instruments, instrument_files
 
 class GenericMusicPack:
@@ -181,21 +180,20 @@ class GenericMusicPack:
                 pdata[addr - paddr : addr - paddr + length] = value
                 return True
         return False
-    
+
     def load_from_parts(self, parts: List[Tuple[int, int, Block]]) -> None:
         '''
         Converts data from the pack part form into the internal data structure.
 
         This function should be overridden for each different pack type.
         '''
-        pass
+
     def save_to_parts(self) -> None:
         '''
         Converts data from the internal data structure to pack part form.
 
         This function should be overridden for each different pack type.
         '''
-        pass
 
     def get_pack_binary_data(self) -> Block:
         # Ensure we called save_to_parts previously
@@ -216,23 +214,25 @@ class GenericMusicPack:
         ret_block.write_multi(dptr, 0, 2)
         dptr += 2
         if total_size != dptr:
-            log.error('Check these parts: {}'.format(self.parts))
+            log.error('Check these parts: %s', self.parts)
             raise CoilSnakeInternalError("Coding error: data format miscalculation in musicpack.combine_parts")
         return ret_block
-    def convert_to_files(self) -> List[Tuple[str, Union[Block,str]]]:
+    def convert_to_files(self) -> List[Tuple[str, Union[Block, str]]]:
         '''
         Converts a pack into a set of files to store in a directory.
 
         This function should be overridden for each different pack type.
         '''
         return [("pack.bin", self.get_pack_binary_data())]
-    
-    def load_from_files(self, files: Dict[str, Union[Block,str]]):
+
+    def load_from_files(self, file_loader):
         raise NotImplementedError('Please use a subclass of GenericMusicPack')
 
 class EmptyPack(GenericMusicPack):
     def get_pack_binary_data(self) -> Block:
         return Block(2)
+    def load_from_files(self, file_loader):
+        raise CoilSnakeInternalError("Empty pack cannot be loaded from a file.")
 
 class InstrumentMusicPack(GenericMusicPack):
     def __init__(self, pack_num: int) -> None:
@@ -240,11 +240,11 @@ class InstrumentMusicPack(GenericMusicPack):
         self.instruments: List[EBInstrument] = []
         self.base_instrument: int = 0
         self.brr_sample_dump_offset: int = 0
-    
+
     def load_from_parts(self, parts: List[Tuple[int, int, Block]]) -> GenericMusicPack:
         if len(parts) != 3:
             raise InvalidUserDataError("Invalid number of parts for instrument pack, must be 3")
-        
+
         # Check for sample dir. part
         cand_parts = [p for p in parts if 0x6c00 <= p[0] < 0x6e00]
         if len(cand_parts) != 1:
@@ -289,7 +289,7 @@ class InstrumentMusicPack(GenericMusicPack):
         for inst_rel_num in range(inst_count):
             if inst_rel_num + inst_base != instrument_dir_part[2][inst_rel_num*6]:
                 raise InvalidUserDataError("Invalid instrument directory, sample number must match instrument number")
-            inst_data: Tuple[int,int,int,int,int] = tuple(instrument_dir_part[2][inst_rel_num*6+1 : inst_rel_num*6+6].to_list())
+            inst_data = tuple(instrument_dir_part[2][inst_rel_num*6+1 : inst_rel_num*6+6].to_list())
             samp_start, samp_loop = sample_dir_part[2].read_multi(inst_rel_num*4, 2), sample_dir_part[2].read_multi(inst_rel_num*4+2, 2)
             # If the sample start is >= the start of BRR data provided by this instrument pack
             if samp_start >= brr_part[0]:
@@ -301,7 +301,7 @@ class InstrumentMusicPack(GenericMusicPack):
             inst = EBInstrument(*inst_data, sample, samp_loop - samp_start)
             self.instruments.append(inst)
         # We've constructed the full list of instruments. We're done! B)
-    
+
     def save_to_parts(self) -> None:
         # Determine the set of BRRs used
         brr_set = {inst.sample for inst in self.instruments if isinstance(inst.sample, Block)}
@@ -317,12 +317,12 @@ class InstrumentMusicPack(GenericMusicPack):
         for brr in brr_set:
             brr_ptr = brr_addrs[brr]
             brr_part[2][brr_ptr:brr_ptr + len(brr)] = brr
-        
+
         # Create the sample and inst. directory parts
         inst_count = len(self.instruments)
         inst_base = self.base_instrument
         sample_dir_part = (0x6c00 + 4 * inst_base, inst_count * 4, Block(inst_count * 4))
-        inst_dir_part =   (0x6e00 + 6 * inst_base, inst_count * 6, Block(inst_count * 6))
+        inst_dir_part =   (0x6e00 + 6 * inst_base, inst_count * 6, Block(inst_count * 6)) # pylint: disable=C0326
         # Populate sample and inst. directories
         for inst_rel_num, inst in enumerate(self.instruments):
             # Populate sample directory
@@ -340,13 +340,13 @@ class InstrumentMusicPack(GenericMusicPack):
             inst_dir_part[2][inst_rel_num * 6 + 3] = inst.gain
             inst_dir_part[2][inst_rel_num * 6 + 4] = inst.multiplier
             inst_dir_part[2][inst_rel_num * 6 + 5] = inst.submultiplier
-        
+
         # Set our parts
         self.parts = [sample_dir_part, inst_dir_part, brr_part]
 
     # For writing to project
-    def convert_to_files(self) -> List[Tuple[str, Union[Block,str]]]:
-        files_to_output: List[Tuple[str, Union[Block,str]]] = []
+    def convert_to_files(self) -> List[Tuple[str, Union[Block, str]]]:
+        files_to_output: List[Tuple[str, Union[Block, str]]] = []
         # Build BRR use list
         brr_use_list: Dict[Block, List[int]] = {}
         brr_loop_addr: Dict[Block, int] = {}
@@ -371,7 +371,7 @@ class InstrumentMusicPack(GenericMusicPack):
             brr_filenames[brr] = brr_file_name
             # Add to output files
             files_to_output.append((brr_file_name, brr_with_loop))
-        
+
         # Create "config.txt"
         config_lines: List[str] = []
         config_lines.append("Pack number: {:02X}".format(self.pack_num))
@@ -400,7 +400,7 @@ class InstrumentMusicPack(GenericMusicPack):
         config_txt = "\n".join(config_lines)
         files_to_output.append((CONFIG_TXT_FILENAME, config_txt))
         return files_to_output
-    
+
     # For loading from project
     def load_from_files(self, file_loader):
         # Check for config.txt
@@ -420,7 +420,7 @@ class InstrumentMusicPack(GenericMusicPack):
             try:
                 brr_raw_data: bytes = file_loader(filename, astext=False).read()
                 brr_data = Block()
-                brr_data.from_array(array('B',brr_raw_data))
+                brr_data.from_array(array('B', brr_raw_data))
             except FileNotFoundError:
                 raise InvalidUserDataError("instrument BRR '{}' doesn't exist in instrument pack directory".format(filename))
             inst.sample = brr_data[2:]
@@ -455,7 +455,7 @@ def relocate_song_data(src: int, dst: int, data: Block) -> Block:
         def check_rel_ptr_in_bounds(rel_ptr: int, description: str):
             if not 0 <= rel_ptr < len(data):
                 raise OutOfBoundsError("{} out of bounds (address={}), corrupted song".format(description, rel_ptr))
-        
+
         # Parse all phrases / "block list"
         pattern_set = set()
         phrases_done = set()
@@ -469,11 +469,11 @@ def relocate_song_data(src: int, dst: int, data: Block) -> Block:
                     # End of phrases
                     # - Stop processing
                     break
-                elif pattern_ptr == 0x80:
+                if pattern_ptr == 0x80:
                     # Debug: Fast forward on
                     # - Skip this, it's not a phrase address
                     continue
-                elif pattern_ptr == 0x81:
+                if pattern_ptr == 0x81:
                     # Debug: Fast forward off
                     # - Skip this, it's not a phrase address
                     pass
@@ -490,7 +490,7 @@ def relocate_song_data(src: int, dst: int, data: Block) -> Block:
                         data_ptr = rel_jump_ptr
                     elif pattern_ptr >= 0x80:
                         # Don't fallthrough on unconditional jump - stop processing
-                        break       
+                        break
             else:
                 # Actually a phrase pointer - add to list
                 phrase_relocations.add(data_ptr)
@@ -501,7 +501,7 @@ def relocate_song_data(src: int, dst: int, data: Block) -> Block:
         for phrase_ptr in phrase_relocations:
             data_ptr = phrase_ptr
             change_last_word()
-        
+
         # Parse all patterns
         track_list = []
         for pattern_table_addr in pattern_set:
@@ -553,26 +553,26 @@ def relocate_song_data(src: int, dst: int, data: Block) -> Block:
                     # Other VCMD
                     # Skip the correct number of bytes
                     additional_byte_counts = [
-                    	1, 1, 2, 3, 0, 1, 2, 1, 2, 1, 1, 3, 0, 1, 2, 3,
-	                    1, 3, 3, 0, 1, 3, 0, 3, 3, 3, 1, 2, 0, 0, 0, 0
+                    1, 1, 2, 3, 0, 1, 2, 1, 2, 1, 1, 3, 0, 1, 2, 3,
+                    1, 3, 3, 0, 1, 3, 0, 3, 3, 3, 1, 2, 0, 0, 0, 0
                     ]
                     for _ in range(additional_byte_counts[cmd-0xe0]):
                         consume_byte()
-        
+
         # We should be done! :)
         log.debug("Moved {}-byte song from {:04X} to {:04X}, {} relocations".format(len(data), src, dst, relocation_count))
         # Return the adjusted song
         return out
-    except OutOfBoundsError as e:
-        raise InvalidUserDataError("Error at addr ${:04X}: {}".format(data_ptr + src, e))
+    except OutOfBoundsError as err:
+        raise InvalidUserDataError("Error at addr ${:04X}: {}".format(data_ptr + src, err))
 
 @dataclass
 class Song:
     song_number: int
     @classmethod
-    def from_yml_data(cls, song_num: int, yml_data: Dict[str,Union[int,str]]):
+    def from_yml_data(cls, song_num: int, yml_data: Dict[str, Union[int, str]]):
         raise NotImplementedError('Please use a subclass of Song')
-    def get_song_packs(self) -> Tuple[int,int,int]:
+    def get_song_packs(self) -> Tuple[int, int, int]:
         raise NotImplementedError('Please use a subclass of Song')
     def get_song_aram_address(self) -> int:
         raise NotImplementedError('Please use a subclass of Song')
@@ -583,7 +583,7 @@ class Song:
 class SongWithData(Song):
     instrument_pack_1: int
     instrument_pack_2: int
-    
+
     pack_number: int
     data_address: int
     data: Block
@@ -591,7 +591,7 @@ class SongWithData(Song):
     song_path: str
 
     @classmethod
-    def from_yml_data(cls, song_num: int, yml_data: Dict[str,Union[int,str]]):
+    def from_yml_data(cls, song_num: int, yml_data: Dict[str, Union[int, str]]):
         required_fields = (YML_SONG_PACK, YML_SONG_FILENAME)
         for field in required_fields:
             if field not in yml_data:
@@ -621,13 +621,13 @@ class SongWithData(Song):
 
 @dataclass
 class SongThatIsPartOfAnother(Song):
-    parent_song: Union[int,SongWithData]
+    parent_song: Union[int, SongWithData]
     offset: int
     instrument_pack_1: Union[int, None] = None
     instrument_pack_2: Union[int, None] = None
 
     @classmethod
-    def from_yml_data(cls, song_num: int, yml_data: Dict[str,Union[int,str]]):
+    def from_yml_data(cls, song_num: int, yml_data: Dict[str, Union[int, str]]):
         required_fields = (YML_SONG_TO_REFERENCE, YML_SONG_OFFSET)
         for field in required_fields:
             if field not in yml_data:
@@ -660,7 +660,7 @@ class SongThatIsPartOfAnother(Song):
 
         return yml_lines
 
-def song_obj_from_yml(song_num: int, yml_data: Dict[str,Union[str,int]]) -> Song:
+def song_obj_from_yml(song_num: int, yml_data: Dict[str, Union[str, int]]) -> Song:
     if YML_SONG_FILENAME in yml_data:
         song_type = SongWithData
     elif YML_SONG_TO_REFERENCE in yml_data:
@@ -673,12 +673,12 @@ class SongMusicPack(GenericMusicPack):
     def __init__(self, pack_num: int) -> None:
         super().__init__(pack_num)
         self.songs: List[SongWithData] = []
-    
+
     def set_data_from_yaml(self, song_metadata: Dict[int, Dict]) -> None:
         for song_num, yml_data in song_metadata.items():
             song_obj = song_obj_from_yml(song_num, yml_data)
             self.songs.append(song_obj)
-    
+
     def load_from_parts(self, parts: List[Tuple[int, int, Block]]) -> None:
         self.songs = []
         for part_addr, _, part_data in parts:
@@ -688,40 +688,25 @@ class SongMusicPack(GenericMusicPack):
                 raise InvalidUserDataError("Song is in-engine due to start address ${:04X} < $4800, but is in pack ${:02X} instead of $01".format(
                     part_addr, self.pack_num
                 ))
-            elif always_loaded:
+            if always_loaded:
                 effective_song_pack = 0xFF
             song = SongWithData(None, None, None,
                                 effective_song_pack, part_addr, part_data,
                                 None)
             self.songs.append(song)
-    
-    def songs_to_parts(self, start_addr: int, songs: List[SongWithData]):
-        parts: List[Tuple[int, int, Block]] = []
-        song_output_ptr = start_addr
-        for song in sorted(songs, key=lambda s: s.data_address):
-            if song.data_address != song_output_ptr:
-                # Relocate song
-                log.debug("Relocating song $%02X to address $%04X", song.song_number, song_output_ptr)
-                new_data = relocate_song_data(song.data_address, song_output_ptr, song.data)
-                song.data = new_data
-            size = len(song.data)
-            song.data_address = song_output_ptr
-            parts.append((song.data_address, size, song.data))
-            song_output_ptr += size
-        return parts, song_output_ptr
 
     def save_to_parts(self) -> None:
         # Always-loaded songs are handled by the EngineMusicPack type
         filtered_songs = [s for s in self.songs if isinstance(s, SongWithData) and not s.is_always_loaded()]
-        self.parts, song_output_ptr = self.songs_to_parts(DYNAMIC_SONG_DATA_START, filtered_songs)
+        self.parts, song_output_ptr = songs_to_parts(DYNAMIC_SONG_DATA_START, filtered_songs)
         # Ensure song data is in bounds
         if song_output_ptr > DYNAMIC_SONG_DATA_END:
             raise InvalidUserDataError("Data for song pack ${:02X} extends past data area. "
                                        "Remove songs from the pack.".format(self.pack_num))
 
     # For writing to project
-    def convert_to_files(self) -> List[Tuple[str, Union[Block,str]]]:
-        files_to_output: List[Tuple[str, Union[Block,str]]] = []
+    def convert_to_files(self) -> List[Tuple[str, Union[Block, str]]]:
+        files_to_output: List[Tuple[str, Union[Block, str]]] = []
 
         for song in self.songs:
             if song.song_number is None:
@@ -748,7 +733,7 @@ class SongMusicPack(GenericMusicPack):
             files_to_output.append((ebm_path + '.yml', yml_str))
 
         return files_to_output
-    
+
     # For loading from project
     def load_from_files(self, file_loader):
         songs_with_data = {s.song_number: s for s in self.songs if isinstance(s, SongWithData)}
@@ -805,10 +790,6 @@ class EngineMusicPack(SongMusicPack):
         0x44FC,
         0x455D
     ]
-    GAS_STATION_COMBINED_ADDR = 0x4800
-    GAS_STATION_COMBINED_SIZE = 0x0405
-    GAS_STATION_PT_2_START = 0x23D
-    GAS_STATION_PT_2_HASH = 0xF5E81DDE
 
     def __init__(self, pack_num: int) -> None:
         if pack_num != 1:
@@ -826,29 +807,6 @@ class EngineMusicPack(SongMusicPack):
                                 0xFF, song_start + cls.MAIN_PART_ADDR, song_block,
                                 None)
             self.songs.append(song)
-    
-    def split_gas_station(self, parts: List[Tuple[int, int, Block]]) -> None:
-        pt_2_offset = EngineMusicPack.GAS_STATION_PT_2_START
-        pt_2_size = EngineMusicPack.GAS_STATION_COMBINED_SIZE - pt_2_offset
-        # Look for gas station part
-        for p_idx, p in enumerate(parts):
-            p_addr, p_size, p_block = p
-            if not (p_addr == EngineMusicPack.GAS_STATION_COMBINED_ADDR and 
-                    p_size == EngineMusicPack.GAS_STATION_COMBINED_SIZE):
-                # Haven't found gas station part yet - keep looking.
-                continue
-            if hash(p_block[pt_2_offset:]) != EngineMusicPack.GAS_STATION_PT_2_HASH:
-                # We've found the gas station part, but it doesn't have the data we expected.
-                # We're done here.
-                return
-            # This looks like it is the gas station part. Split it in two.
-            # Remove old combined part from the list.
-            del parts[p_idx]
-            # Add the two parts to the list.
-            parts.append((p_addr, pt_2_offset, p_block[:pt_2_offset]))
-            parts.append((p_addr + pt_2_offset, pt_2_size, p_block[pt_2_offset:]))
-            # We're done here.
-            return
 
     def load_from_parts(self, parts: List[Tuple[int, int, Block]]) -> None:
         part_dict = {p[0]: p[2] for p in parts}
@@ -858,9 +816,9 @@ class EngineMusicPack(SongMusicPack):
             if addr not in part_dict:
                 raise InvalidUserDataError("Expected part at address ${:04X} in pack $01".format(addr))
             self.engine_parts[addr] = part_dict[addr]
-        
+
         # Split Gas Station into two separate parts (if applicable)
-        self.split_gas_station(parts)
+        split_gas_station(parts)
 
         # Use SongMusicPack function to load the songs that are already in their own parts
         super().load_from_parts(p for p in parts if p[0] not in self.engine_parts)
@@ -887,14 +845,14 @@ class EngineMusicPack(SongMusicPack):
         filtered_songs = (s for s in self.songs if isinstance(s, SongWithData) and s.is_always_loaded())
         # Get main engine part so we know where to put the always-loaded songs
         main_part_block = self.engine_parts[EngineMusicPack.MAIN_PART_ADDR]
-        always_loaded_song_parts, song_output_ptr = self.songs_to_parts(EngineMusicPack.MAIN_PART_ADDR + len(main_part_block), filtered_songs)
+        always_loaded_song_parts, song_output_ptr = songs_to_parts(EngineMusicPack.MAIN_PART_ADDR + len(main_part_block), filtered_songs)
         # Ensure song data is in bounds
         if song_output_ptr > DYNAMIC_SONG_DATA_START:
             overage = song_output_ptr - DYNAMIC_SONG_DATA_START
             raise InvalidUserDataError("Data for engine pack ${:02X} is too long by {} bytes. "
                                        "Maybe your \"in-engine\" songs are too large.".format(self.pack_num, overage))
-        else:
-            log.debug("Engine pack has %d bytes of free space available.", DYNAMIC_SONG_DATA_START - song_output_ptr)
+        # Have a helpful debug output for the user
+        log.debug("Engine pack has %d bytes of free space available.", DYNAMIC_SONG_DATA_START - song_output_ptr)
         output_parts += always_loaded_song_parts
 
         # Get dynamically loaded song data that is in this pack (Gas Station 1 in vanilla)
@@ -903,8 +861,8 @@ class EngineMusicPack(SongMusicPack):
 
         # Set self.parts
         self.parts = output_parts
-    
-    def convert_to_files(self) -> List[Tuple[str, Union[Block,str]]]:
+
+    def convert_to_files(self) -> List[Tuple[str, Union[Block, str]]]:
         files = []
 
         # Fixed engine parts
@@ -919,9 +877,9 @@ class EngineMusicPack(SongMusicPack):
     def load_from_files(self, file_loader):
         for addr, name in EngineMusicPack.ENGINE_FIXED_PARTS.items():
             try:
-                with file_loader(name) as f:
+                with file_loader(name) as file:
                     data = Block()
-                    data.from_array(array('B',f.read()))
+                    data.from_array(array('B', file.read()))
                     self.engine_parts[addr] = data
             except FileNotFoundError:
                 raise InvalidUserDataError("Pack $01 required file '{}' doesn't exist".format(
@@ -929,20 +887,19 @@ class EngineMusicPack(SongMusicPack):
                 ))
         # Load song data
         super().load_from_files(file_loader)
-    
+
     def get_song_address_table_data(self, size: int) -> Block:
         if self.parts:
             return self.get_aram_region(EngineMusicPack.SONG_ADDRESS_TABLE_ADDR, size)
-        else:
-            block = self.engine_parts[EngineMusicPack.MAIN_PART_ADDR]
-            start_addr = EngineMusicPack.SONG_ADDRESS_TABLE_ADDR - EngineMusicPack.MAIN_PART_ADDR
-            return block[start_addr:start_addr + size]
-            
+        block = self.engine_parts[EngineMusicPack.MAIN_PART_ADDR]
+        start_addr = EngineMusicPack.SONG_ADDRESS_TABLE_ADDR - EngineMusicPack.MAIN_PART_ADDR
+        return block[start_addr:start_addr + size]
+
     def set_song_address_table_data(self, block: Block) -> None:
         assert self.parts
         self.set_aram_region(EngineMusicPack.SONG_ADDRESS_TABLE_ADDR, block.size, block)
 
-def check_if_song_is_part_of_another(song_num: int, song_pack: SongMusicPack, song_addr: int) -> Union[None,SongThatIsPartOfAnother]:
+def check_if_song_is_part_of_another(song_num: int, song_pack: SongMusicPack, song_addr: int) -> Union[None, SongThatIsPartOfAnother]:
     for song in song_pack.songs:
         if song.data_address <= song_addr < song.data_address + len(song.data):
             return SongThatIsPartOfAnother(song_num, song, song_addr - song.data_address)
@@ -951,19 +908,66 @@ def check_if_song_is_part_of_another(song_num: int, song_pack: SongMusicPack, so
 def create_pack_object_from_parts(pack_num: int, parts: List[Tuple[int, int, Block]]) -> GenericMusicPack:
     formats = [
         ("instrument", InstrumentMusicPack),
-        ("engine",     EngineMusicPack),
-        ("song",       SongMusicPack),
+        ("engine", EngineMusicPack),
+        ("song", SongMusicPack),
     ]
     fmt_fail_msg = {}
     for fmt_name, fmt_cls in formats:
         try:
             pack = fmt_cls(pack_num)
             pack.load_from_parts(parts)
-        except InvalidUserDataError as e:
-            fmt_fail_msg[fmt_name] = e.message
+        except InvalidUserDataError as err:
+            fmt_fail_msg[fmt_name] = err.message
         else:
             return pack
     fmt_list = ", ".join((fmt[0] for fmt in formats))
     for fmt_name, msg in fmt_fail_msg.items():
-        log.debug("Unable to process pack {:02X} as {} pack, encountered error: \"{}\"".format(pack_num, fmt_name, msg))
+        log.debug("Unable to process pack ${:02X} as {} pack, encountered error: \"{}\"".format(pack_num, fmt_name, msg))
     raise InvalidUserDataError("Invalid pack format, must be one of the following: {}".format(fmt_list))
+
+
+def split_gas_station(parts: List[Tuple[int, int, Block]]) -> None:
+    # pylint: disable=C0103
+    START_ADDR = 0x4800
+    COMBINED_SIZE = 0x405
+    PT_2_OFFSET = 0x23D
+    PT_2_HASH = 0xF5E81DDE
+    PT_2_SIZE = COMBINED_SIZE - PT_2_OFFSET
+    # pylint: enable=C0103
+    # Look for gas station part
+    for p_idx, part in enumerate(parts):
+        p_addr, p_size, p_block = part
+        if not (p_addr == START_ADDR and p_size == COMBINED_SIZE):
+            # Haven't found gas station part yet - keep looking.
+            continue
+        if hash(p_block[PT_2_OFFSET:]) != PT_2_HASH:
+            # We've found the gas station part, but it doesn't have the data we expected.
+            # We're done here.
+            log.info("Found Gas Station part - not splitting because it has already been "
+                     "modified.")
+            return
+        # This looks like it is the gas station part. Split it in two.
+        # Remove old combined part from the list.
+        del parts[p_idx]
+        # Add the two parts to the list.
+        parts.append((p_addr, PT_2_OFFSET, p_block[:PT_2_OFFSET]))
+        parts.append((p_addr + PT_2_OFFSET, PT_2_SIZE, p_block[PT_2_OFFSET:]))
+        # We're done here.
+        log.info("Found Gas Station part - split into two separate tracks.")
+        return
+    log.info("Did not find Gas Station part - unable to split.")
+
+def songs_to_parts(start_addr: int, songs: List[SongWithData]):
+    parts: List[Tuple[int, int, Block]] = []
+    song_output_ptr = start_addr
+    for song in sorted(songs, key=lambda s: s.data_address):
+        if song.data_address != song_output_ptr:
+            # Relocate song
+            log.debug("Relocating song $%02X to address $%04X", song.song_number, song_output_ptr)
+            new_data = relocate_song_data(song.data_address, song_output_ptr, song.data)
+            song.data = new_data
+        size = len(song.data)
+        song.data_address = song_output_ptr
+        parts.append((song.data_address, size, song.data))
+        song_output_ptr += size
+    return parts, song_output_ptr
