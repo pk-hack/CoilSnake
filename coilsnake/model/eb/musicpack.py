@@ -807,6 +807,7 @@ class EngineMusicPack(SongMusicPack):
                                 0xFF, song_start + cls.MAIN_PART_ADDR, song_block,
                                 None)
             self.songs.append(song)
+        log.info('Separated in-engine songs from main engine part')
 
     def load_from_parts(self, parts: List[Tuple[int, int, Block]]) -> None:
         part_dict = {p[0]: p[2] for p in parts}
@@ -829,6 +830,7 @@ class EngineMusicPack(SongMusicPack):
             len(main_part) == EngineMusicPack.MAIN_PART_LEN_WITH_SONGS and
             hash(main_part[EngineMusicPack.MAIN_PART_LEN:]) == EngineMusicPack.MAIN_PART_SONGS_HASH
         )
+        log.debug('Hash %s %s', hash(main_part[EngineMusicPack.MAIN_PART_LEN:]), EngineMusicPack.MAIN_PART_SONGS_HASH)
         if main_part_has_songs:
             # Extract songs
             self.extract_in_engine_songs(main_part)
@@ -931,7 +933,7 @@ def split_gas_station(parts: List[Tuple[int, int, Block]]) -> None:
     START_ADDR = 0x4800
     COMBINED_SIZE = 0x405
     PT_2_OFFSET = 0x23D
-    PT_2_HASH = 0xF5E81DDE
+    PT_2_HASH = 0x75E81DDF
     PT_2_SIZE = COMBINED_SIZE - PT_2_OFFSET
     # pylint: enable=C0103
     # Look for gas station part
@@ -940,6 +942,8 @@ def split_gas_station(parts: List[Tuple[int, int, Block]]) -> None:
         if not (p_addr == START_ADDR and p_size == COMBINED_SIZE):
             # Haven't found gas station part yet - keep looking.
             continue
+        
+        log.debug('Hash2 %s %s', hash(p_block[PT_2_OFFSET:]), PT_2_HASH)
         if hash(p_block[PT_2_OFFSET:]) != PT_2_HASH:
             # We've found the gas station part, but it doesn't have the data we expected.
             # We're done here.
