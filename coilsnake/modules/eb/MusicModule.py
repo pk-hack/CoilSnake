@@ -1,16 +1,16 @@
+import logging
+from typing import Dict, List
+
+from coilsnake.exceptions.common.exceptions import InvalidUserDataError
+from coilsnake.model.common.ips import IpsPatch
 from coilsnake.model.common.table import LittleEndianHexIntegerTableEntry, Table
 from coilsnake.model.common.blocks import Block
-import logging
-from typing import Dict, List, Set
-
-from coilsnake.exceptions.common.exceptions import CoilSnakeInternalError, InvalidUserDataError
 import coilsnake.model.eb.musicpack as mp
 from coilsnake.model.eb.table import eb_table_from_offset
+from coilsnake.modules.common.PatchModule import get_ips_filename
 from coilsnake.modules.eb.EbModule import EbModule
-from coilsnake.util.common.yml import convert_values_to_hex_repr, yml_load, yml_dump
+from coilsnake.util.common.yml import yml_load
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
-
-from collections import OrderedDict
 
 log = logging.getLogger(__name__)
 
@@ -248,6 +248,14 @@ class MusicModule(EbModule):
         return
 
     def write_to_rom(self, rom):
+        # Apply Gas Station instrument pack patch
+        # In the vanilla game, there is a bug in the INITIALIZE_SPC700 function where it loads the
+        # engine pack by looking at the sequence pack of song 00, but then stores the loaded pack
+        # value into the secondary instrument pack variable. This means when we play the
+        # Gas Station song, it will load the whole engine again, which includes some instrument
+        # data. This instrument data will be loaded after the instrument packs, so this can result
+        # in some corrupted instruments when changing the instrument packs used by Gas Station.
+        self.get_patch(rom).apply(rom)
         # Prepare packs for writing out by converting them to parts
         for pack in self.packs:
             pack.save_to_parts()
@@ -273,6 +281,11 @@ class MusicModule(EbModule):
         # Build song pack table
         self.song_pack_table.to_block(block=rom, offset=from_snes_address(self.SONG_PACK_TABLE_ROM_ADDR))
         return
+
+    def get_patch(self, rom):
+        ips = IpsPatch()
+        ips.load(get_ips_filename(rom.type, 'gas_station_pack_fix'), 0)
+        return ips
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
         if old_version < 12:
