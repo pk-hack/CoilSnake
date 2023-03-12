@@ -179,9 +179,13 @@ class Block(object):
     def __ne__(self, other):
         return not (self == other)
 
-    def __hash__(self):
+    def crc32(self):
         return crc32(self.data)
 
+    # Don't rely on this having the same result on different machines!
+    # Use self.crc32() if you're comparing with a known CRC value.
+    def __hash__(self):
+        return self.crc32()
 
 class AllocatableBlock(Block):
     def reset(self, size=0):

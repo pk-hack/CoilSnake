@@ -772,7 +772,7 @@ class EngineMusicPack(SongMusicPack):
     MAIN_PART_ADDR = 0x0500
     MAIN_PART_LEN = 0x2FDD - 0x0500
     MAIN_PART_LEN_WITH_SONGS = 0x418B
-    MAIN_PART_SONGS_HASH = 0x0C4F739B
+    MAIN_PART_SONGS_CRC = 0x0C4F739B
     MAIN_PART_SONG_LIST = [
         0x2FDD,
         0x301C,
@@ -826,11 +826,12 @@ class EngineMusicPack(SongMusicPack):
 
         # Get the main part and load the in-engine songs from it (if needed)
         main_part = self.engine_parts[EngineMusicPack.MAIN_PART_ADDR]
+        main_part_songs_crc = main_part[EngineMusicPack.MAIN_PART_LEN:].crc32()
         main_part_has_songs = (
             len(main_part) == EngineMusicPack.MAIN_PART_LEN_WITH_SONGS and
-            hash(main_part[EngineMusicPack.MAIN_PART_LEN:]) == EngineMusicPack.MAIN_PART_SONGS_HASH
+            main_part_songs_crc == EngineMusicPack.MAIN_PART_SONGS_CRC
         )
-        log.debug('Hash %s %s', hash(main_part[EngineMusicPack.MAIN_PART_LEN:]), EngineMusicPack.MAIN_PART_SONGS_HASH)
+        log.debug('Engine main part CRC: ROM=%#x Clean=%#x', main_part_songs_crc, EngineMusicPack.MAIN_PART_SONGS_CRC)
         if main_part_has_songs:
             # Extract songs
             self.extract_in_engine_songs(main_part)
@@ -933,7 +934,7 @@ def split_gas_station(parts: List[Tuple[int, int, Block]]) -> None:
     START_ADDR = 0x4800
     COMBINED_SIZE = 0x405
     PT_2_OFFSET = 0x23D
-    PT_2_HASH = 0x75E81DDF
+    PT_2_CRC = 0xF5E81DDE
     PT_2_SIZE = COMBINED_SIZE - PT_2_OFFSET
     # pylint: enable=C0103
     # Look for gas station part
@@ -943,8 +944,9 @@ def split_gas_station(parts: List[Tuple[int, int, Block]]) -> None:
             # Haven't found gas station part yet - keep looking.
             continue
         
-        log.debug('Hash2 %s %s', hash(p_block[PT_2_OFFSET:]), PT_2_HASH)
-        if hash(p_block[PT_2_OFFSET:]) != PT_2_HASH:
+        pt2_crc_rom = p_block[PT_2_OFFSET:].crc32()
+        log.debug('Gas Station Pt. 2 CRC: ROM=%#x Clean=%#x', pt2_crc_rom, PT_2_CRC)
+        if pt2_crc_rom != PT_2_CRC:
             # We've found the gas station part, but it doesn't have the data we expected.
             # We're done here.
             log.info("Found Gas Station part - not splitting because it has already been "
