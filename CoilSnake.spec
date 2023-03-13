@@ -89,7 +89,8 @@ exe = EXE(
     runtime_tmpdir=None,
     console=debug,
     icon='coilsnake/assets/images/CoilSnake.ico',
-    manifest=None
+    manifest=None,
+    windowed=True
 )
 
 if platform.system() != 'Darwin':
