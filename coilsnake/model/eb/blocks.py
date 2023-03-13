@@ -90,4 +90,4 @@ class EbRom(Rom):
         """Calculates the MD5 hash of this ROM's data.
         """
 
-        return hashlib.md5(self.data.tostring()).hexdigest()
+        return hashlib.md5(self.data.tobytes()).hexdigest()
