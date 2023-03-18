@@ -13,7 +13,7 @@ install_requires = [
     "Pillow>=3.0.0",
     "PyYAML>=3.11",
     "CCScriptWriter>=1.2",
-    "ccscript>=1.400"
+    "ccscript>=1.500"
 ]
 
 if platform.system() == "Darwin":
@@ -30,7 +30,7 @@ setup(
     install_requires=install_requires,
     dependency_links=[
         "https://github.com/Lyrositor/CCScriptWriter/tarball/master#egg=CCScriptWriter-1.2",
-        "https://github.com/charasyn/ccscript_legacy/archive/refs/tags/v1.400.tar.gz#egg=ccscript-1.400"
+        "https://github.com/charasyn/ccscript_legacy/tarball/master#egg=ccscript-1.500"
     ],
     ext_modules=[
         Extension(
