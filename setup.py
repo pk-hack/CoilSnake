@@ -30,7 +30,7 @@ setup(
     install_requires=install_requires,
     dependency_links=[
         "https://github.com/Lyrositor/CCScriptWriter/tarball/master#egg=CCScriptWriter-1.2",
-        "https://github.com/charasyn/ccscript_legacy/tarball/master#egg=ccscript-1.500"
+        "https://github.com/charasyn/ccscript_legacy/archive/refs/tags/v1.500.tar.gz#egg=ccscript-1.500"
     ],
     ext_modules=[
         Extension(
