@@ -184,6 +184,7 @@ class CoilSnakeGui(object):
             self.root.update_idletasks()
             xpos -= (self.root.winfo_x() - 100)
             ypos -= (self.root.winfo_y() - 100)
+
         self.root.geometry('{}x{}+{}+{}'.format(width, height, xpos, ypos))
         self.root.update_idletasks()
 
