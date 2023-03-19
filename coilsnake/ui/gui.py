@@ -174,6 +174,15 @@ class CoilSnakeGui(object):
         height = self.preferences['height'] or self.root.winfo_height()
         xpos   = self.preferences['xpos']   or self.root.winfo_x()
         ypos   = self.preferences['ypos']   or self.root.winfo_y()
+
+        if platform.system() != "Windows" and platform.system() != "Darwin":
+            # Workaround - On X11, the window coordinates refer to the window border rather than the content
+            # Move the window to 100,100 and then measure where we ended up, to know how much to adjust by.
+            # This seems to exactly restore the window location on my machine.
+            self.root.geometry('{}x{}+100+100'.format(width, height))
+            self.root.update_idletasks()
+            xpos -= (self.root.winfo_x() - 100)
+            ypos -= (self.root.winfo_y() - 100)
         self.root.geometry('{}x{}+{}+{}'.format(width, height, xpos, ypos))
         self.root.update_idletasks()
 
