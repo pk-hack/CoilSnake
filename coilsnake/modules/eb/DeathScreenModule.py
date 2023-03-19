@@ -140,14 +140,10 @@ class DeathScreenModule(EbModule):
     def upgrade_project(
             self, old_version, new_version, rom, resource_open_r,
             resource_open_w, resource_delete):
-
-        if old_version == new_version:
-            return
-
-        self.read_from_rom(rom)
-        self.write_to_project(resource_open_w)
-
-        if old_version == 9:
+        if old_version < 9:
+            self.read_from_rom(rom)
+            self.write_to_project(resource_open_w)
+        elif old_version == 9:
             with resource_open_r(OLD_DEATH_SCREEN_PATH, "png") as old:
                 with resource_open_w(NESS_DEATH_SCREEN_PATH, "png") as new:
                     image = open_indexed_image(old)
