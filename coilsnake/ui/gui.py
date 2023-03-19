@@ -163,8 +163,8 @@ class CoilSnakeGui(object):
     def save_geometry_and_close(self, e=None):
         self.preferences['width']  = self.root.winfo_width()
         self.preferences['height'] = self.root.winfo_height()
-        self.preferences['xpos']   = self.root.winfo_rootx()
-        self.preferences['ypos']   = self.root.winfo_rooty()
+        self.preferences['xpos']   = self.root.winfo_x()
+        self.preferences['ypos']   = self.root.winfo_y()
         self.preferences.save()
         self.root.destroy()
 
@@ -172,15 +172,18 @@ class CoilSnakeGui(object):
         self.root.update_idletasks()
         width  = self.preferences['width']  or self.root.winfo_width()
         height = self.preferences['height'] or self.root.winfo_height()
-        xpos   = self.preferences['xpos']   or self.root.winfo_rootx()
-        ypos   = self.preferences['ypos']   or self.root.winfo_rooty()
+        xpos   = self.preferences['xpos']   or self.root.winfo_x()
+        ypos   = self.preferences['ypos']   or self.root.winfo_y()
 
         if platform.system() != "Windows" and platform.system() != "Darwin":
             # Workaround - On X11, the window coordinates refer to the window border rather than the content
-            self.root.geometry('{}x{}+0+0'.format(width, height))
+            # Since there may be a menubar at the top of the screen, move the window to 100, 100 and
+            # then measure the position, to know how much we need to compensate our position by.
+            # This seems to exactly restore the window location on my machine.
+            self.root.geometry('{}x{}+100+100'.format(width, height))
             self.root.update_idletasks()
-            xpos -= self.root.winfo_rootx()
-            ypos -= self.root.winfo_rooty()
+            xpos -= (self.root.winfo_x() - 100)
+            ypos -= (self.root.winfo_y() - 100)
 
         self.root.geometry('{}x{}+{}+{}'.format(width, height, xpos, ypos))
         self.root.update_idletasks()
