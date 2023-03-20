@@ -9,7 +9,7 @@ projects:
   image: images/screenshots/mother-remake.png
   image-position-x: 0
   image-position-y: 20%
-  url: http://forum.starmen.net/forum/Community/PKHack/Mother-Remake/
+  url: https://forum.starmen.net/forum/Community/PKHack/Mother-Remake/
 - name: Unearthed
   image: images/screenshots/unearthed.png
   image-position-x: 0
@@ -76,6 +76,6 @@ contribute-content: |
 </section>
 
 <section id="s_contribute">
-  <div class="topright"><iframe src="http://ghbtns.com/github-btn.html?user=pk-hack&amp;repo=CoilSnake&amp;type=watch&amp;count=true&amp;size=large" width="160" height="35" style="border: none;"> </iframe></div>
+  <div class="topright"><iframe src="https://ghbtns.com/github-btn.html?user=pk-hack&amp;repo=CoilSnake&amp;type=watch&amp;count=true&amp;size=large" width="160" height="35" style="border: none;"> </iframe></div>
   {{page.contribute-content | markdownify}}
 </section>
