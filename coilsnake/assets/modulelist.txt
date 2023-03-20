@@ -1,5 +1,6 @@
 common.UsedRangeModule
 common.PatchModule
+eb.MusicModule
 eb.CharacterSubstitutionsModule
 eb.CccInterfaceModule
 eb.SkipNamingModule

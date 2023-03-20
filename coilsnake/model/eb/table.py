@@ -46,6 +46,49 @@ class EbPointerTableEntry(LittleEndianIntegerTableEntry):
     def to_yml_rep(cls, value):
         return "${:x}".format(value)
 
+class EbHiLoMidPointerTableEntry(LittleEndianIntegerTableEntry):
+    @staticmethod
+    def create(size):
+        return type("EbHiLoMidPointerTableEntry_subclass",
+                    (EbHiLoMidPointerTableEntry,),
+                    {"size": size})
+                    
+    @classmethod
+    def from_block(cls, block, offset):
+        bank = block[offset]
+        addr = block.read_multi(offset + 1, 2)
+        return addr | bank << 16
+
+    @classmethod
+    def to_block(cls, block, offset, value):
+        block[offset] = (value & 0xff0000) >> 16
+        block.write_multi(offset + 1, value & 0x00ffff, 2)
+
+    @classmethod
+    def from_yml_rep(cls, yml_rep):
+        if not isinstance(yml_rep, str):
+            raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] as pointer".format(yml_rep))
+        elif not yml_rep:
+            raise TableEntryInvalidYmlRepresentationError("Could not parse empty string as pointer")
+        elif yml_rep[0] == "$":
+            try:
+                value = int(yml_rep[1:], 16)
+            except ValueError:
+                raise TableEntryInvalidYmlRepresentationError("Could not parse value[{}] as pointer".format(yml_rep))
+
+            return super(EbHiLoMidPointerTableEntry, cls).from_yml_rep(value)
+        else:
+            try:
+                value = EbPointer.label_address_map[yml_rep]
+            except KeyError:
+                raise TableEntryInvalidYmlRepresentationError("Unknown pointer label[{}]".format(yml_rep))
+
+            return super(EbHiLoMidPointerTableEntry, cls).from_yml_rep(value)
+
+    @classmethod
+    def to_yml_rep(cls, value):
+        return "${:x}".format(value)
+
 
 class EbPaletteTableEntry(TableEntry):
     @classmethod
@@ -209,6 +252,7 @@ class EbRowTableEntry(GenericLittleEndianRowTableEntry):
     TABLE_ENTRY_CLASS_MAP = dict(
         GenericLittleEndianRowTableEntry.TABLE_ENTRY_CLASS_MAP,
         **{"pointer": (EbPointerTableEntry, ["name", "size"]),
+           "hilomid pointer": (EbHiLoMidPointerTableEntry, ["name", "size"]),
            "palette": (EbPaletteTableEntry, ["name", "size"]),
            "standardtext": (EbStandardTextTableEntry, ["name", "size"]),
            "standardtext null-terminated": (EbStandardNullTerminatedTextTableEntry, ["name", "size"])})
