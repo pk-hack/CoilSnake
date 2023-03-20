@@ -1,7 +1,7 @@
 from coilsnake.util.common import project
 
 VERSION = project.VERSION_NAMES[project.FORMAT_VERSION]
-RELEASE_DATE = "August 15, 2022"
+RELEASE_DATE = "March 19, 2023"
 
 WEBSITE = "http://pk-hack.github.io/CoilSnake"
 AUTHOR = "the PK Hack community"
