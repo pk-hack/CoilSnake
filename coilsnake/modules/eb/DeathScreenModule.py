@@ -140,19 +140,20 @@ class DeathScreenModule(EbModule):
     def upgrade_project(
             self, old_version, new_version, rom, resource_open_r,
             resource_open_w, resource_delete):
-
-        if old_version == new_version:
-            return
-
-        self.read_from_rom(rom)
-        self.write_to_project(resource_open_w)
-
+        # version 1-8: no death screen support
+        # version   9: Only supported Ness' death screen (DeathScreen.png)
+        # version 10+: Supports Ness and Jeff (DeathScreen_*.png)
+        if old_version <= 9:
+            # Extract DeathScreen_Ness and DeathScreen_Jeff
+            self.read_from_rom(rom)
+            self.write_to_project(resource_open_w)
         if old_version == 9:
+            # Move DeathScreen.png over newly-extracted DeathScreen_Ness.png
             with resource_open_r(OLD_DEATH_SCREEN_PATH, "png") as old:
                 with resource_open_w(NESS_DEATH_SCREEN_PATH, "png") as new:
                     image = open_indexed_image(old)
                     image.save(new)
-
+            # Delete old DeathScreen.png now that we've copied it
             resource_delete(OLD_DEATH_SCREEN_PATH)
 
     @staticmethod
