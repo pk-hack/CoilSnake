@@ -288,6 +288,16 @@ class MusicModule(EbModule):
         return ips
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
-        if old_version < 12:
+        if old_version == new_version:
+            return
+        if old_version == 11:
+            # Upgrade 11 to 12
             self.read_from_rom(rom)
             self.write_to_project(resource_open_w)
+        self.upgrade_project(
+            11 if old_version < 11 else old_version + 1,
+            new_version,
+            rom,
+            resource_open_r,
+            resource_open_w,
+            resource_delete)
