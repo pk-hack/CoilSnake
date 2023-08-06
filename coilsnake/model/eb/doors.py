@@ -52,13 +52,11 @@ class GenericDoor(EqualityMixin, StringRepresentationMixin):
         return 5
 
     def write_destination_to_block(self, block, offset, destination_block, destination_locations):
-        destination_hash = hash(destination_block)
-
-        if destination_hash in destination_locations:
-            block.write_multi(offset + 3, destination_locations[destination_hash], 2)
+        if destination_block in destination_locations:
+            block.write_multi(offset + 3, destination_locations[destination_block], 2)
         else:
             destination_offset = block.allocate(data=destination_block, can_write_to=in_destination_bank)
-            destination_locations[destination_hash] = destination_offset & 0xffff
+            destination_locations[destination_block] = destination_offset & 0xffff
             block.write_multi(offset + 3, destination_offset, 2)
 
     def yml_rep(self):
