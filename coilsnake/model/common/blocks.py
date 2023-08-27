@@ -38,7 +38,11 @@ class Block(object):
         return self
 
     def __exit__(self, type, value, traceback):
-        del self.data
+        # There's no need to explicitly destroy self.data, as it will get
+        # destroyed when the Block goes out of scope.
+        # If using the Block as a context manager, this will usually happen at
+        # the end of the `with Block() as b` scope.
+        pass
 
     def reset(self, size=0):
         self.data = array.array('B', [0] * size)
@@ -316,7 +320,9 @@ with open_asset("romtypes.yml") as f:
     ROM_TYPE_MAP = yml_load(f)
 
 ROM_TYPE_NAME_UNKNOWN = "Unknown"
-
+ROM_TYPE_NAME_EARTHBOUND = "Earthbound"
+ROM_TYPE_NAME_EARTHBOUND_ZERO = "Earthbound Zero"
+ROM_TYPE_NAME_SUPER_MARIO_BROS = "Super Mario Bros"
 
 class Rom(AllocatableBlock):
     def reset(self, size=0):
@@ -392,7 +398,7 @@ class Rom(AllocatableBlock):
             return ROM_TYPE_NAME_UNKNOWN
 
     def add_header(self):
-        if self.type == 'Earthbound':
+        if self.type == ROM_TYPE_NAME_EARTHBOUND:
             for i in range(0x200):
                 self.data.insert(0, 0)
             self.size += 0x200
@@ -400,7 +406,7 @@ class Rom(AllocatableBlock):
             raise NotImplementedError("Don't know how to add header to ROM of type[%s]" % self.type)
 
     def expand(self, desired_size):
-        if self.type == 'Earthbound':
+        if self.type == ROM_TYPE_NAME_EARTHBOUND:
             if (desired_size != 0x400000) and (desired_size != 0x600000):
                 raise InvalidArgumentError("Cannot expand an %s ROM to size[%#x]" % (self.type, self.size))
             else:

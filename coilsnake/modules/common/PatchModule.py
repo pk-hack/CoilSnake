@@ -2,6 +2,7 @@ import os
 
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
 from coilsnake.model.common.ips import IpsPatch
+from coilsnake.model.common.blocks import ROM_TYPE_NAME_EARTHBOUND
 from coilsnake.modules.common.GenericModule import GenericModule
 from coilsnake.util.common.assets import ASSET_PATH
 from coilsnake.util.common.yml import yml_load, yml_dump
@@ -9,7 +10,7 @@ from coilsnake.util.common.yml import yml_load, yml_dump
 
 IPS_DIRECTORY = os.path.join(ASSET_PATH, "ips")
 REMOVED_PATCHES = {
-    "Earthbound": ["Battle Font Width Hack"]
+    ROM_TYPE_NAME_EARTHBOUND: ["Battle Font Width Hack"]
 }
 
 
