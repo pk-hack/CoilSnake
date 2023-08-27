@@ -38,7 +38,11 @@ class Block(object):
         return self
 
     def __exit__(self, type, value, traceback):
-        del self.data
+        # There's no need to explicitly destroy self.data, as it will get
+        # destroyed when the Block goes out of scope.
+        # If using the Block as a context manager, this will usually happen at
+        # the end of the `with Block() as b` scope.
+        pass
 
     def reset(self, size=0):
         self.data = array.array('B', [0] * size)
