@@ -19,7 +19,7 @@ import platform
 import os
 from PIL import ImageTk
 
-from coilsnake.model.common.blocks import Rom
+from coilsnake.model.common.blocks import Rom, ROM_TYPE_NAME_EARTHBOUND
 from coilsnake.ui import information, gui_util
 from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project, setup_logging, decompile_script, \
     patch_rom, create_patch
@@ -274,7 +274,7 @@ Please configure Java in the Settings menu.""")
 
             base_rom_rom = Rom()
             base_rom_rom.from_file(base_rom)
-            if base_rom_rom.type == "Earthbound" and len(base_rom_rom) == 0x300000:
+            if base_rom_rom.type == ROM_TYPE_NAME_EARTHBOUND and len(base_rom_rom) == 0x300000:
                 confirm = tkinter.messagebox.askquestion("Expand Your Base ROM?",
                                                    "You are attempting to compile using a base ROM which is "
                                                    "unexpanded. It is likely that this will not succeed, as CoilSnake "

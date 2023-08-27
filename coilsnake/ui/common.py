@@ -14,7 +14,7 @@ from coilsnake.model.eb.blocks import EbRom
 from coilsnake.model.eb.ebp import EbpPatch
 from coilsnake.util.common.project import FORMAT_VERSION, PROJECT_FILENAME, get_version_name
 from coilsnake.exceptions.common.exceptions import CoilSnakeError, CCScriptCompilationError
-from coilsnake.model.common.blocks import Rom, ROM_TYPE_NAME_UNKNOWN
+from coilsnake.model.common.blocks import Rom, ROM_TYPE_NAME_UNKNOWN, ROM_TYPE_NAME_EARTHBOUND
 from coilsnake.ui.formatter import CoilSnakeFormatter
 from coilsnake.util.common.project import Project
 from coilsnake.util.common.assets import open_asset, ccscript_library_path
@@ -223,7 +223,7 @@ def decompile_script(rom_filename, project_path, progress_bar=None):
 
     rom = Rom()
     rom.from_file(rom_filename)
-    if rom.type != "Earthbound":
+    if rom.type != ROM_TYPE_NAME_EARTHBOUND:
         raise CoilSnakeError("Cannot decompile script of a non-Earthbound rom. A {} rom was supplied.".format(
             rom.type))
     del rom

@@ -1,5 +1,5 @@
+from coilsnake.model.common.blocks import ROM_TYPE_NAME_SUPER_MARIO_BROS
 from coilsnake.modules.common.GenericModule import GenericModule
-
 
 def charToByte(c):
     if (c >= '0') and (c <= '9'):
@@ -66,4 +66,4 @@ def writeText(rom, addr, text, maxlen):
 class SmbModule(GenericModule):
     @staticmethod
     def is_compatible_with_romtype(romtype):
-        return romtype == "Super Mario Bros"
+        return romtype == ROM_TYPE_NAME_SUPER_MARIO_BROS

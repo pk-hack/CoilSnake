@@ -2,7 +2,7 @@ import hashlib
 import os
 
 from coilsnake.exceptions.common.exceptions import CoilSnakeError
-from coilsnake.model.common.blocks import Block, Rom
+from coilsnake.model.common.blocks import Block, Rom, ROM_TYPE_NAME_EARTHBOUND
 from coilsnake.model.common.ips import IpsPatch
 from coilsnake.modules.eb.EbModule import comp, decomp
 from coilsnake.exceptions.eb.exceptions import InvalidEbCompressedDataError
@@ -73,7 +73,7 @@ class EbRom(Rom):
             pass  # Unknown variant
         else:
             patch = IpsPatch()
-            patch.load(os.path.join(ASSET_PATH, "rom-fixes", "Earthbound", patch_filename))
+            patch.load(os.path.join(ASSET_PATH, "rom-fixes", ROM_TYPE_NAME_EARTHBOUND, patch_filename))
             patch.apply(self)
             self._setup_rom_post_load()
             return
