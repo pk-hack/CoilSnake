@@ -701,6 +701,7 @@ Please configure Java in the Settings menu.""")
 
         def upgrade_tmp():
             self.preferences["default upgrade rom"] = rom_entry.get()
+            self.preferences["default upgrade project"] = project_entry.get()
             self.preferences.save()
             self.do_upgrade(rom_entry, project_entry)
 
@@ -711,6 +712,10 @@ Please configure Java in the Settings menu.""")
         if self.preferences["default upgrade rom"]:
             set_entry_text(entry=rom_entry,
                            text=self.preferences["default upgrade rom"])
+
+        if self.preferences["default upgrade project"]:
+            set_entry_text(entry=project_entry,
+                           text=self.preferences["default upgrade project"])
 
         return upgrade_frame
 
