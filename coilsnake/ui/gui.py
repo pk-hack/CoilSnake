@@ -724,6 +724,7 @@ Please configure Java in the Settings menu.""")
 
         def decompile_script_tmp():
             self.preferences["default decompile script rom"] = input_rom_entry.get()
+            self.preferences["default decompile script project"] = project_entry.get()
             self.preferences.save()
             self.do_decompile_script(input_rom_entry, project_entry)
 
@@ -734,6 +735,10 @@ Please configure Java in the Settings menu.""")
         if self.preferences["default decompile script rom"]:
             set_entry_text(entry=input_rom_entry,
                            text=self.preferences["default decompile script rom"])
+
+        if self.preferences["default decompile script project"]:
+            set_entry_text(entry=project_entry,
+                           text=self.preferences["default decompile script project"])
 
         return decompile_script_frame
 
