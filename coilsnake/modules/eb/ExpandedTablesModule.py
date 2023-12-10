@@ -1,10 +1,7 @@
-import logging
-from functools import partial
 from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.yml import yml_load
 from coilsnake.util.eb.pointer import write_asm_pointer, write_xl_pointer, from_snes_address, to_snes_address
-from coilsnake.util.eb.helper import is_in_bank
 
 class AsmPointer(object):
     def __init__(self, offset):

@@ -20,9 +20,7 @@ class SpriteGroupModule(EbModule):
                    (0x120000, 0x12ffff),
                    (0x130000, 0x13ffff),
                    (0x140000, 0x14ffff),
-                   (0x150000, 0x154fff)#,
-                   #(from_snes_address(0xEF133F), from_snes_address(0xEF1A7F - 1))
-                   ] # Sprite pointer table
+                   (0x150000, 0x154fff)]
     SPRITE_GROUP_TABLE_RELOCATIONS = [
         0x001DF9,
         0x001E79,
