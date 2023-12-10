@@ -28,3 +28,8 @@ def write_asm_pointer(block, offset, pointer):
     block[offset + 2] = (pointer >> 8) & 0xff
     block[offset + 6] = (pointer >> 16) & 0xff
     block[offset + 7] = (pointer >> 24) & 0xff
+
+def write_xl_pointer(block, offset, pointer):
+    block[offset + 1] = pointer & 0xff
+    block[offset + 2] = (pointer >> 8) & 0xff
+    block[offset + 3] = (pointer >> 16) & 0xff
