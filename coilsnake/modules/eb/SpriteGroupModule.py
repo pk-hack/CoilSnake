@@ -6,7 +6,7 @@ from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.image import open_indexed_image
 from coilsnake.util.common.yml import replace_field_in_yml, yml_load, yml_dump
-from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
+from coilsnake.util.eb.pointer import from_snes_address, to_snes_address, write_asm_pointer
 
 
 GROUP_POINTER_TABLE_OFFSET = 0xef133f
@@ -20,7 +20,16 @@ class SpriteGroupModule(EbModule):
                    (0x120000, 0x12ffff),
                    (0x130000, 0x13ffff),
                    (0x140000, 0x14ffff),
-                   (0x150000, 0x154fff)]
+                   (0x150000, 0x154fff)#,
+                   #(from_snes_address(0xEF133F), from_snes_address(0xEF1A7F - 1))
+                   ] # Sprite pointer table
+    SPRITE_GROUP_TABLE_RELOCATIONS = [
+        0x001DF9,
+        0x001E79,
+        0x001FE0,
+        0x007A8B,
+        0x04B1D0,
+    ]
 
     def __init__(self):
         super(SpriteGroupModule, self).__init__()
@@ -91,6 +100,7 @@ class SpriteGroupModule(EbModule):
                     raise CoilSnakeError("Sprite Group #" + str(i).zfill(3) + " uses an invalid palette")
 
     def write_to_rom(self, rom):
+        self.group_pointer_table.recreate(num_rows=len(self.groups))
         with Block(size=sum(x.block_size() for x in self.groups)) as block:
             offset = 0
             # Write all the groups to the block, and sprites to rom
@@ -104,7 +114,12 @@ class SpriteGroupModule(EbModule):
             for i in range(self.group_pointer_table.num_rows):
                 self.group_pointer_table[i][0] += address
 
-        self.group_pointer_table.to_block(block=rom, offset=from_snes_address(GROUP_POINTER_TABLE_OFFSET))
+        new_table_offset = rom.allocate(size=len(block))
+        # Perform table relocation
+        for reloc in self.SPRITE_GROUP_TABLE_RELOCATIONS:
+            write_asm_pointer(block=rom, offset=reloc, pointer=to_snes_address(new_table_offset))
+        # Write new table data
+        self.group_pointer_table.to_block(block=rom, offset=new_table_offset)
         self.palette_table.to_block(block=rom, offset=from_snes_address(PALETTE_TABLE_OFFSET))
 
     def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
