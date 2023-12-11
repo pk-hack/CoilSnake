@@ -14,7 +14,6 @@ class MiscTablesModule(EbModule):
         0xC3FD8D,  # Attract mode text
         0xD5F645,  # Timed Item Delivery
         0xE12F8A,  # Photographer
-        0xCF8985,  # NPC Configuration Table
         0xD5EA77,  # Condiment Table
         0xD5EBAB,  # Scripted Teleport Destination Table
         0xD5F2FB,  # Hotspots Table
