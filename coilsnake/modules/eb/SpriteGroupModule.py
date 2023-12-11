@@ -6,7 +6,7 @@ from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.modules.eb.EbModule import EbModule
 from coilsnake.util.common.image import open_indexed_image
 from coilsnake.util.common.yml import replace_field_in_yml, yml_load, yml_dump
-from coilsnake.util.eb.pointer import from_snes_address, to_snes_address, write_asm_pointer
+from coilsnake.util.eb.pointer import from_snes_address, to_snes_address, AsmPointerReference
 
 
 GROUP_POINTER_TABLE_OFFSET = 0xef133f
@@ -21,12 +21,12 @@ class SpriteGroupModule(EbModule):
                    (0x130000, 0x13ffff),
                    (0x140000, 0x14ffff),
                    (0x150000, 0x154fff)]
-    SPRITE_GROUP_TABLE_RELOCATIONS = [
-        0x001DF9,
-        0x001E79,
-        0x001FE0,
-        0x007A8B,
-        0x04B1D0,
+    SPRITE_GROUP_TABLE_REFERENCES = [
+        AsmPointerReference(0x001DF9),
+        AsmPointerReference(0x001E79),
+        AsmPointerReference(0x001FE0),
+        AsmPointerReference(0x007A8B),
+        AsmPointerReference(0x04B1D0),
     ]
 
     def __init__(self):
@@ -114,8 +114,8 @@ class SpriteGroupModule(EbModule):
 
         new_table_offset = rom.allocate(size=len(block))
         # Perform table relocation
-        for reloc in self.SPRITE_GROUP_TABLE_RELOCATIONS:
-            write_asm_pointer(block=rom, offset=reloc, pointer=to_snes_address(new_table_offset))
+        for pointer in self.SPRITE_GROUP_TABLE_REFERENCES:
+            pointer.write(rom, to_snes_address(new_table_offset))
         # Write new table data
         self.group_pointer_table.to_block(block=rom, offset=new_table_offset)
         self.palette_table.to_block(block=rom, offset=from_snes_address(PALETTE_TABLE_OFFSET))
