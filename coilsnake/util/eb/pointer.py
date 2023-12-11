@@ -1,4 +1,7 @@
+import logging
 from coilsnake.exceptions.common.exceptions import InvalidArgumentError
+
+log = logging.getLogger(__name__)
 
 
 def from_snes_address(address):
@@ -33,3 +36,19 @@ def write_xl_pointer(block, offset, pointer):
     block[offset + 1] = pointer & 0xff
     block[offset + 2] = (pointer >> 8) & 0xff
     block[offset + 3] = (pointer >> 16) & 0xff
+
+class AsmPointerReference(object):
+    def __init__(self, offset):
+        self.offset = offset
+
+    def write(self, rom, address):
+        log.info("Writing pointer at " + hex(self.offset))
+        write_asm_pointer(rom, self.offset, address)
+
+class XlPointerReference(object):
+    def __init__(self, offset):
+        self.offset = offset
+
+    def write(self, rom, address):
+        log.info("Writing xl pointer at " + hex(self.offset))
+        write_xl_pointer(rom, self.offset, address)
