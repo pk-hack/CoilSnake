@@ -36,6 +36,7 @@ class SkipNamingModule(EbModule):
     def write_to_rom(self, rom):
         if self.data["Enable Skip"]:
             rom[0x1faae] = 0x5c
+            rom[0x1f8f1] = 0x10
             offset = rom.allocate(size=(10 + 4 * 5 * 5 + 3 * 6 * 5))
             rom.write_multi(0x1faaf, to_snes_address(offset), 3)
             rom[offset:offset+4] = [0x48, 0x08, 0xe2, 0x20]
