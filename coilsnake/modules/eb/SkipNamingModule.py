@@ -36,6 +36,12 @@ class SkipNamingModule(EbModule):
     def write_to_rom(self, rom):
         if self.data["Enable Skip"]:
             rom[0x1faae] = 0x5c
+
+            # this fixes the naming screen music playing briefly when skip naming is on
+            # it works by changing the jump from @CHANGE_TO_NAMING_SCREEN_MUSIC to @UNKNOWN18 (which normally runs directly after the music change)
+            # https://github.com/Herringway/ebsrc/blob/87f514cb4b77fa3193bcb122ea51f5de5cfdd9cf/src/intro/file_select_menu_loop.asm#L101
+            rom[0x1f8f1] = 0x10
+
             offset = rom.allocate(size=(10 + 4 * 5 * 5 + 3 * 6 * 5))
             rom.write_multi(0x1faaf, to_snes_address(offset), 3)
             rom[offset:offset+4] = [0x48, 0x08, 0xe2, 0x20]
