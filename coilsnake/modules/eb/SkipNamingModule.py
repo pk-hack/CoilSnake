@@ -50,7 +50,6 @@ class SkipNamingModule(EbModule):
             offset = self.write_loader_asm(rom, offset, self.data["Food"],  6, 0x1f, 0x98)
             offset = self.write_loader_asm(rom, offset, self.data["Thing"], 6, 0x29, 0x98)
 
-
             if self.data["Enable Summary"]:
                 rom[offset:offset+6] = [0x28, 0x68, 0x5c, 0xc0, 0xfa, 0xc1]
             else:
