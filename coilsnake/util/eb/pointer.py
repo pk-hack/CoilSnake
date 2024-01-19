@@ -58,7 +58,8 @@ class AsmPointerReference(object):
             # Check if we're storing to sequential spots in the DP.
             # If we are, assume that the code hasn't been patched.
             dpLo, dpHi = m.groups()
-            return dpLo + 2 == dpHi
+            # Unfortunately, these are `bytes` objects with length 1, hence the [0]
+            return dpLo[0] + 2 == dpHi[0]
         # The structure of the reference is incorrect.
         # The code must have been changed somewhere else - don't patch.
         return False
