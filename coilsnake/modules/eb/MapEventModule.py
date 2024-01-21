@@ -26,7 +26,7 @@ class MapEventModule(EbModule):
             single_column=self.pointer_table_entry_class)
 
     def read_from_rom(self, rom):
-        bank = rom[POINTER_TABLE_BANK_OFFSET] - 0xc0
+        bank = from_snes_address(rom[POINTER_TABLE_BANK_OFFSET] << 16) >> 16
         log.debug("Reading data from {:#x} bank".format(bank))
         self.pointer_table_entry_class.bank = bank
 
@@ -40,7 +40,7 @@ class MapEventModule(EbModule):
         bank = rom.get_largest_unallocated_range()[0] >> 16
         log.debug("Writing data to {:#x} bank".format(bank))
         self.pointer_table_entry_class.bank = bank
-        rom[POINTER_TABLE_BANK_OFFSET] = bank + 0xc0
+        rom[POINTER_TABLE_BANK_OFFSET] = to_snes_address(bank << 16) >> 16
 
         log.debug("Writing pointer table to {:#x}".format(pointer_table_offset))
         rom.write_multi(POINTER_TABLE_POINTER_OFFSET, to_snes_address(pointer_table_offset), 3)
