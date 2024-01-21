@@ -51,7 +51,10 @@ class ExpandedTablesModule(EbModule):
             table.to_block(rom, new_table_offset)
             log.info("Writing table @ " + hex(to_snes_address(new_table_offset)))
             for pointer in self.TABLE_OFFSETS[offset]:
-                pointer.write(rom, to_snes_address(new_table_offset))
+                if pointer.validate_structure(rom):
+                    pointer.write(rom, to_snes_address(new_table_offset))
+                else:
+                    log.warn("Table relocation at %#x failed structure check - skipping...", pointer.offset)
 
     def read_from_project(self, resource_open):
         for table in self.tables.values():
