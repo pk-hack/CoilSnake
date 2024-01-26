@@ -48,11 +48,11 @@ sudo apt-get install python3-pip python3-dev g++ libyaml-dev \
     1. [Python 3.9](https://www.python.org/downloads/release/python-392/)
         - Do not install non-official builds - this one includes Tk 8.6, with fixes and a nicer-looking UI over Tk 8.5.
     1. Homebrew:
-        - `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+        - `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
     1. libyaml:
         - `brew install libyaml`
     1. PyYAML with libyaml support:
-        - `python3 -m easy_install pyyaml`
+        - `python3 -m pip install pyyaml`
 1. Follow the '[Generic](#generic)' instructions below.
 
 ## Windows
