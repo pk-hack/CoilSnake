@@ -44,7 +44,7 @@ class AsmPointerReference(object):
              [\x85\x86\x84](.) # Match STA_d / STX_d / STY_d
              [\xa9\xa2\xa0]..  # Match LDA_i / LDX_i / LDY_i
              [\x85\x86\x84](.) # Match STA_d / STX_d / STY_d
-        ''', re.VERBOSE)
+        ''', re.VERBOSE | re.DOTALL)
 
     def __init__(self, offset):
         self.offset = offset
