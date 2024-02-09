@@ -7,8 +7,12 @@ from setuptools.extension import Extension
 
 git_commit = os.environ.get('BUILD_GIT_COMMIT')
 if git_commit:
-    with open('coilsnake/ui/git_commit.py', 'w') as f:
-        print(f'GIT_COMMIT = {git_commit!r}')
+    git_commit_file_text = f'GIT_COMMIT = {git_commit!r}'
+else:
+    git_commit_file_text = 'GIT_COMMIT = None'
+print("Writing coilsnake/ui/git_commit.py with:", git_commit_file_text)
+with open('coilsnake/ui/git_commit.py', 'w') as f:
+    print(git_commit_file_text, file=f)
 
 extra_compile_args = []
 
