@@ -1,9 +1,13 @@
 from coilsnake.util.common import project
-from coilsnake.ui.git_commit import GIT_COMMIT
+# In case the file was not properly generated or bundled...
+try:
+    from coilsnake.ui.git_commit import GIT_COMMIT
+except:
+    GIT_COMMIT = None
 
 VERSION = project.VERSION_NAMES[project.FORMAT_VERSION]
 if GIT_COMMIT:
-    VERSION = f"{VERSION}+git:{GIT_COMMIT}"
+    VERSION = f"{VERSION}-next-{GIT_COMMIT}"
 RELEASE_DATE = "March 19, 2023"
 
 WEBSITE = "http://pk-hack.github.io/CoilSnake"
