@@ -1,8 +1,14 @@
 #!/usr/bin/env python
 
+import os
+import platform
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
-import platform
+
+git_commit = os.environ.get('BUILD_GIT_COMMIT')
+if git_commit:
+    with open('coilsnake/ui/git_commit.py', 'w') as f:
+        print(f'GIT_COMMIT = {git_commit!r}')
 
 extra_compile_args = []
 

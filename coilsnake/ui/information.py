@@ -1,6 +1,9 @@
 from coilsnake.util.common import project
+from coilsnake.ui.git_commit import GIT_COMMIT
 
 VERSION = project.VERSION_NAMES[project.FORMAT_VERSION]
+if GIT_COMMIT:
+    VERSION = f"{VERSION}+git:{GIT_COMMIT}"
 RELEASE_DATE = "March 19, 2023"
 
 WEBSITE = "http://pk-hack.github.io/CoilSnake"
@@ -33,10 +36,10 @@ DEPENDENCIES = [
 
 
 def coilsnake_about():
-    description = """CoilSnake {version} - {website}
-Created by {author}
-Released on {release_date}
-""".format(version=VERSION, author=AUTHOR, release_date=RELEASE_DATE, website=WEBSITE)
+    description = f"""CoilSnake {VERSION} - {WEBSITE}
+Created by {AUTHOR}
+Released on {RELEASE_DATE}
+"""
 
     for dependency in DEPENDENCIES:
         description += "\n- " + dependency["name"]
