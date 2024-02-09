@@ -17,8 +17,10 @@ jobs:
         architecture: 'x86'
     - name: Install requirements
       run: pip install -r requirements.txt
+    - name: Write build Git commit info
+      run: python set_git_commit.py --write
     - name: Build CoilSnake
-      run: $env:BUILD_GIT_COMMIT = git rev-parse --short "$env:GITHUB_SHA" ; python setup.py install
+      run: python setup.py install
     - name: Build .exe
       run: python setup_exe.py
     - name: Upload .exe
