@@ -1,9 +1,9 @@
 name: Build CoilSnake with Win32 Py3.8
 
 on:
-  push:
-  pull_request:
+  push: # by vote, we'll only build on pushes to master
     branches: [ master ]
+  pull_request: # build on pull request against any branch
 
 jobs:
   build:
