@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
+import os
+import platform
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
-import platform
 
 extra_compile_args = []
 
