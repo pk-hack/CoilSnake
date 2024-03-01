@@ -221,14 +221,23 @@ def decompile_script(rom_filename, project_path, progress_bar=None):
     if not os.path.isfile(rom_filename):
         raise RuntimeError("Rom \"" + rom_filename + "\" is not a file.")
 
+    used_path = project_path
+    project_snake_file = os.path.join(project_path, PROJECT_FILENAME)
+    project_ccscript_path = os.path.join(project_path, "ccscript")
+
+    if not os.path.isfile(project_snake_file):
+        used_path = os.path.abspath(os.path.join(project_path, os.pardir))
+        project_snake_file = os.path.join(used_path, PROJECT_FILENAME)
+        project_ccscript_path = os.path.join(used_path, "ccscript")
+        if not os.path.isfile(project_snake_file):
+            raise RuntimeError("Project directory \"" + project_path + "\" or its parent directory is not a valid project folder.")
+
     rom = Rom()
     rom.from_file(rom_filename)
     if rom.type != ROM_TYPE_NAME_EARTHBOUND:
         raise CoilSnakeError("Cannot decompile script of a non-Earthbound rom. A {} rom was supplied.".format(
             rom.type))
     del rom
-
-    project_ccscript_path = os.path.join(project_path, "ccscript")
 
     start_time = time.time()
 
@@ -241,7 +250,7 @@ def decompile_script(rom_filename, project_path, progress_bar=None):
     except Exception as inst:
         log.exception("Error")
     else:
-        log.info("Decompiled script to {} in {:.2f}s".format(project_path, time.time() - start_time))
+        log.info("Decompiled script to {} in {:.2f}s".format(used_path, time.time() - start_time))
     finally:
         rom_file.close()
 
