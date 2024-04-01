@@ -910,13 +910,14 @@ class EngineMusicPack(SongMusicPack):
         engine_bytes = bytearray(engine_block.to_list())
         # Check if the data transfer routine has already been changed
         if engine_bytes[0x26b:0x26e] == b'\x3f\xe1\x0e':
+            log.info("Patching music engine to avoid sample corruption due to echo.")
             # Apply patch to disable echo before data transfer
             new_code_addr = len(engine_bytes) + cls.MAIN_PART_ADDR
             engine_bytes[0x26b:0x26e] = b'\x3f' + new_code_addr.to_bytes(2, 'little')
             engine_bytes += bytes.fromhex('eb 4d f0 13 6d e8 00 3f 2c 0b ae 1c 1c 1c bc fd e5 fd 00 f0 fb fe f9 5f e1 0e')
         # Rebuild the engine block and return it
         out_block = Block()
-        out_block.from_list(engine_bytes)
+        out_block.from_list([x for x in engine_bytes])
         return out_block
 
 def check_if_song_is_part_of_another(song_num: int, song_pack: SongMusicPack, song_addr: int) -> Union[None, SongThatIsPartOfAnother]:
