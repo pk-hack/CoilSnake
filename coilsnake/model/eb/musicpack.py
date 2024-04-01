@@ -846,8 +846,11 @@ class EngineMusicPack(SongMusicPack):
 
         # Get in-engine / always-loaded song data
         filtered_songs = (s for s in self.songs if isinstance(s, SongWithData) and s.is_always_loaded())
-        # Get main engine part so we know where to put the always-loaded songs
+        # Get main engine part
         main_part_block = self.engine_parts[EngineMusicPack.MAIN_PART_ADDR]
+        # Perform patching of the engine
+        main_part_block = self.apply_engine_patches(main_part_block)
+        # Put the "always loaded songs" immediately after the engine
         always_loaded_song_parts, song_output_ptr = songs_to_parts(EngineMusicPack.MAIN_PART_ADDR + len(main_part_block), filtered_songs)
         # Ensure song data is in bounds
         if song_output_ptr > DYNAMIC_SONG_DATA_START:
@@ -855,7 +858,7 @@ class EngineMusicPack(SongMusicPack):
             raise InvalidUserDataError("Data for engine pack ${:02X} is too long by {} bytes. "
                                        "Maybe your \"in-engine\" songs are too large.".format(self.pack_num, overage))
         # Have a helpful debug output for the user
-        log.debug("Engine pack has %d bytes of free space available.", DYNAMIC_SONG_DATA_START - song_output_ptr)
+        log.info("Engine pack has %d bytes of free space available.", DYNAMIC_SONG_DATA_START - song_output_ptr)
         output_parts += always_loaded_song_parts
 
         # Get dynamically loaded song data that is in this pack (Gas Station 1 in vanilla)
@@ -901,6 +904,20 @@ class EngineMusicPack(SongMusicPack):
     def set_song_address_table_data(self, block: Block) -> None:
         assert self.parts
         self.set_aram_region(EngineMusicPack.SONG_ADDRESS_TABLE_ADDR, block.size, block)
+
+    @classmethod
+    def apply_engine_patches(cls, engine_block: Block) -> Block:
+        engine_bytes = bytearray(engine_block.to_list())
+        # Check if the data transfer routine has already been changed
+        if engine_bytes[0x26b:0x26e] == b'\x3f\xe1\x0e':
+            # Apply patch to disable echo before data transfer
+            new_code_addr = len(engine_bytes) + cls.MAIN_PART_ADDR
+            engine_bytes[0x26b:0x26e] = b'\x3f' + new_code_addr.to_bytes(2, 'little')
+            engine_bytes += bytes.fromhex('eb 4d f0 13 6d e8 00 3f 2c 0b ae 1c 1c 1c bc fd e5 fd 00 f0 fb fe f9 5f e1 0e')
+        # Rebuild the engine block and return it
+        out_block = Block()
+        out_block.from_list(engine_bytes)
+        return out_block
 
 def check_if_song_is_part_of_another(song_num: int, song_pack: SongMusicPack, song_addr: int) -> Union[None, SongThatIsPartOfAnother]:
     for song in song_pack.songs:
