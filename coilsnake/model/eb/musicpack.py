@@ -897,7 +897,7 @@ class EngineMusicPack(SongMusicPack):
             raise InvalidUserDataError("Data for engine pack ${:02X} is too long by {} bytes. "
                                        "Maybe your \"in-engine\" songs are too large.".format(self.pack_num, overage))
         # Have a helpful debug output for the user
-        log.info("Engine pack has %d bytes of free space available.", DYNAMIC_SONG_DATA_START - song_output_ptr)
+        log.debug("Engine pack has %d bytes of free space available.", DYNAMIC_SONG_DATA_START - song_output_ptr)
         output_parts += always_loaded_song_parts
 
         # Get dynamically loaded song data that is in this pack (Gas Station 1 in vanilla)
