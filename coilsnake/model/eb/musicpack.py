@@ -30,7 +30,46 @@ SAMPLE_OFFSET_DEFAULT = 0x95b0
 DYNAMIC_SONG_DATA_START = 0x4800
 DYNAMIC_SONG_DATA_END = 0x6C00
 
+# This chunk of code goes into the music engine, and serves to disable echo in
+# the DSP when any music pack is uploaded. This prevents issues which occur
+# when new instruments used by a song overlap with the echo buffer used by a
+# previous song - in that case, the echo buffer would overwrite the new
+# samples even if the next song didn't use echo.
+# After disabling echo, this also waits for the echo buffer offset to loop
+# around, which is required to make the new size take effect. This prevents
+# issues relating to the fact that the echo buffer offset isn't adjusted when
+# the buffer size is changed, but the echo start address takes effect
+# immediately. In rare circumstances, this means that data (including the sound
+# engine itself) could be overwritten when the echo parameters are changed.
+
+MUSIC_ENGINE_DISABLE_ECHO_ON_UPLOAD_CODE = '''
+            # ; preserve old echo value
+  eb 4d     #     mov y, $4d
+  f0 13     #     beq _exit
+  6d        #     push y
+            # ; call existing code at $0b2c with A=0 to disable echo
+  e8 00     #     mov a, #0
+  3f 2c 0b  #     call $0b2c
+            # ; wait for (old echo) * 16ms = Timer0 (2ms) * (old echo) * 8
+  ae        #     pull a
+  1c        #     asl a
+  1c        #     asl a
+  1c        #     asl a
+  bc        #     inc a
+  fd        #     mov y, a
+  e5 fd 00  # -   mov a, $00fd
+  f0 fb     #     beq -
+  fe f9     #     dbnz y, -
+            # ; continue with normal code
+            # _exit:
+  5f e1 0e  #     jmp $0ee1
+'''
+
 log = logging.getLogger(__name__)
+
+def patch_string_to_bytes(patch_string: str) -> bytes:
+    hex_strings = [l.partition('#')[0].strip() for l in patch_string.splitlines()]
+    return bytes.fromhex(''.join(hex_strings))
 
 @dataclass
 class EBInstrument:
@@ -846,8 +885,11 @@ class EngineMusicPack(SongMusicPack):
 
         # Get in-engine / always-loaded song data
         filtered_songs = (s for s in self.songs if isinstance(s, SongWithData) and s.is_always_loaded())
-        # Get main engine part so we know where to put the always-loaded songs
+        # Get main engine part
         main_part_block = self.engine_parts[EngineMusicPack.MAIN_PART_ADDR]
+        # Perform patching of the engine
+        main_part_block = self.apply_engine_patches(main_part_block)
+        # Put the "always loaded songs" immediately after the engine
         always_loaded_song_parts, song_output_ptr = songs_to_parts(EngineMusicPack.MAIN_PART_ADDR + len(main_part_block), filtered_songs)
         # Ensure song data is in bounds
         if song_output_ptr > DYNAMIC_SONG_DATA_START:
@@ -901,6 +943,21 @@ class EngineMusicPack(SongMusicPack):
     def set_song_address_table_data(self, block: Block) -> None:
         assert self.parts
         self.set_aram_region(EngineMusicPack.SONG_ADDRESS_TABLE_ADDR, block.size, block)
+
+    @classmethod
+    def apply_engine_patches(cls, engine_block: Block) -> Block:
+        engine_bytes = bytearray(engine_block.to_list())
+        # Check if the data transfer routine has already been changed
+        if engine_bytes[0x26b:0x26e] == b'\x3f\xe1\x0e':
+            log.info("Patching music engine to avoid sample corruption due to echo.")
+            # Apply patch to disable echo before data transfer
+            new_code_addr = len(engine_bytes) + cls.MAIN_PART_ADDR
+            engine_bytes[0x26b:0x26e] = b'\x3f' + new_code_addr.to_bytes(2, 'little')
+            engine_bytes += patch_string_to_bytes(MUSIC_ENGINE_DISABLE_ECHO_ON_UPLOAD_CODE)
+        # Rebuild the engine block and return it
+        out_block = Block()
+        out_block.from_list([x for x in engine_bytes])
+        return out_block
 
 def check_if_song_is_part_of_another(song_num: int, song_pack: SongMusicPack, song_addr: int) -> Union[None, SongThatIsPartOfAnother]:
     for song in song_pack.songs:
