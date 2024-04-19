@@ -21,6 +21,7 @@ def main():
     compile_parser.add_argument("project_directory")
     compile_parser.add_argument("base_rom")
     compile_parser.add_argument("output_rom")
+    compile_parser.add_argument("ccscript_offset", nargs='?')
     compile_parser.set_defaults(func=_compile)
 
     decompile_parser = subparsers.add_parser("decompile", help="decompile from rom to project")
@@ -33,23 +34,23 @@ def main():
     upgrade_parser.add_argument("base_rom")
     upgrade_parser.add_argument("project_directory")
     upgrade_parser.set_defaults(func=_upgrade)
-    
+
     decomp_script_parser = subparsers.add_parser("scriptdump", help="Decompile a ROM's script to an already existing project.")
-    
+
     decomp_script_parser.add_argument("rom_filename")
     decomp_script_parser.add_argument("project_directory")
     decomp_script_parser.set_defaults(func=_scriptdump)
-    
+
     patch_rom_parser = subparsers.add_parser("patchrom", help="Apply an EBP or IPS patch to a ROM (for headered give true or false)")
-    
+
     patch_rom_parser.add_argument("clean_rom")
     patch_rom_parser.add_argument("output_rom")
     patch_rom_parser.add_argument("patch")
     patch_rom_parser.add_argument("headered")
     patch_rom_parser.set_defaults(func=_patchrom)
-    
+
     createpatch_parser = subparsers.add_parser("createpatch", help="Create a patch from a clean ROM and a hacked ROM.")
-    
+
     createpatch_parser.add_argument("clean_rom")
     createpatch_parser.add_argument("hacked_rom")
     createpatch_parser.add_argument("output_path")
@@ -57,20 +58,20 @@ def main():
     createpatch_parser.add_argument("description", nargs='?')
     createpatch_parser.add_argument("title", nargs='?')
     createpatch_parser.set_defaults(func=_createpatch)
-    
+
     expand_parser = subparsers.add_parser("expand", help="Expand a ROM's size to 32 MBits (4MB) or 48 MBits (6MB). exhi is false for 4MB, and true for 6MB.")
-    
+
     expand_parser.add_argument("rom")
     expand_parser.add_argument("exhi")
     expand_parser.set_defaults(func=_expand)
-    
+
     addheader_parser = subparsers.add_parser("addheader", help="Add a header to a ROM.")
-    
+
     addheader_parser.add_argument("rom")
     addheader_parser.set_defaults(func=_addheader)
-    
+
     stripheader_parser = subparsers.add_parser("stripheader", help="Remove a header from a ROM.")
-    
+
     stripheader_parser.add_argument("rom")
     stripheader_parser.set_defaults(func=_stripheader)
 
@@ -85,10 +86,12 @@ def main():
 
 
 def _compile(args):
+    if args.ccscript_offset == None:
+        args.ccscript_offset = 'F10000'
     compile_project(project_path=args.project_directory,
                     base_rom_filename=args.base_rom,
-                    output_rom_filename=args.output_rom)
-
+                    output_rom_filename=args.output_rom,
+                    ccscript_offset=args.ccscript_offset)
 
 def _decompile(args):
     decompile_rom(rom_filename=args.rom,
@@ -100,7 +103,7 @@ def _upgrade(args):
                     project_path=args.project_directory)
 
 def _scriptdump(args):
-    decompile_script(rom_filename=args.rom_filename, 
+    decompile_script(rom_filename=args.rom_filename,
                      project_path=args.project_directory)
 
 def _patchrom(args):

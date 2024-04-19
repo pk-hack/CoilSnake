@@ -93,7 +93,7 @@ def upgrade_project(project_path, base_rom_filename, progress_bar=None):
     log.info("Upgraded {} in {:.2f}s".format(project_path, time.time() - upgrade_start_time))
 
 
-def compile_project(project_path, base_rom_filename, output_rom_filename, ccscript_offset=None, progress_bar=None):
+def compile_project(project_path, base_rom_filename, output_rom_filename, ccscript_offset, progress_bar=None):
     if not os.path.isdir(project_path):
         raise RuntimeError("Project directory \"" + project_path + "\" is not a directory.")
     if not os.path.isfile(base_rom_filename):
