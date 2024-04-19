@@ -21,7 +21,7 @@ def main():
     compile_parser.add_argument("project_directory")
     compile_parser.add_argument("base_rom")
     compile_parser.add_argument("output_rom")
-    compile_parser.add_argument("ccscript_offset", nargs='?')
+    compile_parser.add_argument('--ccscript-offset')
     compile_parser.set_defaults(func=_compile)
 
     decompile_parser = subparsers.add_parser("decompile", help="decompile from rom to project")
@@ -86,8 +86,6 @@ def main():
 
 
 def _compile(args):
-    if args.ccscript_offset == None:
-        args.ccscript_offset = 'F10000'
     compile_project(project_path=args.project_directory,
                     base_rom_filename=args.base_rom,
                     output_rom_filename=args.output_rom,
