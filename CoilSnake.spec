@@ -87,10 +87,10 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=debug,
+    hide_console='hide-early',
     icon='coilsnake/assets/images/CoilSnake.ico',
     manifest=None,
-    windowed=True
+    console=True
 )
 
 if platform.system() != 'Darwin':
