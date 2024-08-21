@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools >= 61", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coilsnake"
+dynamic = ["version"]
+description = "CoilSnake"
+urls = {Homepage = "https://pk-hack.github.io/CoilSnake"}
+requires-python = ">=3.8"
+dependencies = [
+    "Pillow>=3.0.0",
+    "PyYAML>=3.11",
+    "CCScriptWriter @ https://github.com/pk-hack/CCScriptWriter/tarball/master",
+    "ccscript @ https://github.com/charasyn/ccscript_legacy/archive/refs/tags/v1.500.tar.gz",
+    "pyobjc-framework-Cocoa; platform_system == 'Darwin'",
+]
+
+[project.scripts]
+coilsnake-cli = "coilsnake.ui.cli:main"
+# Comment out the next line to make CoilSnake launch with a terminal window on Windows
+[project.gui-scripts]
+coilsnake = "coilsnake.ui.gui:main"
+
+[tool.setuptools.packages]
+find = {}

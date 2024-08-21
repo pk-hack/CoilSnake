@@ -1,2 +1,3 @@
 include README.md
 recursive-include coilsnake/assets *
+recursive-include coilsnake/util/eb *
