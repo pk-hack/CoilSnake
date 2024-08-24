@@ -14,7 +14,6 @@ setup(
         Extension(
             "coilsnake.util.eb.native_comp",
             ["coilsnake/util/eb/native_comp.c", "coilsnake/util/eb/exhal/compress.c"],
-            # include_dirs=['coilsnake/util/eb/exhal'],
             extra_compile_args=extra_compile_args,
         )
     ],
