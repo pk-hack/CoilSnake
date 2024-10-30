@@ -1,4 +1,5 @@
 import array
+from bisect import bisect
 import copy
 import os
 from zlib import crc32
@@ -262,11 +263,32 @@ class AllocatableBlock(Block):
     def deallocate(self, range):
         check_range_validity(range, self.size)
 
-        # TODO do some check so that unallocated ranges don't overlap
-        # TODO attach contiguous unallocated ranges if possible
+        # Unallocated ranges should never overlap; otherwise we may write
+        # multiple pieces of data to the same addresses!
+        # Since we keep self.unallocated_ranges in sorted order, it's okay to
+        # use bisect (binary search) to find the place at which to insert it
+        insertion_point = bisect(self.unallocated_ranges, range)
+        previous_range = self.unallocated_ranges[insertion_point - 1] if insertion_point > 0 else None
+        next_range = self.unallocated_ranges[insertion_point] if insertion_point < len(self.unallocated_ranges) else None
+        if previous_range is not None and range[0] <= previous_range[1]:
+            raise InvalidArgumentError(f"Range {range} overlaps with existing unallocated range {previous_range}!")
+        if next_range is not None and next_range[0] <= range[1]:
+            raise InvalidArgumentError(f"Range {range} overlaps with existing unallocated range {next_range}!")
 
-        self.unallocated_ranges.append(range)
-        self.unallocated_ranges.sort()
+        # Attach contiguous unallocated ranges if possible (not across banks)
+        # This is kinda SNES specific, and (Ex)HiROM specific... but this is an
+        # EarthBound hacking tool, so that should be fine
+        merge_with_previous = (range[0] & 0xFFFF) != 0 and previous_range is not None and (previous_range[1] == range[0] - 1)
+        merge_with_next = (range[1] & 0xFFFF) != 0xFFFF and next_range is not None and (range[1] + 1 == next_range[0])
+        if merge_with_previous and merge_with_next:
+            self.unallocated_ranges[insertion_point - 1] = (previous_range[0], next_range[1])
+            del self.unallocated_ranges[insertion_point]
+        elif merge_with_previous:
+            self.unallocated_ranges[insertion_point - 1] = (previous_range[0], range[1])
+        elif merge_with_next:
+            self.unallocated_ranges[insertion_point] = (range[0], next_range[1])
+        else:
+            self.unallocated_ranges.insert(insertion_point, range)
 
     def allocate(self, data=None, size=None, can_write_to=None):
         if data is None and size is None:
