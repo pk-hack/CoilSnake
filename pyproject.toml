@@ -1,5 +1,7 @@
 [build-system]
-requires = ["setuptools >= 61", "setuptools-scm"]
+# 62.1.0 changes the folder layout for built extensions -- we need the new layout
+# (Before that, 61 is the first version supporting pyproject.toml.)
+requires = ["setuptools >= 62.1", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -13,6 +15,7 @@ dependencies = [
     "PyYAML>=3.11",
     "CCScriptWriter @ https://github.com/pk-hack/CCScriptWriter/tarball/master",
     "ccscript @ https://github.com/charasyn/ccscript_legacy/archive/refs/tags/v1.500.tar.gz",
+    # ??? CoilSnake hasn't been tested on Mac in a while. Is this still needed?
     "pyobjc-framework-Cocoa; platform_system == 'Darwin'",
 ]
 
@@ -24,3 +27,5 @@ coilsnake = "coilsnake.ui.gui:main"
 
 [tool.setuptools.packages]
 find = {}
+
+[tool.setuptools_scm]

@@ -19,7 +19,7 @@ If you're on Windows, whenever a command begins with `python3` below, use `py` i
 
 ### Using a virtual machine
 
-For Windows, you may instead want to follow the steps from a fresh virtual machine. You can start up a new Windows 10 VM by the following command: `vagrant up windows`
+For Windows, you have the option to instead follow the steps from a fresh virtual machine. You can start up a new Windows 10 VM by the following command: `vagrant up windows`
 
 To make a Ubuntu VM, you can follow these instructions:
 
@@ -31,7 +31,7 @@ cd /vagrant
 
 Please note that the included Vagrant configuration for Ubuntu does not run a GUI, meaning that you won't be able to test CoilSnake's GUI with it.
 
-After installing a VM, follow the steps mentioned below for your respective system ([Linux](#linux)/[Windows](#windows)).
+After installing a VM, follow the steps mentioned below for your respective system ([Linux](#linux)/[macOS](#macos)/[Windows](#windows)).
 
 ## Linux
 
@@ -95,8 +95,6 @@ There are also scripts to launch the GUI and CLI in the `script` folder, with th
 Note: The steps for creating a standalone executable are currently unmaintained and likely broken for systems other than 64-bit Windows. 
 
 1. Follow the steps above to build CoilSnake for your system.
-1. Build CoilSnake as a binary distribution in egg format:
-    - `python3 setup.py bdist_egg`
 1. Install pyinstaller:
     - `pip3 install pyinstaller`
 1. In the CoilSnake source directory, build the CoilSnake executable:

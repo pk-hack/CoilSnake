@@ -17,6 +17,8 @@ jobs:
         architecture: 'x86'
     - name: Build CoilSnake
       run: pip install .
+    - name: Install PyInstaller
+      run: pip install pyinstaller
     - name: Build .exe
       run: python setup_exe.py
     - name: Rename .exe
