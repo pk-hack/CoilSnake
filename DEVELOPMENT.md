@@ -2,19 +2,24 @@
 
 ## Environment
 
-Because Python is notorious for being difficult to maintain a clean installation of, it is recommended to develop either in a Python virtualenv or in an actual virtual machine.
+Because Python is notorious for being difficult to maintain a clean installation of, it is recommended to develop either in a Python virtual environment or in an actual virtual machine.
 
-### Using a virtualenv
+### Using a virtual environment
 
-1. `sudo pip3 install virtualenv`
-1. `virtualenv CoilSnake_virtualenv --no-site-packages`
-1. `source CoilSnake_virtualenv/bin/activate`
-    - The above command sets up your CoilSnake virtual development environment. When you open a new terminal for CoilSnake development, always re-run the above command in order to re-enter the virtual development environment. For more information about how this works, see [virtualenv's documentation](https://pypi.python.org/pypi/virtualenv/1.7).
+If you're on Windows, whenever a command begins with `python3` below, use `py` instead.
+
+1. Install Python through your package manager or via [Python.org](https://www.python.org/downloads/).
+    - On Debian-based OSes, run `sudo apt install python3-venv` to install the missing virtual environment support.
+1. `python3 -m venv coilsnake_venv`
+1. Activate the virtual environment.
+    - On Windows: `coilsnake_venv\Scripts\activate`
+    - On other platforms: `source coilsnake_venv/bin/activate`
+    - You'll know that it works if you see `(coilsnake_venv)` at the beginning of the line for your terminal. When you open a new terminal for CoilSnake development, always re-run the above command in order to re-activate the virtual development environment. For more information about how this works, see [`venv`'s documentation](https://docs.python.org/3/library/venv.html).
 1. Follow the steps mentioned below for your respective system.
 
 ### Using a virtual machine
 
-For Windows, you'll probably want to follow the steps from a fresh virtual machine. You can start up a new Windows 10 VM by the following command: `vagrant up windows`
+For Windows, you have the option to instead follow the steps from a fresh virtual machine. You can start up a new Windows 10 VM by the following command: `vagrant up windows`
 
 To make a Ubuntu VM, you can follow these instructions:
 
@@ -26,16 +31,16 @@ cd /vagrant
 
 Please note that the included Vagrant configuration for Ubuntu does not run a GUI, meaning that you won't be able to test CoilSnake's GUI with it.
 
-After installing a VM, follow the steps mentioned below for your respective system ([Linux](#linux)/[Windows](#windows)).
+After installing a VM, follow the steps mentioned below for your respective system ([Linux](#linux)/[macOS](#macos)/[Windows](#windows)).
 
 ## Linux
 
 1. Install any system dependencies required by CoilSnake. For Debian-based OSes, simply run:
 
 ```
-sudo apt-get install python3-pip python3-dev g++ libyaml-dev \
-                     python3-tk python3-pil.imagetk \
-                     libjpeg-dev zlib1g-dev tk8.6-dev tcl8.6-dev
+sudo apt install python3-pip python3-dev g++ libyaml-dev \
+                 python3-tk python3-pil.imagetk \
+                 libjpeg-dev zlib1g-dev tk8.6-dev tcl8.6-dev
 ```
 
 
@@ -58,40 +63,40 @@ sudo apt-get install python3-pip python3-dev g++ libyaml-dev \
 ## Windows
 
 1. Install:
-    1. [Python 3.9](https://www.python.org/downloads/release/python-392/) (64-bit version)
+    1. [Python 3.8 or later](https://www.python.org/downloads/)
     1. [Visual C++ 2019 Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16)
         - Select "C++ build tools" under the "Workloads" tab and make sure these are ticked:
             1. MSVC v140 - VS 2015 C++ x64/x86 build tools
             1. Windows 10 SDK
 1. Find a path that exists on your computer similar to `C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x86` and add it to your system environment variables.
 1. Follow the '[Generic](#generic)' instructions below.
-1. In commands beginning with `python3` use just `python` instead.
+1. In commands beginning with `python3`, use just `py` instead.
 
 ## Generic
 
 1. Using your favorite git client, clone the [CoilSnake](https://github.com/pk-hack/CoilSnake) repository.
 1. Open the command line and `cd` to your local CoilSnake git repository's main directory.
-1. `python3 -m pip install pip==18.1`
-1. Install dependencies:
-    - `python3 setup.py develop`
-1. Build additional coilsnake dependencies:
-    - `python3 setup.py build`
+1. `python3 -m pip install --upgrade pip`
+1. Use `pip` to install the current package in "editable" or "development" mode:
+    - `pip3 install -e .`
 
-CoilSnake is now installed in development mode. After making code changes to the source, run your code by launching CoilSnake's GUI or CLI:
+CoilSnake is now installed in development mode. After making code changes to the source, run your code by activating the virtual environment (see above) and launching CoilSnake's GUI or CLI:
 
 ```
-python3 script/gui.py
+coilsnake
 # or...
-python3 script/cli.py
+coilsnake-cli
 ```
 
-### Creating a standalone executable
+There are also scripts to launch the GUI and CLI in the `script` folder, with the virtual environment active.
+
+### Creating a standalone Windows executable
 
 Note: The steps for creating a standalone executable are currently unmaintained and likely broken for systems other than 64-bit Windows. 
 
 1. Follow the steps above to build CoilSnake for your system.
 1. Install pyinstaller:
-    - `python3 -m pip install pyinstaller`
+    - `pip3 install pyinstaller`
 1. In the CoilSnake source directory, build the CoilSnake executable:
     - `python3 setup_exe.py`
 1. Run the output file under the 'dist' directory.

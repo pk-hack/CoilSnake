@@ -1,0 +1,6 @@
+# Required to provide version information to setuptools_scm if someone downloads
+# CoilSnake's code as an archive, instead of cloning with git. See
+# https://setuptools-scm.readthedocs.io/en/stable/usage/#builtin-mechanisms-for-obtaining-version-numbers
+# for more details.
+.git_archival.txt  export-subst
+
