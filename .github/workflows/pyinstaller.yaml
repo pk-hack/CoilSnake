@@ -10,6 +10,8 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # setuptools-scm uses tags and commit counts to set the version
     - uses: actions/setup-python@v5
       with:
         python-version: '3.8'
