@@ -13,7 +13,7 @@ requires-python = ">=3.8"
 dependencies = [
     "Pillow>=3.0.0",
     "PyYAML>=3.11",
-    "CCScriptWriter @ https://github.com/pk-hack/CCScriptWriter/tarball/master",
+    "CCScriptWriter @ https://github.com/pk-hack/CCScriptWriter/archive/refs/heads/master.tar.gz",
     "ccscript @ https://github.com/charasyn/ccscript_legacy/archive/refs/tags/v1.500.tar.gz",
     # ??? CoilSnake hasn't been tested on Mac in a while. Is this still needed?
     "pyobjc-framework-Cocoa; platform_system == 'Darwin'",
