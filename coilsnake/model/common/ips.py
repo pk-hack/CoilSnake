@@ -128,7 +128,8 @@ class IpsPatch(object):
                             records[i] = t
                         else:
                             i -= 1
-                            records[i] = hr.to_list()[i]
+                            index -= 1
+                            records[i] = hr.__getitem__(i).to_bytes(1, byteorder='big')
                 if index < cr.__len__() and index < hr.__len__():
                     s = cr.__getitem__(index).to_bytes(1, byteorder='big')
                     t = hr.__getitem__(index).to_bytes(1, byteorder='big')
