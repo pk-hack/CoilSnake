@@ -1678,21 +1678,21 @@
   - name: Flash vulnerability
     size: 1
     values:
-    - 100%
-    - 70%
-    - 40%
-    - 5%
+    - 99%
+    - 50%
+    - 10%
+    - 0%
   - name: Paralysis vulnerability
     size: 1
     values:
-    - 100%
+    - 99%
     - 50%
     - 10%
     - 0%
   - name: Hypnosis/Brainshock vulnerability
     size: 1
     values:
-    - 100%
+    - 99%
     - 50%
     - 10%
     - 0%
