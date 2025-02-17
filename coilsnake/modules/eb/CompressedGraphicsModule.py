@@ -89,7 +89,7 @@ class CompressedGraphicsModule(EbModule):
     NAME = "Compressed Graphics"
     FREE_RANGES = [(0x2021a8, 0x20ed02),  # Town Map data
                    (0x214ec1, 0x21ae7b),  # Company Logos, "Produced by" and "Presented by", and Gas Station
-                   (0x21ea50, 0x21f203)]  # Town map icon graphics and palette
+                   (0x21ea50, 0x21f202)]  # Town map icon graphics and palette
 
     def __init__(self):
         super(CompressedGraphicsModule, self).__init__()
