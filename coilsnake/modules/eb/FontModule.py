@@ -8,6 +8,7 @@ from coilsnake.model.eb.table import eb_table_from_offset
 from coilsnake.util.common.image import open_indexed_image
 from coilsnake.util.common.yml import yml_load, yml_dump
 from coilsnake.util.eb.pointer import from_snes_address, to_snes_address
+from coilsnake.util.eb.helper import patch
 
 
 log = logging.getLogger(__name__)
@@ -18,6 +19,28 @@ FONT_FILENAMES = ["0", "1", "3", "4", "2"]
 CREDITS_GRAPHICS_ASM_POINTER = 0x4f1a7
 CREDITS_PALETTES_ADDRESS = 0x21e914
 
+# Constants for the ROM patching
+SBC = 0xE9
+NOP = 0xEA
+LDA = 0xA9
+LDX = 0xA2
+FUNCTION_OFFSETS = {
+"printStat" : 0xC19282,                                           #Original_Address: 0xC19249
+"printNewlineIfNeeded" : (0xEF01F5, 0xEF01F8),                    #Original_Address: 0xEF01D2
+"getStringRenderWidth" : (0xC43E6C, 0xC43E6F),                    #Original_Address: 0xC43E31
+"prefillKeyboardInput" : (0xC440E0, 0xC440E3, 0xC44151, 0xC4418D),#Original_Address: 0xC440B5
+"emptyKeyboardInput" : (0xC441D5, 0xC441F9),                      #Original_Address: 0xC441B7
+"writeCharacterToKeyboardInputBuffer" : (0xC44272, 0xC44275),     #Original_Address: 0xC4424A
+"renderSmallTextToVRAM" : (0xC4454A, 0xC4454D),                   #Original_Address: 0xC444FB
+"printAutoNewline" : (0xC44752, 0xC44755),                        #Original_Address: 0xC445E1
+"renderVWFCharToWindow" : (0xC44EEC, 0xC44EEF),                   #Original_Address: 0xC44E61
+"getTextWidth" : (0xC4501D, 0xC45020),                            #Original_Address: 0xC44FF3
+"printPrice" : 0xC450E1,                                          #Original_Address: 0xC4507A
+"prepareWindowGraphics" : (0xC47D3B, 0xC47D3E),                   #Original_Address: 0xC47C3F
+"renderWholeCharacter" : (0xC48289, 0xC4828C),                    #Original_Address: 0xC4827B
+"renderLargeCharacterInternal" : (0xC499A6, 0xC499A9),            #Original_Address: 0xC4999B
+"renderCastNameText" : (0xC4E5E6, 0xC4E5E9),                      #Original_Address: 0xC4E583
+}
 
 class FontModule(EbModule):
     NAME = "Fonts"
@@ -61,6 +84,95 @@ class FontModule(EbModule):
             self.font_pointer_table[i][1] = to_snes_address(graphics_offset)
         self.font_pointer_table.to_block(block=rom,
                                          offset=from_snes_address(FONT_POINTER_TABLE_OFFSET))
+
+        # we're patching the ROM if the user uses 224 character per font
+        # as of right now, to acces a certain character, the game does this : (char_id - 0x50) & 0x7f
+        # we're changing it to that : char_id - 0x20
+        # so all SBC #$50 becomes SBC #$20
+        # and all AND #$007F becomes NOPs (we're skipping them)
+        # we're also changing the internal ID of some hardcoded character IDs
+        if all(font.num_characters == 224 for font in self.fonts):
+            log.debug("Patching the ROM so it can support 224 character per font")
+
+            # AND #$007F -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["printStat"], [NOP, NOP, NOP])
+
+            # SBC #$50   -> SBC #$20
+            # AND #$007F -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["printNewlineIfNeeded"][0], [SBC, 0x20, 0x00])
+            patch(rom, 3, FUNCTION_OFFSETS["printNewlineIfNeeded"][1], [NOP, NOP, NOP])
+
+            # SBC #$50   -> SBC #$20
+            # AND #$007F -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["getStringRenderWidth"][0], [SBC, 0x20, 0x00])
+            patch(rom, 3, FUNCTION_OFFSETS["getStringRenderWidth"][1], [NOP, NOP, NOP])
+
+            # SBC #$50   -> SBC #$20
+            # AND #$007F -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["prefillKeyboardInput"][0], [SBC, 0x20, 0x00])
+            patch(rom, 3, FUNCTION_OFFSETS["prefillKeyboardInput"][1], [NOP, NOP, NOP])
+            # LDA #32 -> LDA #$50
+            # this is an hardcoded bullet point char ID
+            patch(rom, 2, FUNCTION_OFFSETS["prefillKeyboardInput"][2], [LDA, 0x50])
+            # LDA #3 -> LDA #$33
+            # this is an hardcoded middle dot char ID
+            patch(rom, 2, FUNCTION_OFFSETS["prefillKeyboardInput"][3], [LDA, 0x33])
+
+            # LDA #3 -> LDA #$33
+            # this is an hardcoded middle dot char ID
+            patch(rom, 3, FUNCTION_OFFSETS["emptyKeyboardInput"][0], [LDA, 0x33, 0x00])
+            # LDA #32 -> LDA #$50
+            # this is an hardcoded bullet point char ID
+            patch(rom, 2, FUNCTION_OFFSETS["emptyKeyboardInput"][1], [LDA, 0x50])
+
+            # SBC #$50   -> SBC #$20
+            # AND #$007F -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["writeCharacterToKeyboardInputBuffer"][0], [SBC, 0x20, 0x00])
+            patch(rom, 3, FUNCTION_OFFSETS["writeCharacterToKeyboardInputBuffer"][1], [NOP, NOP, NOP])
+
+            # SBC #CHAR::SPACE -> SBC #$20
+            # AND #$007F       -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["renderSmallTextToVRAM"][0], [SBC, 0x20, 0x00])
+            patch(rom, 3, FUNCTION_OFFSETS["renderSmallTextToVRAM"][1], [NOP, NOP, NOP])
+
+            # SBC #$50   -> SBC #$20
+            # AND #$007F -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["printAutoNewline"][0], [SBC, 0x20, 0x00])
+            patch(rom, 3, FUNCTION_OFFSETS["printAutoNewline"][1], [NOP, NOP, NOP])
+
+            # SBC #$50   -> SBC #$20
+            # AND #$007F -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["renderVWFCharToWindow"][0], [SBC, 0x20, 0x00])
+            patch(rom, 3, FUNCTION_OFFSETS["renderVWFCharToWindow"][1], [NOP, NOP, NOP])
+
+            # SBC #$50   -> SBC #$20
+            # AND #$007F -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["getTextWidth"][0], [SBC, 0x20, 0x00])
+            patch(rom, 3, FUNCTION_OFFSETS["getTextWidth"][1], [NOP, NOP, NOP])
+
+            # LDX #4 -> LDX #$34
+            # this is an hardcoded dollar sign char ID
+            patch(rom, 3, FUNCTION_OFFSETS["printPrice"], [LDX, 0x34, 0x00])
+
+            # SBC #80   -> SBC #$20
+            # AND #$007F -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["prepareWindowGraphics"][0], [SBC, 0x20, 0x00])
+            patch(rom, 3, FUNCTION_OFFSETS["prepareWindowGraphics"][1], [NOP, NOP, NOP])
+
+            # SBC #$50   -> SBC #$20
+            # AND #$007F -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["renderWholeCharacter"][0], [SBC, 0x20, 0x00])
+            patch(rom, 3, FUNCTION_OFFSETS["renderWholeCharacter"][1], [NOP, NOP, NOP])
+
+            # SBC #$50   -> SBC #$20
+            # AND #$007F -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["renderLargeCharacterInternal"][0], [SBC, 0x20, 0x00])
+            patch(rom, 3, FUNCTION_OFFSETS["renderLargeCharacterInternal"][1], [NOP, NOP, NOP])
+
+            # SBC #80   -> SBC #$20
+            # AND #$007F -> NOP NOP NOP
+            patch(rom, 3, FUNCTION_OFFSETS["renderCastNameText"][0], [SBC, 0x20, 0x00])
+            patch(rom, 3, FUNCTION_OFFSETS["renderCastNameText"][1], [NOP, NOP, NOP])
 
         self.write_credits_font_to_rom(rom)
 

@@ -16,3 +16,4 @@
 /coilsnake/assets/ccc/lib/*.ccs
 .DS_store
 git_commit.py
+/venv/

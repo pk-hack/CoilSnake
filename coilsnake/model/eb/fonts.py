@@ -12,6 +12,7 @@ FONT_IMAGE_PALETTE[0, 1].from_tuple((0, 0, 0))
 FONT_IMAGE_ARRANGEMENT_WIDTH = 16
 _FONT_IMAGE_ARRANGEMENT_96 = EbTileArrangement(width=FONT_IMAGE_ARRANGEMENT_WIDTH, height=6)
 _FONT_IMAGE_ARRANGEMENT_128 = EbTileArrangement(width=FONT_IMAGE_ARRANGEMENT_WIDTH, height=8)
+_FONT_IMAGE_ARRANGEMENT_224 = EbTileArrangement(width=FONT_IMAGE_ARRANGEMENT_WIDTH, height=14)
 
 for y in range(_FONT_IMAGE_ARRANGEMENT_96.height):
     for x in range(_FONT_IMAGE_ARRANGEMENT_96.width):
@@ -19,6 +20,9 @@ for y in range(_FONT_IMAGE_ARRANGEMENT_96.height):
 for y in range(_FONT_IMAGE_ARRANGEMENT_128.height):
     for x in range(_FONT_IMAGE_ARRANGEMENT_128.width):
         _FONT_IMAGE_ARRANGEMENT_128[x, y].tile = y * _FONT_IMAGE_ARRANGEMENT_128.width + x
+for y in range(_FONT_IMAGE_ARRANGEMENT_224.height):
+    for x in range(_FONT_IMAGE_ARRANGEMENT_224.width):
+        _FONT_IMAGE_ARRANGEMENT_224[x, y].tile = y * _FONT_IMAGE_ARRANGEMENT_224.width + x
 
 
 class EbFont(object):
@@ -29,9 +33,28 @@ class EbFont(object):
 
     def from_block(self, block, tileset_offset, character_widths_offset):
         self.tileset.from_block(block=block, offset=tileset_offset, bpp=1)
-        for i in range(96, self.num_characters):
-            self.tileset.clear_tile(i, color=1)
-        self.character_widths = block[character_widths_offset:character_widths_offset + self.num_characters].to_list()
+        if self.num_characters == 224:
+            # to allow 224 characters in the font, we modify how the game access the font tileset.
+            # by default, the game access a character by doing : (char_id - 0x50) & 0x7f
+            # we change that in coilsnake/modules/eb/FontModule.py to : char_id - 0x20
+            # this mean we have 0x30 new characters to add BEFORE the current tileset
+            for i in range(223, -1, -1):
+                if i < 0x30 or i >= 0x90:
+                    # whiten tiles that represents used control codes to indicate that they shouldn't be used
+                    if i == 0 or i == 2 or i == 15:
+                        self.tileset.clear_tile(i, color=0)
+                    else:
+                        self.tileset.clear_tile(i, color=1)
+                else:
+                    self.tileset.tiles[i] = self.tileset.tiles[i - 0x30]
+            self.character_widths = block[
+                character_widths_offset - 0x30 :
+                character_widths_offset - 0x30 + self.num_characters
+            ].to_list()
+        else:
+            for i in range(96, self.num_characters):
+                self.tileset.clear_tile(i, color=1)
+            self.character_widths = block[character_widths_offset:character_widths_offset + self.num_characters].to_list()
 
     def to_block(self, block):
         tileset_offset = block.allocate(size=self.tileset.block_size(bpp=1))
@@ -47,6 +70,8 @@ class EbFont(object):
             image = _FONT_IMAGE_ARRANGEMENT_96.image(self.tileset, FONT_IMAGE_PALETTE)
         elif self.num_characters == 128:
             image = _FONT_IMAGE_ARRANGEMENT_128.image(self.tileset, FONT_IMAGE_PALETTE)
+        elif self.num_characters == 224:
+            image = _FONT_IMAGE_ARRANGEMENT_224.image(self.tileset, FONT_IMAGE_PALETTE)
         image.save(image_file, image_format)
         del image
 
@@ -61,6 +86,8 @@ class EbFont(object):
             self.tileset.from_image(image, _FONT_IMAGE_ARRANGEMENT_96, FONT_IMAGE_PALETTE)
         elif self.num_characters == 128:
             self.tileset.from_image(image, _FONT_IMAGE_ARRANGEMENT_128, FONT_IMAGE_PALETTE)
+        elif self.num_characters == 224:
+            self.tileset.from_image(image, _FONT_IMAGE_ARRANGEMENT_224, FONT_IMAGE_PALETTE)
         del image
 
         if widths_format == "yml":
@@ -72,6 +99,8 @@ class EbFont(object):
             arr = _FONT_IMAGE_ARRANGEMENT_96
         elif self.num_characters == 128:
             arr = _FONT_IMAGE_ARRANGEMENT_128
+        elif self.num_characters == 224:
+            arr = _FONT_IMAGE_ARRANGEMENT_224
 
         return arr.width * self.tileset.tile_width, arr.height * self.tileset.tile_height
 
