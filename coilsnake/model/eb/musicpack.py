@@ -805,7 +805,15 @@ class SongMusicPack(GenericMusicPack):
                     raise CoilSnakeInternalError("Dependent song is not in same pack as parent song")
 
 class EngineMusicPack(SongMusicPack):
+    # This is used in modified engine.bins to have a different pointer to the song table.
+    # asar assembler uses UTF-8 encoding.
+    # The footer can be located anywhere, though, but the convention is at the end.
+    # The format is this string followed by a pointer to the song table.
+    FOOTER_IDENTIFIER_BYTES = bytes("COILSNAKE SONG TABLE POINTER", encoding="UTF-8")
+    
+    # Default song table address. Used when the footer is not found.
     SONG_ADDRESS_TABLE_ADDR = 0x2E4A
+    
     ENGINE_FIXED_PARTS = {0x6E00: 'data-6E00.bin', 0x6F80: 'data-6F80.bin', 0x0500: 'engine.bin'}
     # These values are for the part starting at $0500, containing the main SPC program
     MAIN_PART_ADDR = 0x0500
@@ -940,9 +948,36 @@ class EngineMusicPack(SongMusicPack):
         start_addr = EngineMusicPack.SONG_ADDRESS_TABLE_ADDR - EngineMusicPack.MAIN_PART_ADDR
         return block[start_addr:start_addr + size]
 
+    def get_song_address_table_pointer(self) -> int:
+        # search for CoilSnake footer
+        # (there's probably a better way to do this. I don't know how to best work with Block objects.)
+        engine_bytes = bytes(self.engine_parts[EngineMusicPack.MAIN_PART_ADDR].to_list())
+        footer_match = EngineMusicPack.FOOTER_IDENTIFIER_BYTES
+        song_table_pointer_pointers: list[int] = []
+        try:
+            song_table_pointer_pointers = [(i+len(footer_match)) for i in range(len(engine_bytes)) if engine_bytes[i:i+len(footer_match)] == footer_match]
+        except OutOfBoundsError:
+            pass
+        if len(song_table_pointer_pointers) > 1:
+            raise InvalidUserDataError("engine.bin contains more than one footer pointing to the location of the song table. Found footers at: {} (SPC addresses)".format(
+                ["$" + hex(i-len(footer_match) + 0x500)[2:].zfill(4).upper() for i in song_table_pointer_pointers]
+            ))
+        
+        if len(song_table_pointer_pointers) == 0:
+            log.info("Using default song table location.")
+            target_addr = EngineMusicPack.SONG_ADDRESS_TABLE_ADDR
+        else:
+            target_addr = engine_bytes[song_table_pointer_pointers[0]:song_table_pointer_pointers[0]+2]
+            target_addr = int.from_bytes(target_addr, 'little')
+            log.info("Relocating song table to {} based on footer found in the engine.".format(
+                hex(target_addr).zfill(4)
+            ))
+        
+        return target_addr
+        
     def set_song_address_table_data(self, block: Block) -> None:
         assert self.parts
-        self.set_aram_region(EngineMusicPack.SONG_ADDRESS_TABLE_ADDR, block.size, block)
+        self.set_aram_region(self.get_song_address_table_pointer(), block.size, block)
 
     @classmethod
     def apply_engine_patches(cls, engine_block: Block) -> Block:
