@@ -144,7 +144,7 @@ class SwirlModule(EbModule):
         with resource_open("Swirls/swirls", "yml", True) as f:
             yml_dump(swirl_data, f, default_flow_style=False)
 
-    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+    def upgrade_project(self, old_version, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
         elif old_version <= 6:
@@ -154,6 +154,7 @@ class SwirlModule(EbModule):
                 7,
                 new_version,
                 rom,
+                old_compiled_rom,
                 resource_open_r,
                 resource_open_w,
                 resource_delete)
@@ -162,6 +163,7 @@ class SwirlModule(EbModule):
                 old_version + 1,
                 new_version,
                 rom,
+                old_compiled_rom,
                 resource_open_r,
                 resource_open_w,
                 resource_delete)

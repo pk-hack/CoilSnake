@@ -138,8 +138,8 @@ class DeathScreenModule(EbModule):
             yml_dump(subpalettes, f, None)
 
     def upgrade_project(
-            self, old_version, new_version, rom, resource_open_r,
-            resource_open_w, resource_delete):
+            self, old_version, new_version, rom, old_compiled_rom,
+            resource_open_r, resource_open_w, resource_delete):
         # version 1-8: no death screen support
         # version   9: Only supported Ness' death screen (DeathScreen.png)
         # version 10+: Supports Ness and Jeff (DeathScreen_*.png)

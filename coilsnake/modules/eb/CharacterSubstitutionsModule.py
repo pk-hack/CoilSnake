@@ -35,6 +35,6 @@ class CharacterSubstitutionsModule(EbModule):
         with resource_open(self.FILE, 'yml', True) as f:
             f.write(MODULE_COMMENT)
 
-    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+    def upgrade_project(self, old_version, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete):
         if old_version <= 7:
             self.write_to_project(resource_open_w)

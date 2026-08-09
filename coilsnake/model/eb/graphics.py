@@ -209,7 +209,6 @@ class EbGraphicTileset(EqualityMixin):
     def __getitem__(self, key):
         return self.tiles[key]
 
-
 class EbTileArrangementItem(EqualityMixin, StringRepresentationMixin):
     def __init__(self, tile=0, subpalette=0, is_vertically_flipped=False, is_horizontally_flipped=False,
                  is_priority=False):
@@ -244,6 +243,17 @@ class EbTileArrangementItem(EqualityMixin, StringRepresentationMixin):
                            | self.tile),
                           2)
 
+class EbOneByteTileArrangementItem(EbTileArrangementItem):
+    def check_validity(self):
+        if self.tile < 0 or self.tile > 0xFF:
+            raise InvalidArgumentError("Invalid tile[{}]".format(self.tile))
+        
+    def from_block(self, block, offset=0):
+        self.tile = block[offset]
+    
+    def to_block(self, block, offset=0):
+        self.check_validity()
+        block[offset] = self.tile
 
 class EbTileArrangement(EqualityMixin):
     """A class representing an image formed by an arrangement of tile-based graphics with a certain palette."""
@@ -387,7 +397,28 @@ class EbTileArrangement(EqualityMixin):
                 x, y, self.width, self.height))
         return self.arrangement[y][x]
 
+class EbOneByteTileArrangement(EbTileArrangement):
+    """A class representing a tilemap that consists only of a single byte with a 0-255 tile ID per tile.
+    It's expected that other data, such as palette, priority, etc, is appended later."""
+    def __init__(self, width, height):
+        super().__init__(width, height)
+        self.arrangement = [[EbOneByteTileArrangementItem() for x in range(self.width)] for y in range(self.height)]
 
+    def from_block(self, block, offset=0):
+        for row in self.arrangement:
+            for item in row:
+                item.from_block(block, offset)
+                offset += 1
+
+    def to_block(self, block, offset=0):
+        for row in self.arrangement:
+            for item in row:
+                item.to_block(block, offset)
+                offset += 1
+    
+    def block_size(self):
+            return sum([len(x) for x in self.arrangement])
+    
 class EbCompressedGraphic(object):
     def __init__(self, num_tiles, tile_width, tile_height, bpp, arrangement_width, arrangement_height,
                  num_palettes, num_subpalettes, subpalette_length, compressed_palettes=True):

@@ -33,6 +33,7 @@ def main():
                                            help="upgrade a project which was created by an older version of CoilSnake")
     upgrade_parser.add_argument("base_rom")
     upgrade_parser.add_argument("project_directory")
+    upgrade_parser.add_argument("--existing_rom", "-e", required=False, help="a compiled ROM of this project, if you have one. Otherwise uses the base ROM")
     upgrade_parser.set_defaults(func=_upgrade)
 
     decomp_script_parser = subparsers.add_parser("scriptdump", help="Decompile a ROM's script to an already existing project.")
@@ -97,7 +98,9 @@ def _decompile(args):
 
 
 def _upgrade(args):
+    existing_rom = args.existing_rom if args.existing_rom else args.base_rom
     upgrade_project(base_rom_filename=args.base_rom,
+                    old_compiled_rom_filename=existing_rom,
                     project_path=args.project_directory)
 
 def _scriptdump(args):

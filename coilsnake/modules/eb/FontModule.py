@@ -101,7 +101,7 @@ class FontModule(EbModule):
         with resource_open("Fonts/credits", "png") as image_file:
             self.credits_font.from_files(image_file, "png")
 
-    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+    def upgrade_project(self, old_version, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
         elif old_version == 5:
@@ -139,12 +139,12 @@ class FontModule(EbModule):
                 with resource_open_w(widths_resource_name, "yml", True) as widths_file:
                     yml_dump(widths_dict, widths_file, default_flow_style=False)
 
-            self.upgrade_project(6, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(6, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)
         elif old_version <= 2:
             # The credits font was a new feature in version 3
 
             self.read_credits_font_from_rom(rom)
             self.write_credits_font_to_project(resource_open_w)
-            self.upgrade_project(3, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(3, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)
         else:
-            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(old_version + 1, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)

@@ -287,7 +287,7 @@ class CompressedGraphicsModule(EbModule):
         with resource_open(GAS_STATION_INFO.name + "3", "png") as image_file:
             images[2].save(image_file, "png")
 
-    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+    def upgrade_project(self, old_version, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
         elif old_version <= 2:
@@ -300,6 +300,6 @@ class CompressedGraphicsModule(EbModule):
             self.read_gas_station_from_rom(rom)
             self.write_gas_station_to_project(resource_open_w)
 
-            self.upgrade_project(3, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(3, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)
         else:
-            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(old_version + 1, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)

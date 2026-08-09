@@ -218,7 +218,7 @@ class MiscTextModule(EbModule):
         with resource_open("text_misc", "yml", True) as f:
             yml_dump(self.data, f, default_flow_style=False)
 
-    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+    def upgrade_project(self, old_version, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
         elif old_version == 4:
@@ -229,10 +229,10 @@ class MiscTextModule(EbModule):
 
             self.write_to_project(resource_open_w)
 
-            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(old_version + 1, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)
         elif old_version <= 2:
             self.read_from_rom(rom)
             self.write_to_project(resource_open_w)
-            self.upgrade_project(3, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(3, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)
         else:
-            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(old_version + 1, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)

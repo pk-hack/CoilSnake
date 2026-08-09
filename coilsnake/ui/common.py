@@ -40,11 +40,13 @@ def setup_logging(quiet=False, verbose=False, stream=None):
     logging.root.addHandler(handler)
 
 
-def upgrade_project(project_path, base_rom_filename, progress_bar=None):
+def upgrade_project(project_path, base_rom_filename, old_compiled_rom_filename, progress_bar=None):
     if not os.path.isdir(project_path):
         raise RuntimeError("Project directory \"" + project_path + "\" is not a directory.")
     if not os.path.isfile(base_rom_filename):
         raise RuntimeError("Base Rom \"" + base_rom_filename + "\" is not a file.")
+    if not os.path.isfile(old_compiled_rom_filename):
+        raise RuntimeError("Old compiled Rom \"" + old_compiled_rom_filename + "\" is not a file.")
 
     modules = load_modules()
 
@@ -67,6 +69,10 @@ def upgrade_project(project_path, base_rom_filename, progress_bar=None):
     rom = Rom()
     rom.from_file(base_rom_filename)
     check_if_types_match(project=project, rom=rom)
+    
+    old_rom = Rom()
+    old_rom.from_file(old_compiled_rom_filename)
+    check_if_types_match(project=project, rom=old_rom)
 
     compatible_modules = [(name, clazz) for name, clazz in modules if clazz.is_compatible_with_romtype(rom.type)]
     tick_amount = 1.0/len(compatible_modules)
@@ -75,7 +81,7 @@ def upgrade_project(project_path, base_rom_filename, progress_bar=None):
         log.info("Upgrading {}...".format(module_class.NAME))
         start_time = time.time()
         with module_class() as module:
-            module.upgrade_project(project.version, FORMAT_VERSION, rom,
+            module.upgrade_project(project.version, FORMAT_VERSION, rom, old_rom,
                                    lambda x, y, astext=False : project.get_resource(module_name, x, y, 'rt' if astext else 'rb', 'utf-8' if astext else None),
                                    lambda x, y, astext=False: 
                                         project.get_resource(module_name, x, y, 

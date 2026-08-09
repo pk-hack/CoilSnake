@@ -599,8 +599,8 @@ class TitleScreenModule(EbModule):
             yml_dump(chars_positions, f, False)
 
     def upgrade_project(
-            self, old_version, new_version, rom, resource_open_r,
-            resource_open_w, resource_delete):
+            self, old_version, new_version, rom, old_compiled_rom,
+            resource_open_r, resource_open_w, resource_delete):
         if old_version < 9:
             self.read_from_rom(rom)
             self.write_to_project(resource_open_w)

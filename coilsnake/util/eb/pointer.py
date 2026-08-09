@@ -40,10 +40,10 @@ def write_xl_pointer(block, offset, pointer):
 
 class AsmPointerReference(object):
     POINTER_FORMAT = re.compile(
-        rb'''[\xa9\xa2\xa0]..  # Match LDA_i / LDX_i / LDY_i
-             [\x85\x86\x84](.) # Match STA_d / STX_d / STY_d
-             [\xa9\xa2\xa0]..  # Match LDA_i / LDX_i / LDY_i
-             [\x85\x86\x84](.) # Match STA_d / STX_d / STY_d
+        rb'''[\xa9\xa2\xa0]..    # Match LDA_i / LDX_i / LDY_i
+             [\x85\x86\x84](.)   # Match STA_d / STX_d / STY_d
+             [\xa9\xa2\xa0].\x00 # Match LDA_i / LDX_i / LDY_i with upper byte zero
+             [\x85\x86\x84](.)   # Match STA_d / STX_d / STY_d
         ''', re.VERBOSE | re.DOTALL)
 
     def __init__(self, offset):
@@ -67,6 +67,13 @@ class AsmPointerReference(object):
     def write(self, rom, address):
         log.info("Writing pointer at " + hex(self.offset))
         write_asm_pointer(rom, self.offset, address)
+    
+    def read(self, rom):
+        # Get the address from the code at this point
+        if self.validate_structure(rom):
+            return (rom.read_multi(self.offset+6, 2) << 16) | rom.read_multi(self.offset+1, 2)
+        else:
+            return None
 
 class XlPointerReference(object):
     def __init__(self, offset):
@@ -80,3 +87,10 @@ class XlPointerReference(object):
     def write(self, rom, address):
         log.info("Writing xl pointer at " + hex(self.offset))
         write_xl_pointer(rom, self.offset, address)
+    
+    def read(self, rom):
+        # Get the address from the code at this point
+        if self.validate_structure(rom):
+            return rom.read_multi(self.offset+1, 3)
+        else:
+            return None

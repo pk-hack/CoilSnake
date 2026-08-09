@@ -287,7 +287,7 @@ class MusicModule(EbModule):
         ips.load(get_ips_filename(rom.type, 'gas_station_pack_fix'), 0)
         return ips
 
-    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+    def upgrade_project(self, old_version, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
         if old_version == 11:
@@ -298,6 +298,7 @@ class MusicModule(EbModule):
             11 if old_version < 11 else old_version + 1,
             new_version,
             rom,
+            old_compiled_rom,
             resource_open_r,
             resource_open_w,
             resource_delete)

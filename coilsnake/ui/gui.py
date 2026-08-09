@@ -25,7 +25,7 @@ from coilsnake.ui.common import decompile_rom, compile_project, upgrade_project,
     patch_rom, create_patch
 from coilsnake.ui.gui_preferences import CoilSnakePreferences
 from coilsnake.ui.gui_util import browse_for_patch, browse_for_rom, browse_for_project, open_folder, set_entry_text, \
-    find_system_java_exe
+    find_system_java_exe, ROM_FILETYPES
 from coilsnake.ui.information import coilsnake_about
 from coilsnake.ui.widgets import ThreadSafeConsole, CoilSnakeGuiProgressBar
 from coilsnake.util.common.project import PROJECT_FILENAME
@@ -323,6 +323,27 @@ Please configure Java in the Settings menu.""")
                                                icon='warning')
             if confirm != "yes":
                 return
+            
+            has_old = tkinter.messagebox.askyesnocancel("Do you have expanded battle animations?",
+                                        "Does this project have expanded battle animations via Jeffman's PSI Animation Editor?\n\n"
+                                        + "If it does, select \"Yes\" and then provide the ROM that was produced after compiling.\n"
+                                        + "After the upgrade, remove the relevant entries in used_ranges.yml and delete the CCScript file that repoints the data.\n\n"
+                                        + "If you don't have expanded animations, or don't mind losing them in the upgrade, select \"No\".")
+            if has_old is True:
+                old_rom = tkinter.filedialog.askopenfilename(parent=self.root, 
+                                                            initialdir=os.path.expanduser("~"),
+                                                            title="Select existing compiled ROM",
+                                                            filetypes=ROM_FILETYPES)
+                if not old_rom:
+                    # User cancalled the file picker
+                    return
+            elif has_old is False:
+                # Use the same as the base ROM if the user selects "No"
+                old_rom = rom
+            else:
+                # User selected "Cancel" when prompted for a modified base ROM
+                return
+            
 
             self.save_default_tab()
 
@@ -331,12 +352,12 @@ Please configure Java in the Settings menu.""")
             self.disable_all_components()
 
             self.progress_bar.clear()
-            thread = Thread(target=self._do_upgrade_help, args=(rom, project))
+            thread = Thread(target=self._do_upgrade_help, args=(rom, old_rom, project))
             thread.start()
 
-    def _do_upgrade_help(self, rom, project):
+    def _do_upgrade_help(self, rom, old_rom, project):
         try:
-            upgrade_project(project_path=project, base_rom_filename=rom, progress_bar=self.progress_bar)
+            upgrade_project(project_path=project, base_rom_filename=rom, old_compiled_rom_filename=old_rom, progress_bar=self.progress_bar)
         except Exception as inst:
             log.debug(format_exc())
             log.error(inst)
@@ -712,6 +733,7 @@ Please configure Java in the Settings menu.""")
         if self.preferences["default upgrade rom"]:
             set_entry_text(entry=rom_entry,
                            text=self.preferences["default upgrade rom"])
+
 
         if self.preferences["default upgrade project"]:
             set_entry_text(entry=project_entry,

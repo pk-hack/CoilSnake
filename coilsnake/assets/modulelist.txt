@@ -17,6 +17,7 @@ eb.DeathScreenModule
 eb.SoundStoneModule
 eb.CastModule
 eb.AnimationModule
+eb.BattleAnimationModule
 eb.MapModule
 eb.MapEnemyModule
 eb.MapMusicModule

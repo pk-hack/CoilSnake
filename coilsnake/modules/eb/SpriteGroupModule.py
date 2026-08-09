@@ -120,7 +120,7 @@ class SpriteGroupModule(EbModule):
         self.group_pointer_table.to_block(block=rom, offset=new_table_offset)
         self.palette_table.to_block(block=rom, offset=from_snes_address(PALETTE_TABLE_OFFSET))
 
-    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+    def upgrade_project(self, old_version, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
         elif old_version == 4:
@@ -136,7 +136,7 @@ class SpriteGroupModule(EbModule):
                     del entry["Collision Settings"]
             with resource_open_w("sprite_groups", "yml", True) as f:
                 yml_dump(data, f)
-            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(old_version + 1, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)
         elif old_version == 2:
             replace_field_in_yml(resource_name="sprite_groups",
                                  resource_open_r=resource_open_r,
@@ -149,6 +149,6 @@ class SpriteGroupModule(EbModule):
                                  resource_open_w=resource_open_w,
                                  key="Unknown B",
                                  new_key="Collision Settings")
-            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(old_version + 1, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)
         else:
-            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(old_version + 1, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)

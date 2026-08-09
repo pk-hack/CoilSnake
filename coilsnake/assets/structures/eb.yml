@@ -414,16 +414,23 @@
     type: pointer
   - name: Frame duration (1/60th seconds)
     size: 1
-  - name: Palette duration (1/60th seconds)
+  - name: Palette cycle duration (1/60th seconds)
     size: 1
-  - name: unknown
-    size: 2
-    type: bytearray
+  - name: Palette cycle lower index
+    size: 1
+  - name: Palette cycle upper index
+    size: 1
   - name: Frame count
     size: 1
-  - name: unknown 2
-    size: 2
-    type: bytearray
+  - name: Targetting
+    values:
+    - single
+    - row
+    - all
+    - random
+    size: 1
+  - name: Delay before enemy colour change
+    size: 1
   - name: Duration of enemy colour change
     size: 1
   - name: Enemy colour
@@ -436,7 +443,7 @@
 13431935: &id091
   entries:
   - name: Palette
-    size: 16
+    size: 8
     type: palette
   name: PSI_ANIM_PALETTES
   offset: 13431935

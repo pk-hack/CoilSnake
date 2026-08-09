@@ -209,7 +209,7 @@ class TilesetModule(EbModule):
                     entry = yml_rep[map_tileset][palette_id]
                     palette.settings_from_yml_rep(entry)
 
-    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+    def upgrade_project(self, old_version, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
         elif old_version <= 6:
@@ -227,7 +227,7 @@ class TilesetModule(EbModule):
             self.write_map_palette_settings(yml_rep, resource_open_w)
 
             self.upgrade_project(
-                7, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+                7, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)
         else:
             self.upgrade_project(
-                old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+                old_version + 1, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)

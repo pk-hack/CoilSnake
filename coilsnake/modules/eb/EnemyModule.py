@@ -238,7 +238,7 @@ class EnemyModule(EbModule):
                 group = [EnemyGroupTableEntry.from_yml_rep(x) for x in enemy_group]
                 self.enemy_groups.append(group)
 
-    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+    def upgrade_project(self, old_version, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
         elif old_version == 3:
@@ -274,7 +274,7 @@ class EnemyModule(EbModule):
                                             6: "64/128",
                                             7: "128/128"})
             self.upgrade_project(
-                old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+                old_version + 1, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)
         else:
             self.upgrade_project(
-                old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+                old_version + 1, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)

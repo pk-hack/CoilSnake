@@ -56,7 +56,7 @@ class MiscTablesModule(EbModule):
             with resource_open(table.name.lower(), "yml", True) as f:
                 table.to_yml_file(f)
 
-    def upgrade_project(self, old_version, new_version, rom, resource_open_r, resource_open_w, resource_delete):
+    def upgrade_project(self, old_version, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete):
         if old_version == new_version:
             return
         elif old_version == 3:
@@ -100,6 +100,7 @@ class MiscTablesModule(EbModule):
             self.upgrade_project(old_version=old_version + 1,
                                  new_version=new_version,
                                  rom=rom,
+                                 old_compiled_rom=old_compiled_rom,
                                  resource_open_r=resource_open_r,
                                  resource_open_w=resource_open_w,
                                  resource_delete=resource_delete)
@@ -127,6 +128,7 @@ class MiscTablesModule(EbModule):
             self.upgrade_project(old_version=old_version + 1,
                                  new_version=new_version,
                                  rom=rom,
+                                 old_compiled_rom=old_compiled_rom,
                                  resource_open_r=resource_open_r,
                                  resource_open_w=resource_open_w,
                                  resource_delete=resource_delete)
@@ -149,8 +151,9 @@ class MiscTablesModule(EbModule):
             self.upgrade_project(old_version=old_version + 1,
                                  new_version=new_version,
                                  rom=rom,
+                                 old_compiled_rom=old_compiled_rom,
                                  resource_open_r=resource_open_r,
                                  resource_open_w=resource_open_w,
                                  resource_delete=resource_delete)
         else:
-            self.upgrade_project(old_version + 1, new_version, rom, resource_open_r, resource_open_w, resource_delete)
+            self.upgrade_project(old_version + 1, new_version, rom, old_compiled_rom, resource_open_r, resource_open_w, resource_delete)
