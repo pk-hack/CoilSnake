@@ -1,6 +1,3 @@
-from nose.tools import assert_dict_equal, assert_list_equal, assert_raises, assert_equal, assert_is_instance
-from nose.tools.nontrivial import raises
-
 from coilsnake.exceptions.common.exceptions import TableError, \
     TableEntryInvalidYmlRepresentationError, TableEntryMissingDataError, TableSchemaError
 from coilsnake.model.common.blocks import Block
@@ -10,6 +7,10 @@ from tests.coilsnake_test import BaseTestCase
 
 
 class GenericTestTable(BaseTestCase):
+    def setUp(self):
+        if type(self) is GenericTestTable:
+            self.skipTest("Base class tests called directly")
+
     def test_from_block(self):
         table = Table(num_rows=len(self.TABLE_VALUES),
                       schema=self.TABLE_SCHEMA)
@@ -17,7 +18,7 @@ class GenericTestTable(BaseTestCase):
         block.from_list(self.BLOCK_DATA)
         table.from_block(block, 0)
 
-        assert_list_equal(table.values, self.TABLE_VALUES)
+        self.assertListEqual(table.values, self.TABLE_VALUES)
 
     def test_to_block(self):
         block = Block()
@@ -27,34 +28,34 @@ class GenericTestTable(BaseTestCase):
         table.values = self.TABLE_VALUES
         table.to_block(block, 0)
 
-        assert_list_equal(block.to_list(), self.BLOCK_DATA)
+        self.assertListEqual(block.to_list(), self.BLOCK_DATA)
 
     def test_from_yml_rep(self):
         table = Table(num_rows=len(self.TABLE_VALUES),
                       schema=self.TABLE_SCHEMA)
         table.from_yml_rep(self.YML_REP)
 
-        assert_list_equal(table.values, self.TABLE_VALUES)
+        self.assertListEqual(table.values, self.TABLE_VALUES)
 
     def test_to_yml_rep(self):
         table = Table(num_rows=len(self.TABLE_VALUES),
                       schema=self.TABLE_SCHEMA)
         table.values = self.TABLE_VALUES
-        assert_dict_equal(table.to_yml_rep(), self.YML_REP)
+        self.assertDictEqual(table.to_yml_rep(), self.YML_REP)
 
     def test_from_yml_rep_errors(self):
         table = Table(num_rows=1,
                       schema=self.TABLE_SCHEMA)
         for row, column_name, expected_error, expected_error_cause, yml_rep in self.BAD_YML_REPS:
-            print(row, column_name, expected_error)
-            with assert_raises(TableError) as cm:
+            # print(row, column_name, expected_error)
+            with self.assertRaises(TableError) as cm:
                 table.from_yml_rep(yml_rep)
             e = cm.exception
-            assert_equal(e.entry, 0)
-            assert_equal(e.field, column_name)
-            assert_is_instance(e.cause, expected_error)
+            self.assertEqual(e.entry, 0)
+            self.assertEqual(e.field, column_name)
+            self.assertIsInstance(e.cause, expected_error)
             if expected_error_cause:
-                assert_is_instance(e.cause.cause, expected_error_cause)
+                self.assertIsInstance(e.cause.cause, expected_error_cause)
 
 
 class TestGenericLittleEndianTable(GenericTestTable):
@@ -211,16 +212,16 @@ class TestBitfieldTableEntry(BaseTestCase):
     entry_class = BitfieldTableEntry.create(name="test", enumeration_class=enumeration_class, size=1)
 
     def test_from_yml_rep_legacy(self):
-        assert_equal(self.entry_class.from_yml_rep(0), set())
-        assert_equal(self.entry_class.from_yml_rep(1), set([0]))
-        assert_equal(self.entry_class.from_yml_rep(2), set([1]))
-        assert_equal(self.entry_class.from_yml_rep(3), set([0, 1]))
-        assert_equal(self.entry_class.from_yml_rep(255), set([0, 1, 2, 3, 4, 5, 6, 7]))
+        self.assertEqual(self.entry_class.from_yml_rep(0), set())
+        self.assertEqual(self.entry_class.from_yml_rep(1), set([0]))
+        self.assertEqual(self.entry_class.from_yml_rep(2), set([1]))
+        self.assertEqual(self.entry_class.from_yml_rep(3), set([0, 1]))
+        self.assertEqual(self.entry_class.from_yml_rep(255), set([0, 1, 2, 3, 4, 5, 6, 7]))
 
-    @raises(TableEntryInvalidYmlRepresentationError)
     def test_from_yml_rep_legacy_too_small(self):
-        self.entry_class.from_yml_rep(-1)
+        with self.assertRaises(TableEntryInvalidYmlRepresentationError):
+            self.entry_class.from_yml_rep(-1)
 
-    @raises(TableEntryInvalidYmlRepresentationError)
     def test_from_yml_rep_legacy_too_large(self):
-        self.entry_class.from_yml_rep(256)
+        with self.assertRaises(TableEntryInvalidYmlRepresentationError):
+            self.entry_class.from_yml_rep(256)

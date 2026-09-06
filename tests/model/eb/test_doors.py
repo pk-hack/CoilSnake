@@ -1,5 +1,3 @@
-from nose.tools import assert_equal, assert_list_equal, assert_dict_equal, assert_not_equal
-
 from coilsnake.model.common.blocks import AllocatableBlock
 from coilsnake.model.eb.doors import Door, DoorType, NpcDoor, DestinationDirection, EscalatorOrStairwayDoor, \
     StairDirection, RopeOrLadderDoor, ClimbableType, SwitchDoor
@@ -14,12 +12,14 @@ class GenericTestDoor(BaseTestCase):
     DOOR_OFFSET = 0x10
     NEW_DOOR_OFFSET = 0x123
 
-    def setup(self):
+    def setUp(self):
+        if self.DOOR_TYPE is None:
+            self.skipTest("No door type specified")
         self.block = AllocatableBlock()
         self.block.from_list([0] * 0x100000)
         self.block[self.DOOR_OFFSET:self.DOOR_OFFSET + 5] = self.DOOR_DATA
 
-    def teardown(self):
+    def tearDown(self):
         del self.block
 
     def test_baseline(self):
@@ -28,20 +28,20 @@ class GenericTestDoor(BaseTestCase):
     def test_from_block(self):
         new_door = self.DOOR_CLASS()
         new_door.from_block(self.block, self.DOOR_OFFSET)
-        assert_equal(new_door, self.door)
+        self.assertEqual(new_door, self.door)
 
     def test_to_block(self):
         self.door.write_to_block(self.block, self.NEW_DOOR_OFFSET, {})
-        assert_list_equal(self.block[self.DOOR_OFFSET:self.DOOR_OFFSET + 3].to_list(),
+        self.assertListEqual(self.block[self.DOOR_OFFSET:self.DOOR_OFFSET + 3].to_list(),
                           [self.door.y, self.door.x, self.DOOR_TYPE])
 
     def test_yml_rep(self):
-        assert_dict_equal(self.door.yml_rep(), self.YML_REP)
+        self.assertDictEqual(self.door.yml_rep(), self.YML_REP)
 
     def test_from_yml_rep(self):
         new_door = self.DOOR_CLASS()
         new_door.from_yml_rep(self.YML_REP)
-        assert_equal(new_door, self.door)
+        self.assertEqual(new_door, self.door)
 
 
 class TestEscalatorDoor(GenericTestDoor):
@@ -54,8 +54,8 @@ class TestEscalatorDoor(GenericTestDoor):
                "X": 251,
                "Y": 123}
 
-    def setup(self):
-        super(TestEscalatorDoor, self).setup()
+    def setUp(self):
+        super(TestEscalatorDoor, self).setUp()
         self.door = EscalatorOrStairwayDoor(x=251, y=123, type=self.DOOR_TYPE, direction=StairDirection.SE)
 
 
@@ -69,8 +69,8 @@ class TestStairwayDoor(GenericTestDoor):
                "X": 251,
                "Y": 123}
 
-    def setup(self):
-        super(TestStairwayDoor, self).setup()
+    def setUp(self):
+        super(TestStairwayDoor, self).setUp()
         self.door = EscalatorOrStairwayDoor(x=251, y=123, type=self.DOOR_TYPE, direction=StairDirection.NE)
 
 
@@ -83,8 +83,8 @@ class TestRopeDoor(GenericTestDoor):
                "X": 251,
                "Y": 123}
 
-    def setup(self):
-        super(TestRopeDoor, self).setup()
+    def setUp(self):
+        super(TestRopeDoor, self).setUp()
         self.door = RopeOrLadderDoor(x=251, y=123, climbable_type=ClimbableType.ROPE)
 
 
@@ -97,8 +97,8 @@ class TestLadderDoor(GenericTestDoor):
                "X": 42,
                "Y": 169}
 
-    def setup(self):
-        super(TestLadderDoor, self).setup()
+    def setUp(self):
+        super(TestLadderDoor, self).setUp()
         self.door = RopeOrLadderDoor(x=42, y=169, climbable_type=ClimbableType.LADDER)
 
 
@@ -106,7 +106,9 @@ class GenericTestDestinationDoor(GenericTestDoor):
     DESTINATION_OFFSET = 0xF0AB0
     NEW_DESTINATION_OFFSET = 0x0F1BC0
 
-    def setup(self):
+    def setUp(self):
+        if self.DOOR_TYPE is None:
+            self.skipTest("No door type specified")
         self.block = AllocatableBlock()
         self.block.from_list([0] * 0x100000)
         self.block.deallocate((self.NEW_DESTINATION_OFFSET, 0x0F58EE))
@@ -116,8 +118,8 @@ class GenericTestDestinationDoor(GenericTestDoor):
 
     def test_to_block(self):
         super(GenericTestDestinationDoor, self).test_to_block()
-        assert_equal(self.block.read_multi(self.NEW_DOOR_OFFSET + 3, 2), self.NEW_DESTINATION_OFFSET & 0xffff)
-        assert_list_equal(self.block[self.NEW_DESTINATION_OFFSET:(
+        self.assertEqual(self.block.read_multi(self.NEW_DOOR_OFFSET + 3, 2), self.NEW_DESTINATION_OFFSET & 0xffff)
+        self.assertListEqual(self.block[self.NEW_DESTINATION_OFFSET:(
             self.NEW_DESTINATION_OFFSET + len(self.DESTINATION_DATA))].to_list(),
                           self.DESTINATION_DATA)
 
@@ -125,9 +127,9 @@ class GenericTestDestinationDoor(GenericTestDoor):
         tmp_address_labels = dict()
         self.door.write_to_block(self.block, self.NEW_DOOR_OFFSET, tmp_address_labels)
         self.door.write_to_block(self.block, self.NEW_DOOR_OFFSET + 5, tmp_address_labels)
-        assert_list_equal(self.block[self.NEW_DOOR_OFFSET:self.NEW_DOOR_OFFSET + 5].to_list(),
+        self.assertListEqual(self.block[self.NEW_DOOR_OFFSET:self.NEW_DOOR_OFFSET + 5].to_list(),
                           self.block[self.NEW_DOOR_OFFSET + 5:self.NEW_DOOR_OFFSET + 10].to_list())
-        assert_equal(len(tmp_address_labels), 1)
+        self.assertEqual(len(tmp_address_labels), 1)
 
     def test_to_block_do_not_reuse_destination(self):
         tmp_address_labels = dict()
@@ -135,11 +137,11 @@ class GenericTestDestinationDoor(GenericTestDoor):
         # This works because every door with a destination has a text_pointer
         self.door.text_pointer.address += 1
         self.door.write_to_block(self.block, self.NEW_DOOR_OFFSET + 5, tmp_address_labels)
-        assert_list_equal(self.block[self.NEW_DOOR_OFFSET:self.NEW_DOOR_OFFSET + 3].to_list(),
+        self.assertListEqual(self.block[self.NEW_DOOR_OFFSET:self.NEW_DOOR_OFFSET + 3].to_list(),
                           self.block[self.NEW_DOOR_OFFSET + 5:self.NEW_DOOR_OFFSET + 8].to_list())
-        assert_not_equal(self.block[self.NEW_DOOR_OFFSET + 3:self.NEW_DOOR_OFFSET + 5].to_list(),
+        self.assertNotEqual(self.block[self.NEW_DOOR_OFFSET + 3:self.NEW_DOOR_OFFSET + 5].to_list(),
                          self.block[self.NEW_DOOR_OFFSET + 8:self.NEW_DOOR_OFFSET + 10].to_list())
-        assert_equal(len(tmp_address_labels), 2)
+        self.assertEqual(len(tmp_address_labels), 2)
 
 
 class TestSwitchDoor(GenericTestDestinationDoor):
@@ -156,8 +158,8 @@ class TestSwitchDoor(GenericTestDestinationDoor):
         "Event Flag": 0x8098
     }
 
-    def setup(self):
-        super(TestSwitchDoor, self).setup()
+    def setUp(self):
+        super(TestSwitchDoor, self).setUp()
         self.door = SwitchDoor(x=251, y=123, flag=0x8098, text_address=0x00f13245)
 
 
@@ -174,8 +176,8 @@ class TestPersonDoor(GenericTestDestinationDoor):
         "Text Pointer": "$ea92a5",
     }
 
-    def setup(self):
-        super(TestPersonDoor, self).setup()
+    def setUp(self):
+        super(TestPersonDoor, self).setUp()
         self.door = NpcDoor(x=251, y=123, type=self.DOOR_TYPE, text_address=0x00ea92a5)
 
 
@@ -192,8 +194,8 @@ class TestObjectDoor(GenericTestDestinationDoor):
         "Text Pointer": "$ea82a5",
     }
 
-    def setup(self):
-        super(TestObjectDoor, self).setup()
+    def setUp(self):
+        super(TestObjectDoor, self).setUp()
         self.door = NpcDoor(x=251, y=123, type=self.DOOR_TYPE, text_address=0x00ea82a5)
 
 
@@ -219,8 +221,8 @@ class TestDoor(GenericTestDestinationDoor):
         "Text Pointer": "$c531af"
     }
 
-    def setup(self):
-        super(TestDoor, self).setup()
+    def setUp(self):
+        super(TestDoor, self).setUp()
         self.door = Door(x=222, y=111, text_address=0x00c531af, flag=0x231, destination_x=0x711,
                          destination_y=0x313, destination_direction=DestinationDirection.UP,
                          destination_style=0x42)

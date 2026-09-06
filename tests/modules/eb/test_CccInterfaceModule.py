@@ -1,8 +1,7 @@
 import os
 import os.path
 
-import mock
-from nose.tools import assert_equal, assert_true, assert_dict_equal, assert_false, assert_is_none
+import unittest.mock as mock
 
 from coilsnake.model.eb.pointers import EbPointer
 from coilsnake.modules.eb import CccInterfaceModule
@@ -11,13 +10,13 @@ from tests.coilsnake_test import BaseTestCase, TemporaryWritableFileTestCase, TE
 
 
 class TestCccInterfaceModule(BaseTestCase, TemporaryWritableFileTestCase):
-    def setup(self):
-        super(TestCccInterfaceModule, self).setup()
+    def setUp(self):
+        super(TestCccInterfaceModule, self).setUp()
         self.mock = mock.Mock()
         self.module = CccInterfaceModule.CccInterfaceModule()
 
-    def teardown(self):
-        super(TestCccInterfaceModule, self).teardown()
+    def tearDown(self):
+        super(TestCccInterfaceModule, self).tearDown()
         del self.mock
         del self.module
 
@@ -27,8 +26,8 @@ class TestCccInterfaceModule(BaseTestCase, TemporaryWritableFileTestCase):
 
         self.module.write_to_project(resource_open)
 
-        assert_true(os.path.isfile(self.temporary_wo_file_name))
-        assert_equal(0, os.path.getsize(self.temporary_wo_file_name))
+        self.assertTrue(os.path.isfile(self.temporary_wo_file_name))
+        self.assertEqual(0, os.path.getsize(self.temporary_wo_file_name))
 
     def test_read_from_project(self):
         with open(os.path.join(TEST_DATA_DIR, 'summary.txt'), 'r') as summary_file:
@@ -37,8 +36,8 @@ class TestCccInterfaceModule(BaseTestCase, TemporaryWritableFileTestCase):
 
             self.module.read_from_project(resource_open)
 
-        assert_equal((from_snes_address(0xf10000), from_snes_address(0xf19430)), self.module.used_range)
-        assert_dict_equal(
+        self.assertEqual((from_snes_address(0xf10000), from_snes_address(0xf19430)), self.module.used_range)
+        self.assertDictEqual(
             {
                 'file1.test1': 0xc23456,
                 'file1.test2': 0xf18cfb,
@@ -59,8 +58,8 @@ class TestCccInterfaceModule(BaseTestCase, TemporaryWritableFileTestCase):
 
             self.module.read_from_project(resource_open)
 
-        assert_is_none(self.module.used_range)
-        assert_false(EbPointer.label_address_map)
+        self.assertIsNone(self.module.used_range)
+        self.assertFalse(EbPointer.label_address_map)
 
     def test_read_from_project_blank_summary(self):
         with open(os.path.join(TEST_DATA_DIR, 'summary_blank.txt'), 'r') as summary_file:
@@ -69,12 +68,12 @@ class TestCccInterfaceModule(BaseTestCase, TemporaryWritableFileTestCase):
 
             self.module.read_from_project(resource_open)
 
-        assert_is_none(self.module.used_range)
-        assert_false(EbPointer.label_address_map)
+        self.assertIsNone(self.module.used_range)
+        self.assertFalse(EbPointer.label_address_map)
 
     def test_write_to_rom(self):
         self.module.write_to_rom(self.mock)
-        assert_false(self.mock.mark_allocated.called)
+        self.assertFalse(self.mock.mark_allocated.called)
 
         self.module.used_range = (0x312345, 0x345678)
         self.module.write_to_rom(self.mock)
