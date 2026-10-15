@@ -10,14 +10,17 @@ from coilsnake.util.eb.pointer import (AsmPointerReference, XlPointerReference,
 
 log = logging.getLogger(__name__)
 
-# this decorator is used to calculate the free ranges instead of hardcoding them.
-# in 3.9 - 3.11, it's possible to combine @property and @classmethod, so we COULD just do that...
-# however, for the sake for maintainability, a >3.11-style solution is here.
-class classproperty:
-    def __init__(self, func):
-        self.fget = func
-    def __get__(self, instance, owner):
-        return self.fget(owner)
+# we're going to calculate FREE_RANGES at runtime instead of hardcoding it.
+# makes the code easier to maintain.
+def build_free_ranges(table_offsets):
+    ranges = []
+    for offset, patches in table_offsets.items():
+        if patches:
+            # `offset` is the location of an expandable table.
+            # Mark the space it originally took up as a free range
+            table = eb_table_from_offset(offset)
+            ranges.append((from_snes_address(offset), from_snes_address(offset+table.size-1)))
+    return ranges
 
 
 class MiscTablesModule(EbModule):
@@ -63,17 +66,7 @@ class MiscTablesModule(EbModule):
         0xC3E250: False,  # Windows
     }
 
-    # we're going to calculate FREE_RANGES at runtime instead of hardcoding it.
-    # makes the code easier to maintain.
-    @classproperty # for an explanation of this decorator, see above
-    def FREE_RANGES(cls):
-        ranges = []
-        for offset, patches in cls.TABLE_OFFSETS.items():
-            if not patches: continue # non-expandable, doesn't free up space
-            table = eb_table_from_offset(offset)
-            ranges.append((from_snes_address(offset), from_snes_address(offset+table.size-1)))            
-        return ranges
-
+    FREE_RANGES = build_free_ranges(TABLE_OFFSETS)
 
     def __init__(self):
         super(MiscTablesModule, self).__init__()
@@ -106,15 +99,15 @@ class MiscTablesModule(EbModule):
     def read_from_project(self, resource_open):
         for offset, table in self.tables.items():
             with resource_open(table.name.lower(), "yml", True) as f:
-                # expanded table - recreate it with our new number of rows
                 if self.TABLE_OFFSETS[offset]:
+                    # expanded table - recreate it with our new number of rows
                     log.debug("Reading {}.yml as an expanded table".format(table.name.lower()))
                     yml_rep = yml_load(f)
                     num_rows = len(yml_rep)
                     table.recreate(num_rows=num_rows)
                     table.from_yml_rep(yml_rep)
-                # unexpanded table - standard process
                 else:
+                    # unexpanded table - standard process
                     table.from_yml_file(f)
 
     def write_to_project(self, resource_open):
