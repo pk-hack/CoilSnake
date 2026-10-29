@@ -17,7 +17,7 @@ DEPENDENCIES = [
     {"name": "CoilSnake logo and icon",
      "author": "Rydel"},
     {"name": "CoilSnake 4 logo",
-     "author": "vince94"},
+     "author": "livvy94"},
     {"name": "CCScript",
      "author": "Mr. Accident",
      "url": "http://starmen.net/pkhack/ccscript"},
